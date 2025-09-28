@@ -6,7 +6,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".feature.LoginActivity">
+    tools:context=".feature.auth.LoginActivity">
 
     <TextView
         android:id="@+id/AppNameText"
@@ -15,19 +15,19 @@
         android:text="서로서로도서관"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginTop="169dp"
-        android:layout_marginBottom="48dp"
+        android:layout_marginTop="120dp"
+        android:layout_marginBottom="100dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/UserNameText"/>
+        app:layout_constraintBottom_toTopOf="@id/EmailText"/>
 
     <EditText
-        android:id="@+id/UserNameText"
+        android:id="@+id/EmailText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="아이디"
-        android:inputType="text"
+        android:hint="이메일"
+        android:inputType="textEmailAddress"
         android:autofillHints="username"
         android:layout_marginHorizontal="48dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,7 +46,7 @@
         android:layout_marginHorizontal="48dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/UserNameText"
+        app:layout_constraintTop_toBottomOf="@id/EmailText"
         app:layout_constraintBottom_toTopOf="@id/LogInButton"/>
 
     <com.google.android.material.button.MaterialButton
