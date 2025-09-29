@@ -14,7 +14,7 @@
         android:theme="@style/Theme.LibraryTogether"
         android:usesCleartextTraffic="true">
         <activity
-            android:name=".feature.LoginActivity"
+            android:name=".feature.auth.LoginActivity"
             android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

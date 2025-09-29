@@ -1,4 +1,4 @@
-package com.example.librarytogether.feature
+package com.example.librarytogether.feature.auth
 
 import android.os.Bundle
 import android.widget.EditText
