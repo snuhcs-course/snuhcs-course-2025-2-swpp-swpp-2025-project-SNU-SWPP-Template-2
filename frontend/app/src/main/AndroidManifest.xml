@@ -31,6 +31,15 @@
             android:name=".feature.auth.ForgotPasswordActivity"
             android:exported="false" />
 
+
+        <activity
+            android:name=".feature.auth.ResetPasswordActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".feature.auth.VerifyEmailActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

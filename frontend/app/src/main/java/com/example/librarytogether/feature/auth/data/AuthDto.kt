@@ -20,3 +20,29 @@ data class SignUpRequest(
 data class SignUpResponse(
     val ok: Boolean,
 )
+
+data class ForgotPasswordRequest(
+    val email: String,
+)
+
+data class ForgotPasswordResponse(
+    val requestId: String,
+    val code: String
+)
+
+data class ForgotVerifyRequest(
+    val requestId: String,
+    val code: String
+)
+
+data class ForgotVerifyResponse(
+    val ok: Boolean
+)
+
+data class ForgotResetRequest(
+    val password: String,
+)
+
+data class ForgotResetResponse(
+    val ok: Boolean,
+)
