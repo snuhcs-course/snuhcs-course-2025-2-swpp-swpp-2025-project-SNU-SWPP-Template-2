@@ -1,0 +1,273 @@
+# 📚 Book Bartering Social Network - Django Backend
+
+A comprehensive Django-based backend for a social networking platform focused on book bartering and exchange.
+
+## 🚀 Features
+
+### 📖 Book Management
+- **Book Catalog**: Complete book information with ISBN, authors, publishers, genres
+- **Book Reviews & Ratings**: User reviews with star ratings and helpful votes
+- **Reading Status Tracking**: Track reading progress, start/finish dates
+- **Book Collections**: User-created collections and wishlists
+- **Book Recommendations**: Personalized book recommendations between users
+
+### 👥 Social Features
+- **User Profiles**: Rich user profiles with preferences and social connections
+- **Follow System**: Follow/unfollow other users
+- **Social Posts**: Share thoughts, reviews, and reading updates
+- **Comments & Likes**: Engage with posts through comments and likes
+- **Book Clubs**: Create and join book clubs with discussions
+- **Direct Messaging**: Private messaging between users
+- **Activity Feed**: Real-time activity streams
+
+### 🔄 Barter System
+- **Barter Requests**: Request book exchanges with other users
+- **Negotiation System**: Counter-offers and negotiation workflow
+- **Meeting Coordination**: Schedule and coordinate book exchanges
+- **Transaction Tracking**: Complete transaction history
+- **Rating System**: Rate users after successful exchanges
+- **Reputation System**: Build trust through successful trades
+
+### 🔔 Notification System
+- **Real-time Notifications**: Instant notifications for all activities
+- **Email Notifications**: Configurable email alerts
+- **Push Notifications**: Mobile push notification support
+- **Notification Preferences**: Granular control over notification types
+- **Batch Notifications**: System-wide announcements
+
+## 🏗️ Architecture
+
+### Django Apps Structure
+```
+backend/
+├── accounts/          # User management & authentication
+├── books/            # Book catalog & management
+├── social/           # Social features & interactions
+├── barter/           # Barter system & transactions
+├── notify/           # Notification system
+└── core/             # Project settings & configuration
+```
+
+### Key Technologies
+- **Django 5.2+**: Modern Python web framework
+- **Django REST Framework**: API development
+- **Django Channels**: Real-time WebSocket support
+- **PostgreSQL**: Production database
+- **Redis**: Caching and real-time features
+- **Celery**: Background task processing
+- **JWT Authentication**: Secure API authentication
+- **Social Authentication**: Google & Facebook login
+
+## 🛠️ Installation & Setup
+
+### Prerequisites
+- Python 3.11+
+- PostgreSQL (for production)
+- Redis (for production)
+
+### Development Setup
+
+1. **Clone the repository**
+```bash
+git clone <repository-url>
+cd backend
+```
+
+2. **Create virtual environment**
+```bash
+python -m venv venv
+# Windows
+.\venv\Scripts\Activate.ps1
+# Linux/Mac
+source venv/bin/activate
+```
+
+3. **Install dependencies**
+```bash
+pip install -r requirements-dev.txt
+```
+
+4. **Environment configuration**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
+
+5. **Database setup**
+```bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+6. **Run development server**
+```bash
+python manage.py runserver
+```
+
+## 📊 Database Models
+
+### User Management
+- **User**: Extended user model with social features
+- **Follow**: User follow relationships
+- **UserPreferences**: User settings and preferences
+
+### Book System
+- **Book**: Complete book information with metadata
+- **Author**: Book authors with biographical information
+- **Publisher**: Publishing house information
+- **Genre**: Book categorization
+- **BookReview**: User reviews and ratings
+- **ReadingStatus**: Reading progress tracking
+- **BookCollection**: User-created book collections
+- **BookWishlist**: User book wishlists
+
+### Social Features
+- **Post**: User posts with different types
+- **Comment**: Comments on posts with threading
+- **PostLike/CommentLike**: Engagement tracking
+- **BookClub**: Book clubs with membership management
+- **DirectMessage**: Private messaging system
+- **UserActivity**: Activity feed tracking
+- **Recommendation**: Book recommendations between users
+
+### Barter System
+- **BarterRequest**: Book exchange requests
+- **BarterCounter**: Counter-offers in negotiations
+- **BarterTransaction**: Completed exchange tracking
+- **BarterRating**: Post-exchange user ratings
+
+### Notifications
+- **Notification**: Comprehensive notification system
+- **NotificationPreference**: User notification settings
+- **NotificationTemplate**: Customizable notification templates
+- **NotificationBatch**: System-wide announcements
+
+## 🔧 Configuration
+
+### Environment Variables
+```env
+# Django Configuration
+DJANGO_SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database
+DATABASE_URL=postgresql://user:pass@localhost:5432/bookbarter
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
+
+# Email
+EMAIL_HOST=smtp.gmail.com
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-app-password
+
+# Social Authentication
+GOOGLE_OAUTH2_CLIENT_ID=your-google-client-id
+GOOGLE_OAUTH2_CLIENT_SECRET=your-google-client-secret
+FACEBOOK_APP_ID=your-facebook-app-id
+FACEBOOK_APP_SECRET=your-facebook-app-secret
+
+# AWS (Production)
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_STORAGE_BUCKET_NAME=your-s3-bucket
+```
+
+## 📡 API Endpoints
+
+### Authentication
+- `POST /auth/users/` - User registration
+- `POST /auth/jwt/create/` - JWT token creation
+- `POST /auth/jwt/refresh/` - JWT token refresh
+
+### API Documentation
+- `/api/docs/` - Swagger UI documentation
+- `/api/redoc/` - ReDoc documentation
+- `/api/schema/` - OpenAPI schema
+
+### Admin Interface
+- `/admin/` - Django admin interface
+
+## 🚀 Deployment
+
+### AWS Production Setup
+- **ECS/EC2**: Container deployment
+- **RDS**: PostgreSQL database
+- **ElastiCache**: Redis caching
+- **S3**: Media file storage
+- **CloudFront**: CDN for static files
+- **ALB**: Load balancing
+- **ACM**: SSL certificates
+
+### Docker Support
+```dockerfile
+# Dockerfile included for containerization
+# docker-compose.yml for local development
+```
+
+## 🧪 Testing
+
+### **Quick Start Testing**
+```bash
+# Interactive test runner (recommended)
+python run_tests.py
+
+# Or run individual tests
+.\venv\Scripts\Activate.ps1
+python tests/test_api_integration.py
+```
+
+### **Test Organization**
+```
+backend/
+├── tests/
+│   ├── test_api_integration.py   # Complete API testing
+│   ├── test_auth_debug.py        # Authentication debugging
+│   ├── test_server.py            # Server testing utilities
+│   └── debug_auth.py             # Comprehensive diagnostics
+├── run_tests.py                  # Interactive test runner
+└── TESTING_GUIDE.md              # Detailed testing documentation
+```
+
+### **Test Coverage**
+- ✅ User registration and authentication
+- ✅ JWT token generation and validation
+- ✅ Password reset workflow
+- ✅ Social authentication framework
+- ✅ Database integration
+- ✅ API endpoint functionality
+- ✅ Username/email login compatibility
+- ✅ Error handling and validation
+
+For detailed testing instructions, see [TESTING_GUIDE.md](TESTING_GUIDE.md).
+
+### **Unit Tests (Future)**
+```bash
+# Run Django unit tests
+python manage.py test
+
+# Run with coverage
+coverage run --source='.' manage.py test
+coverage report
+```
+
+## 📈 Monitoring & Debugging
+
+- **Django Debug Toolbar**: Development debugging
+- **Silk**: SQL query profiling
+- **Logging**: Comprehensive logging configuration
+- **Health Checks**: API health monitoring
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the MIT License.
