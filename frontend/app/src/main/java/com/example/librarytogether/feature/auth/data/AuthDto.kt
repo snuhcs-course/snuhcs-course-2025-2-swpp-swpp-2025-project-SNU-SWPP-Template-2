@@ -1,5 +1,26 @@
 package com.example.librarytogether.feature.auth.data
 
+//data class ApiResponse<T>(
+//    val success: Boolean,
+//    val data: T? = null,
+//    val message: String? = null,
+//    val error: ApiError? = null,
+//    val pagination: Pagination? = null
+//)
+//
+//data class ApiError(
+//    val code: String,
+//    val message: String,
+//    val details: Map<String, Any>? = null
+//)
+//
+//data class Pagination(
+//    val page: Int,
+//    val size: Int,
+//    val total: Int,
+//    val total_pages: Int
+//)
+
 data class LoginRequest(
     val username: String,
     val password: String
@@ -7,8 +28,19 @@ data class LoginRequest(
 
 data class LoginResponse(
     val ok: Boolean,
-    val token: String?,
+    val accessToken: String,
+    val refreshToken: String,
+    val user: String? = null,
     val message: String? = null
+)
+
+data class RefreshRequest(
+    val refreshToken: String
+)
+
+data class RefreshResponse(
+    val accessToken: String,
+    val refreshToken: String
 )
 
 data class SignUpRequest(

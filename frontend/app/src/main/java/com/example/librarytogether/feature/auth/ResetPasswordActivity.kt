@@ -15,7 +15,9 @@ import kotlinx.coroutines.launch
 class ResetPasswordActivity : AppCompatActivity() {
     private lateinit var newPassword: EditText
     private lateinit var btnReset: MaterialButton
-    private val service: AuthApi by lazy { RetrofitClient.instance.create(AuthApi::class.java) }
+    private val service: AuthApi by lazy {
+        RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

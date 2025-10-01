@@ -17,7 +17,9 @@ import kotlinx.coroutines.launch
 class ForgotPasswordActivity : AppCompatActivity() {
     private lateinit var email: EditText
     private lateinit var btnSendEmail: MaterialButton
-    private val service: AuthApi by lazy { RetrofitClient.instance.create(AuthApi::class.java) }
+    private val service: AuthApi by lazy {
+        RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

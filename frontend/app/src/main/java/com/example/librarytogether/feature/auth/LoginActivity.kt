@@ -12,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.librarytogether.R
 import com.example.librarytogether.feature.auth.data.AuthApi
 import com.example.librarytogether.feature.auth.data.LoginRequest
+import com.example.librarytogether.network.AuthManager
 import com.example.librarytogether.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
@@ -26,7 +27,9 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var btnKakao: MaterialButton
     private lateinit var btnSignUp: MaterialButton
 
-    private val service: AuthApi by lazy { RetrofitClient.instance.create(AuthApi::class.java) }
+    private val service: AuthApi by lazy {
+        RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
+    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +75,11 @@ class LoginActivity : AppCompatActivity() {
                 if (resp.isSuccessful) {
                     val body = resp.body()
                     if (body?.ok == true) {
+                        AuthManager.saveTokens(
+                            context = this@LoginActivity,
+                            access = body.accessToken,
+                            refresh = body.refreshToken
+                        )
                         email.setText("")
                         password.setText("")
 

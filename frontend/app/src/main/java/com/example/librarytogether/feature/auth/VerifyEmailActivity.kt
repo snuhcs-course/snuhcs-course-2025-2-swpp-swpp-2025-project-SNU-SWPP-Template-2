@@ -25,7 +25,9 @@ class VerifyEmailActivity : AppCompatActivity() {
     private lateinit var btnVerify: MaterialButton
     private lateinit var requestId: String
     private lateinit var email: String
-    private val service: AuthApi by lazy { RetrofitClient.instance.create(AuthApi::class.java) }
+    private val service: AuthApi by lazy {
+        RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -70,9 +72,8 @@ class VerifyEmailActivity : AppCompatActivity() {
                 val resp = service.forgotVerify(ForgotVerifyRequest(requestId, code))
                 if (resp.isSuccessful) {
                     if (resp.body()?.ok == true) {
-                        val intent =
-                            Intent(this@VerifyEmailActivity, ResetPasswordActivity::class.java)
-                            startActivity(intent)
+                        val intent = Intent(this@VerifyEmailActivity, ResetPasswordActivity::class.java)
+                        startActivity(intent)
                     }
                 }
                 else {
