@@ -54,7 +54,6 @@ class VerifyEmailActivity : AppCompatActivity() {
             inputs[i].addTextChangedListener(object : TextWatcher {
                 override fun afterTextChanged(s: Editable?) {
                     if (s?.length == 1) {
-                        // 다음 칸으로 이동
                         if (i < inputs.lastIndex) inputs[i + 1].requestFocus()
                     }
                 }

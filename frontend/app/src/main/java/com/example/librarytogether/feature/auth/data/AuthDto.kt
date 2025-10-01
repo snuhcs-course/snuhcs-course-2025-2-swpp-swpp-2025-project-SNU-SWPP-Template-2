@@ -59,7 +59,6 @@ data class ForgotPasswordRequest(
 
 data class ForgotPasswordResponse(
     val requestId: String,
-    val code: String
 )
 
 data class ForgotVerifyRequest(

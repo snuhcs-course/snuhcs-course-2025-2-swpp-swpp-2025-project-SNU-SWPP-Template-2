@@ -1,5 +1,6 @@
 package com.example.librarytogether.feature.auth
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.Toast
@@ -23,7 +24,7 @@ class ResetPasswordActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.reset_password)
 
-        newPassword = findViewById(R.id.ResetPasswordText)
+        newPassword = findViewById(R.id.PasswordText)
         btnReset = findViewById(R.id.ResetPasswordButton)
 
         btnReset.setOnClickListener { onClickSignUp() }
@@ -51,11 +52,9 @@ class ResetPasswordActivity : AppCompatActivity() {
                 if (resp.isSuccessful) {
                     val body = resp.body()
                     if (body?.ok == true) {
-                        // Reset input fields(입력 초기화)
                         newPassword.setText("")
-
-                        // startActivity(Intent(this, HomeActivity::class.java))
-                        // finish()
+                        val intent = Intent(this@ResetPasswordActivity, LoginActivity::class.java)
+                        startActivity(intent)
                     }
                     else {
                         Toast.makeText(this@ResetPasswordActivity, "모든 필드를 올바르게 입력하세요", Toast.LENGTH_SHORT).show()
