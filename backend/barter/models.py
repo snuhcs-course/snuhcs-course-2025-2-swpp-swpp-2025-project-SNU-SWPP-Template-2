@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
-from books.models import Book
 import uuid
 
 User = get_user_model()
@@ -42,12 +41,12 @@ class BarterRequest(models.Model):
 
     # Books Involved
     offered_books = models.ManyToManyField(
-        Book,
+        'books.Book',
         related_name='offered_in_barters',
         help_text="Books offered by the requester"
     )
     requested_books = models.ManyToManyField(
-        Book,
+        'books.Book',
         related_name='requested_in_barters',
         help_text="Books requested from the recipient"
     )
@@ -128,12 +127,12 @@ class BarterCounter(models.Model):
 
     # Counter Offer Details
     offered_books = models.ManyToManyField(
-        Book,
+        'books.Book',
         related_name='counter_offered_books',
         blank=True
     )
     requested_books = models.ManyToManyField(
-        Book,
+        'books.Book',
         related_name='counter_requested_books',
         blank=True
     )

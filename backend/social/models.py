@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from books.models import Book
 import uuid
 
 User = get_user_model()
@@ -28,7 +27,7 @@ class Post(models.Model):
 
     # Related Objects
     related_book = models.ForeignKey(
-        Book,
+        'books.Book',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -190,7 +189,7 @@ class BookClub(models.Model):
 
     # Current Book
     current_book = models.ForeignKey(
-        Book,
+        'books.Book',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -265,7 +264,7 @@ class BookClubDiscussion(models.Model):
 
     # Related Book (optional)
     related_book = models.ForeignKey(
-        Book,
+        'books.Book',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -339,7 +338,7 @@ class DirectMessage(models.Model):
 
     # Related Objects (optional)
     related_book = models.ForeignKey(
-        Book,
+        'books.Book',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -393,7 +392,7 @@ class UserActivity(models.Model):
     description = models.CharField(max_length=200)
 
     # Related Objects (generic foreign keys would be better, but keeping simple)
-    related_book = models.ForeignKey(Book, on_delete=models.CASCADE, null=True, blank=True)
+    related_book = models.ForeignKey('books.Book', on_delete=models.CASCADE, null=True, blank=True)
     related_user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='related_activities')
     related_post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True, blank=True)
 
@@ -423,7 +422,7 @@ class Recommendation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     recommender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='given_recommendations')
     recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_recommendations')
-    book = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='recommendations')
+    book = models.ForeignKey('books.Book', on_delete=models.CASCADE, related_name='recommendations')
 
     message = models.TextField(help_text="Why are you recommending this book?")
 
