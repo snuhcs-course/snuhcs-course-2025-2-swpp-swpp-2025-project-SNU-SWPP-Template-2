@@ -323,6 +323,8 @@ class SocialAuthView(APIView):
 
     def get_or_create_social_user(self, provider, user_info):
         """Get or create user from social provider info."""
+        from django.db import IntegrityError, transaction
+
         email = user_info.get('email')
         name = user_info.get('name', '')
 
@@ -331,26 +333,47 @@ class SocialAuthView(APIView):
                 user = User.objects.get(email=email)
                 return user, False
             except User.DoesNotExist:
-                # Create new user
-                username = email.split('@')[0]
-                # Ensure username is unique
-                base_username = username
-                counter = 1
-                while User.objects.filter(username=username).exists():
-                    username = f"{base_username}{counter}"
-                    counter += 1
+                # Create new user with unique username
+                base_username = email.split('@')[0]
 
-                user = User.objects.create_user(
-                    username=username,
-                    email=email,
-                    first_name=name.split(' ')[0] if name else '',
-                    last_name=' '.join(name.split(' ')[1:]) if len(name.split(' ')) > 1 else ''
-                )
+                # Try to create user with retry logic for username conflicts
+                max_attempts = 5
+                for attempt in range(max_attempts):
+                    try:
+                        # Generate username with random suffix if not first attempt
+                        if attempt == 0:
+                            username = base_username
+                        else:
+                            # Use random 6-character suffix for uniqueness
+                            random_suffix = get_random_string(
+                                6,
+                                allowed_chars='0123456789abcdefghijklmnopqrstuvwxyz'
+                            )
+                            username = f"{base_username}_{random_suffix}"
 
-                # Create user preferences
-                UserPreferences.objects.create(user=user)
+                        # Use atomic transaction to handle IntegrityError properly
+                        with transaction.atomic():
+                            user = User.objects.create_user(
+                                username=username,
+                                email=email,
+                                first_name=name.split(' ')[0] if name else '',
+                                last_name=' '.join(name.split(' ')[1:]) if len(name.split(' ')) > 1 else ''
+                            )
 
-                return user, True
+                            # Create user preferences
+                            UserPreferences.objects.create(user=user)
+
+                        return user, True
+
+                    except IntegrityError:
+                        # Username collision, retry with different suffix
+                        if attempt == max_attempts - 1:
+                            # Last attempt failed, raise error
+                            raise Exception(
+                                "Failed to create unique username after "
+                                f"{max_attempts} attempts"
+                            )
+                        continue
 
         return None, False
 
