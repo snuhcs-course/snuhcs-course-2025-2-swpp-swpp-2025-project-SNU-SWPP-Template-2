@@ -1,7 +1,7 @@
 # Django Book Bartering Social Network - Production Dependencies
 
 # Core Django
-Django>=5.2,<5.3
+Django>=5.2
 djangorestframework>=3.15.0
 django-cors-headers>=4.3.0
 
