@@ -13,6 +13,7 @@ import androidx.lifecycle.lifecycleScope
 import com.example.librarytogether.R
 import com.example.librarytogether.feature.auth.data.AuthApi
 import com.example.librarytogether.feature.auth.data.LoginRequest
+import com.example.librarytogether.feature.auth.data.GoogleAuthRequest
 import com.example.librarytogether.network.AuthManager
 import com.example.librarytogether.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
@@ -149,36 +150,41 @@ class LoginActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             try {
-                val result: GetCredentialResponse =
-                    credentialManager.getCredential(this@LoginActivity, request)
-                handleGoogleResult(result)
-            } catch (e: GetCredentialException) {
-                Toast.makeText(this@LoginActivity, "Google 로그인 실패", Toast.LENGTH_SHORT).show()
+                val result = credentialManager.getCredential(this@LoginActivity, request)
+                val credential = result.credential
+                if (credential is CustomCredential &&
+                    credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                ) {
+                    val googleCred = GoogleIdTokenCredential.createFrom(credential.data)
+                    val idToken = googleCred.idToken
+
+                    val resp = service.googleLogin(GoogleAuthRequest(idToken))
+                    if (resp.isSuccessful) {
+                        val body = resp.body()
+                        if (body?.ok == true && body.accessToken != null && body.refreshToken != null) {
+                            AuthManager.saveTokens(
+                                context = this@LoginActivity,
+                                access = body.accessToken,
+                                refresh = body.refreshToken
+                            )
+                            Toast.makeText(
+                                this@LoginActivity,
+                                "구글 로그인 성공! ${googleCred.displayName}님",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            // startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
+                            // finish()
+                        } else {
+                            Toast.makeText(this@LoginActivity, body?.message ?: "로그인 실패", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@LoginActivity, "네트워크/로그인 에러", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-
-    private fun handleGoogleResult(result: GetCredentialResponse) {
-        val credential = result.credential
-
-        if (credential is CustomCredential &&
-            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-        ) {
-            try {
-                val googleCred = GoogleIdTokenCredential.createFrom(credential.data)
-                val idToken = googleCred.idToken
-
-                Toast.makeText(this, "로그인 성공: $idToken", Toast.LENGTH_SHORT).show()
-                // TODO: 이 idToken을 서버로 전송해서 검증 후 세션/JWT 발급
-
-            } catch (e: GoogleIdTokenParsingException) {
-                Toast.makeText(this, "구글 토큰 파싱 실패", Toast.LENGTH_SHORT).show()
-            }
-        } else {
-            Toast.makeText(this, "지원하지 않는 Credential 타입", Toast.LENGTH_SHORT).show()
-        }
-    }
 
 
     private fun onClickKakaoLogin() {

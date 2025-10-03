@@ -77,3 +77,13 @@ data class ForgotResetRequest(
 data class ForgotResetResponse(
     val ok: Boolean,
 )
+data class GoogleAuthRequest(
+    val idToken: String
+)
+
+data class GoogleAuthResponse(
+    val ok: Boolean,
+    val accessToken: String?,
+    val refreshToken: String?,
+    val message: String?
+)
