@@ -1,6 +1,7 @@
 package com.example.librarytogether.feature.auth
 
 import android.content.Intent
+//import android.credentials.Credential
 import android.os.Bundle
 import android.widget.EditText
 import android.widget.Toast
@@ -17,6 +18,22 @@ import com.example.librarytogether.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
 
+// androidx.credentials import
+import androidx.credentials.Credential
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialException
+
+// Google ID Token 관련 import
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+
+// UUID
+import java.util.UUID
+
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var email: EditText
@@ -26,11 +43,16 @@ class LoginActivity : AppCompatActivity() {
     private lateinit var btnGoogle: MaterialButton
     private lateinit var btnKakao: MaterialButton
     private lateinit var btnSignUp: MaterialButton
+    private lateinit var credentialManager: CredentialManager
 
+
+    companion object {
+        // Google Cloud Console 에서 발급 받은 Web Client ID
+        const val WEB_CLIENT_ID = "664664679929-unuuvstmjju3ukhbnjpriblaumjcft1s.apps.googleusercontent.com"
+    }
     private val service: AuthApi by lazy {
         RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,8 +75,10 @@ class LoginActivity : AppCompatActivity() {
         btnLogin.setOnClickListener { onClickLogin() }
         btnForgot.setOnClickListener { onClickForgotPassword() }
         btnSignUp.setOnClickListener { onClickSignUp() }
-        btnGoogle.setOnClickListener { onClickGoogleLogin() }
         btnKakao.setOnClickListener { onClickKakaoLogin() }
+
+        credentialManager = CredentialManager.create(this)
+        btnGoogle.setOnClickListener {onClickGoogleLogin() }
     }
 
     private fun onClickLogin() {
@@ -113,9 +137,49 @@ class LoginActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    //----------------------------------------------------------------------------------------------
     private fun onClickGoogleLogin() {
-        Toast.makeText(this, "구글 회원가입", Toast.LENGTH_SHORT).show()
+        val googleOption = GetSignInWithGoogleOption.Builder(WEB_CLIENT_ID)
+            .setNonce(UUID.randomUUID().toString())
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleOption)
+            .build()
+
+        lifecycleScope.launch {
+            try {
+                val result: GetCredentialResponse =
+                    credentialManager.getCredential(this@LoginActivity, request)
+                handleGoogleResult(result)
+            } catch (e: GetCredentialException) {
+                Toast.makeText(this@LoginActivity, "Google 로그인 실패", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
+
+
+    private fun handleGoogleResult(result: GetCredentialResponse) {
+        val credential = result.credential
+
+        if (credential is CustomCredential &&
+            credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+        ) {
+            try {
+                val googleCred = GoogleIdTokenCredential.createFrom(credential.data)
+                val idToken = googleCred.idToken
+
+                Toast.makeText(this, "로그인 성공: $idToken", Toast.LENGTH_SHORT).show()
+                // TODO: 이 idToken을 서버로 전송해서 검증 후 세션/JWT 발급
+
+            } catch (e: GoogleIdTokenParsingException) {
+                Toast.makeText(this, "구글 토큰 파싱 실패", Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            Toast.makeText(this, "지원하지 않는 Credential 타입", Toast.LENGTH_SHORT).show()
+        }
+    }
+
 
     private fun onClickKakaoLogin() {
         Toast.makeText(this, "카카오 회원가입", Toast.LENGTH_SHORT).show()

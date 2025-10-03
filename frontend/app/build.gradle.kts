@@ -51,4 +51,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     implementation(libs.google.auth)
+    implementation("androidx.credentials:credentials:1.6.0-alpha05")
+    implementation("androidx.credentials:credentials-play-services-auth:1.6.0-alpha05")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
 }
