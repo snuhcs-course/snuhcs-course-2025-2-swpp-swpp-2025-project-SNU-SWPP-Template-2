@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+<<<<<<< HEAD
 import androidx.lifecycle.lifecycleScope
 import com.example.librarytogether.R
 import com.example.librarytogether.feature.auth.data.AuthApi
@@ -17,6 +18,10 @@ import com.example.librarytogether.feature.auth.data.SignUpResponse
 import com.example.librarytogether.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
+=======
+import com.example.librarytogether.R
+import com.google.android.material.button.MaterialButton
+>>>>>>> d530b6441a980cc625e001b699fa91747f5bdaec
 
 class SignupActivity : AppCompatActivity() {
 
@@ -28,15 +33,27 @@ class SignupActivity : AppCompatActivity() {
     private lateinit var btnKakao: MaterialButton
     private lateinit var btnLogin: MaterialButton
 
+<<<<<<< HEAD
     private val service: AuthApi by lazy {
         RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
     }
 
+=======
+>>>>>>> d530b6441a980cc625e001b699fa91747f5bdaec
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.sign_up)
 
+<<<<<<< HEAD
+=======
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
+>>>>>>> d530b6441a980cc625e001b699fa91747f5bdaec
         // View binding
         userName = findViewById(R.id.UserNameText)
         email = findViewById(R.id.EmailText)
@@ -68,6 +85,7 @@ class SignupActivity : AppCompatActivity() {
             return
         }
 
+<<<<<<< HEAD
         btnSignUp.isEnabled = false
 
 
@@ -101,6 +119,16 @@ class SignupActivity : AppCompatActivity() {
                 btnLogin.isEnabled = true
             }
         }
+=======
+
+        // Reset input fields(입력 초기화)
+        userName.setText("")
+        email.setText("")
+        password.setText("")
+
+        // TODO: Integrate server API (Sign-up request)
+        Toast.makeText(this, "회원가입 요청: $id / $mail", Toast.LENGTH_SHORT).show()
+>>>>>>> d530b6441a980cc625e001b699fa91747f5bdaec
     }
 
     private fun onClickGoogleSignUp() {
@@ -116,4 +144,8 @@ class SignupActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> d530b6441a980cc625e001b699fa91747f5bdaec
