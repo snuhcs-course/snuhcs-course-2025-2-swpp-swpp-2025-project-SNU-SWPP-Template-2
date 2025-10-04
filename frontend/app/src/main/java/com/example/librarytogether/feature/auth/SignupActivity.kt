@@ -27,11 +27,13 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
+import com.example.librarytogether.feature.auth.data.KakaoAuthRequest
 
 // Google ID Token 관련 import
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.kakao.sdk.user.UserApiClient
 
 // UUID
 import java.util.UUID
@@ -171,9 +173,52 @@ class SignupActivity : AppCompatActivity() {
     }
 
 
+    // 카카오 릴리지용 key hash 발급 및 등록 아직 안함.
     private fun onClickKakaoSignUp() {
-        Toast.makeText(this, "카카오 회원가입", Toast.LENGTH_SHORT).show()
+        UserApiClient.instance.loginWithKakaoTalk(this) { token, error ->
+            if (error != null) {
+                loginWithKakaoAccountForSignup()
+            } else if (token != null) {
+                handleKakaoSignup(token.accessToken)
+            }
+        }
     }
+
+    private fun loginWithKakaoAccountForSignup() {
+        UserApiClient.instance.loginWithKakaoAccount(this) { token, error ->
+            if (error != null) {
+                Toast.makeText(this, "카카오 회원가입 실패: ${error.message}", Toast.LENGTH_SHORT).show()
+            } else if (token != null) {
+                handleKakaoSignup(token.accessToken)
+            }
+        }
+    }
+
+    private fun handleKakaoSignup(accessToken: String) {
+        lifecycleScope.launch {
+            try {
+                val resp = service.kakaoSignup(KakaoAuthRequest(accessToken))
+                if (resp.isSuccessful) {
+                    val body = resp.body()
+                    if (body?.ok == true && body.accessToken != null && body.refreshToken != null) {
+                        AuthManager.saveTokens(
+                            context = this@SignupActivity,
+                            access = body.accessToken,
+                            refresh = body.refreshToken
+                        )
+                        Toast.makeText(this@SignupActivity, "카카오 회원가입 성공!", Toast.LENGTH_SHORT).show()
+                        // startActivity(Intent(this@SignupActivity, HomeActivity::class.java))
+                        // finish()
+                    } else {
+                        Toast.makeText(this@SignupActivity, body?.message ?: "회원가입 실패", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this@SignupActivity, "네트워크 에러", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
 
     private fun onClickGoToLogin() {
         val intent = Intent(this, LoginActivity::class.java)

@@ -30,11 +30,11 @@ interface AuthApi {
     @POST("auth/login/google")
     suspend fun googleLogin(@Body body: GoogleAuthRequest): Response<GoogleAuthResponse>
 
-//    @POST("auth/signup/kakao")
-//    suspend fun kakaoSignup(@Body body: KakaoAuthRequest): Response<KakaoAuthResponse>
+    @POST("auth/signup/kakao")
+    suspend fun kakaoSignup(@Body request: KakaoAuthRequest): Response<KakaoAuthResponse>
 
-//    @POST("auth/login/kakao")
-//    suspend fun kakaoLogin(@Body body: KakaoAuthRequest): Response<KakaoAuthResponse>
+    @POST("auth/login/kakao")
+    suspend fun kakaoLogin(@Body request: KakaoAuthRequest): Response<KakaoAuthResponse>
 
 
 }
