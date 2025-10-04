@@ -16,14 +16,14 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     Custom JWT token serializer that matches frontend expectations.
     """
     username_field = 'username'  # Can be email or username
-    
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Remove username field and add custom fields
         self.fields.pop('username', None)
         self.fields['username'] = serializers.CharField()
         self.fields['password'] = serializers.CharField(write_only=True)
-    
+
     def validate(self, attrs):
         username = attrs.get('username')
         password = attrs.get('password')
@@ -70,40 +70,40 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     username = serializers.CharField(max_length=150)
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True, min_length=6)
-    
+
     class Meta:
         model = User
         fields = ('username', 'email', 'password')
-    
+
     def validate_username(self, value):
         """Validate username is unique."""
         if User.objects.filter(username=value).exists():
             raise serializers.ValidationError("Username already exists")
         return value
-    
+
     def validate_email(self, value):
         """Validate email is unique."""
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email already exists")
         return value
-    
+
     def validate_password(self, value):
         """Validate password meets requirements."""
         try:
             validate_password(value)
         except ValidationError as e:
             raise serializers.ValidationError(e.messages)
-        
+
         # Additional validation to match frontend requirements
         if len(value) < 6:
             raise serializers.ValidationError("Password must be at least 6 characters long")
-        
+
         # Check for at least one letter (matching frontend regex)
         if not any(c.isalpha() for c in value):
             raise serializers.ValidationError("Password must contain at least one letter")
-        
+
         return value
-    
+
     def create(self, validated_data):
         """Create new user with encrypted password."""
         password = validated_data.pop('password')
@@ -112,10 +112,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             email=validated_data['email'],
             password=password
         )
-        
+
         # Create user preferences
         UserPreferences.objects.create(user=user)
-        
+
         return user
 
 
@@ -126,7 +126,7 @@ class UserSerializer(serializers.ModelSerializer):
     follower_count = serializers.ReadOnlyField()
     following_count = serializers.ReadOnlyField()
     books_count = serializers.ReadOnlyField()
-    
+
     class Meta:
         model = User
         fields = (
@@ -144,7 +144,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
     Serializer for password reset request (forgot password).
     """
     email = serializers.EmailField()
-    
+
     def validate_email(self, value):
         """Validate email exists in system."""
         try:
@@ -167,7 +167,7 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     Serializer for password reset confirmation.
     """
     password = serializers.CharField(min_length=6)
-    
+
     def validate_password(self, value):
         """Validate new password."""
         try:
@@ -183,19 +183,44 @@ class SocialAuthSerializer(serializers.Serializer):
     """
     provider = serializers.ChoiceField(choices=['google', 'facebook', 'kakao'])
     access_token = serializers.CharField()
-    
+
     def validate(self, attrs):
         """Validate social auth token."""
         provider = attrs.get('provider')
         access_token = attrs.get('access_token')
-        
+
         # Here you would validate the token with the respective provider
         # For now, we'll implement basic validation
-        
+
         if not access_token:
             raise serializers.ValidationError("Access token is required")
-        
+
         return attrs
+
+
+class GoogleAuthSerializer(serializers.Serializer):
+    """
+    Serializer for Google ID Token authentication.
+    Matches frontend GoogleAuthRequest format.
+    """
+    idToken = serializers.CharField()
+
+    def validate_idToken(self, value):
+        """Validate Google ID token format."""
+        if not value:
+            raise serializers.ValidationError("Google ID token is required")
+        return value
+
+
+class GoogleAuthResponseSerializer(serializers.Serializer):
+    """
+    Serializer for Google authentication response.
+    Matches frontend GoogleAuthResponse format.
+    """
+    ok = serializers.BooleanField()
+    accessToken = serializers.CharField(required=False, allow_null=True)
+    refreshToken = serializers.CharField(required=False, allow_null=True)
+    message = serializers.CharField(required=False, allow_null=True)
 
 
 class UserPreferencesSerializer(serializers.ModelSerializer):
@@ -218,7 +243,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
             'profile_picture', 'phone_number', 'is_profile_public',
             'allow_direct_messages'
         )
-    
+
     def validate_profile_picture(self, value):
         """Validate profile picture size."""
         if value and value.size > 5 * 1024 * 1024:  # 5MB limit

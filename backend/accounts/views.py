@@ -24,6 +24,8 @@ from .serializers import (
     PasswordResetVerifySerializer,
     PasswordResetConfirmSerializer,
     SocialAuthSerializer,
+    GoogleAuthSerializer,
+    GoogleAuthResponseSerializer,
     UserPreferencesSerializer,
     ProfileUpdateSerializer
 )
@@ -404,3 +406,166 @@ def update_profile(request):
         'ok': False,
         'errors': serializer.errors
     }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoogleLoginView(APIView):
+    """
+    Google ID Token authentication for login.
+    Matches frontend expectations for /auth/login/google endpoint.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        summary="Google Login",
+        description="Authenticate user with Google ID Token",
+        request=GoogleAuthSerializer,
+        responses={
+            200: OpenApiResponse(description="Google login successful"),
+            400: OpenApiResponse(description="Google login failed"),
+        }
+    )
+    def post(self, request):
+        serializer = GoogleAuthSerializer(data=request.data)
+
+        if serializer.is_valid():
+            id_token = serializer.validated_data['idToken']
+
+            # Validate Google ID token and get user info
+            user_info = self.validate_google_id_token(id_token)
+
+            if user_info:
+                # Get or create user
+                user, created = self.get_or_create_google_user(user_info)
+
+                # Generate JWT tokens
+                from rest_framework_simplejwt.tokens import RefreshToken
+                refresh = RefreshToken.for_user(user)
+
+                return Response({
+                    'ok': True,
+                    'accessToken': str(refresh.access_token),
+                    'refreshToken': str(refresh),
+                    'message': 'Google login successful'
+                }, status=status.HTTP_200_OK)
+
+            return Response({
+                'ok': False,
+                'accessToken': None,
+                'refreshToken': None,
+                'message': 'Invalid Google ID token'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        return Response({
+            'ok': False,
+            'accessToken': None,
+            'refreshToken': None,
+            'message': 'Invalid request data'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+    def validate_google_id_token(self, id_token):
+        """Validate Google ID token and extract user information."""
+        try:
+            from google.auth.transport import requests as google_requests
+            from google.oauth2 import id_token as google_id_token
+
+            # Verify the token
+            request = google_requests.Request()
+            id_info = google_id_token.verify_oauth2_token(
+                id_token, request, settings.GOOGLE_OAUTH2_CLIENT_ID
+            )
+
+            # Verify the issuer
+            if id_info['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+                raise ValueError('Wrong issuer.')
+
+            return {
+                'email': id_info.get('email'),
+                'name': id_info.get('name', ''),
+                'first_name': id_info.get('given_name', ''),
+                'last_name': id_info.get('family_name', ''),
+                'google_id': id_info.get('sub'),
+                'picture': id_info.get('picture', ''),
+                'email_verified': id_info.get('email_verified', False)
+            }
+
+        except Exception as e:
+            print(f"Google ID token validation error: {e}")
+            return None
+
+    def get_or_create_google_user(self, user_info):
+        """Get or create user from Google user info."""
+        from django.db import IntegrityError, transaction
+
+        email = user_info.get('email')
+        google_id = user_info.get('google_id')
+
+        if not email:
+            raise ValueError("Email is required from Google")
+
+        # Try to find existing user by email
+        try:
+            user = User.objects.get(email=email)
+            return user, False
+        except User.DoesNotExist:
+            pass
+
+        # Create new user
+        try:
+            with transaction.atomic():
+                # Generate unique username from email
+                base_username = email.split('@')[0]
+                username = base_username
+                counter = 1
+
+                while User.objects.filter(username=username).exists():
+                    username = f"{base_username}_{counter}"
+                    counter += 1
+
+                user = User.objects.create_user(
+                    username=username,
+                    email=email,
+                    first_name=user_info.get('first_name', ''),
+                    last_name=user_info.get('last_name', ''),
+                    is_active=True
+                )
+
+                return user, True
+
+        except IntegrityError as e:
+            # If there's still a conflict, try to get the existing user
+            try:
+                user = User.objects.get(email=email)
+                return user, False
+            except User.DoesNotExist:
+                raise ValueError(f"Failed to create user: {e}")
+
+
+class GoogleSignupView(APIView):
+    """
+    Google ID Token authentication for signup.
+    Matches frontend expectations for /auth/signup/google endpoint.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    @extend_schema(
+        summary="Google Signup",
+        description="Register user with Google ID Token",
+        request=GoogleAuthSerializer,
+        responses={
+            200: OpenApiResponse(description="Google signup successful"),
+            400: OpenApiResponse(description="Google signup failed"),
+        }
+    )
+    def post(self, request):
+        # For Google auth, login and signup are essentially the same
+        # We'll reuse the login logic but with different messaging
+        login_view = GoogleLoginView()
+        response = login_view.post(request)
+
+        # Modify the message for signup context
+        if response.status_code == 200:
+            data = response.data.copy()
+            data['message'] = 'Google signup successful'
+            return Response(data, status=status.HTTP_200_OK)
+
+        return response
