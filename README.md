@@ -12,13 +12,13 @@ An intelligent mobile application powered by AI models, built for the SNU Softwa
 ```bash
 # Clone the repository
 git clone https://github.com/snuhcs-course/swpp-2025-project-team-10.git
-cd swpp-2025-project-team-10
+cd swpp-2025-project-team-**10**
 
 # Set up development environment
 ./scripts/setup/setup_dev_environment.sh
 
 # Activate virtual environment
-source venv/bin/activate
+source .venv/bin/activate
 
 # Start development
 make dev
@@ -87,7 +87,21 @@ make dev
 
 ## 🚀 Getting Started
 
-### 1. Environment Setup
+### 1. Choose Your Workspace (VS Code Users)
+
+We provide role-specific VS Code workspace configurations:
+
+```bash
+# For backend/Python developers
+code workspace/backend.code-workspace
+
+# For frontend/Android developers
+code workspace/frontend.code-workspace
+```
+
+See [workspace/README.md](workspace/README.md) for details.
+
+### 2. Environment Setup
 
 ```bash
 # Clone repository
@@ -98,7 +112,7 @@ cd swpp-2025-project-team-10
 ./scripts/setup/setup_dev_environment.sh
 ```
 
-### 2. Configuration
+### 3. Configuration
 
 ```bash
 # Copy environment files
@@ -110,7 +124,7 @@ nano backend/.env
 nano ai-model/.env
 ```
 
-### 3. Database Setup
+### 4. Database Setup
 
 ```bash
 # Create database
@@ -121,7 +135,7 @@ cd backend
 alembic upgrade head
 ```
 
-### 4. Start Development
+### 5. Start Development
 
 ```bash
 # Start backend
