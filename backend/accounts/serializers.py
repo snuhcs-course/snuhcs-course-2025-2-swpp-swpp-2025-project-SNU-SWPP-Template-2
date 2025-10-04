@@ -249,3 +249,21 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         if value and value.size > 5 * 1024 * 1024:  # 5MB limit
             raise serializers.ValidationError("Profile picture must be less than 5MB")
         return value
+
+
+class KakaoAuthSerializer(serializers.Serializer):
+    """Serializer for Kakao access token authentication."""
+    accessToken = serializers.CharField()
+
+    def validate_accessToken(self, value):
+        if not value:
+            raise serializers.ValidationError("Kakao access token is required")
+        return value
+
+
+class KakaoAuthResponseSerializer(serializers.Serializer):
+    """Serializer for Kakao authentication response."""
+    ok = serializers.BooleanField()
+    accessToken = serializers.CharField(required=False, allow_null=True)
+    refreshToken = serializers.CharField(required=False, allow_null=True)
+    message = serializers.CharField(required=False, allow_null=True)

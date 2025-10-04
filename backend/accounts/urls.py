@@ -26,6 +26,10 @@ urlpatterns = [
     path('login/google/', views.GoogleLoginView.as_view(), name='google_login'),
     path('signup/google/', views.GoogleSignupView.as_view(), name='google_signup'),
 
+    # Kakao-specific authentication endpoints (matching frontend expectations)
+    path('login/kakao/', views.KakaoLoginView.as_view(), name='kakao_login'),
+    path('signup/kakao/', views.KakaoSignupView.as_view(), name='kakao_signup'),
+
     # Profile management
     path('profile/', views.user_profile, name='user_profile'),
     path('profile/update/', views.update_profile, name='update_profile'),
