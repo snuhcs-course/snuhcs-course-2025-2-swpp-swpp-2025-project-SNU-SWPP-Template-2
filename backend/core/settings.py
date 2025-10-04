@@ -40,7 +40,7 @@ THIRD_PARTY_APPS = [
     'rest_framework.authtoken',
     'rest_framework_simplejwt',
     'corsheaders',
-    
+
     # Authentication
     'allauth',
     'allauth.account',
@@ -48,26 +48,26 @@ THIRD_PARTY_APPS = [
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.facebook',
     'djoser',
-    
+
     # Social Features
     'actstream',
     # 'notifications',  # Temporarily disabled due to Django 5.2 compatibility
     'taggit',
     'star_ratings',
-    
+
     # Real-time
     'channels',
-    
+
     # Utilities
     'django_extensions',
     'django_filters',
     'crispy_forms',
     'crispy_bootstrap5',
     'storages',
-    
+
     # API Documentation
     'drf_spectacular',
-    
+
     # Development
     'debug_toolbar',
     'silk',
@@ -280,8 +280,11 @@ GOOGLE_OAUTH2_CLIENT_ID = os.getenv('GOOGLE_OAUTH2_CLIENT_ID')
 GOOGLE_OAUTH2_CLIENT_SECRET = os.getenv('GOOGLE_OAUTH2_CLIENT_SECRET')
 FACEBOOK_APP_ID = os.getenv('FACEBOOK_APP_ID')
 FACEBOOK_APP_SECRET = os.getenv('FACEBOOK_APP_SECRET')
-KAKAO_CLIENT_ID = os.getenv('KAKAO_CLIENT_ID')
+
+# Kakao OAuth Settings
+KAKAO_REST_API_KEY = os.getenv('KAKAO_REST_API_KEY')
 KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET')
+KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI')
 
 # CORS Configuration
 CORS_ALLOWED_ORIGINS = [
