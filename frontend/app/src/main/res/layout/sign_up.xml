@@ -5,7 +5,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+<<<<<<< HEAD
     tools:context=".feature.auth.SignupActivity">
+=======
+    tools:context=".feature.auth.LoginActivity">
+>>>>>>> d530b6441a980cc625e001b699fa91747f5bdaec
 
     <TextView
         android:id="@+id/AppNameText"
@@ -59,6 +63,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@id/EmailText"
+        app:layout_constraintBottom_toTopOf="@id/SignUpButton"/>
+    <TextView
+        android:id="@+id/PasswordHintText"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="비밀번호는 영문 포함 6자 이상이어야 합니다"
+        android:textSize="12sp"
+        android:textColor="#9E9E9E"
+        android:layout_marginHorizontal="48dp"
+        android:layout_marginTop="4dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/PasswordText"
         app:layout_constraintBottom_toTopOf="@id/SignUpButton"/>
 
     <TextView
