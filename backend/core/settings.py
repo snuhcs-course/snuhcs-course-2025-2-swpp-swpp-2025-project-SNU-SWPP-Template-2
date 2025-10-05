@@ -287,10 +287,16 @@ KAKAO_CLIENT_SECRET = os.getenv('KAKAO_CLIENT_SECRET')
 KAKAO_REDIRECT_URI = os.getenv('KAKAO_REDIRECT_URI')
 
 # CORS Configuration
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
-]
+if DEBUG:
+    # Allow all origins in development for easier testing
+    CORS_ALLOW_ALL_ORIGINS = True
+else:
+    # Restrict origins in production
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        # Add production origins here
+    ]
 
 CORS_ALLOW_CREDENTIALS = True
 
