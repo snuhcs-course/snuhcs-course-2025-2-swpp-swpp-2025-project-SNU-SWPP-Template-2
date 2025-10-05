@@ -7,6 +7,8 @@ An intelligent mobile application powered by AI models, built for the SNU Softwa
 ![Kotlin](https://img.shields.io/badge/kotlin-1.9%2B-orange)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
+[▶️ Watch Demo (iter1_demo.mov)](./sources/iter1_demo.mov)
+
 ## 🚀 Quick Start
 
 ```bash
