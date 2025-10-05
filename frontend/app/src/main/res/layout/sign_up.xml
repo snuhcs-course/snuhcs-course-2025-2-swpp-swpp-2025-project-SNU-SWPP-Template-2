@@ -5,11 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-<<<<<<< HEAD
     tools:context=".feature.auth.SignupActivity">
-=======
-    tools:context=".feature.auth.LoginActivity">
->>>>>>> d530b6441a980cc625e001b699fa91747f5bdaec
 
     <TextView
         android:id="@+id/AppNameText"
