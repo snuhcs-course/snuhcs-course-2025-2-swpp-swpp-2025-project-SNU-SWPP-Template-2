@@ -60,12 +60,7 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 
 ## 📱 Features
 
-- **User Authentication**: Email/password, Google Sign-In, and Kakao login
-- **Book Management**: Add, edit, and manage personal book collections
-- **Bartering System**: Propose and accept book exchange offers
-- **Social Features**: Follow users, view profiles, and interact with the community
-- **Real-time Notifications**: Get notified about barter requests and messages
-- **Search & Discovery**: Find books and users based on preferences
+- **User Authentication**: Email/password Sign up / Sign in
 
 ## 🏗️ Architecture
 
