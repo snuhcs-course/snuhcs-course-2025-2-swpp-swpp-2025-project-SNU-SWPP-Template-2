@@ -3,7 +3,6 @@ URL patterns for the accounts app.
 """
 
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
 from . import views
 
 app_name = 'accounts'
@@ -12,7 +11,7 @@ urlpatterns = [
     # Authentication endpoints matching frontend expectations
     path('login/', views.CustomTokenObtainPairView.as_view(), name='login'),
     path('signup/', views.UserRegistrationView.as_view(), name='signup'),
-    path('token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('token/refresh/', views.CustomTokenRefreshView.as_view(), name='token_refresh'),
 
     # Password reset endpoints
     path('forgot/start/', views.PasswordResetRequestView.as_view(), name='forgot_password_start'),
