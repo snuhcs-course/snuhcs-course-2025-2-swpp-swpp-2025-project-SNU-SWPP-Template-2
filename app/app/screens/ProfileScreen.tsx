@@ -170,7 +170,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
             size={28} 
             color={colors.palette.neutral500}
           />
-          <Text style={$tabText}>Recommendation</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -180,7 +179,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
             size={28} 
             color={colors.palette.primary500}
           />
-          <Text style={[$tabText, $tabTextActive]}>Profile</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -371,10 +369,8 @@ const $tabButton: ViewStyle = {
   flex: 1,
   height: "100%",
   alignItems: "center",
-  justifyContent: "space-evenly",
-  flexDirection: "column",
-  paddingTop: spacing.sm,
-  paddingBottom: spacing.sm,
+  justifyContent: "center",
+  paddingVertical: spacing.md,
 }
 
 const $tabButtonActive: ViewStyle = {

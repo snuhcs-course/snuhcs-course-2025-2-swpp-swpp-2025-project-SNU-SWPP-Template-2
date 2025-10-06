@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { observer } from "mobx-react-lite"
 import {
   View,
@@ -9,7 +9,15 @@ import {
   FlatList,
   Dimensions,
 } from "react-native"
-import { Search, Filter, Heart, Users, Home, User, ChevronLeft, ChevronRight, X } from "lucide-react-native"
+import { PanGestureHandler, NativeViewGestureHandler } from "react-native-gesture-handler"
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  useAnimatedGestureHandler,
+  withSpring,
+  runOnJS,
+} from "react-native-reanimated"
+import { Search, Filter, Heart, Users, Home, User, X } from "lucide-react-native"
 import { Text, TextField } from "../components"
 import { FoodCard } from "../components/FoodCard"
 import { colors, spacing } from "../theme"
@@ -31,6 +39,11 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
   const [selectedCategories, setSelectedCategories] = useState<string[]>(allCategories)
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([])
   const [screenData, setScreenData] = useState(Dimensions.get('window'))
+  
+  // Create refs for scroll views to handle gesture conflicts
+  const panGestureRef = useRef(null)
+  const titleScrollGestureRef = useRef(null)
+  const allergenScrollGestureRef = useRef(null)
 
   // Filter foods based on search, filters, and liked view
   const getFilteredFoods = (): FoodItem[] => {
@@ -76,6 +89,12 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     return () => subscription?.remove()
   }, [])
 
+  // Animated values for swipe
+  const translateX = useSharedValue(0)
+  const scale = useSharedValue(1)
+  const startPosition = useSharedValue(0)
+  const isGestureActive = useSharedValue(false)
+
   // Reset index when filters change
   useEffect(() => {
     if (currentIndex >= filteredFoods.length && filteredFoods.length > 0) {
@@ -83,49 +102,44 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     }
   }, [filteredFoods.length, currentIndex])
 
+  // Reset animation values when food card changes
+  useEffect(() => {
+    translateX.value = 0
+    scale.value = 1
+  }, [currentIndex, translateX, scale])
+
   const currentFood = filteredFoods[currentIndex]
 
-  // Calculate dynamic padding and food card sizing based on screen height
+  // Calculate dynamic scaling for middle section only
   const getDynamicStyles = () => {
     const { height, width } = screenData
     
-    // Base measurements for fixed elements
-    const headerHeight = 120 // Approximate header height
-    const actionButtonsHeight = 80 // Approximate action buttons height with increased padding
-    const bottomTabsHeight = 55 // Approximate bottom tabs height
-    const navigationHeight = 50 // Navigation arrows height
-    const minPadding = spacing.sm * 2 // Minimum total padding needed
+    // Fixed element heights (these don't scale)
+    const headerHeight = 120 // Header + search bar
+    const actionButtonsHeight = 60 // Action buttons (fixed size)
+    const bottomTabsHeight = 65 // Bottom tabs (fixed size)
+    const counterHeight = 30 // Food counter indicator
+    const middleSectionMargins = spacing.md * 2 // Reduced margins due to constrained space
     
-    // Calculate maximum available space for food card
-    const maxFoodCardHeight = height - headerHeight - actionButtonsHeight - bottomTabsHeight - navigationHeight - minPadding
-    const maxFoodCardWidth = width - (spacing.sm * 4) // Account for horizontal margins
+    // Calculate available space for middle section (food card + counter)
+    // With absolute positioning: mainContent has top: 120, bottom: 125
+    const availableMiddleHeight = height - 120 - 125 - middleSectionMargins
+    const availableWidth = width - (spacing.md * 2) // Side margins
     
-    // Define ideal food card dimensions
-    const idealCardHeight = 520
-    const idealCardWidth = 380
+    // Define ideal dimensions for middle section
+    const idealFoodCardHeight = 520
+    const idealFoodCardWidth = width - (spacing.lg * 2) // Full screen width minus margins
+    const idealMiddleSectionHeight = idealFoodCardHeight + counterHeight + spacing.md // food card + counter + margin between them
     
-    // Calculate scaling factor based on available space
-    const heightScale = Math.min(1, maxFoodCardHeight / idealCardHeight)
-    const widthScale = Math.min(1, maxFoodCardWidth / idealCardWidth)
+    // Calculate scaling factor for middle section only
+    const heightScale = Math.min(1, availableMiddleHeight / idealMiddleSectionHeight)
+    const widthScale = Math.min(1, availableWidth / idealFoodCardWidth)
     const scale = Math.min(heightScale, widthScale, 1) // Don't scale up, only down
     
-    // Calculate actual food card dimensions
-    const actualCardHeight = idealCardHeight * scale
-    const actualCardWidth = idealCardWidth * scale
-    
-    // Recalculate available space with actual card size
-    const availableHeight = height - headerHeight - actionButtonsHeight - bottomTabsHeight - actualCardHeight - navigationHeight
-    
-    // Split available space to center food card between search bar and action buttons
-    const headerToCardPadding = Math.max(spacing.sm, availableHeight / 2) // Between search bar and food card
-    const arrowsToActionPadding = Math.max(spacing.sm, availableHeight / 2) // Between arrows and action buttons
-    
     return {
-      headerToCardPadding,
-      arrowsToActionPadding,
       foodCardScale: scale,
-      foodCardHeight: actualCardHeight,
-      foodCardWidth: actualCardWidth,
+      foodCardHeight: idealFoodCardHeight * scale,
+      foodCardWidth: idealFoodCardWidth * scale,
     }
   }
 
@@ -157,6 +171,99 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     }
   }
 
+  // Calculate card width for carousel effect - use screen width to center cards
+  const cardWidth = screenData.width // Full screen width for centering
+  
+  // Animated gesture handler for carousel
+  const gestureHandler = useAnimatedGestureHandler({
+    onStart: () => {
+      // Store the starting position to avoid jumps and mark gesture as active
+      startPosition.value = translateX.value
+      isGestureActive.value = true
+    },
+    onActive: (event) => {
+      // Move from the start position based on finger movement
+      translateX.value = startPosition.value + event.translationX
+    },
+    onEnd: (event) => {
+      const targetIndex = currentIndex
+      let newIndex = targetIndex
+      
+      // Determine new index based on swipe - more sensitive for single card movement
+      if (event.translationX < -30 && event.velocityX < -200) {
+        // Swipe left - go to next
+        newIndex = Math.min(targetIndex + 1, filteredFoods.length - 1)
+      } else if (event.translationX > 30 && event.velocityX > 200) {
+        // Swipe right - go to previous
+        newIndex = Math.max(targetIndex - 1, 0)
+      }
+      
+      // If index changed, animate from release position to adjacent card
+      if (newIndex !== targetIndex) {
+        // Calculate target position in CURRENT layout (before index change)
+        // Current layout positions: [prev, current, next]
+        const currentPosition = targetIndex > 0 ? -cardWidth : 0
+        
+        let targetPosition
+        if (newIndex > targetIndex) {
+          // Swiping left to next card: animate to next card position (right of current)
+          targetPosition = currentPosition - cardWidth
+        } else {
+          // Swiping right to previous card: animate to previous card position (left of current)  
+          targetPosition = currentPosition + cardWidth
+        }
+        
+        // Animate from release position to adjacent card position
+        translateX.value = withSpring(targetPosition, { 
+          damping: 20,
+          stiffness: 300 
+        }, () => {
+          // Calculate the correct final position for the new layout
+          const finalPosition = newIndex > 0 ? -cardWidth : 0
+          
+          // Set final position directly (this happens before index update)
+          translateX.value = finalPosition
+          
+          // Update index last
+          runOnJS(setCurrentIndex)(newIndex)
+          
+          // Mark gesture as finished
+          isGestureActive.value = false
+        })
+      } else {
+        // If no index change, snap back to current position from release point
+        const currentPosition = targetIndex > 0 ? -cardWidth : 0
+        translateX.value = withSpring(currentPosition, { 
+          damping: 20,
+          stiffness: 300 
+        }, () => {
+          isGestureActive.value = false
+        })
+      }
+    },
+  })
+
+  // Animated style for the carousel container
+  const animatedCarouselStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        { translateX: translateX.value },
+      ],
+    }
+  })
+
+  // Update translateX when currentIndex changes (for non-gesture updates only)
+  useEffect(() => {
+    // Only update position if not in the middle of a gesture
+    if (!isGestureActive.value) {
+      // Since we only render 3 cards max (prev, current, next), current card is always at position 1 (middle)
+      // But we need to account for edge cases where there's no previous card
+      const positionOffset = currentIndex > 0 ? -cardWidth : 0
+      //translateX.value = withSpring(positionOffset, { damping: 20 })
+      translateX.value = positionOffset
+    }
+  }, [currentIndex, cardWidth, translateX])
+
   const handleCategoryToggle = (category: string) => {
     setSelectedCategories((prev) =>
       prev.includes(category)
@@ -187,6 +294,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
               onChangeText={setSearchQuery}
               placeholder="Search foods..."
               containerStyle={$searchInput}
+              inputWrapperStyle={$searchInputWrapper}
             />
           </View>
           <TouchableOpacity style={$searchButton}>
@@ -195,64 +303,121 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         </View>
       </View>
 
-      {/* Main Content - Centered between header and action buttons */}
+      {/* Main Content - Takes remaining space */}
       <View style={$mainContent}>
-        <View style={{ flex: 1 }} />
         {filteredFoods.length === 0 ? (
           <View style={$emptyState}>
             <Text style={$emptyText}>No foods found</Text>
             <Text style={$emptySubtext}>Try adjusting your filters or search</Text>
           </View>
         ) : currentFood ? (
-          <>
-            <FoodCard
-              food={currentFood}
-              isLiked={likedItems.includes(currentFood.id)}
-              isScrapped={foodHistoryStore.isScrapped(currentFood.id)}
-              onLike={handleLike}
-              onScrap={handleScrap}
-              scale={dynamicStyles.foodCardScale}
-              maxWidth={dynamicStyles.foodCardWidth}
-              maxHeight={dynamicStyles.foodCardHeight}
-            />
-
-            {/* Navigation */}
-            <View style={[$navigation, { marginTop: spacing.lg }]}>
-              <TouchableOpacity
-                onPress={handlePrev}
-                disabled={currentIndex === 0}
-                style={[
-                  $navButton,
-                  currentIndex === 0 && $navButtonDisabled
-                ]}
-              >
-                <ChevronLeft 
-                  size={16} 
-                  color={currentIndex === 0 ? colors.palette.neutral400 : colors.palette.neutral700}
-                />
-              </TouchableOpacity>
-
-              <Text style={$navText}>
-                {currentIndex + 1} / {filteredFoods.length}
-              </Text>
-
-              <TouchableOpacity
-                onPress={handleNext}
-                disabled={currentIndex === filteredFoods.length - 1}
-                style={[
-                  $navButton,
-                  currentIndex === filteredFoods.length - 1 && $navButtonDisabled
-                ]}
-              >
-                <ChevronRight 
-                  size={16} 
-                  color={currentIndex === filteredFoods.length - 1 ? colors.palette.neutral400 : colors.palette.neutral700}
-                />
-              </TouchableOpacity>
-            </View>
-          </>
+          <View style={$carouselContainer}>
+            <PanGestureHandler 
+              ref={panGestureRef} 
+              onGestureEvent={gestureHandler}
+              waitFor={[titleScrollGestureRef, allergenScrollGestureRef]}
+            >
+              <Animated.View style={[$carouselContent, animatedCarouselStyle]}>
+                {(() => {
+                  // Only render current card and adjacent cards to avoid showing all intermediate cards
+                  const cardsToRender = []
+                  
+                  // Previous card
+                  if (currentIndex > 0) {
+                    const prevFood = filteredFoods[currentIndex - 1]
+                    cardsToRender.push(
+                      <View key={prevFood.id} style={[$cardContainer, { width: cardWidth }]}>
+                        <View style={$foodCardWrapper}>
+                          <FoodCard
+                            food={prevFood}
+                            isLiked={likedItems.includes(prevFood.id)}
+                            isScrapped={foodHistoryStore.isScrapped(prevFood.id)}
+                            onLike={() => {
+                              setLikedItems((prev) =>
+                                prev.includes(prevFood.id)
+                                  ? prev.filter((id) => id !== prevFood.id)
+                                  : [...prev, prevFood.id]
+                              )
+                            }}
+                            onScrap={() => {
+                              foodHistoryStore.toggleScrappedItem(prevFood)
+                            }}
+                            scale={dynamicStyles.foodCardScale}
+                            maxWidth={dynamicStyles.foodCardWidth}
+                            titleScrollGestureRef={titleScrollGestureRef}
+                            allergenScrollGestureRef={allergenScrollGestureRef}
+                          />
+                        </View>
+                      </View>
+                    )
+                  }
+                  
+                  // Current card
+                  const currentFood = filteredFoods[currentIndex]
+                  if (currentFood) {
+                    cardsToRender.push(
+                      <View key={currentFood.id} style={[$cardContainer, { width: cardWidth }]}>
+                        <View style={$foodCardWrapper}>
+                          <FoodCard
+                            food={currentFood}
+                            isLiked={likedItems.includes(currentFood.id)}
+                            isScrapped={foodHistoryStore.isScrapped(currentFood.id)}
+                            onLike={() => {
+                              setLikedItems((prev) =>
+                                prev.includes(currentFood.id)
+                                  ? prev.filter((id) => id !== currentFood.id)
+                                  : [...prev, currentFood.id]
+                              )
+                            }}
+                            onScrap={() => {
+                              foodHistoryStore.toggleScrappedItem(currentFood)
+                            }}
+                            scale={dynamicStyles.foodCardScale}
+                            maxWidth={dynamicStyles.foodCardWidth}
+                            titleScrollGestureRef={titleScrollGestureRef}
+                            allergenScrollGestureRef={allergenScrollGestureRef}
+                          />
+                        </View>
+                      </View>
+                    )
+                  }
+                  
+                  // Next card
+                  if (currentIndex < filteredFoods.length - 1) {
+                    const nextFood = filteredFoods[currentIndex + 1]
+                    cardsToRender.push(
+                      <View key={nextFood.id} style={[$cardContainer, { width: cardWidth }]}>
+                        <View style={$foodCardWrapper}>
+                          <FoodCard
+                            food={nextFood}
+                            isLiked={likedItems.includes(nextFood.id)}
+                            isScrapped={foodHistoryStore.isScrapped(nextFood.id)}
+                            onLike={() => {
+                              setLikedItems((prev) =>
+                                prev.includes(nextFood.id)
+                                  ? prev.filter((id) => id !== nextFood.id)
+                                  : [...prev, nextFood.id]
+                              )
+                            }}
+                            onScrap={() => {
+                              foodHistoryStore.toggleScrappedItem(nextFood)
+                            }}
+                            scale={dynamicStyles.foodCardScale}
+                            maxWidth={dynamicStyles.foodCardWidth}
+                            titleScrollGestureRef={titleScrollGestureRef}
+                            allergenScrollGestureRef={allergenScrollGestureRef}
+                          />
+                        </View>
+                      </View>
+                    )
+                  }
+                  
+                  return cardsToRender
+                })()}
+              </Animated.View>
+            </PanGestureHandler>
+          </View>
         ) : null}
-        <View style={{ flex: 1 }} />
       </View>
 
       {/* Action Buttons */}
@@ -260,7 +425,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         <TouchableOpacity
           style={[
             $actionButton, 
-            showLikedOnly && $actionButtonActive,
             isFilterOpen && $actionButtonHighlighted,
             (isFilterOpen || isFriendsOpen) && !isFilterOpen && $actionButtonDimmed
           ]}
@@ -281,15 +445,18 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           <Heart 
             size={16} 
             color={colors.palette.neutral700}
-            fill={showLikedOnly ? colors.palette.neutral700 : "none"}
+            fill={showLikedOnly ? colors.background : "none"}
+            stroke={showLikedOnly ? colors.palette.primary500 : colors.palette.neutral700}
           />
-          <Text style={$actionButtonText}>Liked</Text>
+          <Text style={[
+            $actionButtonText,
+            showLikedOnly && { color: colors.background }
+          ]}>Liked</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[
             $actionButton, 
-            showLikedOnly && $actionButtonActive,
             isFriendsOpen && $actionButtonHighlighted,
             (isFilterOpen || isFriendsOpen) && !isFriendsOpen && $actionButtonDimmed
           ]}
@@ -313,11 +480,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             size={28} 
             color={colors.palette.primary500}
           />
-          <Text 
-            style={[$tabText, $tabTextActive]}
-          >
-            Recommendation
-          </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -328,18 +490,21 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             size={28} 
             color={colors.palette.neutral500}
           />
-          <Text 
-            style={$tabText}
-          >
-            Profile
-          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Filter Speech Bubble */}
       {isFilterOpen && (
-        <View style={$speechBubbleContainer}>
-          <View style={$speechBubble}>
+        <TouchableOpacity 
+          style={$speechBubbleContainer}
+          activeOpacity={1}
+          onPress={() => setIsFilterOpen(false)}
+        >
+          <TouchableOpacity 
+            style={$speechBubble}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={$speechBubbleHeader}>
               <Text style={$speechBubbleTitle}>Filters</Text>
               <TouchableOpacity onPress={() => setIsFilterOpen(false)}>
@@ -394,14 +559,22 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                 ))}
               </View>
             </ScrollView>
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       )}
 
       {/* Friends Speech Bubble */}
       {isFriendsOpen && (
-        <View style={$speechBubbleContainer}>
-          <View style={$speechBubble}>
+        <TouchableOpacity 
+          style={$speechBubbleContainer}
+          activeOpacity={1}
+          onPress={() => setIsFriendsOpen(false)}
+        >
+          <TouchableOpacity 
+            style={$speechBubble}
+            activeOpacity={1}
+            onPress={(e) => e.stopPropagation()}
+          >
             <View style={$speechBubbleHeader}>
               <Text style={$speechBubbleTitle}>Friends</Text>
               <TouchableOpacity onPress={() => setIsFriendsOpen(false)}>
@@ -421,8 +594,8 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
               style={$speechBubbleContent}
               showsVerticalScrollIndicator={false}
             />
-          </View>
-        </View>
+          </TouchableOpacity>
+        </TouchableOpacity>
       )}
     </View>
   )
@@ -431,21 +604,28 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 const $container: ViewStyle = {
   flex: 1,
   backgroundColor: colors.background,
-  paddingBottom: 65 + spacing.lg + 60, // Space for larger bottom tabs + increased action buttons margin + action buttons height
+  position: "relative",
 }
 
 const $header: ViewStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
   paddingHorizontal: spacing.md,
   paddingTop: spacing.md,
   paddingBottom: spacing.sm,
   borderBottomWidth: 1,
   borderBottomColor: colors.palette.neutral200,
+  backgroundColor: colors.background,
+  zIndex: 1000,
 }
 
 const $headerTitle: TextStyle = {
   fontSize: 24,
   fontWeight: "bold",
   textAlign: "center",
+  marginTop: spacing.lg,
   marginBottom: spacing.md,
   color: colors.text,
 }
@@ -460,23 +640,36 @@ const $searchInputContainer: ViewStyle = {
 }
 
 const $searchInput: ViewStyle = {
-  borderRadius: 20,
+  borderRadius: 12,
   backgroundColor: colors.palette.neutral100,
+  overflow: "hidden",
+}
+
+const $searchInputWrapper: ViewStyle = {
+  borderRadius: 12,
+  backgroundColor: colors.palette.neutral100,
+  overflow: "hidden",
 }
 
 const $searchButton: ViewStyle = {
   backgroundColor: colors.palette.primary500,
-  borderRadius: 20,
+  borderRadius: 12,
   padding: spacing.sm,
   justifyContent: "center",
   alignItems: "center",
 }
 
 const $mainContent: ViewStyle = {
-  flex: 1,
+  position: "absolute",
+  top: 120, // Header height
+  left: 0,
+  right: 0,
+  bottom: 125, // Action buttons (60) + bottom tabs (65)
   justifyContent: "center",
   alignItems: "center",
+  zIndex: 1,
 }
+
 
 const $emptyState: ViewStyle = {
   alignItems: "center",
@@ -495,31 +688,10 @@ const $emptySubtext: TextStyle = {
   textAlign: "center",
 }
 
-const $navigation: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: spacing.md,
-}
-
-const $navButton: ViewStyle = {
-  padding: spacing.sm,
-  borderRadius: 20,
-  backgroundColor: colors.palette.neutral100,
-}
-
-const $navButtonDisabled: ViewStyle = {
-  backgroundColor: colors.palette.neutral100,
-}
-
-const $navText: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.neutral500,
-}
 
 const $actionButtons: ViewStyle = {
   position: "absolute",
-  bottom: 65 + spacing.lg, // Increased margin above larger bottom tabs
+  bottom: 65, // Above bottom tabs
   left: 0,
   right: 0,
   flexDirection: "row",
@@ -529,15 +701,17 @@ const $actionButtons: ViewStyle = {
   borderTopWidth: 1,
   borderTopColor: colors.palette.neutral200,
   backgroundColor: colors.background,
+  zIndex: 100,
 }
 
 const $actionButton: ViewStyle = {
   flexDirection: "row",
   alignItems: "center",
   paddingHorizontal: spacing.md,
-  paddingVertical: spacing.sm,
+  paddingVertical: spacing.xs,
   borderRadius: 20,
   gap: spacing.xs,
+  zIndex: 3000, // Higher than speech bubble (2000)
 }
 
 const $actionButtonActive: ViewStyle = {
@@ -559,41 +733,33 @@ const $bottomTabs: ViewStyle = {
   borderTopWidth: 1,
   borderTopColor: colors.palette.neutral200,
   backgroundColor: colors.background,
+  zIndex: 100,
 }
 
 const $tabButton: ViewStyle = {
   flex: 1,
   height: "100%", // Take full height of parent
   alignItems: "center",
-  justifyContent: "space-evenly", // Distribute space evenly
-  flexDirection: "column", // Ensure vertical layout
-  paddingTop: spacing.sm, // Increased top margin for icon
-  paddingBottom: spacing.sm, // Equal bottom margin
+  justifyContent: "center", // Center the icon
+  paddingVertical: spacing.md,
 }
 
 const $tabButtonActive: ViewStyle = {
   backgroundColor: colors.palette.primary100,
 }
 
-const $tabText: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.neutral500,
-}
-
-const $tabTextActive: TextStyle = {
-  color: colors.palette.primary500,
-}
 
 const $speechBubbleContainer: ViewStyle = {
   position: "absolute",
-  top: 120, // Start from bottom of search bar
-  bottom: 65, // End at top of bottom tabs (fill completely)
+  top: 0,
+  bottom: 0,
   left: 0,
   right: 0,
   backgroundColor: "rgba(0, 0, 0, 0.4)", // Semi-transparent overlay covering full area
   justifyContent: "center",
   alignItems: "center",
   paddingHorizontal: spacing.md,
+  zIndex: 2000, // High z-index to appear above all other elements
 }
 
 const $speechBubble: ViewStyle = {
@@ -619,7 +785,7 @@ const $speechBubbleHeader: ViewStyle = {
   paddingHorizontal: spacing.md,
   paddingVertical: spacing.sm,
   borderBottomWidth: 1,
-  borderBottomColor: colors.palette.neutral200,
+  borderBottomColor: colors.palette.neutral400,
 }
 
 const $speechBubbleTitle: TextStyle = {
@@ -704,4 +870,27 @@ const $actionButtonHighlighted: ViewStyle = {
 
 const $actionButtonDimmed: ViewStyle = {
   backgroundColor: "rgba(0, 0, 0, 0.4)", // Apply same darkening as other components
+}
+
+const $carouselContainer: ViewStyle = {
+  width: "100%",
+  flex: 1,
+}
+
+const $carouselContent: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  height: "100%",
+}
+
+const $cardContainer: ViewStyle = {
+  alignItems: "center",
+  justifyContent: "center",
+  height: "100%",
+}
+
+const $foodCardWrapper: ViewStyle = {
+  width: "100%",
+  alignItems: "center",
+  justifyContent: "center",
 }
