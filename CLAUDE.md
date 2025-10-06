@@ -42,6 +42,9 @@ All backend commands should be run from the `server/` directory:
 ```bash
 cd server/
 
+# Run virtual env
+source venv/bin/activate
+
 # Development
 python manage.py runserver    # Start development server
 python manage.py makemigrations  # Create database migrations
@@ -125,3 +128,5 @@ python manage.py collectstatic  # Collect static files
 - Frontend has strict TypeScript configuration
 - Both apps are in early development stage with basic Welcome screen
 - Follow system includes request/accept workflow for privacy
+- **react-native-svg must be version <15**: Use ~14.1.0 to avoid Android rendering issues with RNSVGPath components
+- **Android NETWORK_ERROR**: If login fails with NETWORK_ERROR, set up port forwarding with `adb reverse tcp:8000 tcp:8000` (Expo CLI doesn't auto-configure port forwarding for custom backend ports)

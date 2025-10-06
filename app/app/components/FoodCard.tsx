@@ -1,5 +1,6 @@
-import React from "react"
+import React, { useRef } from "react"
 import { View, ViewStyle, TextStyle, TouchableOpacity, Image, ImageStyle, ScrollView } from "react-native"
+import { NativeViewGestureHandler } from "react-native-gesture-handler"
 import { Heart, Bookmark } from "lucide-react-native"
 import { Text } from "./Text"
 import { colors, spacing } from "../theme"
@@ -14,9 +15,14 @@ interface FoodCardProps {
   scale?: number
   maxWidth?: number
   maxHeight?: number
+  titleScrollGestureRef?: any
+  allergenScrollGestureRef?: any
 }
 
-export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1, maxWidth, maxHeight }: FoodCardProps) {
+export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1, maxWidth, maxHeight, titleScrollGestureRef, allergenScrollGestureRef }: FoodCardProps) {
+  // Create refs for the scroll views that need gesture priority
+  const titleScrollRef = useRef<ScrollView>(null)
+  const allergenScrollRef = useRef<ScrollView>(null)
   const dynamicContainerStyle = {
     ...($container as any),
     maxWidth: maxWidth || $container.maxWidth,
@@ -42,12 +48,12 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
     },
     infoContainer: { 
       ...($infoContainer as any), 
-      maxHeight: (($infoContainer as any).maxHeight || 180) * scale 
+      // Remove maxHeight constraint to allow allergen buttons to be visible
     },
     headerRow: { 
       ...($headerRow as any), 
       height: (($headerRow as any).height || 85) * scale,
-      marginBottom: scaledSpacing.xs / 4
+      marginBottom: 0 // Minimize spacing between title/distance and allergens
     },
     categoryBadge: {
       ...($categoryBadge as any),
@@ -59,7 +65,7 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
       ...($allergenBadge as any),
       paddingHorizontal: scaledSpacing.sm,
       paddingVertical: scaledSpacing.xs,
-      maxHeight: 43 * scale,
+      // Remove maxHeight constraint to ensure allergen badges are visible
     },
   }
 
@@ -72,29 +78,34 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
           style={$image}
           resizeMode="cover"
         />
+        {/* Category Badge Overlay */}
+        <View style={dynamicStyles.categoryBadge}>
+          <Text style={dynamicStyles.categoryText}>{food.category}</Text>
+        </View>
       </View>
 
       {/* Food Info */}
       <View style={dynamicStyles.infoContainer}>
         <View style={dynamicStyles.headerRow}>
           <View style={$leftContent}>
-            {/* Scrollable Title and Category */}
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={$titleScrollContainer}
-              contentContainerStyle={$titleContentContainer}
-            >
-              <View style={$titleRow}>
-                <Text style={dynamicStyles.title}>{food.name}</Text>
-                <View style={dynamicStyles.categoryBadge}>
-                  <Text style={dynamicStyles.categoryText}>{food.category}</Text>
+            {/* Scrollable Title and Distance */}
+            <NativeViewGestureHandler ref={titleScrollGestureRef} disallowInterruption={true}>
+              <ScrollView 
+                ref={titleScrollRef}
+                horizontal 
+                showsHorizontalScrollIndicator={false}
+                style={$titleScrollContainer}
+                contentContainerStyle={$titleContentContainer}
+                scrollEnabled={true}
+                nestedScrollEnabled={true}
+              >
+                <View style={$titleRow}>
+                  <Text style={dynamicStyles.title}>{food.name}</Text>
+                  <Text style={dynamicStyles.distance}>{food.distance}</Text>
                 </View>
-              </View>
-            </ScrollView>
+              </ScrollView>
+            </NativeViewGestureHandler>
             
-            {/* Fixed Distance */}
-            <Text style={dynamicStyles.distance}>{food.distance}</Text>
           </View>
 
           {/* Action buttons */}
@@ -117,18 +128,25 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
         </View>
 
         {/* Allergens */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={$allergensScrollContainer}
-          contentContainerStyle={$allergensContentContainer}
-        >
-          {food.allergens.map((allergen, index) => (
-            <View key={index} style={dynamicStyles.allergenBadge}>
-              <Text style={dynamicStyles.allergenText}>{allergen}</Text>
-            </View>
-          ))}
-        </ScrollView>
+        <View style={$allergensContainer}>
+          <NativeViewGestureHandler ref={allergenScrollGestureRef} disallowInterruption={true}>
+            <ScrollView 
+              ref={allergenScrollRef}
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={$allergensScrollContainer}
+              contentContainerStyle={$allergensContentContainer}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+            >
+              {food.allergens.map((allergen, index) => (
+                <View key={index} style={dynamicStyles.allergenBadge}>
+                  <Text style={dynamicStyles.allergenText}>{allergen}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          </NativeViewGestureHandler>
+        </View>
       </View>
     </View>
   )
@@ -136,20 +154,21 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
 
 const $container: ViewStyle = {
   width: "100%",
-  maxWidth: 380, // Slightly larger for better screen utilization
   alignSelf: "center",
-  marginHorizontal: spacing.sm, // Reduced margin for more space
+  alignItems: "center", // Center all child elements horizontally
+  marginHorizontal: spacing.lg, // Margin on both sides
   maxHeight: 520, // Increased to utilize more screen space
 }
 
 const $imageContainer: ViewStyle = {
   width: "100%",
   aspectRatio: 1, // Square image
-  maxHeight: 320, // Increased image height
+  maxHeight: 320, // Restored to original height
   borderRadius: 12,
   overflow: "hidden",
   backgroundColor: colors.palette.neutral200,
   marginBottom: spacing.xs, // Reduced spacing
+  position: "relative", // Allow absolute positioning of category badge
 }
 
 const $image: ImageStyle = {
@@ -159,16 +178,16 @@ const $image: ImageStyle = {
 
 const $infoContainer: ViewStyle = {
   width: "100%",
-  maxHeight: 180, // Increased info section height
-  flex: 1, // Allow to shrink if needed
+  // Removed maxHeight constraint to allow allergen buttons to be visible
+  // flex: 1, // Allow to shrink if needed
 }
 
 const $headerRow: ViewStyle = {
   flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "flex-start",
-  marginBottom: spacing.xs / 4, // Even further reduced spacing between distance and allergens
-  height: 85, // Slightly increased for better proportions
+  marginBottom: 0, // Minimize spacing between title/distance and allergens
+  height: 45, // Slightly increased for better proportions
 }
 
 const $leftContent: ViewStyle = {
@@ -194,20 +213,30 @@ const $titleRow: ViewStyle = {
 }
 
 const $title: TextStyle = {
-  fontSize: 18,
+  fontSize: 24,
   fontWeight: "bold",
+  top: spacing.xs,
   color: colors.text,
-  marginRight: spacing.sm,
+  marginRight: spacing.xs,
   flexShrink: 0, // Don't shrink title text
 }
 
 const $categoryBadge: ViewStyle = {
+  position: "absolute",
+  top: spacing.xs,
+  right: spacing.xs,
   backgroundColor: colors.palette.primary100,
   paddingHorizontal: spacing.sm,
   paddingVertical: spacing.xs,
-  borderRadius: 16,
-  alignSelf: "center", // Center vertically within title container
-  maxHeight: 48, // Don't exceed title scroll container height
+  borderRadius: 8, // Match the food image container border radius
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 1,
+  },
+  shadowOpacity: 0.2,
+  shadowRadius: 2,
+  elevation: 3,
 }
 
 const $categoryText: TextStyle = {
@@ -217,43 +246,54 @@ const $categoryText: TextStyle = {
 }
 
 const $distance: TextStyle = {
-  fontSize: 13,
+  fontSize: 16,
   color: colors.palette.neutral600,
-  marginTop: 0, // Remove top margin for tighter spacing
+  top: spacing.xs,
+  marginLeft: spacing.xs, // Add left margin since it's now next to title
+  flexShrink: 0, // Don't shrink distance text
 }
 
 const $actionButtons: ViewStyle = {
   flexDirection: "row",
+  marginTop: spacing.xxs,
   gap: spacing.xs, // Reduced gap for tighter layout
 }
 
 const $actionButton: ViewStyle = {
-  padding: spacing.xs,
+  padding: spacing.xxs,
+}
+
+const $allergensContainer: ViewStyle = {
+  borderRadius: 12,
+  backgroundColor: colors.palette.neutral100,
+  marginTop: spacing.xxs,
+  overflow: "hidden",
 }
 
 const $allergensScrollContainer: ViewStyle = {
-  maxHeight: 45, // Slightly reduced for tighter layout
+  // Remove maxHeight constraint to ensure allergen badges are visible
 }
 
 const $allergensContentContainer: ViewStyle = {
   flexDirection: "row",
   gap: spacing.xs,
-  paddingRight: spacing.md, // Extra padding for scroll
+  paddingLeft: spacing.xs,
+  paddingRight: spacing.xs, // Extra padding for scroll
 }
 
 const $allergenBadge: ViewStyle = {
-  backgroundColor: colors.palette.neutral100,
-  borderWidth: 1,
-  borderColor: colors.palette.neutral300,
+  //backgroundColor: colors.palette.neutral100,
+  //borderWidth: 1,
+  //borderColor: colors.palette.neutral300,
   paddingHorizontal: spacing.sm,
   paddingVertical: spacing.xs,
-  borderRadius: 16,
+  borderRadius: 12,
   alignSelf: "center", // Center vertically within allergen container
-  maxHeight: 43, // Don't exceed allergen scroll container height
+  // Remove maxHeight constraint to ensure allergen badges are visible
 }
 
 const $allergenText: TextStyle = {
-  fontSize: 12,
+  fontSize: 14,
   color: colors.palette.neutral700,
   textTransform: "capitalize",
 }
