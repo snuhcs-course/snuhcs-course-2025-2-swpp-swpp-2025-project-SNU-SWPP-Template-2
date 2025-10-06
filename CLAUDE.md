@@ -125,3 +125,4 @@ python manage.py collectstatic  # Collect static files
 - Frontend has strict TypeScript configuration
 - Both apps are in early development stage with basic Welcome screen
 - Follow system includes request/accept workflow for privacy
+- **react-native-svg must be version <15**: Use ~14.1.0 to avoid Android rendering issues with RNSVGPath components
