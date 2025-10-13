@@ -28,6 +28,7 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
 import com.example.librarytogether.feature.auth.data.KakaoAuthRequest
+import com.example.librarytogether.feature.main.MainActivity
 
 // Google ID Token 관련 import
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -112,9 +113,8 @@ class LoginActivity : AppCompatActivity() {
                         email.setText("")
                         password.setText("")
 
-                        // TODO: Navigate to HomeActivity when implemented
-                        // startActivity(Intent(this, HomeActivity::class.java))
-                        // finish()
+                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                        finish()
                     }
                     else {
                         Toast.makeText(this@LoginActivity, "아이디 또는 비밀번호가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
@@ -178,9 +178,8 @@ class LoginActivity : AppCompatActivity() {
                                 "구글 로그인 성공! ${googleCred.displayName}님 환영합니다",
                                 Toast.LENGTH_LONG
                             ).show()
-                            // TODO: Navigate to HomeActivity when implemented
-                            // startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
-                            // finish()
+                             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                             finish()
                         } else {
                             Toast.makeText(this@LoginActivity, body?.message ?: "로그인 실패", Toast.LENGTH_SHORT).show()
                         }
@@ -233,9 +232,8 @@ class LoginActivity : AppCompatActivity() {
                             refresh = body.refreshToken
                         )
                         Toast.makeText(this@LoginActivity, "카카오 로그인 성공! 환영합니다", Toast.LENGTH_LONG).show()
-                        // TODO: Navigate to HomeActivity when implemented
-                        // startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
-                        // finish()
+                         startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                         finish()
                     } else {
                         Toast.makeText(this@LoginActivity, body?.message ?: "로그인 실패", Toast.LENGTH_SHORT).show()
                     }
