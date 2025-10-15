@@ -54,6 +54,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".feature.main.MainActivity"
+            android:exported="false" />
+
     </application>
 
 </manifest>

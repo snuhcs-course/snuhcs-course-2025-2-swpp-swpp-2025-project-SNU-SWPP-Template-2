@@ -32,36 +32,41 @@ class MockInterceptor(
 
         Thread.sleep(150)
 
-        if (path.endsWith("/auth/login") && method == "POST") {
+        if (path.endsWith("/auth/login/") && method == "POST") {
             val body = readJson(R.raw.login_success)
             return makeResponse(req, 200, body)
         }
 
-        if (path.endsWith("/auth/signup") && method == "POST") {
+        if (path.endsWith("/auth/signup/") && method == "POST") {
             val body = readJson(R.raw.signup_success)
             return makeResponse(req, 200, body)
         }
 
-        if (path.endsWith("/auth/forgot/start") && method == "POST") {
+        if (path.endsWith("/auth/forgot/start/") && method == "POST") {
             val body = readJson(R.raw.forgot_start_success)
             return makeResponse(req, 200, body)
         }
 
-        if (path.endsWith("/auth/forgot/verify") && method == "POST") {
+        if (path.endsWith("/auth/forgot/verify/") && method == "POST") {
             val body = readJson(R.raw.forgot_verify_success)
             return makeResponse(req, 200, body)
         }
 
-        if (path.endsWith("/auth/forgot/reset") && method == "POST") {
+        if (path.endsWith("/auth/forgot/reset/") && method == "POST") {
             val body = readJson(R.raw.forgot_reset_success)
             return makeResponse(req, 200, body)
         }
 
-        if (path.endsWith("/auth/token/refresh") && method == "POST") {
+        if (path.endsWith("/auth/token/refresh/") && method == "POST") {
             val body = """{
               "success": true,
               "data": { "accessToken": "ACCESS_VALID", "refreshToken": "REFRESH_VALID" }
             }"""
+            return makeResponse(req, 200, body)
+        }
+
+        if (path.endsWith("/home/") && method == "GET") {
+            val body = readJson(R.raw.home_feed)
             return makeResponse(req, 200, body)
         }
 

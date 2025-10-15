@@ -74,20 +74,6 @@
         app:layout_constraintTop_toBottomOf="@id/PasswordText"
         app:layout_constraintBottom_toTopOf="@id/SignUpButton"/>
 
-    <TextView
-        android:id="@+id/PasswordHintText"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="비밀번호는 영문 포함 6자 이상이어야 합니다"
-        android:textSize="12sp"
-        android:textColor="#9E9E9E"
-        android:layout_marginHorizontal="48dp"
-        android:layout_marginTop="4dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/PasswordText"
-        app:layout_constraintBottom_toTopOf="@id/SignUpButton"/>
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/SignUpButton"
         android:layout_width="0dp"

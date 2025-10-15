@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">Library together</string>
+    <string name="nav_home" />
+    <string name="nav_explore" />
+    <string name="nav_search" />
+    <string name="nav_notification" />
+    <string name="nav_library" />
 </resources>

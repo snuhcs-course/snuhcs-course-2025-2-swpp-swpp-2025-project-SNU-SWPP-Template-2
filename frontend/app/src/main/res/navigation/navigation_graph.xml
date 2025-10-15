@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/navigation_graph"
+    app:startDestination="@id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.example.librarytogether.feature.home.HomeFragment"
+        android:label="@string/nav_home" />
+
+    <fragment
+        android:id="@+id/nav_search"
+        android:name="com.example.librarytogether.feature.search.SearchFragment"
+        android:label="@string/nav_search" />
+
+    <fragment
+        android:id="@+id/nav_explore"
+        android:name="com.example.librarytogether.feature.explore.ExploreFragment"
+        android:label="@string/nav_explore" />
+
+    <fragment
+        android:id="@+id/nav_notification"
+        android:name="com.example.librarytogether.feature.notification.NotificationFragment"
+        android:label="@string/nav_notification" />
+
+    <fragment
+        android:id="@+id/nav_library"
+        android:name="com.example.librarytogether.feature.library.LibraryFragment"
+        android:label="@string/nav_library" />
+</navigation>

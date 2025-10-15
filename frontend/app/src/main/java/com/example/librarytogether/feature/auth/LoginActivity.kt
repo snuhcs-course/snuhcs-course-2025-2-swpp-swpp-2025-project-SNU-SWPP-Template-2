@@ -18,6 +18,7 @@ import com.example.librarytogether.network.AuthManager
 import com.example.librarytogether.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.launch
+import android.util.Log
 
 // androidx.credentials import
 import androidx.credentials.Credential
@@ -26,7 +27,9 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
+import com.example.librarytogether.BuildConfig
 import com.example.librarytogether.feature.auth.data.KakaoAuthRequest
+import com.example.librarytogether.feature.main.MainActivity
 
 // Google ID Token 관련 import
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -51,7 +54,7 @@ class LoginActivity : AppCompatActivity() {
 
     companion object {
         // Google Cloud Console 에서 발급 받은 Web Client ID
-        const val WEB_CLIENT_ID = "664664679929-unuuvstmjju3ukhbnjpriblaumjcft1s.apps.googleusercontent.com"
+        const val WEB_CLIENT_ID = BuildConfig.GOOGLE_API_KEY
     }
     private val service: AuthApi by lazy {
         RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
@@ -107,22 +110,24 @@ class LoginActivity : AppCompatActivity() {
                             access = body.accessToken,
                             refresh = body.refreshToken
                         )
+                        Toast.makeText(this@LoginActivity, "로그인 성공!", Toast.LENGTH_SHORT).show()
                         email.setText("")
                         password.setText("")
 
-                        // startActivity(Intent(this, HomeActivity::class.java))
-                        // finish()
+                        startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                        finish()
                     }
                     else {
                         Toast.makeText(this@LoginActivity, "아이디 또는 비밀번호가 올바르지 않습니다.", Toast.LENGTH_SHORT).show()
                     }
                 }
                 else {
-                    Toast.makeText(this@LoginActivity, "서버 응답 없음", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@LoginActivity, "서버 응답 없음: ${resp.message()}", Toast.LENGTH_SHORT).show()
                 }
             }
             catch (e: Exception) {
-                Toast.makeText(this@LoginActivity, "네트워크 에러", Toast.LENGTH_SHORT).show()
+                Log.e("LoginActivity", "Login error: ${e.message}")
+                Toast.makeText(this@LoginActivity, "네트워크 에러: ${e.message}", Toast.LENGTH_LONG).show()
             }
             finally {
                 btnLogin.isEnabled = true
@@ -171,11 +176,11 @@ class LoginActivity : AppCompatActivity() {
                             )
                             Toast.makeText(
                                 this@LoginActivity,
-                                "구글 로그인 성공! ${googleCred.displayName}님",
-                                Toast.LENGTH_SHORT
+                                "구글 로그인 성공! ${googleCred.displayName}님 환영합니다",
+                                Toast.LENGTH_LONG
                             ).show()
-                            // startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
-                            // finish()
+                             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                             finish()
                         } else {
                             Toast.makeText(this@LoginActivity, body?.message ?: "로그인 실패", Toast.LENGTH_SHORT).show()
                         }
@@ -227,9 +232,9 @@ class LoginActivity : AppCompatActivity() {
                             access = body.accessToken,
                             refresh = body.refreshToken
                         )
-                        Toast.makeText(this@LoginActivity, "카카오 로그인 성공!", Toast.LENGTH_SHORT).show()
-                        // startActivity(Intent(this@LoginActivity, HomeActivity::class.java))
-                        // finish()
+                        Toast.makeText(this@LoginActivity, "카카오 로그인 성공! 환영합니다", Toast.LENGTH_LONG).show()
+                         startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                         finish()
                     } else {
                         Toast.makeText(this@LoginActivity, body?.message ?: "로그인 실패", Toast.LENGTH_SHORT).show()
                     }

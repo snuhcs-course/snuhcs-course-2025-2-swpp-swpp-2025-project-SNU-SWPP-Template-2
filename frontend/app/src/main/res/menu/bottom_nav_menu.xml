@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/nav_home"
+        android:title="@string/nav_home"
+        android:icon="@drawable/home_icon"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/nav_explore"
+        android:title="@string/nav_explore"
+        android:icon="@drawable/explore_icon"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/nav_search"
+        android:title="@string/nav_search"
+        android:icon="@drawable/search_icon"
+        android:iconTint="@color/black"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/nav_notification"
+        android:title="@string/nav_notification"
+        android:icon="@drawable/notifications_icon"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/nav_library"
+        android:title="@string/nav_library"
+        android:icon="@drawable/book_icon"
+        app:showAsAction="ifRoom"/>
+</menu>

@@ -18,6 +18,13 @@ class TokenAuthenticator (
     override fun authenticate(route: Route?, response: Response): Request? {
         if (response.request.header("Authorization") == null) return null
 
+        val path = response.request.url.encodedPath
+        if (path.startsWith("/auth/signup/") ||
+            path.startsWith("/auth/login/")  ||
+            path.startsWith("/auth/refresh/")) {
+            return null
+        }
+
         val refresh = AuthManager.getRefreshToken(context) ?: return null
 
         val client = OkHttpClient()
