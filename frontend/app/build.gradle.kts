@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -16,6 +19,15 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProps = Properties()
+        val localFile = rootProject.file("local.properties")
+        if (localFile.exists()) {
+            localProps.load(FileInputStream(localFile))
+        }
+
+        buildConfigField("String", "KAKAO_API_KEY", "\"${localProps.getProperty("KAKAO_API_KEY", "")}\"")
+        buildConfigField("String", "GOOGLE_API_KEY", "\"${localProps.getProperty("GOOGLE_API_KEY", "")}\"")
     }
 
     buildTypes {
@@ -29,6 +41,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

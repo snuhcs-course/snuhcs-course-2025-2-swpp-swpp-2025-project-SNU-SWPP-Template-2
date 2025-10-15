@@ -27,6 +27,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
+import com.example.librarytogether.BuildConfig
 import com.example.librarytogether.feature.auth.data.KakaoAuthRequest
 import com.example.librarytogether.feature.main.MainActivity
 
@@ -53,7 +54,7 @@ class LoginActivity : AppCompatActivity() {
 
     companion object {
         // Google Cloud Console 에서 발급 받은 Web Client ID
-        const val WEB_CLIENT_ID = "664664679929-unuuvstmjju3ukhbnjpriblaumjcft1s.apps.googleusercontent.com"
+        const val WEB_CLIENT_ID = BuildConfig.GOOGLE_API_KEY
     }
     private val service: AuthApi by lazy {
         RetrofitClient.getClient(applicationContext).create(AuthApi::class.java)
