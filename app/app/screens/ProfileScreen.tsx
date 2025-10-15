@@ -9,14 +9,16 @@ import {
   ImageStyle,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from "react-native"
-import { ChevronLeft, Home, User } from "lucide-react-native"
+import { Home, User, Filter, RefreshCw, X } from "lucide-react-native"
 import { Text } from "../components"
 import { colors, spacing } from "../theme"
 import { AppStackScreenProps } from "../navigators"
 import { useStores } from "../models"
 import { api } from "app/services/api"
 import * as storage from "app/utils/storage"
+import { allCategories, allAllergens } from "../data/mockData"
 
 
 interface ProfileScreenProps extends AppStackScreenProps<"Profile"> {}
@@ -25,7 +27,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   const { foodHistoryStore } = useStores()
   const screenWidth = Dimensions.get('window').width
   const imageSize = (screenWidth - spacing.md * 3 - 12) / 2 // 2 columns with padding
-  const [userName, setUserName] = useState("Sophia");
+  const [userName, setUserName] = useState("Sophia")
+  const [isFilterOpen, setIsFilterOpen] = useState(false)
+  const [hideUserImages, setHideUserImages] = useState(false)
+  const [hideScrappedImages, setHideScrappedImages] = useState(false)
+  const [excludedCategories, setExcludedCategories] = useState<string[]>([])
+  const [excludedAllergens, setExcludedAllergens] = useState<string[]>([])
 
   useEffect(() => {
     let mounted = true
@@ -58,23 +65,80 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
   // Get scrapped items from store
   const scrappedFoods = foodHistoryStore.scrappedItemsList
+  
+  // Mock user images data (in a real app, this would come from device photos)
+  const userImages = [
+    { id: 'user1', type: 'user', image: require("../../assets/images/restaurant1.jpg"), name: 'My Food Photo 1' },
+    { id: 'user2', type: 'user', image: require("../../assets/images/restaurant2.jpg"), name: 'My Food Photo 2' },
+  ]
+  
+  // Convert scrapped foods to consistent format
+  const scrappedImages = scrappedFoods.map(food => ({
+    id: food.id.toString(),
+    type: 'scrapped',
+    image: { uri: food.image },
+    name: food.name
+  }))
+  
+  // Combine and filter all images
+  const getAllImages = (): Array<{id: string, type: string, image: any, name: string}> => {
+    let allImages: Array<{id: string, type: string, image: any, name: string}> = []
+    
+    if (!hideUserImages) {
+      allImages = [...allImages, ...userImages]
+    }
+    
+    if (!hideScrappedImages) {
+      allImages = [...allImages, ...scrappedImages]
+    }
+    
+    return allImages
+  }
+  
+  // Filter images based on category and allergen exclusions
+  const getFilteredImages = () => {
+    const allImages = getAllImages()
+    
+    return allImages.filter(item => {
+      // Find the corresponding food item from scrapped foods
+      const foodItem = scrappedFoods.find(food => food.id.toString() === item.id)
+      
+      if (foodItem) {
+        // Check category exclusion
+        if (excludedCategories.includes(foodItem.category)) {
+          return false
+        }
+        
+        // Check allergen exclusion
+        if (foodItem.allergens && foodItem.allergens.some(allergen => excludedAllergens.includes(allergen))) {
+          return false
+        }
+      }
+      
+      return true
+    })
+  }
+  
+  const filteredImages = getFilteredImages()
+
+  // Album sync functionality
+  const handleAlbumSync = () => {
+    Alert.alert(
+      "Album Sync",
+      "This feature allows you to sync photos from your device albums to your Food History.",
+      [{ text: "OK" }]
+    )
+  }
 
   return (
     <View style={$container}>
-      {/* Header */}
-      <View style={$header}>
-        <TouchableOpacity 
-          style={$backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <ChevronLeft size={24} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={$headerTitle}>History</Text>
-        <View style={$backButton} />
-      </View>
-
       {/* Scrollable Content */}
       <ScrollView style={$scrollView} showsVerticalScrollIndicator={false}>
+        {/* Header */}
+        <View style={$headerInScroll}>
+          <Text style={$headerTitle}>foodigram</Text>
+        </View>
+
         {/* Profile Section */}
         <View style={$profileSection}>
           {/* Profile Image */}
@@ -87,21 +151,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
           {/* Foodie Label */}
           <Text style={$userRole}>{user.role}</Text>
-
-                  <TouchableOpacity
-          style={$logoutButton}
-          onPress={async () => {
-            try {
-              await api.logout()
-            } catch (e) {
-              // ignore network errors and continue logout locally
-            }
-            await storage.remove("IS_LOGGED_IN")
-            navigation.replace("Login")
-          }}
-        >
-          <Text style={$logoutText}>Log out</Text>
-        </TouchableOpacity>
         </View>
 
         {/* Food Tags */}
@@ -136,28 +185,75 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         </ScrollView>
 
         {/* Food History Section */}
-        <Text style={$sectionTitle}>Food History</Text>
-        {scrappedFoods.length === 0 ? (
+        <View style={$sectionTitleContainer}>
+          <Text style={$sectionTitle}>Food History</Text>
+          <View style={$sectionButtons}>
+            <TouchableOpacity
+              style={$sectionButton}
+              onPress={() => {
+                if (__DEV__) {
+                  console.log('Profile: opened filter panel')
+                }
+                setIsFilterOpen(true)
+              }}
+            >
+              <Filter size={16} color={colors.palette.neutral700} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={$sectionButton}
+              onPress={handleAlbumSync}
+            >
+              <RefreshCw size={16} color={colors.palette.neutral700} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        {filteredImages.length === 0 ? (
           <View style={$emptyState}>
-            <Text style={$emptyText}>No scrapped foods yet</Text>
-            <Text style={$emptySubtext}>Scrap foods from the Recommendation tab to see them here!</Text>
+            <Text style={$emptyText}>No food images to show</Text>
+            <Text style={$emptySubtext}>
+              {hideUserImages && hideScrappedImages 
+                ? "All content types are hidden. Adjust filters to see your food images!" 
+                : hideScrappedImages 
+                ? "Scrapped images are hidden or no images match your filters. Adjust filters or scrap foods from the Recommendation tab!" 
+                : "Add photos to your 'Foodigram' album or scrap foods from Recommendation!"}
+            </Text>
           </View>
         ) : (
           <View style={$foodGrid}>
-            {scrappedFoods.map((food) => (
+            {filteredImages.map((item) => (
               <TouchableOpacity 
-                key={food.id} 
+                key={item.id} 
                 style={[$foodCard, { width: imageSize }]}
               >
                 <Image 
-                  source={{ uri: food.image }} 
+                  source={item.image} 
                   style={[$foodImage, { width: imageSize, height: 160 }]}
                   resizeMode="cover"
                 />
+                {/* Show type indicator */}
+                <View style={item.type === 'user' ? $userImageBadge : $scrappedImageBadge}>
+                  <Text style={$imageBadgeText}>{item.type === 'user' ? 'U' : 'S'}</Text>
+                </View>
               </TouchableOpacity>
             ))}
           </View>
         )}
+
+        {/* Logout Button */}
+        <TouchableOpacity
+          style={$logoutButton}
+          onPress={async () => {
+            try {
+              await api.logout()
+            } catch (e) {
+              // ignore network errors and continue logout locally
+            }
+            await storage.remove("IS_LOGGED_IN")
+            navigation.replace("Login")
+          }}
+        >
+          <Text style={$logoutText}>Log out</Text>
+        </TouchableOpacity>
       </ScrollView>
 
       {/* Bottom Tabs */}
@@ -181,6 +277,144 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           />
         </TouchableOpacity>
       </View>
+
+      {/* Filter Modal */}
+      {isFilterOpen && (
+        <View style={$speechBubbleContainer}>
+          <TouchableOpacity 
+            style={$speechBubbleBackdrop}
+            activeOpacity={1}
+            onPress={() => {
+              if (__DEV__) {
+                console.log('Profile: closed filter panel')
+              }
+              setIsFilterOpen(false)
+            }}
+          />
+          <View style={$speechBubble}>
+            <View style={$speechBubbleHeader}>
+              <Text style={$speechBubbleTitle}>History Filters</Text>
+              <TouchableOpacity onPress={() => {
+                if (__DEV__) {
+                  console.log('Profile: closed filter panel (X button)')
+                }
+                setIsFilterOpen(false)
+              }}>
+                <X size={20} color={colors.palette.neutral700} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={$speechBubbleContent} showsVerticalScrollIndicator={false}>
+              <Text style={$filterSectionTitle}>Hide Content</Text>
+              <View style={$filterGrid}>
+                <TouchableOpacity
+                  style={[
+                    $filterChip,
+                    hideUserImages && $filterChipSelected
+                  ]}
+                  onPress={() => {
+                    if (__DEV__) {
+                      console.log(`Profile: ${!hideUserImages ? 'hiding' : 'showing'} User Images`)
+                    }
+                    setHideUserImages(!hideUserImages)
+                  }}
+                >
+                  <Text style={[
+                      $filterChipText,
+                      hideUserImages && $filterChipTextSelected
+                    ]}
+                  >
+                    User Images
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[
+                    $filterChip,
+                    hideScrappedImages && $filterChipSelected
+                  ]}
+                  onPress={() => {
+                    if (__DEV__) {
+                      console.log(`Profile: ${!hideScrappedImages ? 'hiding' : 'showing'} Scrapped Images`)
+                    }
+                    setHideScrappedImages(!hideScrappedImages)
+                  }}
+                >
+                  <Text style={[
+                      $filterChipText,
+                      hideScrappedImages && $filterChipTextSelected
+                    ]}
+                  >
+                    Scrapped
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={$filterSectionTitle}>Exclude Categories</Text>
+              <View style={$filterGrid}>
+                {allCategories.map((category) => (
+                  <TouchableOpacity
+                    key={category}
+                    style={[
+                      $filterChip,
+                      excludedCategories.includes(category) && $filterChipSelected
+                    ]}
+                    onPress={() => {
+                      if (__DEV__) {
+                        console.log(`Profile: ${excludedCategories.includes(category) ? 'including' : 'excluding'} category "${category}"`)
+                      }
+                      setExcludedCategories(prev =>
+                        prev.includes(category)
+                          ? prev.filter(c => c !== category)
+                          : [...prev, category]
+                      )
+                    }}
+                  >
+                    <Text style={[
+                        $filterChipText,
+                        excludedCategories.includes(category) && $filterChipTextSelected
+                      ]}
+                    >
+                      {category}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <Text style={$filterSectionTitle}>Exclude Allergens</Text>
+              <View style={$filterGrid}>
+                {allAllergens.map((allergen) => (
+                  <TouchableOpacity
+                    key={allergen}
+                    style={[
+                      $filterChip,
+                      excludedAllergens.includes(allergen) && $filterChipSelected
+                    ]}
+                    onPress={() => {
+                      if (__DEV__) {
+                        console.log(`Profile: ${excludedAllergens.includes(allergen) ? 'allowing' : 'excluding'} allergen "${allergen}"`)
+                      }
+                      setExcludedAllergens(prev =>
+                        prev.includes(allergen)
+                          ? prev.filter(a => a !== allergen)
+                          : [...prev, allergen]
+                      )
+                    }}
+                  >
+                    <Text style={[
+                        $filterChipText,
+                        excludedAllergens.includes(allergen) && $filterChipTextSelected
+                      ]}
+                    >
+                      {allergen}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      )}
     </View>
   )
 })
@@ -191,27 +425,19 @@ const $container: ViewStyle = {
   paddingBottom: 65, // Space for bottom tabs
 }
 
-const $header: ViewStyle = {
-  height: 56,
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  backgroundColor: colors.background,
+const $headerInScroll: ViewStyle = {
   paddingHorizontal: spacing.md,
-  borderBottomWidth: 1,
-  borderBottomColor: colors.palette.neutral200,
-}
-
-const $backButton: ViewStyle = {
-  width: 40,
-  height: 40,
-  justifyContent: "center",
-  alignItems: "center",
+  paddingTop: spacing.md,
+  paddingBottom: spacing.sm,
+  backgroundColor: colors.background,
 }
 
 const $headerTitle: TextStyle = {
-  fontSize: 18,
+  fontSize: 24,
   fontWeight: "bold",
+  textAlign: "center",
+  marginTop: spacing.lg,
+  marginBottom: spacing.md,
   color: colors.text,
 }
 
@@ -249,7 +475,7 @@ const $userName: TextStyle = {
 
 const $userRole: TextStyle = {
   fontSize: 14,
-  color: "#FF6B9D",
+  color: colors.palette.primary500,
   marginTop: spacing.xs,
 }
 
@@ -265,7 +491,7 @@ const $tagsContainer: ViewStyle = {
 const $tag: ViewStyle = {
   paddingHorizontal: spacing.md,
   paddingVertical: spacing.xs,
-  backgroundColor: "#F0F0F0",
+  backgroundColor: colors.palette.neutral100,
   borderRadius: 16,
 }
 
@@ -302,7 +528,7 @@ const $restaurantImageContainer: ViewStyle = {
   height: 140,
   borderRadius: 12,
   overflow: "hidden",
-  backgroundColor: "#FFD4C4",
+  backgroundColor: colors.palette.neutral200,
   marginBottom: spacing.sm,
 }
 
@@ -331,7 +557,7 @@ const $foodCard: ViewStyle = {
 
 const $foodImage: ImageStyle = {
   borderRadius: 12,
-  backgroundColor: "#D5D5D5",
+  backgroundColor: colors.palette.neutral200,
 }
 
 const $emptyState: ViewStyle = {
@@ -377,24 +603,166 @@ const $tabButtonActive: ViewStyle = {
   backgroundColor: colors.palette.primary100,
 }
 
-const $tabText: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.neutral500,
-}
-
-const $tabTextActive: TextStyle = {
-  color: colors.palette.primary500,
-}
-"" 
 const $logoutButton: ViewStyle = {
-  marginTop: spacing.md,
+  marginTop: spacing.lg,
+  marginHorizontal: spacing.lg,
+  marginBottom: spacing.xl,
   backgroundColor: colors.palette.primary500,
-  paddingVertical: spacing.sm,
+  paddingVertical: spacing.md,
   borderRadius: 12,
   alignItems: "center",
+  width: "auto",
 }
 
 const $logoutText: TextStyle = {
   color: colors.palette.neutral100,
   fontWeight: "600",
+}
+
+const $sectionTitleContainer: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingHorizontal: spacing.md,
+  marginBottom: spacing.sm,
+  marginTop: spacing.xs,
+}
+
+const $sectionButtons: ViewStyle = {
+  flexDirection: "row",
+  gap: spacing.sm,
+}
+
+const $sectionButton: ViewStyle = {
+  padding: spacing.xs,
+  borderRadius: 20,
+  backgroundColor: colors.palette.neutral100,
+  alignItems: "center",
+  justifyContent: "center",
+}
+
+const $speechBubbleContainer: ViewStyle = {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  left: 0,
+  right: 0,
+  justifyContent: "center",
+  alignItems: "center",
+  paddingHorizontal: spacing.md,
+  zIndex: 2000,
+}
+
+const $speechBubbleBackdrop: ViewStyle = {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: "rgba(0, 0, 0, 0.4)",
+}
+
+const $speechBubble: ViewStyle = {
+  backgroundColor: colors.background,
+  borderRadius: 16,
+  width: "90%",
+  maxHeight: "85%",
+  minHeight: "60%",
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 8,
+  elevation: 8,
+}
+
+const $speechBubbleHeader: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  paddingHorizontal: spacing.md,
+  paddingVertical: spacing.sm,
+  borderBottomWidth: 1,
+  borderBottomColor: colors.palette.neutral400,
+}
+
+const $speechBubbleTitle: TextStyle = {
+  fontSize: 16,
+  fontWeight: "bold",
+  color: colors.text,
+}
+
+const $speechBubbleContent: ViewStyle = {
+  flex: 1,
+  paddingHorizontal: spacing.md,
+}
+
+const $filterSectionTitle: TextStyle = {
+  fontSize: 16,
+  fontWeight: "bold",
+  marginTop: spacing.lg,
+  marginBottom: spacing.sm,
+  color: colors.text,
+}
+
+const $filterGrid: ViewStyle = {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  gap: spacing.xs,
+  marginBottom: spacing.md,
+}
+
+const $filterChip: ViewStyle = {
+  paddingHorizontal: spacing.sm,
+  paddingVertical: spacing.xs,
+  borderRadius: 16,
+  borderWidth: 1,
+  borderColor: colors.palette.neutral300,
+  backgroundColor: colors.background,
+}
+
+const $filterChipSelected: ViewStyle = {
+  backgroundColor: colors.palette.primary500,
+  borderColor: colors.palette.primary500,
+}
+
+const $filterChipText: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral700,
+}
+
+const $filterChipTextSelected: TextStyle = {
+  color: colors.palette.neutral100,
+}
+
+const $userImageBadge: ViewStyle = {
+  position: "absolute",
+  top: spacing.xs,
+  right: spacing.xs,
+  backgroundColor: colors.palette.primary500,
+  borderRadius: 12,
+  width: 24,
+  height: 24,
+  alignItems: "center",
+  justifyContent: "center",
+}
+
+const $scrappedImageBadge: ViewStyle = {
+  position: "absolute",
+  top: spacing.xs,
+  right: spacing.xs,
+  backgroundColor: colors.palette.secondary500,
+  borderRadius: 12,
+  width: 24,
+  height: 24,
+  alignItems: "center",
+  justifyContent: "center",
+}
+
+const $imageBadgeText: TextStyle = {
+  fontSize: 10,
+  fontWeight: "bold",
+  color: colors.palette.neutral100,
 }
