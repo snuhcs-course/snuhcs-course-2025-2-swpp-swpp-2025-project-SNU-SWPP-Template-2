@@ -1,6 +1,6 @@
 import React, { useRef } from "react"
-import { View, ViewStyle, TextStyle, TouchableOpacity, Image, ImageStyle, ScrollView } from "react-native"
-import { NativeViewGestureHandler } from "react-native-gesture-handler"
+import { View, ViewStyle, TextStyle, TouchableOpacity, Image, ImageStyle } from "react-native"
+import Animated, { useSharedValue, useAnimatedScrollHandler, useAnimatedStyle, withSpring } from "react-native-reanimated"
 import { Heart, Bookmark } from "lucide-react-native"
 import { Text } from "./Text"
 import { colors, spacing } from "../theme"
@@ -15,14 +15,56 @@ interface FoodCardProps {
   scale?: number
   maxWidth?: number
   maxHeight?: number
-  titleScrollGestureRef?: any
-  allergenScrollGestureRef?: any
 }
 
-export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1, maxWidth, maxHeight, titleScrollGestureRef, allergenScrollGestureRef }: FoodCardProps) {
-  // Create refs for the scroll views that need gesture priority
-  const titleScrollRef = useRef<ScrollView>(null)
-  const allergenScrollRef = useRef<ScrollView>(null)
+export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1, maxWidth, maxHeight }: FoodCardProps) {
+  // Create refs for the scroll views
+  const titleScrollRef = useRef<Animated.ScrollView>(null)
+  const allergenScrollRef = useRef<Animated.ScrollView>(null)
+  
+  // Shared values for scroll positions and spring animations
+  const titleScrollX = useSharedValue(0)
+  const allergenScrollX = useSharedValue(0)
+  
+  // Animated scroll handlers with spring effects
+  const titleScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      titleScrollX.value = withSpring(event.contentOffset.x, {
+        damping: 15,
+        stiffness: 150,
+      })
+    },
+  })
+  
+  const allergenScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      allergenScrollX.value = withSpring(event.contentOffset.x, {
+        damping: 15,
+        stiffness: 150,
+      })
+    },
+  })
+  
+  // Animated styles for subtle visual feedback during scrolling
+  const titleContainerAnimatedStyle = useAnimatedStyle(() => {
+    const isScrolling = titleScrollX.value > 0
+    return {
+      opacity: withSpring(isScrolling ? 0.95 : 1, {
+        damping: 20,
+        stiffness: 300,
+      }),
+    }
+  })
+  
+  const allergenContainerAnimatedStyle = useAnimatedStyle(() => {
+    const isScrolling = allergenScrollX.value > 0
+    return {
+      opacity: withSpring(isScrolling ? 0.95 : 1, {
+        damping: 20,
+        stiffness: 300,
+      }),
+    }
+  })
   const dynamicContainerStyle = {
     ...($container as any),
     maxWidth: maxWidth || $container.maxWidth,
@@ -87,26 +129,29 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
       {/* Food Info */}
       <View style={dynamicStyles.infoContainer}>
         <View style={dynamicStyles.headerRow}>
-          <View style={$leftContent}>
+          <Animated.View style={[$leftContent, titleContainerAnimatedStyle]}>
             {/* Scrollable Title and Distance */}
-            <NativeViewGestureHandler ref={titleScrollGestureRef} disallowInterruption={true}>
-              <ScrollView 
-                ref={titleScrollRef}
-                horizontal 
-                showsHorizontalScrollIndicator={false}
-                style={$titleScrollContainer}
-                contentContainerStyle={$titleContentContainer}
-                scrollEnabled={true}
-                nestedScrollEnabled={true}
-              >
-                <View style={$titleRow}>
-                  <Text style={dynamicStyles.title}>{food.name}</Text>
-                  <Text style={dynamicStyles.distance}>{food.distance}</Text>
-                </View>
-              </ScrollView>
-            </NativeViewGestureHandler>
+            <Animated.ScrollView 
+              ref={titleScrollRef}
+              horizontal 
+              showsHorizontalScrollIndicator={false}
+              style={$titleScrollContainer}
+              contentContainerStyle={$titleContentContainer}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+              onScroll={titleScrollHandler}
+              scrollEventThrottle={16}
+              decelerationRate={0.985}
+              bounces={true}
+              bouncesZoom={false}
+            >
+              <View style={$titleRow}>
+                <Text style={dynamicStyles.title}>{food.name}</Text>
+                <Text style={dynamicStyles.distance}>{food.distance}</Text>
+              </View>
+            </Animated.ScrollView>
             
-          </View>
+          </Animated.View>
 
           {/* Action buttons */}
           <View style={$actionButtons}>
@@ -128,25 +173,28 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
         </View>
 
         {/* Allergens */}
-        <View style={$allergensContainer}>
-          <NativeViewGestureHandler ref={allergenScrollGestureRef} disallowInterruption={true}>
-            <ScrollView 
-              ref={allergenScrollRef}
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={$allergensScrollContainer}
-              contentContainerStyle={$allergensContentContainer}
-              scrollEnabled={true}
-              nestedScrollEnabled={true}
-            >
-              {food.allergens.map((allergen, index) => (
-                <View key={index} style={dynamicStyles.allergenBadge}>
-                  <Text style={dynamicStyles.allergenText}>{allergen}</Text>
-                </View>
-              ))}
-            </ScrollView>
-          </NativeViewGestureHandler>
-        </View>
+        <Animated.View style={[$allergensContainer, allergenContainerAnimatedStyle]}>
+          <Animated.ScrollView 
+            ref={allergenScrollRef}
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            style={$allergensScrollContainer}
+            contentContainerStyle={$allergensContentContainer}
+            scrollEnabled={true}
+            nestedScrollEnabled={true}
+            onScroll={allergenScrollHandler}
+            scrollEventThrottle={16}
+            decelerationRate={0.985}
+            bounces={true}
+            bouncesZoom={false}
+          >
+            {food.allergens.map((allergen, index) => (
+              <View key={index} style={dynamicStyles.allergenBadge}>
+                <Text style={dynamicStyles.allergenText}>{allergen}</Text>
+              </View>
+            ))}
+          </Animated.ScrollView>
+        </Animated.View>
       </View>
     </View>
   )
@@ -209,7 +257,6 @@ const $titleRow: ViewStyle = {
   flexDirection: "row",
   alignItems: "center",
   flexWrap: "nowrap", // Don't wrap to ensure horizontal scroll
-  minWidth: 180, // Minimum width to ensure content is readable
 }
 
 const $title: TextStyle = {
@@ -289,7 +336,7 @@ const $allergenBadge: ViewStyle = {
   paddingVertical: spacing.xs,
   borderRadius: 12,
   alignSelf: "center", // Center vertically within allergen container
-  // Remove maxHeight constraint to ensure allergen badges are visible
+  flexShrink: 0, // Don't shrink allergen badges
 }
 
 const $allergenText: TextStyle = {

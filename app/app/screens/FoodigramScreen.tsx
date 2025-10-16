@@ -9,14 +9,8 @@ import {
   FlatList,
   Dimensions,
 } from "react-native"
-import { PanGestureHandler, NativeViewGestureHandler } from "react-native-gesture-handler"
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  useAnimatedGestureHandler,
-  withSpring,
-  runOnJS,
-} from "react-native-reanimated"
+import { GestureDetector, Gesture } from "react-native-gesture-handler"
+import { runOnJS } from "react-native-reanimated"
 import { Search, Filter, Heart, Users, Home, User, X } from "lucide-react-native"
 import { Text, TextField } from "../components"
 import { FoodCard } from "../components/FoodCard"
@@ -31,6 +25,18 @@ interface FoodigramScreenProps extends AppStackScreenProps<"Foodigram"> {}
 export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function FoodigramScreen({ navigation }) {
   const { foodHistoryStore } = useStores()
   const [searchQuery, setSearchQuery] = useState("")
+  
+  // Enhanced search handler with logging
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query)
+    if (__DEV__) {
+      if (query.trim()) {
+        console.log(`Home: searched for "${query.trim()}"`)
+      } else if (searchQuery.trim()) {
+        console.log(`Home: cleared search`)
+      }
+    }
+  }
   const [currentIndex, setCurrentIndex] = useState(0)
   const [likedItems, setLikedItems] = useState<number[]>([])
   const [showLikedOnly, setShowLikedOnly] = useState(false)
@@ -40,10 +46,8 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([])
   const [screenData, setScreenData] = useState(Dimensions.get('window'))
   
-  // Create refs for scroll views to handle gesture conflicts
-  const panGestureRef = useRef(null)
-  const titleScrollGestureRef = useRef(null)
-  const allergenScrollGestureRef = useRef(null)
+  // No need for gesture refs with new API
+  
 
   // Filter foods based on search, filters, and liked view
   const getFilteredFoods = (): FoodItem[] => {
@@ -89,24 +93,14 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     return () => subscription?.remove()
   }, [])
 
-  // Animated values for swipe
-  const translateX = useSharedValue(0)
-  const scale = useSharedValue(1)
-  const startPosition = useSharedValue(0)
-  const isGestureActive = useSharedValue(false)
-
+  
   // Reset index when filters change
   useEffect(() => {
     if (currentIndex >= filteredFoods.length && filteredFoods.length > 0) {
       setCurrentIndex(0)
     }
   }, [filteredFoods.length, currentIndex])
-
-  // Reset animation values when food card changes
-  useEffect(() => {
-    translateX.value = 0
-    scale.value = 1
-  }, [currentIndex, translateX, scale])
+  
 
   const currentFood = filteredFoods[currentIndex]
 
@@ -115,9 +109,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     const { height, width } = screenData
     
     // Fixed element heights (these don't scale)
-    const headerHeight = 120 // Header + search bar
-    const actionButtonsHeight = 60 // Action buttons (fixed size)
-    const bottomTabsHeight = 65 // Bottom tabs (fixed size)
     const counterHeight = 30 // Food counter indicator
     const middleSectionMargins = spacing.md * 2 // Reduced margins due to constrained space
     
@@ -145,8 +136,16 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
   const dynamicStyles = getDynamicStyles()
 
+
   const handleLike = () => {
     if (!currentFood) return
+    const isCurrentlyLiked = likedItems.includes(currentFood.id)
+    const action = isCurrentlyLiked ? "unliked" : "liked"
+    
+    if (__DEV__) {
+      console.log(`Home: ${action} food "${currentFood.name}" (ID: ${currentFood.id})`)
+    }
+    
     setLikedItems((prev) =>
       prev.includes(currentFood.id)
         ? prev.filter((id) => id !== currentFood.id)
@@ -156,115 +155,57 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
   const handleScrap = () => {
     if (!currentFood) return
+    const isCurrentlyScrapped = foodHistoryStore.isScrapped(currentFood.id)
+    const action = isCurrentlyScrapped ? "unscrapped" : "scrapped"
+    
+    if (__DEV__) {
+      console.log(`Home: ${action} food "${currentFood.name}" (ID: ${currentFood.id})`)
+    }
+    
     foodHistoryStore.toggleScrappedItem(currentFood)
   }
 
-  const handleNext = () => {
-    if (currentIndex < filteredFoods.length - 1) {
-      setCurrentIndex(currentIndex + 1)
-    }
-  }
+  // Navigation functions are now handled directly in gesture callbacks
 
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1)
-    }
-  }
-
-  // Calculate card width for carousel effect - use screen width to center cards
-  const cardWidth = screenData.width // Full screen width for centering
-  
-  // Animated gesture handler for carousel
-  const gestureHandler = useAnimatedGestureHandler({
-    onStart: () => {
-      // Store the starting position to avoid jumps and mark gesture as active
-      startPosition.value = translateX.value
-      isGestureActive.value = true
-    },
-    onActive: (event) => {
-      // Move from the start position based on finger movement
-      translateX.value = startPosition.value + event.translationX
-    },
-    onEnd: (event) => {
-      const targetIndex = currentIndex
-      let newIndex = targetIndex
+  // Simple gesture handler for swipe detection
+  const panGesture = Gesture.Pan()
+    .activeOffsetX([-50, 50])
+    .failOffsetY([-20, 20])
+    .shouldCancelWhenOutside(true)
+    .runOnJS(true)
+    .onEnd((event) => {
+      const swipeThreshold = 100
+      const velocityThreshold = 300
       
-      // Determine new index based on swipe - more sensitive for single card movement
-      if (event.translationX < -30 && event.velocityX < -200) {
+      if (event.translationX < -swipeThreshold || event.velocityX < -velocityThreshold) {
         // Swipe left - go to next
-        newIndex = Math.min(targetIndex + 1, filteredFoods.length - 1)
-      } else if (event.translationX > 30 && event.velocityX > 200) {
-        // Swipe right - go to previous
-        newIndex = Math.max(targetIndex - 1, 0)
-      }
-      
-      // If index changed, animate from release position to adjacent card
-      if (newIndex !== targetIndex) {
-        // Calculate target position in CURRENT layout (before index change)
-        // Current layout positions: [prev, current, next]
-        const currentPosition = targetIndex > 0 ? -cardWidth : 0
-        
-        let targetPosition
-        if (newIndex > targetIndex) {
-          // Swiping left to next card: animate to next card position (right of current)
-          targetPosition = currentPosition - cardWidth
-        } else {
-          // Swiping right to previous card: animate to previous card position (left of current)  
-          targetPosition = currentPosition + cardWidth
+        if (currentIndex < filteredFoods.length - 1) {
+          const newIndex = currentIndex + 1
+          if (__DEV__) {
+            console.log(`Home: swiped to food "${filteredFoods[newIndex].name}" (${newIndex + 1}/${filteredFoods.length})`)
+          }
+          runOnJS(() => setCurrentIndex(prev => prev + 1))()
         }
-        
-        // Animate from release position to adjacent card position
-        translateX.value = withSpring(targetPosition, { 
-          damping: 20,
-          stiffness: 300 
-        }, () => {
-          // Calculate the correct final position for the new layout
-          const finalPosition = newIndex > 0 ? -cardWidth : 0
-          
-          // Set final position directly (this happens before index update)
-          translateX.value = finalPosition
-          
-          // Update index last
-          runOnJS(setCurrentIndex)(newIndex)
-          
-          // Mark gesture as finished
-          isGestureActive.value = false
-        })
-      } else {
-        // If no index change, snap back to current position from release point
-        const currentPosition = targetIndex > 0 ? -cardWidth : 0
-        translateX.value = withSpring(currentPosition, { 
-          damping: 20,
-          stiffness: 300 
-        }, () => {
-          isGestureActive.value = false
-        })
+      } else if (event.translationX > swipeThreshold || event.velocityX > velocityThreshold) {
+        // Swipe right - go to previous  
+        if (currentIndex > 0) {
+          const newIndex = currentIndex - 1
+          if (__DEV__) {
+            console.log(`Home: swiped to food "${filteredFoods[newIndex].name}" (${newIndex + 1}/${filteredFoods.length})`)
+          }
+          runOnJS(() => setCurrentIndex(prev => prev - 1))()
+        }
       }
-    },
-  })
-
-  // Animated style for the carousel container
-  const animatedCarouselStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        { translateX: translateX.value },
-      ],
-    }
-  })
-
-  // Update translateX when currentIndex changes (for non-gesture updates only)
-  useEffect(() => {
-    // Only update position if not in the middle of a gesture
-    if (!isGestureActive.value) {
-      // Since we only render 3 cards max (prev, current, next), current card is always at position 1 (middle)
-      // But we need to account for edge cases where there's no previous card
-      const positionOffset = currentIndex > 0 ? -cardWidth : 0
-      //translateX.value = withSpring(positionOffset, { damping: 20 })
-      translateX.value = positionOffset
-    }
-  }, [currentIndex, cardWidth, translateX])
+    })
 
   const handleCategoryToggle = (category: string) => {
+    const isCurrentlySelected = selectedCategories.includes(category)
+    const action = isCurrentlySelected ? "deselected" : "selected"
+    
+    if (__DEV__) {
+      console.log(`Home: ${action} category filter "${category}"`)
+    }
+    
     setSelectedCategories((prev) =>
       prev.includes(category)
         ? prev.filter((c) => c !== category)
@@ -273,6 +214,13 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
   }
 
   const handleAllergenToggle = (allergen: string) => {
+    const isCurrentlySelected = selectedAllergens.includes(allergen)
+    const action = isCurrentlySelected ? "removed" : "added"
+    
+    if (__DEV__) {
+      console.log(`Home: ${action} allergen filter "${allergen}"`)
+    }
+    
     setSelectedAllergens((prev) =>
       prev.includes(allergen)
         ? prev.filter((a) => a !== allergen)
@@ -291,7 +239,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           <View style={$searchInputContainer}>
             <TextField
               value={searchQuery}
-              onChangeText={setSearchQuery}
+              onChangeText={handleSearchChange}
               placeholder="Search foods..."
               containerStyle={$searchInput}
               inputWrapperStyle={$searchInputWrapper}
@@ -312,110 +260,23 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           </View>
         ) : currentFood ? (
           <View style={$carouselContainer}>
-            <PanGestureHandler 
-              ref={panGestureRef} 
-              onGestureEvent={gestureHandler}
-              waitFor={[titleScrollGestureRef, allergenScrollGestureRef]}
-            >
-              <Animated.View style={[$carouselContent, animatedCarouselStyle]}>
-                {(() => {
-                  // Only render current card and adjacent cards to avoid showing all intermediate cards
-                  const cardsToRender = []
-                  
-                  // Previous card
-                  if (currentIndex > 0) {
-                    const prevFood = filteredFoods[currentIndex - 1]
-                    cardsToRender.push(
-                      <View key={prevFood.id} style={[$cardContainer, { width: cardWidth }]}>
-                        <View style={$foodCardWrapper}>
-                          <FoodCard
-                            food={prevFood}
-                            isLiked={likedItems.includes(prevFood.id)}
-                            isScrapped={foodHistoryStore.isScrapped(prevFood.id)}
-                            onLike={() => {
-                              setLikedItems((prev) =>
-                                prev.includes(prevFood.id)
-                                  ? prev.filter((id) => id !== prevFood.id)
-                                  : [...prev, prevFood.id]
-                              )
-                            }}
-                            onScrap={() => {
-                              foodHistoryStore.toggleScrappedItem(prevFood)
-                            }}
-                            scale={dynamicStyles.foodCardScale}
-                            maxWidth={dynamicStyles.foodCardWidth}
-                            titleScrollGestureRef={titleScrollGestureRef}
-                            allergenScrollGestureRef={allergenScrollGestureRef}
-                          />
-                        </View>
-                      </View>
-                    )
-                  }
-                  
-                  // Current card
-                  const currentFood = filteredFoods[currentIndex]
-                  if (currentFood) {
-                    cardsToRender.push(
-                      <View key={currentFood.id} style={[$cardContainer, { width: cardWidth }]}>
-                        <View style={$foodCardWrapper}>
-                          <FoodCard
-                            food={currentFood}
-                            isLiked={likedItems.includes(currentFood.id)}
-                            isScrapped={foodHistoryStore.isScrapped(currentFood.id)}
-                            onLike={() => {
-                              setLikedItems((prev) =>
-                                prev.includes(currentFood.id)
-                                  ? prev.filter((id) => id !== currentFood.id)
-                                  : [...prev, currentFood.id]
-                              )
-                            }}
-                            onScrap={() => {
-                              foodHistoryStore.toggleScrappedItem(currentFood)
-                            }}
-                            scale={dynamicStyles.foodCardScale}
-                            maxWidth={dynamicStyles.foodCardWidth}
-                            titleScrollGestureRef={titleScrollGestureRef}
-                            allergenScrollGestureRef={allergenScrollGestureRef}
-                          />
-                        </View>
-                      </View>
-                    )
-                  }
-                  
-                  // Next card
-                  if (currentIndex < filteredFoods.length - 1) {
-                    const nextFood = filteredFoods[currentIndex + 1]
-                    cardsToRender.push(
-                      <View key={nextFood.id} style={[$cardContainer, { width: cardWidth }]}>
-                        <View style={$foodCardWrapper}>
-                          <FoodCard
-                            food={nextFood}
-                            isLiked={likedItems.includes(nextFood.id)}
-                            isScrapped={foodHistoryStore.isScrapped(nextFood.id)}
-                            onLike={() => {
-                              setLikedItems((prev) =>
-                                prev.includes(nextFood.id)
-                                  ? prev.filter((id) => id !== nextFood.id)
-                                  : [...prev, nextFood.id]
-                              )
-                            }}
-                            onScrap={() => {
-                              foodHistoryStore.toggleScrappedItem(nextFood)
-                            }}
-                            scale={dynamicStyles.foodCardScale}
-                            maxWidth={dynamicStyles.foodCardWidth}
-                            titleScrollGestureRef={titleScrollGestureRef}
-                            allergenScrollGestureRef={allergenScrollGestureRef}
-                          />
-                        </View>
-                      </View>
-                    )
-                  }
-                  
-                  return cardsToRender
-                })()}
-              </Animated.View>
-            </PanGestureHandler>
+            <GestureDetector gesture={panGesture}>
+              <View style={$carouselContent}>
+                {/* Current card (visible) */}
+                <View style={$cardSlot}>
+                  <FoodCard
+                    key={currentFood.id}
+                    food={currentFood}
+                    isLiked={likedItems.includes(currentFood.id)}
+                    isScrapped={foodHistoryStore.isScrapped(currentFood.id)}
+                    onLike={handleLike}
+                    onScrap={handleScrap}
+                    scale={dynamicStyles.foodCardScale}
+                    maxWidth={dynamicStyles.foodCardWidth}
+                  />
+                </View>
+              </View>
+            </GestureDetector>
           </View>
         ) : null}
       </View>
@@ -428,7 +289,12 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             isFilterOpen && $actionButtonHighlighted,
             (isFilterOpen || isFriendsOpen) && !isFilterOpen && $actionButtonDimmed
           ]}
-          onPress={() => setIsFilterOpen(true)}
+          onPress={() => {
+            if (__DEV__) {
+              console.log(`Home: opened filter panel`)
+            }
+            setIsFilterOpen(true)
+          }}
         >
           <Filter size={16} color={colors.palette.neutral700} />
           <Text style={$actionButtonText}>Filter</Text>
@@ -440,7 +306,14 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             showLikedOnly && $actionButtonActive,
             (isFilterOpen || isFriendsOpen) && $actionButtonDimmed
           ]}
-          onPress={() => setShowLikedOnly(!showLikedOnly)}
+          onPress={() => {
+            const newValue = !showLikedOnly
+            const action = newValue ? "enabled" : "disabled"
+            if (__DEV__) {
+              console.log(`Home: ${action} liked-only view`)
+            }
+            setShowLikedOnly(newValue)
+          }}
         >
           <Heart 
             size={16} 
@@ -460,7 +333,12 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             isFriendsOpen && $actionButtonHighlighted,
             (isFilterOpen || isFriendsOpen) && !isFriendsOpen && $actionButtonDimmed
           ]}
-          onPress={() => setIsFriendsOpen(true)}
+          onPress={() => {
+            if (__DEV__) {
+              console.log(`Home: opened friends panel`)
+            }
+            setIsFriendsOpen(true)
+          }}
         >
           <Users size={16} color={colors.palette.neutral700} />
           <Text style={$actionButtonText}>Friends</Text>
@@ -472,6 +350,9 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         <TouchableOpacity
           style={[$tabButton, $tabButtonActive]}
           onPress={() => {
+            if (__DEV__) {
+              console.log(`Home: tapped home button (already on Foodigram)`)
+            }
             // already on Recommendation (Foodigram)
             navigation.navigate("Foodigram")
           }}
@@ -484,7 +365,12 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
         <TouchableOpacity
           style={$tabButton}
-          onPress={() => navigation.navigate("Profile")}
+          onPress={() => {
+            if (__DEV__) {
+              console.log(`Home: navigated to Profile`)
+            }
+            navigation.navigate("Profile")
+          }}
         >
           <User 
             size={28} 
@@ -495,24 +381,36 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
       {/* Filter Speech Bubble */}
       {isFilterOpen && (
-        <TouchableOpacity 
-          style={$speechBubbleContainer}
-          activeOpacity={1}
-          onPress={() => setIsFilterOpen(false)}
-        >
+        <View style={$speechBubbleContainer}>
           <TouchableOpacity 
-            style={$speechBubble}
+            style={$speechBubbleBackdrop}
             activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+            onPress={() => {
+              if (__DEV__) {
+                console.log(`Home: closed filter panel`)
+              }
+              setIsFilterOpen(false)
+            }}
+          />
+          <View style={$speechBubble}>
             <View style={$speechBubbleHeader}>
               <Text style={$speechBubbleTitle}>Filters</Text>
-              <TouchableOpacity onPress={() => setIsFilterOpen(false)}>
+              <TouchableOpacity onPress={() => {
+                if (__DEV__) {
+                  console.log(`Home: closed filter panel (X button)`)
+                }
+                setIsFilterOpen(false)
+              }}>
                 <X size={20} color={colors.palette.neutral700} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={$speechBubbleContent} showsVerticalScrollIndicator={false}>
+            <ScrollView 
+              style={$speechBubbleContent} 
+              showsVerticalScrollIndicator={true}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
+            >
               <Text style={$sectionTitle}>Categories</Text>
               <View style={$filterGrid}>
                 {allCategories.map((category) => (
@@ -559,25 +457,32 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                 ))}
               </View>
             </ScrollView>
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       )}
 
       {/* Friends Speech Bubble */}
       {isFriendsOpen && (
-        <TouchableOpacity 
-          style={$speechBubbleContainer}
-          activeOpacity={1}
-          onPress={() => setIsFriendsOpen(false)}
-        >
+        <View style={$speechBubbleContainer}>
           <TouchableOpacity 
-            style={$speechBubble}
+            style={$speechBubbleBackdrop}
             activeOpacity={1}
-            onPress={(e) => e.stopPropagation()}
-          >
+            onPress={() => {
+              if (__DEV__) {
+                console.log(`Home: closed friends panel`)
+              }
+              setIsFriendsOpen(false)
+            }}
+          />
+          <View style={$speechBubble}>
             <View style={$speechBubbleHeader}>
               <Text style={$speechBubbleTitle}>Friends</Text>
-              <TouchableOpacity onPress={() => setIsFriendsOpen(false)}>
+              <TouchableOpacity onPress={() => {
+                if (__DEV__) {
+                  console.log(`Home: closed friends panel (X button)`)
+                }
+                setIsFriendsOpen(false)
+              }}>
                 <X size={20} color={colors.palette.neutral700} />
               </TouchableOpacity>
             </View>
@@ -592,10 +497,12 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                 </View>
               )}
               style={$speechBubbleContent}
-              showsVerticalScrollIndicator={false}
+              showsVerticalScrollIndicator={true}
+              scrollEnabled={true}
+              nestedScrollEnabled={true}
             />
-          </TouchableOpacity>
-        </TouchableOpacity>
+          </View>
+        </View>
       )}
     </View>
   )
@@ -755,11 +662,19 @@ const $speechBubbleContainer: ViewStyle = {
   bottom: 0,
   left: 0,
   right: 0,
-  backgroundColor: "rgba(0, 0, 0, 0.4)", // Semi-transparent overlay covering full area
   justifyContent: "center",
   alignItems: "center",
   paddingHorizontal: spacing.md,
   zIndex: 2000, // High z-index to appear above all other elements
+}
+
+const $speechBubbleBackdrop: ViewStyle = {
+  position: "absolute",
+  top: 0,
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: "rgba(0, 0, 0, 0.4)", // Semi-transparent overlay covering full area
 }
 
 const $speechBubble: ViewStyle = {
@@ -873,23 +788,18 @@ const $actionButtonDimmed: ViewStyle = {
 }
 
 const $carouselContainer: ViewStyle = {
-  width: "100%",
   flex: 1,
+  width: "100%",
+  overflow: "hidden",
 }
 
 const $carouselContent: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  height: "100%",
+  flex: 1,
+  position: "relative",
 }
 
-const $cardContainer: ViewStyle = {
-  alignItems: "center",
-  justifyContent: "center",
-  height: "100%",
-}
-
-const $foodCardWrapper: ViewStyle = {
+const $cardSlot: ViewStyle = {
+  flex: 1,
   width: "100%",
   alignItems: "center",
   justifyContent: "center",
