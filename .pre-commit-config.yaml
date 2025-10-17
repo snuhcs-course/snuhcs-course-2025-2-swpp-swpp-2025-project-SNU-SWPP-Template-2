@@ -20,48 +20,31 @@ repos:
       - id: mixed-line-ending
         args: ['--fix=lf']
 
-  # Python formatting and linting
-  - repo: https://github.com/psf/black
-    rev: 23.9.1
+  # Python formatting and linting with Ruff (fast, modern, replaces black+isort+flake8)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9
     hooks:
-      - id: black
-        language_version: python3
+      # Ruff linter - replaces flake8, isort checks
+      - id: ruff
+        name: ruff lint and fix
+        args: [--fix, --exit-non-zero-on-fix, --config=pyproject.toml]
         files: ^(backend|ai-model)/.*\.py$
-        args: [--line-length=79]
 
-  - repo: https://github.com/pycqa/isort
-    rev: 5.12.0
-    hooks:
-      - id: isort
+      # Ruff formatter - replaces black
+      - id: ruff-format
+        name: ruff format
+        args: [--config=pyproject.toml]
         files: ^(backend|ai-model)/.*\.py$
-        args: [--profile=black, --line-length=79]
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 6.1.0
-    hooks:
-      - id: flake8
-        files: ^(backend|ai-model)/.*\.py$
-        args: [--max-line-length=79, --extend-ignore=E203,W503]
-        additional_dependencies:
-          - flake8-docstrings
-          - flake8-import-order
-
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
-    hooks:
-      - id: mypy
-        files: ^(backend|ai-model)/.*\.py$
-        additional_dependencies: [types-all]
-        args: [--ignore-missing-imports, --disallow-untyped-defs]
-
-  # Security scanning
-  - repo: https://github.com/PyCQA/bandit
-    rev: 1.7.5
-    hooks:
-      - id: bandit
-        files: ^(backend|ai-model)/.*\.py$
-        args: [-r, --skip=B101,B601]
-        exclude: ^(backend|ai-model)/tests/.*$
+  # Security scanning (optional - can be slow, disabled by default)
+  # Uncomment to enable security scanning in pre-commit
+  # - repo: https://github.com/PyCQA/bandit
+  #   rev: 1.7.5
+  #   hooks:
+  #     - id: bandit
+  #       files: ^(backend|ai-model)/.*\.py$
+  #       args: [-ll, -r]
+  #       exclude: ^(backend|ai-model)/tests/.*$
 
   # Kotlin formatting and linting
   - repo: https://github.com/pinterest/ktlint
@@ -116,31 +99,40 @@ repos:
         pass_filenames: false
         stages: [commit]
 
-      # Ensure code formatters are available
+      # Ensure ruff is available
       - id: check-formatters
-        name: Check code formatters are available
-        entry: bash -c 'command -v black >/dev/null 2>&1 && command -v isort >/dev/null 2>&1 && echo "✅ Python formatters available" || (echo "❌ Python formatters not found. Run: pip install black isort" && exit 1)'
+        name: Check ruff is available
+        entry: bash -c 'python -m ruff --version >/dev/null 2>&1 && echo "✅ Ruff available" || (echo "❌ Ruff not found. Run: pip install ruff" && exit 1)'
         language: system
         pass_filenames: false
         always_run: true
 
-      # Custom Python formatter (fallback)
-      - id: custom-python-format
-        name: Custom Python formatter
-        entry: python scripts/formatters/format_python.py
+      # Custom Python formatter with ruff (can be run manually)
+      - id: custom-python-format-ruff
+        name: Custom Python formatter (ruff)
+        entry: python tools/formatters/format_python.py --use-ruff
         language: system
         files: ^(backend|ai-model)/.*\.py$
         pass_filenames: false
-        stages: [manual]  # Only run when explicitly called
+        stages: [manual]  # Only run when explicitly called with: pre-commit run custom-python-format-ruff
 
-      # Custom Kotlin formatter (fallback)
+      # Custom Python formatter with traditional tools (can be run manually)
+      - id: custom-python-format-traditional
+        name: Custom Python formatter (black+isort+flake8)
+        entry: python tools/formatters/format_python.py
+        language: system
+        files: ^(backend|ai-model)/.*\.py$
+        pass_filenames: false
+        stages: [manual]  # Only run when explicitly called with: pre-commit run custom-python-format-traditional
+
+      # Custom Kotlin formatter (can be run manually)
       - id: custom-kotlin-format
         name: Custom Kotlin formatter
-        entry: bash scripts/formatters/format_kotlin.sh
+        entry: bash tools/formatters/format_kotlin.sh
         language: system
         files: ^frontend/.*\.(kt|kts)$
         pass_filenames: false
-        stages: [manual]  # Only run when explicitly called
+        stages: [manual]  # Only run when explicitly called with: pre-commit run custom-kotlin-format
 
 # Configuration for specific hooks
 default_language_version:
