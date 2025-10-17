@@ -88,7 +88,7 @@ This is an AI-powered application with the following components:
 - **Frontend**: Kotlin, Android SDK
 - **AI/ML**: PyTorch, Transformers, NumPy, Pandas
 - **DevOps**: Docker, GitHub Actions, pre-commit hooks
-- **Code Quality**: Black, isort, flake8, mypy, ktlint, detekt
+- **Code Quality**: Black, isort, flake8, ktlint, detekt
 - **Package Management**: uv for Python, Gradle for Kotlin
 
 ## 🔧 Development Tools / 개발 도구

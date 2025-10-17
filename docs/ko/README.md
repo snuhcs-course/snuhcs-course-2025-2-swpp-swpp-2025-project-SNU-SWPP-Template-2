@@ -90,7 +90,7 @@ make dev
 - **[TESTING.md](development/TESTING.md)** - 테스팅 가이드라인 및 실습
 
 ### 코드 품질 표준
-- **Python**: Black, isort, flake8, mypy, bandit
+- **Python**: Black, isort, flake8, bandit
 - **Kotlin**: ktlint, detekt
 - **Pre-commit hooks**: 자동 코드 품질 검사
 - **테스트 커버리지**: 최소 80% 커버리지 필요
