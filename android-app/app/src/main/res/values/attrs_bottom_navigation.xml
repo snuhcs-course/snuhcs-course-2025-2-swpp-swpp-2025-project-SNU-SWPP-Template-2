@@ -1,8 +1,6 @@
 <resources>
     <declare-styleable name="BottomNavigation">
-        <attr name="exampleString" format="string" />
-        <attr name="exampleDimension" format="dimension" />
-        <attr name="exampleColor" format="color" />
-        <attr name="exampleDrawable" format="color|reference" />
+        <attr name="iconTint" format="color" />
+        <attr name="labelTextSize" format="dimension" />
     </declare-styleable>
 </resources>
