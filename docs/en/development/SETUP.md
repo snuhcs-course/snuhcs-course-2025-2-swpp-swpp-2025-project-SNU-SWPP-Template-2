@@ -254,16 +254,21 @@ jupyter lab
 
 ### 1. Code Formatters
 ```bash
-# Install pre-commit hooks (already done in setup script)
+# Install pre-commit hooks (one-time setup)
+bash tools/git-hooks/setup_pre_commit.sh
+
+# Or install manually
 pre-commit install
 
 # Test formatters
-./scripts/formatters/format_all.sh --check
+bash tools/formatters/format_all.sh --check
 
 # Format code manually
-./scripts/formatters/format_python.py
-./scripts/formatters/format_kotlin.sh
+python tools/formatters/format_python.py --use-ruff
+bash tools/formatters/format_kotlin.sh
 ```
+
+For detailed information, see **[tools/README.md](../../../tools/README.md)**.
 
 ### 2. IDE Configuration
 
@@ -333,7 +338,10 @@ print('AI model setup successful!')
 ### 4. Code Quality Verification
 ```bash
 # Run all formatters and checks
-./scripts/formatters/format_all.sh --check
+bash tools/formatters/format_all.sh --check
+
+# Or run pre-commit on all files
+pre-commit run --all-files
 
 # Run tests
 pytest

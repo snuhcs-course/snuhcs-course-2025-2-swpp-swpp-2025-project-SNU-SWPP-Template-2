@@ -90,7 +90,7 @@ This is an AI-powered mobile application with three main components:
 - **[TESTING.md](development/TESTING.md)** - Testing guidelines and practices
 
 ### Code Quality Standards
-- **Python**: Black, isort, flake8, mypy, bandit
+- **Python**: Black, isort, flake8, bandit
 - **Kotlin**: ktlint, detekt
 - **Pre-commit hooks**: Automatic code quality checks
 - **Test Coverage**: Minimum 80% coverage required

@@ -38,14 +38,14 @@ This document outlines the coding standards, conventions, and best practices for
 
 ### Formatting Tools
 ```bash
-# Format Python code
-./scripts/formatters/format_python.py
+# Format Python code (recommended: uses ruff for speed)
+python tools/formatters/format_python.py --use-ruff
 
 # Check formatting without changes
-./scripts/formatters/format_python.py --check
+python tools/formatters/format_python.py --use-ruff --check
 
 # Show diffs
-./scripts/formatters/format_python.py --diff
+python tools/formatters/format_python.py --use-ruff --diff
 ```
 
 ### Type Hints
@@ -127,10 +127,10 @@ def load_model(model_path: str) -> Model:
 ### Formatting Tools
 ```bash
 # Format Kotlin code
-./scripts/formatters/format_kotlin.sh
+bash tools/formatters/format_kotlin.sh
 
 # Check formatting without changes
-./scripts/formatters/format_kotlin.sh --check
+bash tools/formatters/format_kotlin.sh --check
 ```
 
 ### Class Structure
@@ -283,18 +283,17 @@ All code must pass through automated formatters before commit:
 
 ```bash
 # Format all code
-./scripts/formatters/format_all.sh
+bash tools/formatters/format_all.sh
 
 # Check all code formatting
-./scripts/formatters/format_all.sh --check
+bash tools/formatters/format_all.sh --check
 ```
 
 ### Python Tools
-- **Black**: Code formatting
-- **isort**: Import sorting
-- **flake8**: Linting
-- **mypy**: Type checking
-- **bandit**: Security analysis
+- **Ruff**: Fast linting and formatting (recommended, replaces black/isort/flake8)
+- **Black**: Code formatting (alternative)
+- **isort**: Import sorting (alternative)
+- **bandit**: Security analysis (optional)
 
 ### Kotlin Tools
 - **ktlint**: Code formatting and linting
@@ -304,12 +303,17 @@ All code must pass through automated formatters before commit:
 Pre-commit hooks automatically run these tools. Never bypass them:
 
 ```bash
-# Install pre-commit hooks (done automatically in setup)
+# Install pre-commit hooks (one-time setup)
+bash tools/git-hooks/setup_pre_commit.sh
+
+# Or install manually
 pre-commit install
 
-# Run hooks manually
+# Run hooks manually on all files
 pre-commit run --all-files
 ```
+
+For detailed information about formatting tools and workflows, see **[tools/README.md](../../../tools/README.md)**.
 
 ## ✅ Checklist for Code Reviews
 

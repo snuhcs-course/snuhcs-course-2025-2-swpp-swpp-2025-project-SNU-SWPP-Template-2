@@ -277,20 +277,27 @@ jupyter lab
 
 ### 1. 코드 포매터
 ```bash
-# Pre-commit hooks 설치 (설정 스크립트에서 이미 완료)
+# Pre-commit hooks 설치 (일회성 설정)
+bash tools/git-hooks/setup_pre_commit.sh
+
+# 또는 수동으로 설치
 pre-commit install
 
 # 수동으로 포맷팅 실행
-./scripts/formatters/format_python.py
-./scripts/formatters/format_kotlin.sh
-./scripts/formatters/format_all.sh
+python tools/formatters/format_python.py --use-ruff
+bash tools/formatters/format_kotlin.sh
+bash tools/formatters/format_all.sh
 ```
+
+자세한 정보는 **[tools/README.md](../../../tools/README.md)**를 참조하세요.
 
 ### 2. 코드 품질 도구
 ```bash
-# Python 린팅
+# Python 린팅 (ruff 사용 권장)
+ruff check backend/ ai-model/
+
+# 또는 전통적인 도구 사용
 flake8 backend/ ai-model/
-mypy backend/ ai-model/
 
 # Kotlin 린팅
 cd frontend
