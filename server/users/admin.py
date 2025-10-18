@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Profile, Follow
+from .models import User, Profile, Follow, UserScrap
 
 
 @admin.register(User)
@@ -24,3 +24,16 @@ class FollowAdmin(admin.ModelAdmin):
     list_filter = ('status', 'created_at')
     search_fields = ('follower__username', 'following__username')
     readonly_fields = ('created_at',)
+
+
+@admin.register(UserScrap)
+class UserScrapAdmin(admin.ModelAdmin):
+    list_display = ('user', 'restaurant', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'restaurant__name')
+    readonly_fields = ('created_at',)
+    
+    def get_queryset(self, request):
+        # 성능 최적화: user와 restaurant 정보를 함께 로드
+        qs = super().get_queryset(request)
+        return qs.select_related('user', 'restaurant')

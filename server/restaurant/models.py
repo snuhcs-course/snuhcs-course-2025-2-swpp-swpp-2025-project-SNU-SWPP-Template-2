@@ -13,6 +13,9 @@ class Restaurant(models.Model):
 
     class Meta:
         indexes = [models.Index(fields=["name"])]
+    
+    def __str__(self):
+        return f"{self.name} (ID: {self.id})"
 
 
 class RestaurantMenu(models.Model):
@@ -24,5 +27,8 @@ class RestaurantMenu(models.Model):
             models.UniqueConstraint(fields=["restaurant", "menu"], name="uniq_restaurant_menu_pair"),
         ]
         indexes = [models.Index(fields=["restaurant", "menu"])]
+    
+    def __str__(self):
+        return f"{self.restaurant.name} - {self.menu}"
 
 
