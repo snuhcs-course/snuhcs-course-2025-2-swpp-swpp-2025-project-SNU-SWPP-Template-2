@@ -1,4 +1,4 @@
-from django.views.decorators.csrf import ensure_csrf_cookie, get_token
+from django.views.decorators.csrf import ensure_csrf_cookie, get_token, csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
@@ -20,6 +20,7 @@ def csrf(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@csrf_exempt
 def login_view(request):
     username = request.data.get("username")
     password = request.data.get("password")

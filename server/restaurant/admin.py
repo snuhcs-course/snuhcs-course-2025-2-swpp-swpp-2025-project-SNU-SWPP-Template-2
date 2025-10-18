@@ -4,10 +4,11 @@ from .models import Restaurant, RestaurantMenu
 
 @admin.register(Restaurant)
 class RestaurantAdmin(admin.ModelAdmin):
-    list_display = ['name', 'address', 'phone', 'source', 'created_at']
+    list_display = ['id', 'name', 'address', 'phone', 'source', 'created_at']
     list_filter = ['created_at', 'source']
     search_fields = ['name', 'address', 'phone', 'source']
     readonly_fields = ['created_at']
+    ordering = ['-created_at']
     
     fieldsets = (
         ('기본 정보', {
