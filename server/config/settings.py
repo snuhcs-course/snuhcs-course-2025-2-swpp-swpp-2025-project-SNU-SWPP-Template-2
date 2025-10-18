@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-_xszj*f9$g-jzs1j((ewf%evk^4(ub(5d)gslbbn+w+4(0k&l7
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
 
 # Application definition
@@ -144,11 +144,13 @@ CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8081',
     'http://127.0.0.1:8081',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
 
-# Allow cookies to be sent for cross-site requests (for dev). Requires Secure when SameSite=None.
-SESSION_COOKIE_SAMESITE = 'None'
-CSRF_COOKIE_SAMESITE = 'None'
+# CSRF settings for admin and API
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
 # During local development we serve Django over plain HTTP (127.0.0.1 or LAN IP).
 # Android WebView (apps targeting >= R) rejects cookies that include the
 # 'Secure' directive when the URL scheme is http:// — that prevents the native
