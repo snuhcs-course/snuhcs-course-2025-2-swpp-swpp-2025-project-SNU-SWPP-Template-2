@@ -21,7 +21,6 @@ exclude =
     build,
     dist,
     migrations,
-    .mypy_cache,
     .tox,
     .pytest_cache,
     htmlcov,
@@ -39,3 +38,18 @@ statistics = True
 # Enable docstring checks (requires flake8-docstrings)
 docstring-convention = google
 
+# Per-file ignores
+per-file-ignores =
+    # Allow unused imports in __init__.py
+    __init__.py:F401
+    # Allow module-level imports not at top in specific files
+    */asgi.py:E402
+    */settings.py:E402
+    */debug_auth.py:E402,F401
+    test_*.py:E402,F401,F841
+    */tests/*:E402,F401,F841,E722
+    # Ignore unused imports in admin.py (often used for registration)
+    */admin.py:F401
+    # Ignore unused imports in views.py and tests.py stubs
+    */views.py:F401
+    */tests.py:F401

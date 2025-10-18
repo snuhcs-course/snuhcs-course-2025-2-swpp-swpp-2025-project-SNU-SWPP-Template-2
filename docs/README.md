@@ -88,19 +88,22 @@ This is an AI-powered application with the following components:
 - **Frontend**: Kotlin, Android SDK
 - **AI/ML**: PyTorch, Transformers, NumPy, Pandas
 - **DevOps**: Docker, GitHub Actions, pre-commit hooks
-- **Code Quality**: Black, isort, flake8, mypy, ktlint, detekt
+- **Code Quality**: Black, isort, flake8, ktlint, detekt
 - **Package Management**: uv for Python, Gradle for Kotlin
 
 ## 🔧 Development Tools / 개발 도구
 
 ### Code Formatters / 코드 포매터
-- **Python**: `./scripts/formatters/format_python.py`
-- **Kotlin**: `./scripts/formatters/format_kotlin.sh`
-- **All**: `./scripts/formatters/format_all.sh`
+- **Python**: `./tools/formatters/format_python.py`
+- **Kotlin**: `./tools/formatters/format_kotlin.sh`
+- **All**: `./tools/formatters/format_all.sh`
 
 ### Pre-commit Hooks / 프리커밋 훅
 Pre-commit hooks are automatically installed and will run code formatters before each commit.
 프리커밋 훅이 자동으로 설치되며 각 커밋 전에 코드 포매터를 실행합니다.
+
+For detailed information, see **[tools/README.md](../tools/README.md)**.
+자세한 정보는 **[tools/README.md](../tools/README.md)**를 참조하세요.
 
 ## 📞 Support / 지원
 

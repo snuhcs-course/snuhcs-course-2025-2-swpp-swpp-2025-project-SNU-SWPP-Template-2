@@ -103,6 +103,12 @@ adb install app/build/outputs/apk/debug/app-debug.apk
 - **Android Emulator** for testing
 - **ADB** for device management
 
+### Code Quality
+- **Pre-commit hooks** for automated code quality checks
+- **Ruff** for Python linting and formatting (fast, modern)
+- **ktlint** for Kotlin code formatting
+- **detekt** for Kotlin static analysis
+
 ## 📋 Prerequisites
 
 - **Python 3.11+**
@@ -349,6 +355,40 @@ We follow a structured development workflow:
 - **Python**: 79 characters line length (PEP 8)
 - **Kotlin**: Follow Kotlin recommended line length
 - **Frontend**: Follow respective language standards
+
+### Code Formatting & Linting
+
+This project uses automated code formatting and linting tools to maintain code quality and consistency.
+
+#### Setup Pre-commit Hooks (One-time setup)
+
+```bash
+# Install pre-commit hooks that run automatically before each commit
+bash tools/git-hooks/setup_pre_commit.sh
+```
+
+#### Manual Code Formatting
+
+```bash
+# Format Python code (recommended: uses ruff for speed)
+python tools/formatters/format_python.py --use-ruff
+
+# Format Kotlin code
+bash tools/formatters/format_kotlin.sh
+
+# Format all code (Python + Kotlin)
+bash tools/formatters/format_all.sh
+```
+
+#### What Gets Checked
+
+Pre-commit hooks automatically check and fix:
+- **Python**: Linting and formatting with ruff, import sorting
+- **Kotlin**: Code formatting with ktlint
+- **General**: Trailing whitespace, end-of-file newlines, YAML/JSON validation
+- **Safety**: Large file detection, merge conflict detection
+
+For detailed information about formatting tools and workflows, see **[tools/README.md](tools/README.md)**.
 
 ## 📊 Project Status
 
