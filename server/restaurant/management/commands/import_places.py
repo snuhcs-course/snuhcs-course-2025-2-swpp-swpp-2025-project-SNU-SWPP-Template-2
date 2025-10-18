@@ -1,4 +1,5 @@
 import json
+import zipfile
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -51,10 +52,10 @@ def _restaurant_identity(place: Dict[str, Any]) -> Tuple[str, str]:
 
 
 class Command(BaseCommand):
-    help = "Import restaurants and menus from a JSON file into Restaurant/MenuCandidate/RestaurantMenu."
+    help = "Import restaurants and menus from a JSON file (or a ZIP file containing one) into Restaurant/MenuCandidate/RestaurantMenu."
 
     def add_arguments(self, parser):
-        parser.add_argument("json_path", type=str, help="Path to the JSON file (array of place objects).")
+        parser.add_argument("filepath", type=str, help="Path to the JSON or ZIP file (array of place objects).")
         parser.add_argument(
             "--source",
             type=str,
@@ -71,9 +72,9 @@ class Command(BaseCommand):
         )
 
     def handle(self, **options):
-        path = Path(options["json_path"])
+        path = Path(options["filepath"])
         if not path.exists():
-            raise CommandError(f"JSON file not found: {path}")
+            raise CommandError(f"File not found: {path}")
 
         source_label = options["source"].strip()
         dry_run = options["dry_run"]
@@ -81,8 +82,25 @@ class Command(BaseCommand):
         batch_size = max(1, int(options["batch_size"]))
         overwrite_menu_candidate = options["overwrite_menu_candidate"]
 
-        self.stdout.write(self.style.NOTICE(f"[import_places] loading JSON: {path}"))
-        data = json.loads(path.read_text(encoding="utf-8"))
+        # zip 지원
+        if path.suffix == ".zip":
+            with zipfile.ZipFile(path, "r") as zip_ref:
+                json_filename = None
+                for fname in zip_ref.namelist():
+                    if fname.endswith(".json"):
+                        json_filename = fname
+                        break
+                if not json_filename:
+                    raise CommandError(f"No .json file found inside: {path}")
+                with zip_ref.open(json_filename) as f:
+                    file_bytes = f.read()
+                    try:
+                        text = file_bytes.decode("utf-8")
+                    except Exception:
+                        text = file_bytes.decode("cp949")
+                    data = json.loads(text)
+        else:
+            data = json.loads(path.read_text(encoding="utf-8"))
         if not isinstance(data, list):
             raise CommandError("Top-level JSON must be an array.")
 
