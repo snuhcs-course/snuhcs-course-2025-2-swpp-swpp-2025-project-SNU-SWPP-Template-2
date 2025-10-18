@@ -21,7 +21,6 @@ exclude =
     build,
     dist,
     migrations,
-    .mypy_cache,
     .tox,
     .pytest_cache,
     htmlcov,

@@ -284,7 +284,6 @@ clean-python: ## Clean Python cache files
 	@find . -type f -name "*.pyo" -delete
 	@find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
 	@find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
-	@find . -type d -name ".mypy_cache" -exec rm -rf {} + 2>/dev/null || true
 	@echo "$(GREEN)✅ Python cache cleaned$(NC)"
 
 clean-build: ## Clean build artifacts

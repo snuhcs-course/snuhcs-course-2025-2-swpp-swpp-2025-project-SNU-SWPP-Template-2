@@ -68,7 +68,6 @@ class PythonFormatter:
             ".git",
             "node_modules",
             ".pytest_cache",
-            ".mypy_cache",
             "migrations",
         }
 
@@ -151,7 +150,7 @@ class PythonFormatter:
             "python",
             "-m",
             "flake8",
-            "--exclude=.venv,venv,__pycache__,.git,node_modules",
+            "--exclude=.venv,venv,__pycache__,.git,node_modules,.pytest_cache",
         ] + paths
         return self.run_command(cmd, "flake8 linting")
 
@@ -176,7 +175,7 @@ class PythonFormatter:
                 [
                     "--exclude",
                     ".venv,venv,__pycache__,.git,node_modules,"
-                    ".pytest_cache,.mypy_cache,migrations",
+                    ".pytest_cache,migrations",
                 ]
             )
 
@@ -215,8 +214,6 @@ class PythonFormatter:
 
         cmd.extend(paths)
         return self.run_command(cmd, "ruff formatting")
-
-
 
     def security_check_with_bandit(self, paths: list[str]) -> bool:
         """Security check with bandit."""

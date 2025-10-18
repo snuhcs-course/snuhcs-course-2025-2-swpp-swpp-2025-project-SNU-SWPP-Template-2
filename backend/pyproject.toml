@@ -96,7 +96,6 @@ extend-exclude = '''
   \.eggs
   | \.git
   | \.hg
-  | \.mypy_cache
   | \.tox
   | \.venv
   | venv
@@ -134,7 +133,6 @@ target-version = "py311"
 exclude = [
     ".eggs",
     ".git",
-    ".mypy_cache",
     ".pytest_cache",
     ".ruff_cache",
     ".tox",
