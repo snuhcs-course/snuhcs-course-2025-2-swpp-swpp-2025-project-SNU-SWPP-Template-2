@@ -3,13 +3,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.annotation.RequiresPermission
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentHomeBinding
 import com.example.librarytogether.databinding.FragmentLibraryBinding
 import com.example.librarytogether.feature.home.FeedAdapter
@@ -21,10 +22,9 @@ import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
-import dagger.hilt.android.HiltAndroidApp
 
 @AndroidEntryPoint
-class LibraryFragment : Fragment(R.layout.fragment_library) {
+class LibraryFragment : Fragment() {
 
     private val viewModel: LibraryViewModel by viewModels()
     private var _binding: FragmentLibraryBinding? = null
@@ -115,6 +115,16 @@ class LibraryFragment : Fragment(R.layout.fragment_library) {
     private fun observeViewModel() {
         viewModel.myReviews.observe(viewLifecycleOwner) { reviews ->
             reviewAdapter.submitList(reviews)
+//            binding.tvEmpty.isVisible = reviews.isEmpty()
+//            binding.rvReviews.isVisible = reviews.isNotEmpty()
+        }
+        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+//            binding.progressBar.isVisible = isLoading
+        }
+        viewModel.error.observe(viewLifecycleOwner) { error ->
+            error?.let {
+                Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

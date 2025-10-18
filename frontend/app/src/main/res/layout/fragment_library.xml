@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingHorizontal="16dp"
-    tools:context=".feature.home.HomeFragment">
+    tools:context=".feature.home.LibraryFragment">
 
     <TextView
         android:id="@+id/tvAppName"

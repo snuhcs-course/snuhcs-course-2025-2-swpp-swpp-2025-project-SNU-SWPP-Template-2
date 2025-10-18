@@ -17,6 +17,11 @@ class LibraryViewModel @Inject constructor(
 ) : ViewModel() {
     private val _myReviews = MutableLiveData<List<Review>>(emptyList())
     val myReviews: LiveData<List<Review>> = _myReviews
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
 
     init {
         refreshMyReviews()
@@ -27,6 +32,25 @@ class LibraryViewModel @Inject constructor(
             val list = repository.getMyReviews()
             _myReviews.postValue(list)
         }
+        _isLoading.value = true
+        viewModelScope.launch {
+            try {
+                val reviews = repository.getMyReviews()
+                if (reviews != null) {
+                    _myReviews.value = reviews
+                } else {
+                    _error.value = "리뷰를 불러오는 데 실패했습니다."
+                }
+            } catch (e: Exception) {
+                _error.value = "네트워크 오류가 발생했습니다."
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun onErrorShown() {
+        _error.value = null
     }
 
     fun addNewReview(review: postReview) {

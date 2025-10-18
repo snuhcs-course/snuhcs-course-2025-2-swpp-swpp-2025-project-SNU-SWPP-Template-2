@@ -163,9 +163,6 @@ class FeedAdapter(
                 ContextCompat.getColor(itemView.context, R.color.black)
             }
             binding.btnLike.iconTint = ColorStateList.valueOf(likeIconColor)
-
-
-            binding.btnLike.setOnClickListener { clicks.onClickLike(post) }
         }
     }
 }
