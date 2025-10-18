@@ -364,7 +364,30 @@ coverage report
 2. Create a feature branch
 3. Make your changes
 4. Add tests
-5. Submit a pull request
+5. Format your code (see below)
+6. Submit a pull request
+
+### Code Formatting & Linting
+
+Before committing, ensure your code is properly formatted:
+
+```bash
+# From the project root directory
+# Format Python code (recommended: uses ruff for speed)
+python tools/formatters/format_python.py --use-ruff
+
+# Or setup pre-commit hooks (one-time setup)
+bash tools/git-hooks/setup_pre_commit.sh
+```
+
+Pre-commit hooks will automatically:
+- Lint and format Python code with ruff
+- Sort imports
+- Remove trailing whitespace
+- Ensure files end with newlines
+- Validate YAML/JSON files
+
+For more details, see **[tools/README.md](../tools/README.md)**.
 
 ## 📄 License
 
