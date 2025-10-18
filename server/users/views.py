@@ -3,8 +3,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from .models import User, Follow, UserScrap
-from .serializers import UserSerializer, ProfileSerializer, FollowSerializer, UserScrapSerializer
+from .models import User, Follow, UserScrap, UserPreference
+from .serializers import UserSerializer, ProfileSerializer, FollowSerializer, UserScrapSerializer, UserPreferenceSerializer
 from restaurant.models import Restaurant
 from . import services
 
@@ -142,3 +142,72 @@ class ScrapViewSet(viewsets.GenericViewSet):
                 {"scrapped": True, "data": serializer.data},
                 status=status.HTTP_201_CREATED
             )
+
+
+class OnboardingViewSet(viewsets.GenericViewSet):
+    """온보딩 취향 설정 API"""
+    permission_classes = [IsAuthenticated]
+    serializer_class = UserPreferenceSerializer
+    
+    def get_queryset(self):
+        """현재 유저의 취향 설정만 조회"""
+        return UserPreference.objects.filter(user=self.request.user)
+    
+    def list(self, request):
+        """내 취향 설정 조회"""
+        preference = UserPreference.objects.filter(user=request.user).first()
+        if preference:
+            serializer = self.get_serializer(preference)
+            return Response(serializer.data)
+        else:
+            return Response(
+                {"message": "No preferences set yet"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+    
+    def create(self, request):
+        """취향 설정 생성/업데이트"""
+        preference, created = UserPreference.objects.get_or_create(
+            user=request.user,
+            defaults={
+                'spicy_level': request.data.get('spicy_level', 0),
+                'sweet_level': request.data.get('sweet_level', 0),
+                'salty_level': request.data.get('salty_level', 0),
+                'allergies': request.data.get('allergies', []),
+                'disliked_ingredients': request.data.get('disliked_ingredients', []),
+                'favorite_cuisines': request.data.get('favorite_cuisines', []),
+            }
+        )
+        
+        if not created:
+            # 기존 설정 업데이트
+            serializer = self.get_serializer(preference, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            serializer = self.get_serializer(preference)
+        
+        return Response(
+            serializer.data, 
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
+    
+    @action(detail=False, methods=['patch'], url_path='update')
+    def update_preferences(self, request):
+        """취향 설정 부분 업데이트"""
+        preference = UserPreference.objects.filter(user=request.user).first()
+        
+        if not preference:
+            return Response(
+                {"error": "No preferences found. Please create preferences first."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        serializer = self.get_serializer(preference, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Profile, Follow, UserScrap
+from .models import User, Profile, Follow, UserScrap, UserPreference
 from restaurant.serializers import RestaurantSerializer
 
 
@@ -37,3 +37,36 @@ class UserScrapSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         # user는 view에서 자동으로 설정됨
         return super().create(validated_data)
+
+
+class UserPreferenceSerializer(serializers.ModelSerializer):
+    """유저 취향 설정 직렬화"""
+    
+    class Meta:
+        model = UserPreference
+        fields = (
+            "id", 
+            "spicy_level", 
+            "sweet_level", 
+            "salty_level", 
+            "allergies", 
+            "disliked_ingredients", 
+            "favorite_cuisines", 
+            "created_at"
+        )
+        read_only_fields = ("id", "created_at")
+    
+    def validate_spicy_level(self, value):
+        if value < 0 or value > 10:
+            raise serializers.ValidationError("Spicy level must be between 0 and 10")
+        return value
+    
+    def validate_sweet_level(self, value):
+        if value < 0 or value > 10:
+            raise serializers.ValidationError("Sweet level must be between 0 and 10")
+        return value
+    
+    def validate_salty_level(self, value):
+        if value < 0 or value > 10:
+            raise serializers.ValidationError("Salty level must be between 0 and 10")
+        return value
