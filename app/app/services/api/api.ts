@@ -126,6 +126,50 @@ export class Api {
     return this.apisauce.get("/me/")
   }
 
+  async toggleScrap(restaurantId: number) {
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.post("/scraps/toggle/", { restaurant_id: restaurantId })
+  }
+
+  async getScraps() {
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.get("/scraps/")
+  }
+
+  async addScrap(restaurantId: number) {
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.post("/scraps/", { restaurant_id: restaurantId })
+  }
+
+  async deleteScrap(scrapId: number) {
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.delete(`/scraps/${scrapId}/`)
+  }
+
   private async attachCookiesHeader() {
     try {
   // Cookies.get may be exposed on default or named export depending on version.
