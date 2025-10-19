@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!-- 상단 헤더 -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/card_background"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- 로고 + 앱 이름 묶음 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="66dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 앱 로고 -->
+            <ImageView
+                android:id="@+id/app_logo"
+                android:layout_width="49dp"
+                android:layout_height="49dp"
+                android:layout_marginEnd="8dp"
+                android:adjustViewBounds="true"
+                android:contentDescription="@string/app_logo"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_logo" />
+
+            <!-- 앱 이름 텍스트 -->
+            <TextView
+                android:id="@+id/app_name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:text="@string/app_name"
+                android:textColor="@color/black"
+                android:textSize="25sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- 알림 아이콘 -->
+        <ImageView
+            android:id="@+id/notification_icon"
+            android:layout_width="26dp"
+            android:layout_height="45dp"
+            android:contentDescription="@string/notification"
+            android:src="@drawable/ic_notification"
+            app:tint="@color/black" />
+    </LinearLayout>
+
+    <!-- 메인 콘텐츠 영역 -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/header"
+        android:layout_marginTop="72dp"
+        android:layout_marginBottom="80dp"
+        android:background="@color/background" />
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bottom_nav_background"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/nav_icon_selector"
+        app:itemTextColor="@color/nav_text_selector"
+        app:itemBackground="@android:color/transparent"
+        app:itemRippleColor="@android:color/transparent"
+        app:menu="@menu/bottom_navigation"
+        app:itemActiveIndicatorStyle="@style/Widget.Design.BottomNavigationView"/>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

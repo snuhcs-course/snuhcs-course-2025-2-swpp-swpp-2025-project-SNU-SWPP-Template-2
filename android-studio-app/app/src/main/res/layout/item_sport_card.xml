@@ -1,0 +1,255 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:backgroundTint="@color/card_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- 스포츠 이미지 -->
+        <ImageView
+            android:id="@+id/image_sport"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:scaleType="centerCrop"
+            android:contentDescription="@string/sport_image"
+            tools:src="@drawable/sample_sport_image" />
+
+        <!-- 카드 내용 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- 제목 및 레벨 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
+                <TextView
+                    android:id="@+id/text_sport_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    tools:text="골프" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_skill_level"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipBackgroundColor="@color/primary"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    tools:text="중급" />
+
+            </LinearLayout>
+
+            <!-- 통계 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/total_sessions"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/text_total_sessions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        tools:text="12" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/this_week"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/text_weekly_sessions"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        tools:text="2/3" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/last_session"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/text_last_session"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary"
+                        tools:text="2일 전" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- 진행도 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="6dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/weekly_goal_progress"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary" />
+
+                    <TextView
+                        android:id="@+id/text_progress_percentage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        tools:text="67%" />
+
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/progress_weekly_goal"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:progressTint="@color/primary"
+                    android:progressBackgroundTint="@color/progress_background"
+                    android:progress="67"
+                    android:max="100" />
+
+            </LinearLayout>
+
+            <!-- 목표 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_target"
+                    android:layout_marginEnd="6dp"
+                    android:layout_gravity="center_vertical"
+                    android:contentDescription="@string/goal_icon"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/text_next_goal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    tools:text="핸디캡 15 달성" />
+
+            </LinearLayout>
+
+            <!-- 액션 버튼들 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_view_stats"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:text="@string/view_stats"
+                    android:textColor="@color/primary"
+                    app:icon="@drawable/ic_bar_chart"
+                    app:iconTint="@color/primary"
+                    app:strokeColor="@color/primary"
+                    app:strokeWidth="1dp"
+                    style="@style/Widget.Material3.Button.OutlinedButton" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_add_session"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/add_session"
+                    android:backgroundTint="@color/primary"
+                    android:textColor="@android:color/white"
+                    app:icon="@drawable/ic_add"
+                    app:iconTint="@android:color/white" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

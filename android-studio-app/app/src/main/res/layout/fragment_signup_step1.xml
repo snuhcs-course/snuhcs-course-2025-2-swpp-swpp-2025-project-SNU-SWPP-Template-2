@@ -1,0 +1,53 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- 로고 -->
+    <ImageView
+        android:id="@+id/img_logo"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@drawable/ic_logo"
+        android:contentDescription="@string/app_name"
+        android:layout_marginBottom="32dp"/>
+
+    <EditText
+        android:id="@+id/et_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="이름"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/et_email"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="이메일"
+        android:inputType="textEmailAddress"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/et_password"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="비밀번호"
+        android:inputType="textPassword"
+        android:layout_marginBottom="12dp"/>
+
+    <EditText
+        android:id="@+id/et_password_confirm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="비밀번호 확인"
+        android:inputType="textPassword"
+        android:layout_marginBottom="24dp"/>
+
+    <Button
+        android:id="@+id/btn_next"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="다음"/>
+</LinearLayout>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 제목 -->
+        <TextView
+            android:id="@+id/text_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="연습 세션 추가"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="20dp" />
+
+        <!-- 날짜 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="날짜"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="date" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 운동 시간 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="운동 시간 (분)"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_duration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 집중 분야 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="집중 분야"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_focus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 강도 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="운동 강도"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <Spinner
+                android:id="@+id/spinner_intensity"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 만족도 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="만족도"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/text_satisfaction_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="7/10"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/primary" />
+
+            </LinearLayout>
+
+            <com.google.android.material.slider.Slider
+                android:id="@+id/slider_satisfaction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:valueFrom="1"
+                android:valueTo="10"
+                android:stepSize="1"
+                android:value="7" />
+
+        </LinearLayout>
+
+        <!-- 메모 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:hint="메모 (선택사항)"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_notes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="textMultiLine"
+                android:lines="3"
+                android:gravity="top" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 버튼들 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/cancel"
+                android:textColor="@color/primary"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_save"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/save"
+                android:backgroundTint="@color/primary"
+                android:textColor="@android:color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

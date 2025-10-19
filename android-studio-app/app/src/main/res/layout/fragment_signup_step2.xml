@@ -1,0 +1,48 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- 로고 -->
+    <ImageView
+        android:id="@+id/img_logo"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@drawable/ic_logo"
+        android:contentDescription="@string/app_name"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="관심 운동을 선택하세요"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
+
+    <CheckBox
+        android:id="@+id/cb_soccer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="축구"/>
+
+    <CheckBox
+        android:id="@+id/cb_basketball"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="농구"/>
+
+    <CheckBox
+        android:id="@+id/cb_fitness"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="헬스"/>
+
+    <Button
+        android:id="@+id/btn_next"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="다음"
+        android:layout_marginTop="24dp"/>
+</LinearLayout>

@@ -1,0 +1,6 @@
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 눌러서 선택된 상태 -->
+    <item android:color="@color/primary" android:state_selected="true"/>
+    <!-- 기본 상태 -->
+    <item android:color="@android:color/transparent"/>
+</selector>

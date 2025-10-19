@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <!-- 검색/선택 영역 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/card_background">
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/search_exercise"
+                android:inputType="text"
+                app:drawableStartCompat="@drawable/ic_search" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <Spinner
+            android:id="@+id/spinner_sport"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:layout_gravity="center_vertical"
+            android:entries="@array/sports_array" />
+
+    </LinearLayout>
+
+    <!-- 카메라 비교 영역 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="3"
+        android:orientation="horizontal"
+        android:background="@android:color/black">
+
+        <!-- 사용자 카메라 영역 -->
+        <FrameLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <!-- 카메라 프리뷰 -->
+            <androidx.camera.view.PreviewView
+                android:id="@+id/camera_preview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <!-- 사용자 카메라 오버레이 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!-- 녹화 표시 -->
+                <LinearLayout
+                    android:id="@+id/recording_indicator"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:background="@drawable/bg_recording_badge"
+                    android:orientation="horizontal"
+                    android:padding="6dp"
+                    android:visibility="gone">
+
+                    <View
+                        android:layout_width="8dp"
+                        android:layout_height="8dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_gravity="center_vertical"
+                        android:background="@drawable/bg_recording_dot" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="REC"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <!-- 사용자 배지 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:background="@drawable/bg_user_badge"
+                    android:orientation="horizontal"
+                    android:padding="6dp">
+
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_user"
+                        android:contentDescription="@string/user_icon"
+                        app:tint="@android:color/white" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/my_motion"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+        <!-- 구분선 -->
+        <View
+            android:layout_width="1dp"
+            android:layout_height="match_parent"
+            android:background="#333333" />
+
+        <!-- AI 가이드 영역 -->
+        <FrameLayout
+            android:id="@+id/ai_guide_area"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="#1a1a1a"
+            android:visibility="gone">
+
+            <!-- AI 가이드 오버레이 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <!-- 점수 배지 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="end"
+                    android:layout_margin="12dp"
+                    android:background="@drawable/bg_score_badge"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:id="@+id/text_score"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        tools:text="85%" />
+
+                </LinearLayout>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <!-- AI 가이드 배지 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="12dp"
+                    android:background="@drawable/bg_ai_badge"
+                    android:orientation="horizontal"
+                    android:padding="6dp">
+
+                    <ImageView
+                        android:layout_width="12dp"
+                        android:layout_height="12dp"
+                        android:layout_marginEnd="4dp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/ic_target"
+                        android:contentDescription="@string/ai_guide_icon"
+                        app:tint="@android:color/white" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/ai_guide"
+                        android:textColor="@android:color/white"
+                        android:textSize="12sp" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </FrameLayout>
+
+    </LinearLayout>
+
+    <!-- 단계 표시기 -->
+    <LinearLayout
+        android:id="@+id/phase_indicator"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_phase_indicator"
+        android:orientation="vertical"
+        android:padding="12dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/text_current_phase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/bg_phase_badge"
+            android:padding="6dp"
+            android:textColor="@android:color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            tools:text="현재 단계: 어드레스" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/accuracy"
+                android:textColor="@android:color/white"
+                android:textSize="12sp" />
+
+            <ProgressBar
+                android:id="@+id/progress_score"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="0dp"
+                android:layout_height="8dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:layout_gravity="center_vertical"
+                android:progressTint="@color/primary"
+                android:progressBackgroundTint="#333333"
+                tools:progress="85" />
+
+            <TextView
+                android:id="@+id/text_accuracy_percent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="12sp"
+                tools:text="85%" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- 컨트롤 버튼들 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="@color/card_background">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_analysis"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="@string/start_analysis"
+            android:backgroundTint="@color/primary"
+            android:textColor="@android:color/white"
+            app:icon="@drawable/ic_play"
+            app:iconTint="@android:color/white" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:text="@string/reset"
+            android:textColor="@color/primary"
+            app:icon="@drawable/ic_refresh"
+            app:iconTint="@color/primary"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1dp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_flip_camera"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            app:icon="@drawable/ic_flip_camera"
+            app:iconTint="@color/primary"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="1dp"
+            style="@style/Widget.Material3.Button.OutlinedButton" />
+
+    </LinearLayout>
+
+    <!-- 피드백 섹션 -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="2"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:gravity="center"
+                android:text="@string/text_feedback"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <!-- 빈 상태 메시지 -->
+            <LinearLayout
+                android:id="@+id/empty_feedback_layout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="32dp">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_camera"
+                    android:alpha="0.6"
+                    android:contentDescription="@string/camera_icon"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/empty_feedback_message"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:gravity="center" />
+
+            </LinearLayout>
+
+            <!-- TODO: 실제 피드백 리스트 RecyclerView 추가 -->
+            <!--
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_view_feedback"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                tools:listitem="@layout/item_feedback" />
+            -->
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</LinearLayout>

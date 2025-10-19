@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <!-- 제목 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="20dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="AI 훈련 계획 생성"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_ai_badge"
+                android:orientation="horizontal"
+                android:padding="6dp">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_auto_awesome"
+                    android:layout_marginEnd="4dp"
+                    android:layout_gravity="center_vertical"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI"
+                    android:textColor="@android:color/white"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 계획 이름 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="훈련 계획 이름"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_plan_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 스포츠 선택 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="스포츠 종목"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <Spinner
+                android:id="@+id/spinner_sport"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 난이도 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="난이도"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <Spinner
+                android:id="@+id/spinner_difficulty"
+                android:layout_width="match_parent"
+                android:layout_height="48dp" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 소요 시간 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="소요 시간 (분)"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_duration"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="number" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- 집중 영역 -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:hint="집중 영역"
+            style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/edit_focus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:inputType="text"
+                android:maxLines="2" />
+
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <!-- AI 생성 옵션 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp"
+            android:padding="12dp"
+            android:background="@drawable/feedback_background">
+
+            <CheckBox
+                android:id="@+id/checkbox_ai_generated"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI 기반 맞춤형 운동 생성"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="선택한 스포츠와 난이도에 맞는 운동을 AI가 자동으로 추천합니다"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="2dp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 버튼들 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:text="@string/cancel"
+                android:textColor="@color/primary"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"
+                style="@style/Widget.Material3.Button.OutlinedButton" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_create"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="생성하기"
+                android:backgroundTint="@color/secondary"
+                android:textColor="@android:color/white"
+                app:icon="@drawable/ic_auto_awesome"
+                app:iconTint="@android:color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>

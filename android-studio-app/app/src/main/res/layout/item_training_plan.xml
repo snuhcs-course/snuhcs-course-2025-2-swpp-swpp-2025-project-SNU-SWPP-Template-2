@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:backgroundTint="@color/card_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 헤더 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/text_plan_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    tools:text="골프 기초 향상 프로그램" />
+
+                <TextView
+                    android:id="@+id/text_plan_sport"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary"
+                    android:layout_marginTop="2dp"
+                    tools:text="골프" />
+
+            </LinearLayout>
+
+            <!-- AI 생성 배지 -->
+            <LinearLayout
+                android:id="@+id/ai_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_ai_badge"
+                android:orientation="horizontal"
+                android:padding="6dp"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:src="@drawable/ic_auto_awesome"
+                    android:layout_marginEnd="4dp"
+                    android:layout_gravity="center_vertical"
+                    app:tint="@android:color/white" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AI"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 세부 정보 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_clock"
+                    android:layout_marginEnd="4dp"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/text_duration"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    tools:text="45분" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_target"
+                    android:layout_marginEnd="4dp"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/text_difficulty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    tools:text="중급" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_play"
+                    android:layout_marginEnd="4dp"
+                    app:tint="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/text_exercise_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    tools:text="5개 운동" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- 집중 영역 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="집중 영역: "
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/text_focus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:textStyle="bold"
+                tools:text="스윙 정확도, 거리 향상" />
+
+        </LinearLayout>
+
+        <!-- 액션 버튼 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_start_training"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/start_training"
+            android:backgroundTint="@color/primary"
+            android:textColor="@android:color/white"
+            app:icon="@drawable/ic_play"
+            app:iconTint="@android:color/white" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

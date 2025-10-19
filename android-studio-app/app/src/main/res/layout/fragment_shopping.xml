@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".ui.fragments.ShoppingFragment">
+
+    <!-- Title -->
+    <TextView
+        android:id="@+id/tv_shopping_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/shopping"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp"
+        android:textColor="@color/foreground" />
+
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:overScrollMode="never"
+        android:layout_marginBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingEnd="8dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_category_club"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:text="골프채"
+                android:textSize="12sp"
+                android:backgroundTint="@color/category_button_bg"
+                android:textColor="@color/category_button_text"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_category_ball"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:text="골프공"
+                android:textSize="12sp"
+                android:backgroundTint="@color/category_button_bg"
+                android:textColor="@color/category_button_text"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_category_shoes"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:text="골프화"
+                android:textSize="12sp"
+                android:backgroundTint="@color/category_button_bg"
+                android:textColor="@color/category_button_text"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_category_glove"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="골프장갑"
+                android:textSize="12sp"
+                android:backgroundTint="@color/category_button_bg"
+                android:textColor="@color/category_button_text"/>
+        </LinearLayout>
+    </HorizontalScrollView>
+
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <EditText
+            android:id="@+id/et_search"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:hint="@string/searching"
+            android:padding="12dp"
+            android:textColor="@color/foreground"
+            android:textSize="14sp"/>
+
+        <ImageButton
+            android:id="@+id/btn_search"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_search"
+            android:contentDescription="@string/search"
+            app:tint="@color/foreground"/>
+    </LinearLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_shopping_items"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:padding="1dp"
+        tools:listitem="@layout/item_shopping_card"/>
+
+</LinearLayout>

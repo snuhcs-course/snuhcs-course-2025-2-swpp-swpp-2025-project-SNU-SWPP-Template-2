@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+
+        <!-- 선호 요일 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="선호 요일"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="12dp"/>
+
+        <CheckBox android:id="@+id/cb_monday" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="월요일"/>
+        <CheckBox android:id="@+id/cb_tuesday" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="화요일"/>
+        <CheckBox android:id="@+id/cb_wednesday" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="수요일"/>
+        <CheckBox android:id="@+id/cb_thursday" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="목요일"/>
+        <CheckBox android:id="@+id/cb_friday" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="금요일"/>
+        <CheckBox android:id="@+id/cb_saturday" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="토요일"/>
+        <CheckBox android:id="@+id/cb_sunday" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="일요일"/>
+
+        <!-- 선호 시간대 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="선호 시간대"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="12dp"/>
+
+        <RadioGroup
+            android:id="@+id/rg_time_slots"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <RadioButton android:id="@+id/rb_morning" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="오전 (6:00 - 12:00)"/>
+            <RadioButton android:id="@+id/rb_afternoon" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="오후 (12:00 - 18:00)"/>
+            <RadioButton android:id="@+id/rb_evening" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="저녁 (18:00 - 24:00)"/>
+        </RadioGroup>
+
+        <!-- 완료 버튼 -->
+        <Button
+            android:id="@+id/btn_complete_creation"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="선택 완료"
+            android:layout_marginTop="20dp"/>
+    </LinearLayout>
+</ScrollView>

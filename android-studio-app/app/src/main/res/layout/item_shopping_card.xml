@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="160dp"
+    android:layout_height="200dp"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="3dp"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- 상품 이미지 -->
+        <ImageView
+            android:id="@+id/img_product"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_logo" />
+
+        <!-- 아래 정보 영역 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <!-- 제품명 -->
+            <TextView
+                android:id="@+id/tv_product_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="골프채"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/foreground"
+                android:maxLines="1"
+                android:ellipsize="end" />
+
+            <!-- 숙련도 (별점) -->
+            <TextView
+                android:id="@+id/tv_product_level"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="★★★☆☆ (3/5)"
+                android:textSize="12sp"
+                android:textColor="@color/muted_foreground"
+                android:layout_marginTop="2dp"
+                android:maxLines="1" />
+
+            <!-- 가격 -->
+            <TextView
+                android:id="@+id/tv_product_price"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="₩99,000"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/primary"
+                android:layout_marginTop="2dp" />
+
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

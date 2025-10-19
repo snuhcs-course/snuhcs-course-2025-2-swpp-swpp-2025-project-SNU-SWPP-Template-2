@@ -1,0 +1,29 @@
+android-studio-app/.gradle/
+android-studio-app/.gradle/*
+android-studio-app/.kotlin/
+android-studio-app/.kotlin/*
+android-studio-app/.idea/*
+android-studio-app/build/*
+android-studio-app/app/build/*
+# Local configuration file (sdk path, etc)
+android-studio-app/local.properties
+
+# Log files
+android-studio-app/*.log
+android-studio-app/*.iml
+
+android-studio-app/*.jks
+android-studio-app/*.keystore
+android-studio-app/.cxx/
+.DS_Store
+android-studio-app/Thumbs.db
+android-studio-app/gradle-wrapper.jar
+
+#backend
+server/accounts/__pycache__
+server/accounts/migrations/__pycache__
+server/schedule/__pycache__
+server/schedule/migrations/__pycache__
+server/recommendation/__pycache__
+server/recommendation/migrations/__pycache__
+server/.env

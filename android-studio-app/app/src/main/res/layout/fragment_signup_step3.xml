@@ -1,0 +1,55 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <!-- 로고 -->
+    <ImageView
+        android:id="@+id/img_logo"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:src="@drawable/ic_logo"
+        android:contentDescription="@string/app_name"
+        android:layout_marginBottom="32dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="운동 수준을 선택하세요"
+        android:textSize="18sp"
+        android:layout_marginBottom="16dp"/>
+
+    <RadioGroup
+        android:id="@+id/rg_level"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RadioButton
+            android:id="@+id/rb_beginner"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="초급"/>
+
+        <RadioButton
+            android:id="@+id/rb_intermediate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="중급"/>
+
+        <RadioButton
+            android:id="@+id/rb_advanced"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="고급"/>
+    </RadioGroup>
+
+    <Button
+        android:id="@+id/btn_complete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="완료"
+        android:layout_marginTop="24dp"/>
+</LinearLayout>

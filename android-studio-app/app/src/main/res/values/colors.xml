@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 메인 컬러 - 웹 앱과 동일 -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <color name="primary">#19612C</color>
+    <color name="primary_dark">#19612C</color>
+    <color name="secondary">@android:color/holo_green_dark</color>
+    <color name="secondary_dark">@android:color/holo_green_light</color>
+    
+    <!-- 배경 -->
+    <color name="background">#FFFFFF</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="surface">#F8FAFC</color>
+    
+    <!-- 텍스트 -->
+    <color name="text_primary">#1E293B</color>
+    <color name="text_secondary">#64748B</color>
+    <color name="text_hint">#94A3B8</color>
+    
+    <!-- 상태 컬러 -->
+    <color name="success">#10B981</color>
+    <color name="warning">#F59E0B</color>
+    <color name="error">#EF4444</color>
+    
+    <!-- UI 요소 -->
+    <color name="border">#E2E8F0</color>
+    <color name="divider">#F1F5F9</color>
+    <color name="progress_background">#E2E8F0</color>
+    
+    <!-- FAB -->
+    <color name="fab_background">#3B82F6</color>
+    
+    <!-- 하단 네비게이션 -->
+    <color name="bottom_nav_icon_color">@color/nav_icon_selector</color>
+    <color name="bottom_nav_text_color">@color/nav_text_selector</color>
+    
+    <!-- 네비게이션 선택자용 -->
+    <color name="nav_selected">#19612C</color>
+    <color name="nav_unselected">#646464</color>
+    
+    <!-- 업적 타입별 색상 -->
+    <color name="achievement_bronze">#CD7F32</color>
+    <color name="achievement_silver">#C0C0C0</color>
+    <color name="achievement_gold">#FFD700</color>
+    <color name="achievement_platinum">#000000</color>
+    
+    <!-- 피드백 타입별 색상 -->
+    <color name="feedback_good">#10B981</color>
+    <color name="feedback_warning">#F59E0B</color>
+    <color name="feedback_error">#EF4444</color>
+    
+    <color name="feedback_good_bg">#F0FDF4</color>
+    <color name="feedback_warning_bg">#FFFBEB</color>
+    <color name="feedback_error_bg">#FEF2F2</color>
+    
+    <!-- 그라데이션 색상 -->
+    <color name="gradient_start">#3B82F6</color>
+    <color name="gradient_end">#19612C</color>
+    
+    <!-- 카메라 오버레이 색상 -->
+    <color name="overlay_recording">#EF4444</color>
+    <color name="overlay_user">#374151</color>
+    <color name="overlay_ai">#3B82F6</color>
+    <color name="overlay_score">#10B981</color>
+    <color name="overlay_phase">#3B82F6</color>
+    
+    <!-- 반투명 색상 -->
+    <color name="black_alpha_50">#80000000</color>
+    <color name="black_alpha_70">#B3000000</color>
+    <color name="white_alpha_90">#E6FFFFFF</color>
+
+    <color name="muted">#ECECF0</color>
+    <color name="muted_foreground">#717182</color>
+    <color name="accent">#E9EBEF</color>
+    <color name="accent_foreground">#030213</color>
+
+    <color name="foreground">#000000</color>
+    <color name="calendar_selected">#030213</color>
+    <color name="calendar_today">#E9EBEF</color>
+    <color name="progress_primary">#030213</color>
+
+    <!-- Dark Theme Colors (for future dark mode support) -->
+    <color name="background_dark">#0A0A0A</color>
+    <color name="foreground_dark">#FAFAFA</color>
+    <color name="card_dark">#0A0A0A</color>
+    <color name="card_foreground_dark">#FAFAFA</color>
+    <color name="primary_foreground_dark">#0A0A0A</color>
+
+</resources>

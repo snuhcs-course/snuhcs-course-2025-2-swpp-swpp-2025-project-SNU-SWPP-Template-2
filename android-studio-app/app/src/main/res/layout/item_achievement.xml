@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    android:backgroundTint="@color/card_background">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <!-- 업적 아이콘 -->
+        <FrameLayout
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginEnd="12dp">
+
+            <!-- 업적 배경 -->
+            <ImageView
+                android:id="@+id/image_achievement_bg"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/level_badge_background"
+                android:scaleType="centerCrop" />
+
+            <!-- 업적 아이콘 -->
+            <ImageView
+                android:id="@+id/image_achievement_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_trophy"
+                app:tint="@android:color/white" />
+
+            <!-- 잠금 오버레이 -->
+            <View
+                android:id="@+id/lock_overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#80000000"
+                android:visibility="gone" />
+
+        </FrameLayout>
+
+        <!-- 업적 정보 -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- 제목 및 타입 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:id="@+id/text_achievement_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    tools:text="첫 번째 골프 세션" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chip_achievement_type"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:chipBackgroundColor="@color/achievement_bronze"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp"
+                    tools:text="브론즈" />
+
+            </LinearLayout>
+
+            <!-- 설명 -->
+            <TextView
+                android:id="@+id/text_achievement_description"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="8dp"
+                tools:text="첫 번째 골프 연습 세션을 완료하세요" />
+
+            <!-- 진행도 -->
+            <LinearLayout
+                android:id="@+id/progress_container"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="4dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="진행도"
+                        android:textSize="12sp"
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/text_progress"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/primary"
+                        tools:text="1 / 1" />
+
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/progress_achievement"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:progressTint="@color/primary"
+                    android:progressBackgroundTint="@color/progress_background"
+                    tools:progress="100" />
+
+            </LinearLayout>
+
+            <!-- 달성 날짜 또는 보상 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/text_unlocked_date"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="12sp"
+                    android:textColor="@color/text_secondary"
+                    android:visibility="gone"
+                    tools:text="2024년 1월 15일에 달성" />
+
+                <TextView
+                    android:id="@+id/text_reward_points"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/secondary"
+                    tools:text="+50 XP" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
