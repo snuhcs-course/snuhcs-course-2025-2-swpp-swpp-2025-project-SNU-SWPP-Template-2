@@ -382,9 +382,44 @@ def downgrade():
 
 ## 🌐 API 설계 원칙
 
-### RESTful API 설계
+> **⚠️ 중요**: 아래 예시는 **일반적인 REST API 규칙**을 설명하기 위한 것입니다.
+> **이 프로젝트의 실제 URL 패턴**은 `backend/docs/API_DOCUMENTATION.md` 및 `backend/docs/API_CONVENTIONS.md`를 참조하세요.
+
+### 이 프로젝트의 실제 URL 패턴 (MVP)
+
+> **📌 모범 사례에 대한 참고사항:**
+> 일반적으로 `/api/v1/`을 사용하는 것이 **더 나은 접근 방식**입니다:
+> - ✅ 처음부터 명확한 API 버전 관리 제공
+> - ✅ 향후 호환성 없는 변경사항 관리가 용이
+> - ✅ 업계 표준 REST API 규칙 준수
+> - ✅ 여러 API 버전 동시 운영 가능
+>
+> **그러나 우리 MVP(Minimum Viable Product)에서는:**
+> - 🚀 **개발 속도와 단순성**을 우선시
+> - 📱 빠른 반복 개발 중 더 짧은 URL이 작업하기 쉬움
+> - 🔄 필요시 향후 반복에서 `/api/v1/`로 마이그레이션 가능
+> - ⚡ 현재 접근 방식이 초기 릴리스에 충분함
+
+**우리 프로젝트는 MVP를 위해 `/api/v1/` 접두사를 사용하지 않습니다.** 대신 의미론적이고 직접적인 경로를 사용합니다:
+
 ```python
-# 좋은 예
+# 실제 프로젝트 URL 패턴
+POST   /auth/signup/              # 사용자 등록
+POST   /auth/login/               # 사용자 로그인
+GET    /auth/profile/             # 프로필 조회
+PATCH  /auth/profile/             # 프로필 업데이트
+
+GET    /library/reviews/          # 사용자의 리뷰 목록
+POST   /library/reviews/          # 새 리뷰 작성
+POST   /library/reviews/{id}/like/  # 리뷰 좋아요/취소
+```
+
+### RESTful API 설계 (일반 원칙)
+
+**아래는 일반적인 REST API 예시입니다** (참고용):
+
+```python
+# 좋은 예 (일반적인 REST API 패턴)
 GET    /api/v1/users           # 사용자 목록 조회
 GET    /api/v1/users/{id}      # 특정 사용자 조회
 POST   /api/v1/users           # 사용자 생성
@@ -397,6 +432,12 @@ GET    /api/getUsers           # 동사 사용
 POST   /api/user/create        # 불필요한 동사
 GET    /api/users/delete/{id}  # GET으로 삭제
 ```
+
+**새 엔드포인트 추가 시 주의사항:**
+1. `backend/core/urls.py`에서 기존 URL 패턴 확인
+2. 기존 패턴과 일관성 유지 (`/auth/`, `/library/` 등)
+3. `/api/v1/` 접두사 사용하지 않기
+4. `backend/docs/API_DOCUMENTATION.md`에 문서화
 
 ### 응답 형식
 ```python

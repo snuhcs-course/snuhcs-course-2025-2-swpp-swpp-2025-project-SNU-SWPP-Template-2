@@ -4,8 +4,19 @@
 
 This document provides comprehensive API documentation for the Book Bartering Social Network backend. The API is built with Django REST Framework and provides authentication, user management, and social features.
 
-**Base URL**: `http://10.0.2.2:8000/` (Android Emulator)  
+**Base URL**: `http://10.0.2.2:8000/` (Android Emulator)
 **Base URL**: `http://127.0.0.1:8000/` (Local Development)
+
+> **📖 URL Conventions**: This project uses semantic, direct paths (e.g., `/auth/`, `/library/`) instead of `/api/v1/` prefixes.
+> For detailed URL conventions and guidelines, see [`API_CONVENTIONS.md`](./API_CONVENTIONS.md).
+
+## 📋 Table of Contents
+
+- [Authentication Endpoints](#authentication-endpoints)
+- [Library Endpoints](#library-endpoints)
+- [Frontend Integration](#frontend-integration)
+- [Testing](#testing)
+- [URL Conventions](#url-conventions)
 
 ## 🔐 Authentication Endpoints
 
@@ -347,6 +358,53 @@ cd backend
 python test_api.py
 ```
 
+## 🌐 URL Conventions
+
+### Important: MVP Approach - No `/api/v1/` Prefix
+
+**For this MVP, we use semantic, direct paths** (e.g., `/auth/`, `/library/`) **instead of `/api/v1/` prefixes.**
+
+> **📌 Note on Best Practices:**
+> Using `/api/v1/` is generally considered a **better approach** for production APIs as it:
+> - Provides clear API versioning from the start
+> - Makes future breaking changes easier to manage
+> - Follows industry-standard REST API conventions
+> - Allows running multiple API versions simultaneously
+>
+> **However, for our MVP (Minimum Viable Product):**
+> - We prioritize **simplicity and speed of development**
+> - Shorter URLs are easier to work with during rapid iteration
+> - We can migrate to `/api/v1/` in future iterations if needed
+> - Current approach is sufficient for our initial release
+
+#### Current URL Structure (MVP)
+
+| Resource Group | Prefix | Purpose |
+|---------------|--------|---------|
+| Authentication | `/auth/` | User authentication and profile management |
+| Library | `/library/` | User's library (books, reviews) |
+| Social | `/social/` | Social features (future) |
+| Barter | `/barter/` | Barter/trade features (future) |
+
+#### Why We Chose This for MVP
+
+1. **Simplicity**: Shorter, cleaner URLs for faster development
+2. **Frontend Compatibility**: Frontend expects direct paths
+3. **Consistency**: All endpoints follow the same pattern
+4. **MVP Focus**: Prioritize features over infrastructure
+5. **Future Migration Path**: Can add versioning later when needed
+
+#### Adding New Endpoints
+
+When adding new endpoints:
+1. Check `backend/core/urls.py` for existing patterns
+2. Use semantic resource groups (`/auth/`, `/library/`, etc.)
+3. Follow RESTful principles (use HTTP methods, not verbs in URLs)
+4. **Do NOT use `/api/v1/` prefix**
+5. Document in this file and `API_CONVENTIONS.md`
+
+For detailed guidelines, see [`API_CONVENTIONS.md`](./API_CONVENTIONS.md).
+
 ## 🚀 Production Deployment
 
 1. Set environment variables in `.env`
@@ -361,6 +419,6 @@ For issues or questions, check the Django logs or contact the development team.
 
 ---
 
-**Last Updated**: September 29, 2025  
-**API Version**: 1.0  
+**Last Updated**: October 19, 2025
+**API Version**: 1.0
 **Django Version**: 5.2+
