@@ -13,13 +13,14 @@ from django.views.decorators.http import require_http_methods
 from django.utils.decorators import method_decorator
 from django.views import View
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
 
 from .user_profile import UserProfileService, create_sample_user_profile
 from .scoring import SearchContext, HybridScorer, MMRReranker, RecommendationReranker
 from . import EmbeddingService, VectorIndexBuilder, RecommendationEngine
+from users.models import UserPreference
 
 logger = logging.getLogger(__name__)
 
@@ -288,15 +289,15 @@ class RecommendationAPIView(View):
             return []
 
 @api_view(['POST'])
-@permission_classes([AllowAny])
+@permission_classes([IsAuthenticated])
 def recommend_menu(request):
     """메뉴 추천 API"""
     try:
         # 요청 데이터 파싱
         data = request.data
         
-        # 필수 필드 검증
-        required_fields = ['user_id', 'user_location']
+        # 필수 필드 검증 (user_id 제거)
+        required_fields = ['user_location']
         for field in required_fields:
             if field not in data:
                 return Response({
@@ -305,8 +306,47 @@ def recommend_menu(request):
         
         # 사용자 프로필 생성
         user_profile_service = UserProfileService()
-        user_id = data['user_id']
-        onboarding_data = data.get('onboarding_data', {})
+        user_id = request.user.username  # 인증된 사용자의 username 사용
+        
+        # DB에서 유저의 온보딩 정보 조회
+        try:
+            # 커스텀 User 모델 사용
+            from users.models import User
+            user = request.user  # 이미 인증된 사용자
+            user_preference = UserPreference.objects.get(user=user)
+            
+            # DB에서 가져온 정보로 onboarding_data 구성
+            onboarding_data = {
+                'taste_preferences': {
+                    'spicy': user_preference.spicy_level,
+                    'sweet': user_preference.sweet_level,
+                    'salty': user_preference.salty_level,
+                    'sour': 3.0,  # 기본값 (DB에 없는 필드)
+                    'bitter': 3.0  # 기본값 (DB에 없는 필드)
+                },
+                'allergies': user_preference.allergies,
+                'dislikes': user_preference.disliked_ingredients,
+                'preferred_categories': user_preference.favorite_cuisines,
+                'budget_range': data.get('budget_range', [0, 0]),  # API 파라미터에서 가져오거나 기본값
+                'distance_preference': data.get('distance_preference', 2.0)  # API 파라미터에서 가져오거나 기본값
+            }
+        except UserPreference.DoesNotExist:
+            # 온보딩 정보가 없는 경우 기본값 사용
+            onboarding_data = {
+                'taste_preferences': {
+                    'spicy': 3.0,
+                    'sweet': 3.0,
+                    'salty': 3.0,
+                    'sour': 3.0,
+                    'bitter': 3.0
+                },
+                'allergies': [],
+                'dislikes': [],
+                'preferred_categories': [],
+                'budget_range': data.get('budget_range', [0, 0]),
+                'distance_preference': data.get('distance_preference', 2.0)
+            }
+        
         gallery_analysis = data.get('gallery_analysis')
         behavior_data = data.get('behavior_data')
         
@@ -377,6 +417,7 @@ def recommend_menu(request):
                 'keywords': menu_doc['keywords'],
                 'voted_keywords': menu_doc['voted_keywords'],
                 'has_image': menu_doc['has_image'],
+                'image_urls': menu_doc['image_urls'],  # 이미지 URL 추가
                 'coordinates': menu_doc['coordinates'],
                 'score': score,
                 'reason': f"'{menu_doc['category']}' 카테고리, 평점 {menu_doc['rating']:.1f} (리뷰 {menu_doc['review_count']:,}건)"

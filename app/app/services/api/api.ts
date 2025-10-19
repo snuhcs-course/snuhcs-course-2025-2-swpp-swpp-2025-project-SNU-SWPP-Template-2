@@ -13,6 +13,7 @@ import Cookies from '@react-native-cookies/cookies'
 import Config from "../../config"
 import type {
   ApiConfig,
+  MenuRecommendationResponse,
 } from "./api.types"
 
 /**
@@ -256,7 +257,7 @@ export class Api {
     return this.apisauce.patch("/onboarding/update/", preferences)
   }
 
-  async uploadPhoto(photo_url: string) {
+  async uploadPhoto(photoUrl: string) {
     // ensure csrf header is present; get it if missing
     // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
     const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
@@ -264,7 +265,7 @@ export class Api {
       await this.getCsrf()
     }
     await this.attachCookiesHeader()
-    return this.apisauce.post("/photos/", { photo_url })
+    return this.apisauce.post("/photos/", { photo_url: photoUrl })
   }
 
   private async attachCookiesHeader() {
@@ -280,6 +281,31 @@ export class Api {
       }
     } catch (e) {
       // ignore if cookie read fails
+    }
+  }
+
+  /**
+   * 메뉴 추천 API 호출
+   */
+  async getMenuRecommendations(userLocation: [number, number], options?: {
+    queryText?: string
+    maxResults?: number
+    budgetRange?: [number, number]
+    distancePreference?: number
+    timeOfDay?: string
+    dayOfWeek?: string
+  }): Promise<MenuRecommendationResponse> {
+    const requestData = {
+      user_location: userLocation,
+      ...options
+    }
+
+    const response = await this.apisauce.post('/recommendation/recommend/menu/', requestData)
+    
+    if (response.ok) {
+      return response.data as MenuRecommendationResponse
+    } else {
+      throw new Error((response.data as any)?.error || '메뉴 추천 요청 실패')
     }
   }
 

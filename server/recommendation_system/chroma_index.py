@@ -119,6 +119,7 @@ class ChromaVectorIndexBuilder:
                         "keywords": json.dumps(doc.keywords, ensure_ascii=False),
                         "voted_keywords": json.dumps(doc.voted_keywords, ensure_ascii=False),
                         "has_image": doc.has_image,
+                        "image_urls": json.dumps(doc.image_urls, ensure_ascii=False),
                         "coordinates": json.dumps(doc.coordinates, ensure_ascii=False)
                     }
                     metadatas.append(metadata)
@@ -404,6 +405,105 @@ class ChromaVectorIndexBuilder:
         except Exception as e:
             self.logger.error(f"컬렉션 초기화 실패: {e}")
             raise
+    
+    def get_existing_menu_data(self):
+        """기존 메뉴 데이터 조회"""
+        if not CHROMADB_AVAILABLE or not self.menu_collection:
+            self.logger.warning("ChromaDB 메뉴 컬렉션을 사용할 수 없습니다.")
+            return None
+        
+        try:
+            # 모든 메뉴 데이터 조회
+            results = self.menu_collection.get(include=["metadatas", "embeddings", "documents"])
+            self.logger.info(f"기존 메뉴 데이터 조회 완료: {len(results['ids'])}개")
+            return results
+            
+        except Exception as e:
+            self.logger.error(f"기존 메뉴 데이터 조회 실패: {e}")
+            return None
+    
+    def create_image_urls_mapping(self, restaurant_data_file_path: str):
+        """원본 JSON 데이터에서 이미지 URL 매핑 생성"""
+        import json
+        
+        try:
+            # JSON 파일 로드
+            with open(restaurant_data_file_path, 'r', encoding='utf-8') as f:
+                restaurant_data = json.load(f)
+            
+            image_urls_mapping = {}
+            
+            for restaurant in restaurant_data:
+                place_id = restaurant.get("id", "")
+                
+                # detail_info 안의 menus 배열 확인
+                detail_info = restaurant.get("detail_info", {})
+                menus = detail_info.get("menus", [])
+                
+                if menus is None:
+                    menus = []
+                
+                for menu in menus:
+                    menu_id = menu.get("id", "")
+                    image_urls = menu.get("images", [])
+                    
+                    if menu_id and image_urls:
+                        image_urls_mapping[menu_id] = image_urls
+                        self.logger.debug(f"메뉴 {menu_id} 이미지 URL 추가: {len(image_urls)}개")
+            
+            self.logger.info(f"이미지 URL 매핑 생성 완료: {len(image_urls_mapping)}개 메뉴")
+            return image_urls_mapping
+            
+        except Exception as e:
+            self.logger.error(f"이미지 URL 매핑 생성 실패: {e}")
+            return {}
+    
+    def batch_update_menu_metadata(self, image_urls_mapping: dict, batch_size: int = 100):
+        """메뉴 메타데이터 배치 업데이트"""
+        if not CHROMADB_AVAILABLE or not self.menu_collection:
+            self.logger.warning("ChromaDB 메뉴 컬렉션을 사용할 수 없습니다.")
+            return False
+        
+        try:
+            # 기존 데이터 조회
+            existing_data = self.get_existing_menu_data()
+            if not existing_data:
+                return False
+            
+            # 메타데이터 업데이트
+            updated_metadatas = []
+            for i, metadata in enumerate(existing_data["metadatas"]):
+                doc_id = existing_data["ids"][i]
+                image_urls = image_urls_mapping.get(doc_id, [])
+                
+                # 기존 메타데이터에 이미지 URL 추가
+                updated_metadata = metadata.copy()
+                updated_metadata["image_urls"] = json.dumps(image_urls, ensure_ascii=False)
+                updated_metadatas.append(updated_metadata)
+            
+            # 배치 단위로 업데이트
+            total_docs = len(existing_data["ids"])
+            updated_count = 0
+            
+            for i in range(0, total_docs, batch_size):
+                batch_ids = existing_data["ids"][i:i+batch_size]
+                batch_metadatas = updated_metadatas[i:i+batch_size]
+                
+                self.menu_collection.update(
+                    ids=batch_ids,
+                    metadatas=batch_metadatas
+                )
+                
+                updated_count += len(batch_ids)
+                progress_percent = (updated_count / total_docs) * 100
+                self.logger.info(f"메타데이터 업데이트 진행률: {progress_percent:.1f}% ({updated_count}/{total_docs})")
+            
+            self.logger.info(f"메뉴 메타데이터 업데이트 완료: {updated_count}개")
+            return True
+            
+        except Exception as e:
+            self.logger.error(f"메뉴 메타데이터 업데이트 실패: {e}")
+            return False
 
 class ChromaRecommendationEngine:
     """ChromaDB 기반 추천 엔진"""
@@ -440,6 +540,7 @@ class ChromaRecommendationEngine:
                     "keywords": json.loads(metadata.get("keywords", "[]")),
                     "voted_keywords": json.loads(metadata.get("voted_keywords", "[]")),
                     "has_image": metadata.get("has_image", False),
+                    "image_urls": json.loads(metadata.get("image_urls", "[]")),  # 이미지 URL 추가
                     "coordinates": json.loads(metadata.get("coordinates", "[0,0]")),
                     "document_text": result["document"]
                 }
