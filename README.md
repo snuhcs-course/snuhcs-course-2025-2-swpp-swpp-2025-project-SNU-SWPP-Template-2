@@ -39,6 +39,8 @@ adb reverse tcp:8000 tcp:8000
 
 ## 🎯 Demo Features
 
+https://github.com/user-attachments/assets/22d484f0-d6fc-4e7c-a7cb-571468e34619
+
 ### Core Functionality
 
 #### 1. **User Onboarding & Preference Collection**
