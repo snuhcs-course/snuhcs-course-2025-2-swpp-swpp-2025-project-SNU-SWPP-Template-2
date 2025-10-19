@@ -59,4 +59,21 @@ class LibraryViewModel @Inject constructor(
             refreshMyReviews()
         }
     }
+
+    fun toggleLike(review: Review) {
+        viewModelScope.launch {
+            val updatedReview = repository.toggleReviewLike(review.id)
+            if (updatedReview != null) {
+                val currentList = _myReviews.value?.toMutableList() ?: mutableListOf()
+                val index = currentList.indexOfFirst { it.id == review.id }
+                if (index != -1) {
+                    currentList[index] = updatedReview
+                    _myReviews.value = currentList
+                    refreshMyReviews()
+                }
+            } else {
+                _error.value = "좋아요 처리에 실패했습니다."
+            }
+        }
+    }
 }

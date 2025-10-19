@@ -6,6 +6,7 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 interface LibraryApi {
     @GET("library/reviews/")
@@ -13,4 +14,7 @@ interface LibraryApi {
 
     @POST("library/reviews/")
     suspend fun addReview(@Body review: postReview): Response<Unit>
+
+    @POST("library/reviews/{id}/like/")
+    suspend fun toggleReviewLike(@Path("id") reviewId: Int): Response<Review>
 }
