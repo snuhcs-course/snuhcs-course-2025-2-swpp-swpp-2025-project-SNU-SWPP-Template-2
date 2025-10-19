@@ -1,3 +1,9 @@
 <resources>
+<<<<<<< HEAD
     <string name="story_bridge">StoryBridge</string>
+=======
+    <string name="app_name">storybridge-android</string>
+    <string name="story_bridge">story bridge</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+>>>>>>> b9ce911a646490e5778376b59c006b817d430aec
 </resources>
