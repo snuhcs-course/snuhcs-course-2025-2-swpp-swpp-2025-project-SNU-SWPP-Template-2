@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'restaurant',
     'menu',
     'recommendation',
+    'recommendation_system',
 ]
 
 MIDDLEWARE = [
@@ -150,8 +151,29 @@ CSRF_TRUSTED_ORIGINS = [
     'http://10.0.2.2:8000',
 ]
 
-# Allow cookies to be sent for cross-site requests (for dev). Requires Secure when SameSite=None.
-# Using 'Lax' for local dev to work with both web browser and mobile app
+# Logging configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'recommendation_system': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': False,
+        },
+    },
+}
+
+# CSRF settings for admin and API
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 # During local development we serve Django over plain HTTP (127.0.0.1 or LAN IP).
