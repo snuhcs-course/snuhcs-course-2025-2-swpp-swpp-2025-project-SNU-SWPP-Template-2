@@ -29,17 +29,27 @@ Recommends foods
 ### How to run
 
 #### frontend:
+
+First, set up AWS cli.
+```bash
+pip install awscli
+aws configure # and then enter AWS credentials
+```
+
 ```bash
 cd app
 npm install
+npx expo prebuild
 npm run android
 ```
 
 #### backend:
+First, AWS environment should be set: put the `.env.dev` file inside `server`.
 
-First, set up the django environment.
+Next, set up the django environment.
 ```bash
 cd server
+uv sync
 uv run python manage.py migrate
 uv run python manage.py createsuperuser # this is necessary because register function is not implemented yet.
 ```

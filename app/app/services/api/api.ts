@@ -256,6 +256,17 @@ export class Api {
     return this.apisauce.patch("/onboarding/update/", preferences)
   }
 
+  async uploadPhoto(photo_url: string) {
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.post("/photos/", { photo_url })
+  }
+
   private async attachCookiesHeader() {
     try {
   // Cookies.get may be exposed on default or named export depending on version.
