@@ -35,6 +35,34 @@ export interface ApiFeedResponse {
 }
 
 /**
+ * 메뉴 추천 API 응답 타입
+ */
+export interface MenuRecommendationItem {
+  id: number
+  menu_name: string
+  place_name: string
+  price: number
+  category: string
+  location: string
+  rating: number
+  review_count: number
+  keywords: string[]
+  voted_keywords: string[]
+  has_image: boolean
+  image_urls: string[]  // 이미지 URL 배열 추가
+  coordinates: [number, number]
+  score: number
+  reason: string
+}
+
+export interface MenuRecommendationResponse {
+  success: boolean
+  query_type: string
+  total_results: number
+  results: MenuRecommendationItem[]
+}
+
+/**
  * The options used to configure apisauce.
  */
 export interface ApiConfig {

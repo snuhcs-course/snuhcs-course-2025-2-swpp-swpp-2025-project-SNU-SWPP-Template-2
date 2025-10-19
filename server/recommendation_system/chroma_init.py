@@ -55,6 +55,7 @@ class MenuDocument:
     keywords: List[str]
     voted_keywords: List[str]
     has_image: bool
+    image_urls: List[str]  # 이미지 URL 리스트 추가
     coordinates: Tuple[float, float]
     document_text: str
 
@@ -136,8 +137,9 @@ class DocumentTemplateGenerator:
                 if detail.get("displayName"):
                     voted_keywords.append(detail["displayName"])
             
-            # 이미지 유무
-            has_image = len(menu_data.get("images", [])) > 0
+            # 이미지 유무 및 이미지 URL 추출
+            image_urls = menu_data.get("images", [])
+            has_image = len(image_urls) > 0
             
             # 문서 텍스트 생성
             document_text = self._generate_menu_document_text(
@@ -158,6 +160,7 @@ class DocumentTemplateGenerator:
                 keywords=keywords,
                 voted_keywords=voted_keywords,
                 has_image=has_image,
+                image_urls=image_urls,  # 이미지 URL 리스트 추가
                 coordinates=coordinates,
                 document_text=document_text
             )

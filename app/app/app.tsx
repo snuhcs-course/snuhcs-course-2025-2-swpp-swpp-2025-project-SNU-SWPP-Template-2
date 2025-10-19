@@ -31,10 +31,9 @@ import * as storage from "./utils/storage"
 import { customFontsToLoad } from "./theme"
 import Config from "./config"
 
-import { Amplify } from 'aws-amplify';
-import amplifyconfig from './amplifyconfiguration.json';
-Amplify.configure(amplifyconfig);
-
+import { Amplify } from "aws-amplify"
+import amplifyconfig from "../amplifyconfiguration.json"
+Amplify.configure(amplifyconfig)
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
 
