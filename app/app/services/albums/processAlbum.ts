@@ -9,6 +9,7 @@ import * as FileSystem from 'expo-file-system';
 // Define ItemWithPath type if not imported from elsewhere
 type ItemWithPath = { path: string };
 
+const USE_AI_CLASSIFICATION = true; // for toggling AI classification during testing (TODO: replace with robust test framework)
 
 export async function processAlbum(
     album: MediaLibrary.Album,
@@ -113,6 +114,9 @@ async function processImage(
 }
 
 async function isFoodImage(base64: string): Promise<boolean> {
+    if (!USE_AI_CLASSIFICATION) {
+        return true; // skip classification for testing
+    }
     const imageBuffer = tf.util.encodeString(base64, 'base64').buffer;
     console.log('Image buffer length: ', imageBuffer.byteLength);
     const rawImageData = new Uint8Array(imageBuffer);
