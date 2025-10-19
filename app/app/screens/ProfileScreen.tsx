@@ -9,7 +9,6 @@ import {
   ImageStyle,
   TouchableOpacity,
   Dimensions,
-  Alert,
 } from "react-native"
 import { Home, User, Filter, RefreshCw, X } from "lucide-react-native"
 import { Text } from "../components"
@@ -19,6 +18,9 @@ import { useStores } from "../models"
 import { api } from "app/services/api"
 import * as storage from "app/utils/storage"
 import { allCategories, allAllergens } from "../data/mockData"
+import * as MediaLibrary from 'expo-media-library';
+import { processAlbum } from "app/services/albums/processAlbum"
+import { handleSignOut } from "app/services/aws/handleAwsSignin"
 
 
 interface ProfileScreenProps extends AppStackScreenProps<"Profile"> {}
@@ -33,6 +35,12 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   const [hideScrappedImages, setHideScrappedImages] = useState(false)
   const [excludedCategories, setExcludedCategories] = useState<string[]>([])
   const [excludedAllergens, setExcludedAllergens] = useState<string[]>([])
+  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
+
+  const [userImages, setUserImages] = useState<Array<{id: string, type: string, image: any, name: string}>>([
+    { id: 'user1', type: 'user', image: require("../../assets/images/restaurant1.jpg"), name: 'My Food Photo 1' },
+    { id: 'user2', type: 'user', image: require("../../assets/images/restaurant2.jpg"), name: 'My Food Photo 2' },
+  ]);
 
   useEffect(() => {
     let mounted = true
@@ -65,12 +73,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
   // Get scrapped items from store
   const scrappedFoods = foodHistoryStore.scrappedItemsList
-  
-  // Mock user images data (in a real app, this would come from device photos)
-  const userImages = [
-    { id: 'user1', type: 'user', image: require("../../assets/images/restaurant1.jpg"), name: 'My Food Photo 1' },
-    { id: 'user2', type: 'user', image: require("../../assets/images/restaurant2.jpg"), name: 'My Food Photo 2' },
-  ]
   
   // Convert scrapped foods to consistent format
   const scrappedImages = scrappedFoods.map(food => ({
@@ -122,12 +124,21 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   const filteredImages = getFilteredImages()
 
   // Album sync functionality
-  const handleAlbumSync = () => {
-    Alert.alert(
-      "Album Sync",
-      "This feature allows you to sync photos from your device albums to your Food History.",
-      [{ text: "OK" }]
-    )
+  async function getAlbums() {
+    if (permissionResponse?.status !== 'granted') {
+      await requestPermission();
+    }
+    const fetchedAlbums = await MediaLibrary.getAlbumsAsync({
+      includeSmartAlbums: true,
+    });
+    for (const album of fetchedAlbums) {
+      if (album.assetCount == 0) {
+        continue; // skip empty albums
+      }
+      if (album.title.toLowerCase().includes('camera')) {
+        processAlbum(album, userImages, setUserImages);
+      }
+    }
   }
 
   return (
@@ -201,7 +212,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
             </TouchableOpacity>
             <TouchableOpacity
               style={$sectionButton}
-              onPress={handleAlbumSync}
+              onPress={getAlbums}
             >
               <RefreshCw size={16} color={colors.palette.neutral700} />
             </TouchableOpacity>
@@ -220,8 +231,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           </View>
         ) : (
           <View style={$foodGrid}>
-            {filteredImages.map((item) => (
-              <TouchableOpacity 
+            {filteredImages.map((item) => 
+              {
+                console.log('Rendering image item: ', item);
+                return (              <TouchableOpacity 
                 key={item.id} 
                 style={[$foodCard, { width: imageSize }]}
               >
@@ -234,8 +247,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                 <View style={item.type === 'user' ? $userImageBadge : $scrappedImageBadge}>
                   <Text style={$imageBadgeText}>{item.type === 'user' ? 'U' : 'S'}</Text>
                 </View>
-              </TouchableOpacity>
-            ))}
+              </TouchableOpacity>);}
+
+            )}
           </View>
         )}
 
@@ -245,6 +259,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           onPress={async () => {
             try {
               await api.logout()
+              await handleSignOut();
             } catch (e) {
               // ignore network errors and continue logout locally
             }

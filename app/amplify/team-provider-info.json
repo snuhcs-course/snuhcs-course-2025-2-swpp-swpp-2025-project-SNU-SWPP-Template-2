@@ -1,0 +1,23 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-amplifyfoodigram-dev-d0ccb-authRole",
+      "UnauthRoleArn": "arn:aws:iam::083880123693:role/amplify-amplifyfoodigram-dev-d0ccb-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::083880123693:role/amplify-amplifyfoodigram-dev-d0ccb-authRole",
+      "Region": "ap-northeast-2",
+      "DeploymentBucketName": "amplify-amplifyfoodigram-dev-d0ccb-deployment",
+      "UnauthRoleName": "amplify-amplifyfoodigram-dev-d0ccb-unauthRole",
+      "StackName": "amplify-amplifyfoodigram-dev-d0ccb",
+      "StackId": "arn:aws:cloudformation:ap-northeast-2:083880123693:stack/amplify-amplifyfoodigram-dev-d0ccb/75bde100-abd4-11f0-b01b-02bc9628fa9d",
+      "AmplifyAppId": "dhwiac5kwn2e4"
+    },
+    "categories": {
+      "auth": {
+        "amplifyfoodigram3ebaf258": {}
+      },
+      "storage": {
+        "userFoodPhotos": {}
+      }
+    }
+  }
+}
