@@ -4,11 +4,13 @@
 # This script runs all code formatters for the project
 #
 # Usage:
-#   ./scripts/formatters/format_all.sh [--check] [--diff]
+#   bash tools/formatters/format_all.sh [--check] [--diff]
 #
 # Arguments:
 #   --check: Don't write back modified files, just return status
 #   --diff: Show diffs instead of rewriting files
+#
+# For more information, see: tools/README.md
 
 set -e
 
@@ -68,18 +70,18 @@ run_formatter() {
     local formatter_script=$2
     shift 2
     local args=("$@")
-    
+
     print_status $BLUE "Running $formatter_name formatter..."
     print_status $BLUE "$(printf '=%.0s' {1..50})"
-    
+
     if [[ "$CHECK_MODE" == "true" ]]; then
         args+=("--check")
     fi
-    
+
     if [[ "$SHOW_DIFF" == "true" ]]; then
         args+=("--diff")
     fi
-    
+
     if "$formatter_script" "${args[@]}"; then
         print_status $GREEN "✅ $formatter_name formatting completed successfully"
         return 0
@@ -93,11 +95,11 @@ run_formatter() {
 main() {
     print_status $BLUE "Universal Code Formatter"
     print_status $BLUE "========================"
-    
+
     cd "$PROJECT_ROOT"
-    
+
     local overall_success=true
-    
+
     # Run Python formatter
     if [[ -d "backend" ]] || [[ -d "ai-model" ]]; then
         if ! run_formatter "Python" "python" "$SCRIPT_DIR/format_python.py"; then
@@ -106,9 +108,9 @@ main() {
     else
         print_status $YELLOW "No Python directories found, skipping Python formatting"
     fi
-    
+
     echo ""
-    
+
     # Run Kotlin formatter
     if [[ -d "frontend" ]]; then
         if ! run_formatter "Kotlin" "$SCRIPT_DIR/format_kotlin.sh"; then
@@ -117,10 +119,10 @@ main() {
     else
         print_status $YELLOW "No Kotlin directories found, skipping Kotlin formatting"
     fi
-    
+
     echo ""
     print_status $BLUE "========================"
-    
+
     if [[ "$overall_success" == "true" ]]; then
         print_status $GREEN "🎉 All code formatting completed successfully!"
         exit 0

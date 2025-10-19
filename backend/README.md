@@ -137,22 +137,28 @@ python manage.py runserver
 
 1. **Clone the repository**
 ```bash
-git clone <repository-url>
+git clone https://github.com/snuhcs-course/swpp-2025-project-team-10
 cd backend
 ```
 
 2. **Create virtual environment**
 ```bash
-python -m venv venv
+uv venv
 # Windows
-.\venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 # Linux/Mac
-source venv/bin/activate
+source ./.venv/bin/activate
 ```
+
+or just kill current terminal and use new terminal would automatically activate the virtual environment. If doing so, do not forget to `cd backend` again.
 
 3. **Install dependencies**
 ```bash
-pip install -r requirements-dev.txt
+uv sync
+
+# for development
+uv sync --extra dev
+uv sync --all-extras
 ```
 
 4. **Environment configuration**
@@ -307,7 +313,7 @@ AWS_STORAGE_BUCKET_NAME=your-s3-bucket
 python run_tests.py
 
 # Or run individual tests
-.\venv\Scripts\Activate.ps1
+.\.venv\Scripts\Activate.ps1
 python tests/test_api_integration.py
 ```
 
@@ -358,8 +364,31 @@ coverage report
 2. Create a feature branch
 3. Make your changes
 4. Add tests
-5. Submit a pull request
+5. Format your code (see below)
+6. Submit a pull request
+
+### Code Formatting & Linting
+
+Before committing, ensure your code is properly formatted:
+
+```bash
+# From the project root directory
+# Format Python code (recommended: uses ruff for speed)
+python tools/formatters/format_python.py --use-ruff
+
+# Or setup pre-commit hooks (one-time setup)
+bash tools/git-hooks/setup_pre_commit.sh
+```
+
+Pre-commit hooks will automatically:
+- Lint and format Python code with ruff
+- Sort imports
+- Remove trailing whitespace
+- Ensure files end with newlines
+- Validate YAML/JSON files
+
+For more details, see **[tools/README.md](../tools/README.md)**.
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+N/A
