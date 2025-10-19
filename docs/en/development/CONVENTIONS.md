@@ -276,6 +276,102 @@ frontend/
 - Specify error codes and messages
 - Use OpenAPI/Swagger for REST APIs
 
+## 🌐 API Design Principles
+
+> **⚠️ Important**: This section contains **general REST API principles** for reference.
+> For **this project's actual URL patterns**, see `backend/docs/API_DOCUMENTATION.md` and `backend/docs/API_CONVENTIONS.md`.
+
+### This Project's Actual URL Patterns (MVP)
+
+> **📌 Note on Best Practices:**
+> Using `/api/v1/` is generally considered a **better approach** for production APIs as it:
+> - ✅ Provides clear API versioning from the start
+> - ✅ Makes future breaking changes easier to manage
+> - ✅ Follows industry-standard REST API conventions
+> - ✅ Allows running multiple API versions simultaneously
+>
+> **However, for our MVP (Minimum Viable Product):**
+> - 🚀 We prioritize **simplicity and speed of development**
+> - 📱 Shorter URLs are easier to work with during rapid iteration
+> - 🔄 We can migrate to `/api/v1/` in future iterations if needed
+> - ⚡ Current approach is sufficient for our initial release
+
+**For this MVP, we do NOT use `/api/v1/` prefixes.** Instead, we use semantic, direct paths:
+
+```python
+# Actual project URL patterns
+POST   /auth/signup/              # User registration
+POST   /auth/login/               # User login
+GET    /auth/profile/             # Get user profile
+PATCH  /auth/profile/             # Update user profile
+
+GET    /library/reviews/          # List user's reviews
+POST   /library/reviews/          # Create new review
+POST   /library/reviews/{id}/like/  # Like/unlike review
+```
+
+### RESTful API Design (General Principles)
+
+**The following are general REST API examples** (for reference only):
+
+```python
+# Good examples (generic REST API patterns)
+GET    /api/v1/users           # List users
+GET    /api/v1/users/{id}      # Get specific user
+POST   /api/v1/users           # Create user
+PUT    /api/v1/users/{id}      # Full update
+PATCH  /api/v1/users/{id}      # Partial update
+DELETE /api/v1/users/{id}      # Delete user
+
+# Bad examples
+GET    /api/getUsers           # Using verbs
+POST   /api/user/create        # Unnecessary verb
+GET    /api/users/delete/{id}  # Wrong HTTP method
+```
+
+**When adding new endpoints:**
+1. Check `backend/core/urls.py` for existing URL patterns
+2. Maintain consistency with existing patterns (`/auth/`, `/library/`, etc.)
+3. Do NOT use `/api/v1/` prefix
+4. Document in `backend/docs/API_DOCUMENTATION.md`
+
+### Response Format Standards
+
+```python
+# Success response
+{
+    "success": true,
+    "data": {
+        "id": "123",
+        "name": "John Doe",
+        "email": "john@example.com"
+    },
+    "message": "User retrieved successfully"
+}
+
+# Error response
+{
+    "success": false,
+    "error": {
+        "code": "USER_NOT_FOUND",
+        "message": "User not found",
+        "details": {
+            "user_id": "123"
+        }
+    }
+}
+```
+
+### HTTP Status Codes
+- **200 OK**: Successful GET, PUT, PATCH
+- **201 Created**: Successful POST (resource created)
+- **204 No Content**: Successful DELETE
+- **400 Bad Request**: Invalid input
+- **401 Unauthorized**: Authentication required
+- **403 Forbidden**: Insufficient permissions
+- **404 Not Found**: Resource not found
+- **500 Internal Server Error**: Server error
+
 ## 🔧 Code Quality Tools
 
 ### Automated Formatting
