@@ -1,0 +1,6 @@
+<resources>
+    <declare-styleable name="BottomNavigation">
+        <attr name="iconTint" format="color" />
+        <attr name="labelTextSize" format="dimension" />
+    </declare-styleable>
+</resources>
