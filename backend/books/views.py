@@ -39,7 +39,7 @@ class UserReviewListCreateView(generics.ListCreateAPIView):
         """Return only the authenticated user's reviews."""
         return BookReview.objects.filter(
             reviewer=self.request.user
-        ).select_related("reviewer")
+        ).select_related("reviewer").prefetch_related("helpful_votes")
 
     @extend_schema(
         summary="List User's Reviews",
@@ -109,7 +109,9 @@ class ReviewLikeView(APIView):
     def post(self, request, pk):
         """Toggle like on a review."""
         try:
-            review = BookReview.objects.select_related("reviewer").get(pk=pk)
+            review = BookReview.objects.select_related(
+                "reviewer"
+            ).prefetch_related("helpful_votes").get(pk=pk)
         except BookReview.DoesNotExist:
             return Response(
                 {"error": "Review not found"},
@@ -127,6 +129,12 @@ class ReviewLikeView(APIView):
         else:
             # Like: add a new like
             ReviewHelpfulVote.objects.create(review=review, user=request.user)
+
+        # Refresh the review to get updated helpful_votes
+        review.refresh_from_db()
+        review = BookReview.objects.select_related(
+            "reviewer"
+        ).prefetch_related("helpful_votes").get(pk=pk)
 
         # Return updated review data
         serializer = ReviewSerializer(review, context={"request": request})
