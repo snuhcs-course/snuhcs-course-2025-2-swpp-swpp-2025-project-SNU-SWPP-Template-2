@@ -1,0 +1,507 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+    branches:
+      - main
+      - dev
+
+jobs:
+  # ============================================================================
+  # PR Validation
+  # ============================================================================
+
+  validate-pr-title:
+    name: Validate PR Title
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR title format
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const title = pr.title;
+
+            console.log('PR Title:', title);
+
+            // Type to emoji mapping
+            const typeEmojiMap = {
+              'feat': '🚀',
+              'feature': '🚀',
+              'fix': '🐛',
+              'bugfix': '🐛',
+              'hotfix': '🔥',
+              'docs': '📝',
+              'doc': '📝',
+              'documentation': '📝',
+              'style': '💄',
+              'refactor': '♻️',
+              'refact': '♻️',
+              'perf': '⚡',
+              'performance': '⚡',
+              'test': '✅',
+              'tests': '✅',
+              'build': '🔧',
+              'ci': '🔧',
+              'chore': '🧹',
+              'revert': '🔄'
+            };
+
+            // Pattern 1: emoji type: Description (preferred)
+            // Pattern 2: emoji type(scope): Description (with scope)
+            // Pattern 3: type: Description (without emoji, still valid)
+            // Pattern 4: type(scope): Description (without emoji, still valid)
+            const patternWithEmoji = /^([🚀🐛🔥📝💄♻️⚡✅🔧🧹🔄])\s+(feat|feature|fix|bugfix|hotfix|docs?|documentation|style|refactor|refact|perf|performance|tests?|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
+            const patternWithoutEmoji = /^(feat|feature|fix|bugfix|hotfix|docs?|documentation|style|refactor|refact|perf|performance|tests?|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
+
+            const matchWithEmoji = title.match(patternWithEmoji);
+            const matchWithoutEmoji = title.match(patternWithoutEmoji);
+
+            if (!matchWithEmoji && !matchWithoutEmoji) {
+              let errorMsg = '❌ Invalid PR title format.\n\n';
+              errorMsg += 'PR title must follow one of these patterns:\n';
+              errorMsg += '  <emoji> <type>: <Description>  (preferred)\n';
+              errorMsg += '  <emoji> <type>(scope): <Description>\n';
+              errorMsg += '  <type>: <Description>\n';
+              errorMsg += '  <type>(scope): <Description>\n\n';
+              errorMsg += 'Type Emojis:\n';
+              errorMsg += '  🚀 feat/feature    - New feature or enhancement\n';
+              errorMsg += '  🐛 fix/bugfix      - Non-breaking fix for an issue\n';
+              errorMsg += '  🔥 hotfix          - Critical bug fix\n';
+              errorMsg += '  📝 docs            - Documentation changes\n';
+              errorMsg += '  ♻️  refactor       - Code refactoring\n';
+              errorMsg += '  ⚡ perf            - Performance improvement\n';
+              errorMsg += '  ✅ test/tests      - Adding or updating tests\n';
+              errorMsg += '  🔧 build/ci        - Build system or CI/CD changes\n';
+              errorMsg += '  🧹 chore           - Maintenance tasks\n';
+              errorMsg += '  🔄 revert          - Reverting changes\n\n';
+              errorMsg += 'Rules:\n';
+              errorMsg += '  - Type must be one of the valid types\n';
+              errorMsg += '  - Scope is optional and must be lowercase\n';
+              errorMsg += '  - Description must start with an uppercase letter\n\n';
+              errorMsg += 'Examples:\n';
+              errorMsg += '  ✅ 🚀 feat: Add user authentication\n';
+              errorMsg += '  ✅ 🐛 fix: Resolve login button issue\n';
+              errorMsg += '  ✅ 📝 docs: Update API documentation\n';
+              errorMsg += '  ✅ 🚀 feat(backend): Add user authentication\n';
+              errorMsg += '  ✅ feat: Add user authentication (without emoji)\n';
+              errorMsg += '  ❌ feat: add user authentication (description must start with uppercase)\n';
+              errorMsg += '  ❌ 🚀 feature/backend: Add auth (use parentheses for scope)\n';
+
+              core.setFailed(errorMsg);
+              return;
+            }
+
+            // Check if emoji matches the type (if emoji is present)
+            if (matchWithEmoji) {
+              const emoji = matchWithEmoji[1];
+              const type = matchWithEmoji[2].toLowerCase();
+              const expectedEmoji = typeEmojiMap[type];
+
+              if (emoji !== expectedEmoji) {
+                core.warning(`⚠️  Emoji "${emoji}" doesn't match type "${type}". Expected emoji: ${expectedEmoji}`);
+              } else {
+                console.log(`✅ Emoji matches type: ${emoji} ${type}`);
+              }
+            } else {
+              console.log('ℹ️  PR title is valid but missing emoji (consider adding one)');
+            }
+
+            console.log('✅ PR title format is valid');
+
+  validate-branch-name:
+    name: Validate Branch Name
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check branch naming convention
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          echo "Checking branch name: $BRANCH_NAME"
+
+          # Valid patterns with variations:
+          # - feature/feat/*
+          # - bugfix/fix/*
+          # - hotfix/*
+          # - docs/doc/documentation/*
+          # - release/*
+          # - chore/*
+          # - refactor/refact/*
+          # - test/tests/*
+          # - style/*
+          # - perf/performance/*
+          # - build/*
+          # - ci/*
+
+          if [[ $BRANCH_NAME =~ ^(feat|feature|fix|bugfix|hotfix|docs?|doc|documentation|release|chore|refactor|refact|tests?|style|perf|performance|build|ci)/.+ ]]; then
+            echo "✅ Branch name is valid: $BRANCH_NAME"
+          else
+            echo "❌ Invalid branch name: $BRANCH_NAME"
+            echo ""
+            echo "Branch name must follow pattern: <type>/<description>"
+            echo ""
+            echo "Valid types (with common variations):"
+            echo "  - feat, feature"
+            echo "  - fix, bugfix"
+            echo "  - hotfix"
+            echo "  - docs, doc, documentation"
+            echo "  - release"
+            echo "  - chore"
+            echo "  - refactor, refact"
+            echo "  - test, tests"
+            echo "  - style"
+            echo "  - perf, performance"
+            echo "  - build"
+            echo "  - ci"
+            echo ""
+            echo "Examples:"
+            echo "  ✅ feature/backend/user-authentication"
+            echo "  ✅ feat/add-login-page"
+            echo "  ✅ fix/resolve-crash-on-startup"
+            echo "  ✅ docs/update-readme"
+            echo "  ✅ documentation/api-guide"
+            echo "  ✅ hotfix/critical-security-patch"
+            exit 1
+          fi
+
+  check-pr-size:
+    name: Check PR Size
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check PR size
+        run: |
+          # Get the number of changed lines
+          CHANGED_LINES=$(git diff --shortstat origin/${{ github.base_ref }}...HEAD | \
+            grep -oE '[0-9]+ insertion|[0-9]+ deletion' | \
+            grep -oE '[0-9]+' | \
+            awk '{sum+=$1} END {print sum}')
+
+          echo "Changed lines: $CHANGED_LINES"
+
+          if [ -z "$CHANGED_LINES" ]; then
+            CHANGED_LINES=0
+          fi
+
+          if [ $CHANGED_LINES -gt 500 ]; then
+            echo "⚠️  Warning: This PR has $CHANGED_LINES changed lines"
+            echo "Consider breaking it into smaller PRs for easier review"
+            echo "::warning::Large PR detected ($CHANGED_LINES lines changed)"
+          elif [ $CHANGED_LINES -gt 1000 ]; then
+            echo "❌ Error: This PR is too large ($CHANGED_LINES lines changed)"
+            echo "Please break it into smaller, focused PRs"
+            exit 1
+          else
+            echo "✅ PR size is reasonable ($CHANGED_LINES lines changed)"
+          fi
+
+  check-conflicts:
+    name: Check for Merge Conflicts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for conflicts
+        run: |
+          git fetch origin ${{ github.base_ref }}
+
+          if git merge-tree $(git merge-base HEAD origin/${{ github.base_ref }}) HEAD origin/${{ github.base_ref }} | grep -q "^+<<<<<<<"; then
+            echo "❌ Merge conflicts detected"
+            echo "Please resolve conflicts with the base branch"
+            exit 1
+          else
+            echo "✅ No merge conflicts detected"
+          fi
+
+  check-required-files:
+    name: Check Required Files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        run: |
+          # Get list of changed files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+
+          # Check if Python files changed
+          if echo "$CHANGED_FILES" | grep -q "\.py$"; then
+            echo "python_changed=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if Kotlin files changed
+          if echo "$CHANGED_FILES" | grep -q "\.kt$"; then
+            echo "kotlin_changed=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if source code changed (not just docs)
+          if echo "$CHANGED_FILES" | grep -qE "\.(py|kt|java)$"; then
+            echo "code_changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for tests
+        if: steps.changed-files.outputs.code_changed == 'true'
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # Check if test files are included
+          if echo "$CHANGED_FILES" | grep -qE "test_.*\.py$|.*Test\.kt$|.*_test\.py$"; then
+            echo "✅ Test files found in PR"
+          else
+            echo "⚠️  Warning: No test files found in PR"
+            echo "Consider adding tests for your changes"
+            echo "::warning::No test files found in PR"
+          fi
+
+  check-documentation:
+    name: Check Documentation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for documentation updates
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # Check if significant code changes were made
+          CODE_CHANGES=$(echo "$CHANGED_FILES" | grep -cE "\.(py|kt|java)$" || true)
+
+          # Check if documentation was updated
+          DOC_CHANGES=$(echo "$CHANGED_FILES" | grep -cE "\.md$|docs/" || true)
+
+          echo "Code files changed: $CODE_CHANGES"
+          echo "Documentation files changed: $DOC_CHANGES"
+
+          if [ $CODE_CHANGES -gt 5 ] && [ $DOC_CHANGES -eq 0 ]; then
+            echo "⚠️  Warning: Significant code changes without documentation updates"
+            echo "Consider updating relevant documentation"
+            echo "::warning::Consider updating documentation"
+          else
+            echo "✅ Documentation check passed"
+          fi
+
+  lint-pr-description:
+    name: Lint PR Description
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check PR description format
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+
+            console.log('Checking PR description format...');
+            console.log('PR Description length:', body.length);
+
+            // Minimum length check
+            if (body.length < 100) {
+              core.setFailed('❌ PR description is too short (minimum 100 characters). Please provide a detailed description using the PR template.');
+              return;
+            }
+
+            // Required sections from template
+            const requiredSections = [
+              { name: 'Summary', pattern: /##\s*Summary/i },
+              { name: 'Changes Made', pattern: /##\s*Changes Made/i },
+              { name: 'Pre-Submission Checklist', pattern: /##\s*Pre-Submission Checklist/i }
+            ];
+
+            const missingSections = [];
+            const foundSections = [];
+
+            for (const section of requiredSections) {
+              if (section.pattern.test(body)) {
+                foundSections.push(section.name);
+                console.log(`✅ Found section: ${section.name}`);
+              } else {
+                missingSections.push(section.name);
+                console.log(`❌ Missing section: ${section.name}`);
+              }
+            }
+
+            // Check if Summary section has content (not just template placeholder)
+            const summaryMatch = body.match(/##\s*Summary\s*\n.*?\n\n(.*?)(?=\n##|$)/is);
+            if (summaryMatch) {
+              const summaryContent = summaryMatch[1].trim();
+              // Remove HTML comments
+              const cleanSummary = summaryContent.replace(/<!--[\s\S]*?-->/g, '').trim();
+
+              if (cleanSummary.length < 50) {
+                core.warning('⚠️  Summary section appears to be empty or too short. Please provide a meaningful summary (minimum 50 characters).');
+              } else {
+                console.log('✅ Summary section has content');
+              }
+            }
+
+
+
+            // Check if Changes Made has content
+            const changesMatch = body.match(/##\s*Changes Made\s*\n.*?\n(.*?)(?=\n##|$)/is);
+            if (changesMatch) {
+              const changesContent = changesMatch[1].trim();
+              const cleanChanges = changesContent.replace(/<!--[\s\S]*?-->/g, '').trim();
+              const changeItems = cleanChanges.split('\n').filter(line => line.trim().startsWith('-')).length;
+
+              if (changeItems === 0 || cleanChanges.length < 10) {
+                core.warning('⚠️  "Changes Made" section appears to be empty. Please list specific changes.');
+              } else {
+                console.log(`✅ Changes Made section has ${changeItems} items`);
+              }
+            }
+
+            // Fail if critical sections are missing
+            if (missingSections.length > 0) {
+              let errorMsg = '❌ PR description is missing required sections:\n\n';
+              errorMsg += missingSections.map(s => `  - ${s}`).join('\n');
+              errorMsg += '\n\nPlease use the PR template and fill in all required sections.';
+              errorMsg += '\n\nRequired sections:\n';
+              errorMsg += requiredSections.map(s => `  - ${s.name}`).join('\n');
+
+              core.setFailed(errorMsg);
+              return;
+            }
+
+            console.log('✅ PR description format check completed');
+            console.log(`Found sections: ${foundSections.join(', ')}`);
+
+  check-commit-messages:
+    name: Check Commit Messages
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate commit messages
+        run: |
+          # Get commits in this PR
+          COMMITS=$(git log --format=%s origin/${{ github.base_ref }}..HEAD)
+
+          echo "Checking commit messages:"
+          echo "$COMMITS"
+
+          INVALID_COMMITS=0
+
+          while IFS= read -r commit; do
+            # Check if commit follows conventional commits format
+            if [[ $commit =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .+ ]]; then
+              echo "✅ Valid: $commit"
+            else
+              echo "❌ Invalid: $commit"
+              INVALID_COMMITS=$((INVALID_COMMITS + 1))
+            fi
+          done <<< "$COMMITS"
+
+          if [ $INVALID_COMMITS -gt 0 ]; then
+            echo ""
+            echo "❌ Found $INVALID_COMMITS invalid commit message(s)"
+            echo "Commit messages should follow Conventional Commits format:"
+            echo "  <type>(<scope>): <description>"
+            echo ""
+            echo "Examples:"
+            echo "  feat(backend): add user authentication"
+            echo "  fix(frontend): resolve login button issue"
+            echo "  docs: update API documentation"
+            echo ""
+            echo "::warning::Some commit messages don't follow Conventional Commits format"
+          else
+            echo "✅ All commit messages are valid"
+          fi
+
+  check-dependencies:
+    name: Check Dependencies
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for dependency changes
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # Check if dependency files changed
+          if echo "$CHANGED_FILES" | grep -qE "requirements\.txt|package\.json|build\.gradle|pom\.xml"; then
+            echo "⚠️  Dependency files changed"
+            echo "Please ensure:"
+            echo "  1. Dependencies are necessary"
+            echo "  2. Versions are pinned"
+            echo "  3. Security vulnerabilities are checked"
+            echo "  4. License compatibility is verified"
+            echo "::warning::Dependency files changed - please review carefully"
+          else
+            echo "✅ No dependency changes"
+          fi
+
+  # ============================================================================
+  # Summary
+  # ============================================================================
+
+  pr-checks-summary:
+    name: PR Checks Summary
+    runs-on: ubuntu-latest
+    needs:
+      - validate-pr-title
+      - validate-branch-name
+      - check-pr-size
+      - check-conflicts
+      - check-required-files
+      - check-documentation
+      - lint-pr-description
+      - check-commit-messages
+      - check-dependencies
+    if: always()
+
+    steps:
+      - name: Summary
+        run: |
+          echo "PR Checks Summary:"
+          echo "=================="
+          echo "PR Title: ${{ needs.validate-pr-title.result }}"
+          echo "Branch Name: ${{ needs.validate-branch-name.result }}"
+          echo "PR Size: ${{ needs.check-pr-size.result }}"
+          echo "Conflicts: ${{ needs.check-conflicts.result }}"
+          echo "Required Files: ${{ needs.check-required-files.result }}"
+          echo "Documentation: ${{ needs.check-documentation.result }}"
+          echo "PR Description: ${{ needs.lint-pr-description.result }}"
+          echo "Commit Messages: ${{ needs.check-commit-messages.result }}"
+          echo "Dependencies: ${{ needs.check-dependencies.result }}"
+
+          # Fail if any critical check failed
+          if [[ "${{ needs.validate-pr-title.result }}" == "failure" ]] || \
+             [[ "${{ needs.validate-branch-name.result }}" == "failure" ]] || \
+             [[ "${{ needs.check-conflicts.result }}" == "failure" ]]; then
+            echo "❌ PR Checks Failed"
+            exit 1
+          else
+            echo "✅ PR Checks Passed"
+          fi
+
