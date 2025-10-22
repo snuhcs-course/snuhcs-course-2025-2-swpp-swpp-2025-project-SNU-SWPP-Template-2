@@ -18,6 +18,7 @@ data class Review(
     val imageUrls: List<String> = emptyList(),
     val likeCount: Int = 0,
     val createdAt: String? = null,
+    val isLiked: Boolean = false,
 )
 
 data class postReview(
@@ -51,6 +52,21 @@ class LibraryRepository @Inject constructor(
             libraryApi.addReview(review)
         } catch (e: Exception) {
             Log.e("LibraryRepository", "Error adding review", e)
+        }
+    }
+
+    suspend fun toggleReviewLike(reviewId: Int): Review? {
+        return try {
+            val response = libraryApi.toggleReviewLike(reviewId)
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                Log.e("LibraryRepository", "Like toggle failed: ${response.code()}")
+                null
+            }
+        } catch (e: Exception) {
+            Log.e("LibraryRepository", "Error toggling like", e)
+            null
         }
     }
 }

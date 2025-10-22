@@ -31,6 +31,11 @@ class LibraryFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val reviewAdapter by lazy { ReviewAdapter(
+        clicks = ReviewClicks(
+            onClickLike = { review ->
+                viewModel.toggleLike(review)
+            },
+        )
     ) }
 
     override fun onCreateView(
