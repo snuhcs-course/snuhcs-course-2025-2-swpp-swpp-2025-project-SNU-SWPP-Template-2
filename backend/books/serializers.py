@@ -31,6 +31,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
     likeCount = serializers.IntegerField(source="like_count", read_only=True)
     createdAt = serializers.DateTimeField(source="created_at", read_only=True)
+    isLiked = serializers.SerializerMethodField()
 
     class Meta:
         model = BookReview
@@ -44,6 +45,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             "imageUrls",
             "likeCount",
             "createdAt",
+            "isLiked",
         ]
 
     def get_userProfile(self, obj):
@@ -56,6 +58,13 @@ class ReviewSerializer(serializers.ModelSerializer):
                 )
             return obj.reviewer.profile_picture.url
         return None
+
+    def get_isLiked(self, obj):
+        """Check if the current user has liked this review."""
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return obj.helpful_votes.filter(id=request.user.id).exists()
+        return False
 
 
 class CreateReviewSerializer(serializers.Serializer):
