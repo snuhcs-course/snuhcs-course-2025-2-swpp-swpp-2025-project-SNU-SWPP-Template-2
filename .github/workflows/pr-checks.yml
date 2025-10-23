@@ -400,16 +400,25 @@ jobs:
 
       - name: Validate commit messages
         run: |
-          # Get commits in this PR
-          COMMITS=$(git log --format=%s origin/${{ github.base_ref }}..HEAD)
+          # Get commits in this PR (excluding merge commits)
+          COMMITS=$(git log --format=%s --no-merges origin/${{ github.base_ref }}..HEAD)
 
           echo "Checking commit messages:"
           echo "$COMMITS"
 
           INVALID_COMMITS=0
+          TOTAL_COMMITS=0
 
           while IFS= read -r commit; do
+            # Skip empty lines
+            if [ -z "$commit" ]; then
+              continue
+            fi
+
+            TOTAL_COMMITS=$((TOTAL_COMMITS + 1))
+
             # Check if commit follows conventional commits format
+            # Allow both lowercase and uppercase first letter in description
             if [[ $commit =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .+ ]]; then
               echo "✅ Valid: $commit"
             else
@@ -418,20 +427,29 @@ jobs:
             fi
           done <<< "$COMMITS"
 
+          if [ $TOTAL_COMMITS -eq 0 ]; then
+            echo "⚠️  No commits to validate (this might be a merge-only PR)"
+            exit 0
+          fi
+
           if [ $INVALID_COMMITS -gt 0 ]; then
             echo ""
-            echo "❌ Found $INVALID_COMMITS invalid commit message(s)"
+            echo "❌ Found $INVALID_COMMITS invalid commit message(s) out of $TOTAL_COMMITS"
             echo "Commit messages should follow Conventional Commits format:"
             echo "  <type>(<scope>): <description>"
+            echo ""
+            echo "Valid types: feat, fix, docs, style, refactor, perf, test, build, ci, chore, revert"
+            echo "Scope is optional and should be in parentheses"
             echo ""
             echo "Examples:"
             echo "  feat(backend): add user authentication"
             echo "  fix(frontend): resolve login button issue"
             echo "  docs: update API documentation"
+            echo "  ci: add workflow for testing"
             echo ""
-            echo "::warning::Some commit messages don't follow Conventional Commits format"
+            exit 1
           else
-            echo "✅ All commit messages are valid"
+            echo "✅ All $TOTAL_COMMITS commit messages are valid"
           fi
 
   check-dependencies:
