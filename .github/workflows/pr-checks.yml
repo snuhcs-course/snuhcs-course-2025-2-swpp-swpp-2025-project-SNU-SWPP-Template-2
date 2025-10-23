@@ -53,8 +53,8 @@ jobs:
             // Pattern 2: emoji type(scope): Description (with scope)
             // Pattern 3: type: Description (without emoji, still valid)
             // Pattern 4: type(scope): Description (without emoji, still valid)
-            const patternWithEmoji = /^([🚀🐛🔥📝💄♻️⚡✅🔧🧹🔄])\s+(feat|feature|fix|bugfix|hotfix|docs?|documentation|style|refactor|refact|perf|performance|tests?|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
-            const patternWithoutEmoji = /^(feat|feature|fix|bugfix|hotfix|docs?|documentation|style|refactor|refact|perf|performance|tests?|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
+            const patternWithEmoji = /^([🚀🐛🔥📝💄♻️⚡✅🔧🧹🔄])\s+(feat|feature|fix|bugfix|hotfix|doc|docs|documentation|style|refactor|refact|perf|performance|test|tests|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
+            const patternWithoutEmoji = /^(feat|feature|fix|bugfix|hotfix|doc|docs|documentation|style|refactor|refact|perf|performance|test|tests|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
 
             const matchWithEmoji = title.match(patternWithEmoji);
             const matchWithoutEmoji = title.match(patternWithoutEmoji);
