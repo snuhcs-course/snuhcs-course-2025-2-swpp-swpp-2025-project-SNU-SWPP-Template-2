@@ -25,6 +25,8 @@ jobs:
             const title = pr.title;
 
             console.log('PR Title:', title);
+            console.log('PR Title length:', title.length);
+            console.log('First 10 chars:', title.substring(0, 10).split('').map(c => c.charCodeAt(0)));
 
             // Type to emoji mapping
             const typeEmojiMap = {
@@ -49,11 +51,12 @@ jobs:
               'revert': '🔄'
             };
 
-            // Pattern 1: emoji type: Description (preferred)
+            // Pattern 1: emoji type: Description (preferred) - Match ANY emoji using Unicode property escapes
             // Pattern 2: emoji type(scope): Description (with scope)
             // Pattern 3: type: Description (without emoji, still valid)
             // Pattern 4: type(scope): Description (without emoji, still valid)
-            const patternWithEmoji = /^([🚀🐛🔥📝💄♻️⚡✅🔧🧹🔄])\s+(feat|feature|fix|bugfix|hotfix|doc|docs|documentation|style|refactor|refact|perf|performance|test|tests|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
+            // Use \p{Emoji} to match any emoji character
+            const patternWithEmoji = /^[\p{Emoji}\uFE0F]+\s+(feat|feature|fix|bugfix|hotfix|doc|docs|documentation|style|refactor|refact|perf|performance|test|tests|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/u;
             const patternWithoutEmoji = /^(feat|feature|fix|bugfix|hotfix|doc|docs|documentation|style|refactor|refact|perf|performance|test|tests|build|ci|chore|revert)(\([a-z]+\))?: [A-Z].+$/;
 
             const matchWithEmoji = title.match(patternWithEmoji);
@@ -96,14 +99,20 @@ jobs:
 
             // Check if emoji matches the type (if emoji is present)
             if (matchWithEmoji) {
-              const emoji = matchWithEmoji[1];
-              const type = matchWithEmoji[2].toLowerCase();
+              // Extract emoji and type from the title
+              const emojiMatch = title.match(/^([\p{Emoji}\uFE0F]+)/u);
+              const emoji = emojiMatch ? emojiMatch[1].trim() : '';
+              const type = matchWithEmoji[1].toLowerCase();
               const expectedEmoji = typeEmojiMap[type];
 
-              if (emoji !== expectedEmoji) {
+              console.log(`Detected emoji: "${emoji}", type: "${type}", expected emoji: "${expectedEmoji}"`);
+
+              if (emoji && expectedEmoji && emoji !== expectedEmoji) {
                 core.warning(`⚠️  Emoji "${emoji}" doesn't match type "${type}". Expected emoji: ${expectedEmoji}`);
-              } else {
+              } else if (emoji && expectedEmoji && emoji === expectedEmoji) {
                 console.log(`✅ Emoji matches type: ${emoji} ${type}`);
+              } else {
+                console.log(`ℹ️  PR title has emoji "${emoji}" for type "${type}"`);
               }
             } else {
               console.log('ℹ️  PR title is valid but missing emoji (consider adding one)');
