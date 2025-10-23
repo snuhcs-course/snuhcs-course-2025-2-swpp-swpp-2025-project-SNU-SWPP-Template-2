@@ -421,7 +421,7 @@ jobs:
 
           while IFS= read -r commit; do
             # Skip empty lines
-            if [[ -z "$commit" ]]; then
+            if [ -z "$commit" ]; then
               continue
             fi
 
@@ -429,7 +429,7 @@ jobs:
 
             # Check if commit follows conventional commits format
             # Allow both lowercase and uppercase first letter in description
-            if [[ $commit =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .+ ]]; then
+            if echo "$commit" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?: .+'; then
               echo "✅ Valid: $commit"
             else
               echo "⚠️  Non-conventional: $commit"
@@ -438,12 +438,12 @@ jobs:
             fi
           done <<< "$COMMITS"
 
-          if [[ $TOTAL_COMMITS -eq 0 ]]; then
+          if [ "$TOTAL_COMMITS" -eq 0 ]; then
             echo "⚠️  No commits to validate (this might be a merge-only PR)"
             exit 0
           fi
 
-          if [[ $INVALID_COMMITS -gt 0 ]]; then
+          if [ "$INVALID_COMMITS" -gt 0 ]; then
             echo ""
             echo "⚠️  Found $INVALID_COMMITS commit message(s) that don't follow Conventional Commits format (out of $TOTAL_COMMITS total)"
             echo ""
