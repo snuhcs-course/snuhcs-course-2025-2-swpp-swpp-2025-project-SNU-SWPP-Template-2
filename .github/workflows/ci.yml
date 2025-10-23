@@ -167,6 +167,13 @@ jobs:
           pip install -r backend/requirements.txt
           pip install -r backend/requirements-dev.txt
 
+      - name: Create required directories
+        working-directory: backend
+        run: |
+          mkdir -p logs
+          mkdir -p media
+          mkdir -p staticfiles
+
       - name: Run Django migrations
         working-directory: backend
         env:
