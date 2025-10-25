@@ -3,11 +3,12 @@ import { observer } from "mobx-react-lite"
 import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert } from "react-native"
 import { Text } from "app/components"
 import { Button } from "app/components/Button"
+
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { api } from "app/services/api"
 
-interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> {}
+interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> { }
 
 interface UserPreferences {
   spicy_level: number
@@ -62,6 +63,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     navigation.replace("Foodigram")
   }
 
+
   const handleComplete = async () => {
     setIsLoading(true)
     try {
@@ -107,7 +109,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     <View style={$stepContainer}>
       <Text style={$stepTitle}>What are your taste preferences?</Text>
       <Text style={$stepSubtitle}>Help us recommend food you'll love</Text>
-      
+
       <View style={$sliderContainer}>
         <Text style={$sliderLabel}>Spicy Level: {preferences.spicy_level}</Text>
         <View style={$sliderTrack}>
@@ -162,7 +164,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     <View style={$stepContainer}>
       <Text style={$stepTitle}>Any allergies?</Text>
       <Text style={$stepSubtitle}>Select all that apply</Text>
-      
+
       <View style={$tagContainer}>
         {ALLERGIES.map((allergy) => (
           <TouchableOpacity
@@ -189,7 +191,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     <View style={$stepContainer}>
       <Text style={$stepTitle}>Ingredients you dislike?</Text>
       <Text style={$stepSubtitle}>We'll avoid recommending these</Text>
-      
+
       <View style={$tagContainer}>
         {INGREDIENTS.map((ingredient) => (
           <TouchableOpacity
@@ -214,9 +216,14 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
 
   const renderFavoriteCuisines = () => (
     <View style={$stepContainer}>
-      <Text style={$stepTitle}>Favorite cuisines?</Text>
-      <Text style={$stepSubtitle}>What types of food do you enjoy?</Text>
-      
+      <View style={$stepContainer}>
+        <Text style={$stepTitle}>Favorite cuisines?</Text>
+        <Text style={$stepSubtitle}>What types of food do you enjoy?</Text>
+        <Text style={$syncDescription}>
+          Use the sync button to import your food photos from your camera album!
+        </Text>
+      </View>
+
       <View style={$tagContainer}>
         {CUISINES.map((cuisine) => (
           <TouchableOpacity
@@ -252,7 +259,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   return (
     <View style={$container}>
       {renderProgressBar()}
-      
+
       <ScrollView style={$content} showsVerticalScrollIndicator={false}>
         {renderCurrentStep()}
       </ScrollView>
@@ -261,7 +268,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
         <TouchableOpacity onPress={handleSkip} style={$skipButton}>
           <Text style={$skipText}>Skip</Text>
         </TouchableOpacity>
-        
+
         <View style={$navButtons}>
           {currentStep > 0 && (
             <Button
@@ -270,7 +277,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
               onPress={handleBack}
             />
           )}
-          
+
           <Button
             text={currentStep === totalSteps - 1 ? "Complete" : "Next"}
             style={$nextButton}
@@ -332,8 +339,16 @@ const $stepTitle: TextStyle = {
 const $stepSubtitle: TextStyle = {
   fontSize: 16,
   color: colors.palette.neutral600,
-  marginBottom: spacing.xl,
+  marginBottom: spacing.sm,
   textAlign: "center",
+}
+
+const $syncDescription: TextStyle = {
+  fontSize: 14,
+  color: colors.palette.neutral500,
+  fontStyle: "italic",
+  flex: 1,
+  marginRight: spacing.sm
 }
 
 const $sliderContainer: ViewStyle = {

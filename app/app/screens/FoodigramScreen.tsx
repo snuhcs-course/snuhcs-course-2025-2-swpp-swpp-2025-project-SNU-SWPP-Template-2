@@ -8,8 +8,10 @@ import {
   FlatList,
   Dimensions,
   Image,
+  ScrollView,
+  ImageStyle,
 } from "react-native"
-import { Filter, Users, Home, User } from "lucide-react-native"
+import { Filter, Users, Home, User, X } from "lucide-react-native"
 import { Text } from "../components"
 import { colors, spacing } from "../theme"
 import { friends, allCategories, allAllergens } from "../data/mockData"
@@ -62,7 +64,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
           // 서버에는 있는데 로컬에는 없는 것 추가
           scrapedRestaurantIds.forEach((restaurantId: number) => {
-            const foodItem = foodItems.find((f) => f.id === restaurantId)
+            const foodItem = recommendedMenus.find((f) => f.id === restaurantId)
             if (foodItem && !currentLocalScraps.includes(restaurantId)) {
               foodHistoryStore.toggleScrappedItem(foodItem)
             }
@@ -71,7 +73,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           // 로컬에는 있는데 서버에는 없는 것 제거
           currentLocalScraps.forEach((localId: number) => {
             if (!scrapedRestaurantIds.includes(localId)) {
-              const foodItem = foodItems.find((f) => f.id === localId)
+              const foodItem = recommendedMenus.find((f) => f.id === localId)
               if (foodItem) {
                 foodHistoryStore.toggleScrappedItem(foodItem)
               }
@@ -696,7 +698,7 @@ const $recommendationCard: ViewStyle = {
   elevation: 3,
 }
 
-const $menuImage: ViewStyle = {
+const $menuImage: ImageStyle = {
   width: "100%",
   height: 180,
   borderTopLeftRadius: 16,
