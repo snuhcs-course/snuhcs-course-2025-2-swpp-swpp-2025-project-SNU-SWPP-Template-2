@@ -18,6 +18,7 @@ import Config from "../config"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
 import * as storage from "app/utils/storage"
+import { api } from "app/services/api"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -63,7 +64,29 @@ const AppStack = observer(function AppStack() {
   useEffect(() => {
     async function checkLoginStatus() {
       const loginStatus = await storage.loadString("IS_LOGGED_IN")
-      setIsLoggedIn(loginStatus === "true")
+      
+      if (loginStatus === "true") {
+        // IS_LOGGED_IN 플래그가 있으면 실제 세션이 유효한지 확인
+        try {
+          await api.getCsrf() // CSRF 토큰 먼저 가져오기
+          const response = await api.me() // 실제 API 호출로 세션 확인
+          
+          if (response.ok) {
+            // 세션이 유효함
+            setIsLoggedIn(true)
+          } else {
+            // 세션이 무효함 - 플래그 제거하고 로그아웃 처리
+            await storage.remove("IS_LOGGED_IN")
+            setIsLoggedIn(false)
+          }
+        } catch (error) {
+          // 네트워크 오류 등 - 안전하게 로그아웃 처리
+          await storage.remove("IS_LOGGED_IN")
+          setIsLoggedIn(false)
+        }
+      } else {
+        setIsLoggedIn(false)
+      }
     }
     checkLoginStatus()
   }, [])

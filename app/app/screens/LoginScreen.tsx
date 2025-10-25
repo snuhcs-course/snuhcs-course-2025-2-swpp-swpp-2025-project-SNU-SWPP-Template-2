@@ -69,10 +69,10 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
       <View style={$contentWrapper}>
         <View style={$formNew}>
           <View style={$inputWrapper}>
-            <Text style={$label}>Email</Text>
+            <Text style={$label}>Username</Text>
             <TextInput
               style={$input}
-              placeholder="Enter your email"
+              placeholder="Enter your username"
               placeholderTextColor="#9c5749"
               value={username}
               onChangeText={setUsername}
