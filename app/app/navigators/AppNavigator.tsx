@@ -11,12 +11,13 @@ import {
 } from "@react-navigation/native"
 import { createNativeStackNavigator, NativeStackScreenProps } from "@react-navigation/native-stack"
 import { observer } from "mobx-react-lite"
-import React from "react"
+import React, { useState, useEffect } from "react"
 import { useColorScheme } from "react-native"
 import * as Screens from "app/screens"
 import Config from "../config"
 import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
+import * as storage from "app/utils/storage"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -34,6 +35,7 @@ import { colors } from "app/theme"
 export type AppStackParamList = {
   Welcome: undefined
   Login: undefined
+  SignUp: undefined
   Onboarding: undefined
   Foodigram: undefined
   Profile: undefined
@@ -56,13 +58,29 @@ export type AppStackScreenProps<T extends keyof AppStackParamList> = NativeStack
 const Stack = createNativeStackNavigator<AppStackParamList>()
 
 const AppStack = observer(function AppStack() {
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    async function checkLoginStatus() {
+      const loginStatus = await storage.loadString("IS_LOGGED_IN")
+      setIsLoggedIn(loginStatus === "true")
+    }
+    checkLoginStatus()
+  }, [])
+
+  if (isLoggedIn === null) {
+    // Still checking login status, could show a splash screen here
+    return null
+  }
+
   return (
     <Stack.Navigator
       screenOptions={{ headerShown: false, navigationBarColor: colors.background }}
-      initialRouteName="Login"
+      initialRouteName={isLoggedIn ? "Foodigram" : "Welcome"}
     >
           <Stack.Screen name="Welcome" component={Screens.WelcomeScreen} />
           <Stack.Screen name="Login" component={Screens.LoginScreen} />
+          <Stack.Screen name="SignUp" component={Screens.SignUpScreen} />
           <Stack.Screen name="Onboarding" component={Screens.OnboardingScreen} />
           <Stack.Screen name="Foodigram" component={Screens.FoodigramScreen} />
           <Stack.Screen name="Profile" component={Screens.ProfileScreen} />

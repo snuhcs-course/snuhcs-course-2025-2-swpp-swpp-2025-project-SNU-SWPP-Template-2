@@ -6,6 +6,7 @@ import { Button } from "app/components/Button"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { api } from "app/services/api"
+import { Ionicons } from "@expo/vector-icons"
 
 interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> {}
 
@@ -19,15 +20,42 @@ interface UserPreferences {
 }
 
 const ALLERGIES = [
-  "eggs", "soy", "sesame", "fish", "shellfish", "wheat", "milk", "peanuts", "tree nuts"
+  { id: "eggs", label: "Eggs", icon: "egg-outline" as const },
+  { id: "soy", label: "Soy", icon: "leaf-outline" as const },
+  { id: "sesame", label: "Sesame", icon: "flower-outline" as const },
+  { id: "fish", label: "Fish", icon: "fish-outline" as const },
+  { id: "shellfish", label: "Shellfish", icon: "fish-outline" as const },
+  { id: "wheat", label: "Wheat", icon: "nutrition-outline" as const },
+  { id: "milk", label: "Milk", icon: "water-outline" as const },
+  { id: "peanuts", label: "Peanuts", icon: "nutrition-outline" as const },
+  { id: "tree nuts", label: "Tree Nuts", icon: "nutrition-outline" as const },
 ]
 
 const INGREDIENTS = [
-  "onion", "garlic", "ginger", "cilantro", "mushroom", "tomato", "cheese", "meat", "seafood"
+  { id: "onion", label: "Onion", icon: "nutrition-outline" as const },
+  { id: "garlic", label: "Garlic", icon: "nutrition-outline" as const },
+  { id: "ginger", label: "Ginger", icon: "leaf-outline" as const },
+  { id: "cilantro", label: "Cilantro", icon: "leaf-outline" as const },
+  { id: "mushroom", label: "Mushroom", icon: "nutrition-outline" as const },
+  { id: "tomato", label: "Tomato", icon: "nutrition-outline" as const },
+  { id: "cheese", label: "Cheese", icon: "pizza-outline" as const },
+  { id: "meat", label: "Meat", icon: "restaurant-outline" as const },
+  { id: "seafood", label: "Seafood", icon: "fish-outline" as const },
 ]
 
 const CUISINES = [
-  "korean", "japanese", "chinese", "western", "thai", "italian", "mexican", "indian"
+  { id: "italian", label: "Italian", icon: "pizza-outline" as const },
+  { id: "mexican", label: "Mexican", icon: "fast-food-outline" as const },
+  { id: "chinese", label: "Chinese", icon: "restaurant-outline" as const },
+  { id: "japanese", label: "Japanese", icon: "fish-outline" as const },
+  { id: "indian", label: "Indian", icon: "flame-outline" as const },
+  { id: "american", label: "American", icon: "fast-food-outline" as const },
+  { id: "thai", label: "Thai", icon: "leaf-outline" as const },
+  { id: "mediterranean", label: "Mediterranean", icon: "restaurant-outline" as const },
+  { id: "french", label: "French", icon: "wine-outline" as const },
+  { id: "vietnamese", label: "Vietnamese", icon: "restaurant-outline" as const },
+  { id: "spanish", label: "Spanish", icon: "wine-outline" as const },
+  { id: "korean", label: "Korean", icon: "restaurant-outline" as const },
 ]
 
 export const OnboardingScreen = observer(function OnboardingScreen({ navigation }: OnboardingScreenProps) {
@@ -49,12 +77,6 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       setCurrentStep(currentStep + 1)
     } else {
       handleComplete()
-    }
-  }
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1)
     }
   }
 
@@ -96,10 +118,10 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
 
   const renderProgressBar = () => (
     <View style={$progressContainer}>
+      <Text style={$progressText}>Step {currentStep + 1} of {totalSteps}</Text>
       <View style={$progressBar}>
         <View style={[$progressFill, { width: `${((currentStep + 1) / totalSteps) * 100}%` }]} />
       </View>
-      <Text style={$progressText}>{currentStep + 1} of {totalSteps}</Text>
     </View>
   )
 
@@ -163,21 +185,27 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       <Text style={$stepTitle}>Any allergies?</Text>
       <Text style={$stepSubtitle}>Select all that apply</Text>
       
-      <View style={$tagContainer}>
+      <View style={$cardGrid}>
         {ALLERGIES.map((allergy) => (
           <TouchableOpacity
-            key={allergy}
+            key={allergy.id}
             style={[
-              $tag,
-              preferences.allergies.includes(allergy) ? $tagSelected : $tagUnselected
+              $card,
+              preferences.allergies.includes(allergy.id) && $cardSelected
             ]}
-            onPress={() => toggleArrayItem('allergies', allergy)}
+            onPress={() => toggleArrayItem('allergies', allergy.id)}
+            activeOpacity={0.7}
           >
+            <Ionicons 
+              name={allergy.icon} 
+              size={32} 
+              color={preferences.allergies.includes(allergy.id) ? colors.background : colors.text}
+            />
             <Text style={[
-              $tagText,
-              preferences.allergies.includes(allergy) ? $tagTextSelected : $tagTextUnselected
+              $cardText,
+              preferences.allergies.includes(allergy.id) && $cardTextSelected
             ]}>
-              {allergy}
+              {allergy.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -190,21 +218,27 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       <Text style={$stepTitle}>Ingredients you dislike?</Text>
       <Text style={$stepSubtitle}>We'll avoid recommending these</Text>
       
-      <View style={$tagContainer}>
+      <View style={$cardGrid}>
         {INGREDIENTS.map((ingredient) => (
           <TouchableOpacity
-            key={ingredient}
+            key={ingredient.id}
             style={[
-              $tag,
-              preferences.disliked_ingredients.includes(ingredient) ? $tagSelected : $tagUnselected
+              $card,
+              preferences.disliked_ingredients.includes(ingredient.id) && $cardSelected
             ]}
-            onPress={() => toggleArrayItem('disliked_ingredients', ingredient)}
+            onPress={() => toggleArrayItem('disliked_ingredients', ingredient.id)}
+            activeOpacity={0.7}
           >
+            <Ionicons 
+              name={ingredient.icon} 
+              size={32} 
+              color={preferences.disliked_ingredients.includes(ingredient.id) ? colors.background : colors.text}
+            />
             <Text style={[
-              $tagText,
-              preferences.disliked_ingredients.includes(ingredient) ? $tagTextSelected : $tagTextUnselected
+              $cardText,
+              preferences.disliked_ingredients.includes(ingredient.id) && $cardTextSelected
             ]}>
-              {ingredient}
+              {ingredient.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -214,24 +248,30 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
 
   const renderFavoriteCuisines = () => (
     <View style={$stepContainer}>
-      <Text style={$stepTitle}>Favorite cuisines?</Text>
-      <Text style={$stepSubtitle}>What types of food do you enjoy?</Text>
+      <Text style={$stepTitle}>What cuisines do you love?</Text>
+      <Text style={$stepSubtitle}>Select your favorite cuisines</Text>
       
-      <View style={$tagContainer}>
+      <View style={$cardGrid}>
         {CUISINES.map((cuisine) => (
           <TouchableOpacity
-            key={cuisine}
+            key={cuisine.id}
             style={[
-              $tag,
-              preferences.favorite_cuisines.includes(cuisine) ? $tagSelected : $tagUnselected
+              $card,
+              preferences.favorite_cuisines.includes(cuisine.id) && $cardSelected
             ]}
-            onPress={() => toggleArrayItem('favorite_cuisines', cuisine)}
+            onPress={() => toggleArrayItem('favorite_cuisines', cuisine.id)}
+            activeOpacity={0.7}
           >
+            <Ionicons 
+              name={cuisine.icon} 
+              size={32} 
+              color={preferences.favorite_cuisines.includes(cuisine.id) ? colors.background : colors.text}
+            />
             <Text style={[
-              $tagText,
-              preferences.favorite_cuisines.includes(cuisine) ? $tagTextSelected : $tagTextUnselected
+              $cardText,
+              preferences.favorite_cuisines.includes(cuisine.id) && $cardTextSelected
             ]}>
-              {cuisine}
+              {cuisine.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -258,26 +298,15 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       </ScrollView>
 
       <View style={$buttonContainer}>
+        <Button
+          text={currentStep === totalSteps - 1 ? "Complete" : "Continue"}
+          style={$continueButton}
+          onPress={handleNext}
+          disabled={isLoading}
+        />
         <TouchableOpacity onPress={handleSkip} style={$skipButton}>
           <Text style={$skipText}>Skip</Text>
         </TouchableOpacity>
-        
-        <View style={$navButtons}>
-          {currentStep > 0 && (
-            <Button
-              text="Back"
-              style={$backButton}
-              onPress={handleBack}
-            />
-          )}
-          
-          <Button
-            text={currentStep === totalSteps - 1 ? "Complete" : "Next"}
-            style={$nextButton}
-            onPress={handleNext}
-            disabled={isLoading}
-          />
-        </View>
       </View>
     </View>
   )
@@ -291,25 +320,27 @@ const $container: ViewStyle = {
 const $progressContainer: ViewStyle = {
   padding: spacing.lg,
   paddingTop: spacing.xl,
+  gap: spacing.xs,
+}
+
+const $progressText: TextStyle = {
+  fontSize: 14,
+  fontWeight: "500",
+  color: colors.text,
+  marginBottom: spacing.xs,
 }
 
 const $progressBar: ViewStyle = {
-  height: 4,
+  height: 8,
   backgroundColor: colors.palette.neutral200,
-  borderRadius: 2,
-  marginBottom: spacing.sm,
+  borderRadius: 9999,
+  overflow: "hidden",
 }
 
 const $progressFill: ViewStyle = {
   height: "100%",
   backgroundColor: colors.palette.primary500,
-  borderRadius: 2,
-}
-
-const $progressText: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.neutral600,
-  textAlign: "center",
+  borderRadius: 9999,
 }
 
 const $content: ViewStyle = {
@@ -322,18 +353,18 @@ const $stepContainer: ViewStyle = {
 }
 
 const $stepTitle: TextStyle = {
-  fontSize: 24,
+  fontSize: 32,
   fontWeight: "bold",
   color: colors.text,
   marginBottom: spacing.sm,
-  textAlign: "center",
+  textAlign: "left",
 }
 
 const $stepSubtitle: TextStyle = {
   fontSize: 16,
   color: colors.palette.neutral600,
   marginBottom: spacing.xl,
-  textAlign: "center",
+  textAlign: "left",
 }
 
 const $sliderContainer: ViewStyle = {
@@ -370,67 +401,60 @@ const $sliderDotInactive: ViewStyle = {
   borderColor: colors.palette.neutral300,
 }
 
-const $tagContainer: ViewStyle = {
+const $cardGrid: ViewStyle = {
   flexDirection: "row",
   flexWrap: "wrap",
-  gap: spacing.sm,
+  gap: spacing.md,
+  justifyContent: "space-between",
 }
 
-const $tag: ViewStyle = {
-  paddingHorizontal: spacing.md,
-  paddingVertical: spacing.sm,
-  borderRadius: 20,
+const $card: ViewStyle = {
+  width: "48%",
+  backgroundColor: colors.background,
+  borderRadius: 16,
   borderWidth: 1,
+  borderColor: colors.palette.neutral300,
+  padding: spacing.md,
+  gap: spacing.sm,
+  minHeight: 100,
+  justifyContent: "center",
+  alignItems: "flex-start",
 }
 
-const $tagSelected: ViewStyle = {
+const $cardSelected: ViewStyle = {
   backgroundColor: colors.palette.primary500,
   borderColor: colors.palette.primary500,
 }
 
-const $tagUnselected: ViewStyle = {
-  backgroundColor: colors.background,
-  borderColor: colors.palette.neutral300,
+const $cardText: TextStyle = {
+  fontSize: 16,
+  fontWeight: "bold",
+  color: colors.text,
 }
 
-const $tagText: TextStyle = {
-  fontSize: 14,
-  fontWeight: "500",
-}
-
-const $tagTextSelected: TextStyle = {
+const $cardTextSelected: TextStyle = {
   color: colors.background,
-}
-
-const $tagTextUnselected: TextStyle = {
-  color: colors.palette.neutral700,
 }
 
 const $buttonContainer: ViewStyle = {
   padding: spacing.lg,
   borderTopWidth: 1,
   borderTopColor: colors.palette.neutral200,
+  backgroundColor: colors.background,
+  gap: spacing.xs,
+}
+
+const $continueButton: ViewStyle = {
+  width: "100%",
 }
 
 const $skipButton: ViewStyle = {
   alignSelf: "center",
-  marginBottom: spacing.md,
+  paddingVertical: spacing.sm,
 }
 
 const $skipText: TextStyle = {
   fontSize: 16,
-  color: colors.palette.neutral600,
-}
-
-const $navButtons: ViewStyle = {
-  flexDirection: "row",
-  gap: spacing.md,
-}
-
-const $backButton: ViewStyle = {
-  flex: 1,
-}
-
-const $nextButton: ViewStyle = {
-  flex: 2,
+  fontWeight: "bold",
+  color: colors.text,
 }
