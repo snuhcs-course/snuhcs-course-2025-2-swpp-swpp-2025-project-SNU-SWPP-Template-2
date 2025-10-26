@@ -1,0 +1,272 @@
+{
+  "timestamp": "20251026_130015",
+  "user_profile": {
+    "location_info": "Seoul National University",
+    "location": [
+      126.952372,
+      37.449936
+    ],
+    "cuisine_preferences": [
+      "coffee/beverage"
+    ],
+    "max_distance_km": 1.0
+  },
+  "recommendations": {
+    "user_location": [
+      126.952372,
+      37.449936
+    ],
+    "search_radius_km": 1.0,
+    "total_restaurants": 7,
+    "total_menus_found": 38,
+    "recommendations": {
+      "Hot Coffee Beverages": {
+        "reason": "Popular hot coffee beverages items in your area",
+        "menus": [
+          {
+            "name": "에스프레소(hot)",
+            "restaurant": "mug공대",
+            "price": 1000
+          },
+          {
+            "name": "아메리카노(hot)",
+            "restaurant": "mug공대",
+            "price": 1800
+          },
+          {
+            "name": "카페라떼(hot)",
+            "restaurant": "mug공대",
+            "price": 2300
+          },
+          {
+            "name": "카푸치노(hot)",
+            "restaurant": "mug공대",
+            "price": 2500
+          },
+          {
+            "name": "카페모카(hot)",
+            "restaurant": "mug공대",
+            "price": 2500
+          }
+        ]
+      },
+      "Iced Coffee Beverages": {
+        "reason": "Popular iced coffee beverages items in your area",
+        "menus": [
+          {
+            "name": "콜드브루",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "아메리카노",
+            "restaurant": "파스쿠찌 서울대관정도서관점",
+            "price": 4300
+          },
+          {
+            "name": "콜드브루라떼",
+            "restaurant": "더치프레소",
+            "price": 4500
+          },
+          {
+            "name": "카페라떼",
+            "restaurant": "파스쿠찌 서울대관정도서관점",
+            "price": 4800
+          }
+        ]
+      },
+      "Flavored Coffee Beverages": {
+        "reason": "Popular flavored coffee beverages items in your area",
+        "menus": [
+          {
+            "name": "바닐라라떼",
+            "restaurant": "더치프레소",
+            "price": 3800
+          },
+          {
+            "name": "카라멜라떼",
+            "restaurant": "더치프레소",
+            "price": 3800
+          },
+          {
+            "name": "연유라떼",
+            "restaurant": "더치프레소",
+            "price": 3800
+          },
+          {
+            "name": "헤이즐넛라떼",
+            "restaurant": "더치프레소",
+            "price": 38000
+          }
+        ]
+      },
+      "Tea-Based Beverages": {
+        "reason": "Popular tea-based beverages items in your area",
+        "menus": [
+          {
+            "name": "녹차라떼",
+            "restaurant": "더치프레소",
+            "price": 4000
+          }
+        ]
+      },
+      "Chocolate-Based Beverages": {
+        "reason": "Popular chocolate-based beverages items in your area",
+        "menus": [
+          {
+            "name": "초코라떼",
+            "restaurant": "더치프레소",
+            "price": 3800
+          }
+        ]
+      },
+      "Yogurt Desserts": {
+        "reason": "Popular yogurt desserts items in your area",
+        "menus": [
+          {
+            "name": "플레인 요거트 그라니따",
+            "restaurant": "파스쿠찌 서울대관정도서관점",
+            "price": 6500
+          }
+        ]
+      },
+      "Daily Specials": {
+        "reason": "Popular daily specials items in your area",
+        "menus": [
+          {
+            "name": "오늘의커피",
+            "restaurant": "더치프레소",
+            "price": 2000
+          }
+        ]
+      },
+      "Miscellaneous": {
+        "reason": "Popular miscellaneous items in your area",
+        "menus": [
+          {
+            "name": "에스프레소",
+            "restaurant": "더치프레소",
+            "price": 2500
+          },
+          {
+            "name": "아메리카노",
+            "restaurant": "더치프레소",
+            "price": 2500
+          },
+          {
+            "name": "카페라떼",
+            "restaurant": "더치프레소",
+            "price": 3500
+          }
+        ]
+      },
+      "Beverages": {
+        "reason": "Popular beverages items in your area",
+        "menus": [
+          {
+            "name": "아이스티(복숭아/레몬)",
+            "restaurant": "더치프레소",
+            "price": 2500
+          },
+          {
+            "name": "캐모마일",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "페퍼민트",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "히비스커스",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "트로피컬 블랙티",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "밀크티",
+            "restaurant": "더치프레소",
+            "price": 4000
+          },
+          {
+            "name": "애플 블렌드",
+            "restaurant": "더치프레소",
+            "price": 4000
+          },
+          {
+            "name": "유자차",
+            "restaurant": "더치프레소",
+            "price": 4000
+          },
+          {
+            "name": "레몬차",
+            "restaurant": "더치프레소",
+            "price": 4000
+          },
+          {
+            "name": "자몽차",
+            "restaurant": "더치프레소",
+            "price": 4000
+          },
+          {
+            "name": "유자/오렌지/자몽/레몬 에이드",
+            "restaurant": "더치프레소",
+            "price": 4500
+          },
+          {
+            "name": "블루베리/패션후르츠/청포도 에이드",
+            "restaurant": "더치프레소",
+            "price": 4500
+          }
+        ]
+      },
+      "Tea Varieties": {
+        "reason": "Popular tea varieties items in your area",
+        "menus": [
+          {
+            "name": "아쌈",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "얼그레이",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "다즐링",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "제주순수녹차",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "잉글리쉬브랙퍼스트",
+            "restaurant": "더치프레소",
+            "price": 3500
+          },
+          {
+            "name": "제주삼다 영귤티",
+            "restaurant": "더치프레소",
+            "price": 3500
+          }
+        ]
+      }
+    },
+    "timing_info": {
+      "restaurant_search_time": 0.03035116195678711,
+      "menu_fetch_time": 0.00568079948425293,
+      "categorization_time": 5.188248872756958,
+      "recommendation_build_time": 0.00010323524475097656,
+      "total_time": 5.224430799484253
+    }
+  }
+}
