@@ -1,0 +1,28 @@
+# PostgreSQL Database Requirements
+# Install these packages to run the restaurant recommendation system
+
+# Database connectivity
+psycopg2-binary>=2.9.0
+python-dotenv>=1.0.0
+
+# LangChain for AI processing (using newer versions compatible with Python 3.13)
+langchain>=0.1.0
+langchain-openai>=0.1.0
+openai>=1.10.0
+
+# Data processing (using newer versions compatible with Python 3.13)
+numpy>=1.26.0
+pandas>=2.1.0
+tqdm>=4.66.0
+
+# JSON handling (included in Python standard library)
+# json
+
+# Regular expressions (included in Python standard library)
+# re
+
+# Time utilities (included in Python standard library)
+# time
+
+# Type hints (included in Python 3.5+)
+# typing

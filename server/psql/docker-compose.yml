@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  postgres:
+    build: .                     # build from the Dockerfile
+    image: foodigram_postgres     # optional custom image name
+    container_name: foodigram_db
+    environment:
+      POSTGRES_DB: foodigram
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      LANG: ko_KR.UTF-8
+      LC_ALL: ko_KR.UTF-8
+    volumes:
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"   # bind to localhost only
+
+volumes:
+  postgres_data:
