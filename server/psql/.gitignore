@@ -82,6 +82,8 @@ tmp/
 .openai_cache/
 
 # Test run results (keep user profiles, ignore results)
+!test_run/user/
+!test_run/user/*.json
 !test_run/result/
 !test_run/result/*.json
 
