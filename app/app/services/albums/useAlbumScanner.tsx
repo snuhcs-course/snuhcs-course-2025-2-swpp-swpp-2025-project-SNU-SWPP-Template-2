@@ -1,5 +1,5 @@
 import * as MediaLibrary from "expo-media-library";
-import { useImageClassifier } from "./useImageClassifier"; // 경로에 맞게 수정
+import { useImageClassifier } from "./useImageClassifier";
 import { uploadData } from "aws-amplify/storage";
 import { api } from "../api";
 import { getImage } from "app/utils/imagenameFromAsseturi";
