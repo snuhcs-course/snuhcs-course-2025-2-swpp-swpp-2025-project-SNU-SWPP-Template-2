@@ -8,6 +8,7 @@ import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import * as storage from "app/utils/storage"
 import { api } from "app/services/api"
+import { handleSignIn } from "app/services/aws/handleAwsSignin"
 
 interface LoginScreenProps extends AppStackScreenProps<"Login"> {}
 
@@ -35,6 +36,10 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
         Alert.alert("Login Failed", errorMessage)
         return
       }
+
+      // log into aws amplify
+      await handleSignIn(username, password);
+
       await storage.saveString("IS_LOGGED_IN", "true")
       
       // Check if user has preferences set

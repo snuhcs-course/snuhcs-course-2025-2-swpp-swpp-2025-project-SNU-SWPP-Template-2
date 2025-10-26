@@ -1,0 +1,14 @@
+{
+  "resourceName": "userFoodPhotos",
+  "policyUUID": "3a0843a8",
+  "bucketName": "amplifyfoodigram7d2f8a01598b4fe0b37b6e2d0b2a99e",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE",
+    "READ",
+    "DELETE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

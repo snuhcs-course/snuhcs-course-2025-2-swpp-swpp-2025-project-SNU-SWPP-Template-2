@@ -1,96 +1,45 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect } from "react"
 import { observer } from "mobx-react-lite"
 import {
   View,
   ViewStyle,
   TextStyle,
   TouchableOpacity,
-  ScrollView,
   FlatList,
   Dimensions,
+  Image,
 } from "react-native"
-import { GestureDetector, Gesture } from "react-native-gesture-handler"
-import { runOnJS } from "react-native-reanimated"
-import { Search, Filter, Heart, Users, Home, User, X } from "lucide-react-native"
-import { Text, TextField } from "../components"
-import { FoodCard } from "../components/FoodCard"
+import { Filter, Users, Home, User } from "lucide-react-native"
+import { Text } from "../components"
 import { colors, spacing } from "../theme"
-import { foodItems, friends, allCategories, allAllergens } from "../data/mockData"
-import { FoodItem } from "../types/FoodTypes"
+import { friends, allCategories, allAllergens } from "../data/mockData"
 import { AppStackScreenProps } from "../navigators"
 import { useStores } from "../models"
 import { api } from "../services/api"
+import type { MenuRecommendationItem } from "../services/api/api.types"
 
 interface FoodigramScreenProps extends AppStackScreenProps<"Foodigram"> {}
 
-export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function FoodigramScreen({ navigation }) {
+export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function FoodigramScreen({
+  navigation,
+}) {
   const { foodHistoryStore } = useStores()
-  const [searchQuery, setSearchQuery] = useState("")
-  
-  // Enhanced search handler with logging
-  const handleSearchChange = (query: string) => {
-    setSearchQuery(query)
-    if (__DEV__) {
-      if (query.trim()) {
-        console.log(`Home: searched for "${query.trim()}"`)
-      } else if (searchQuery.trim()) {
-        console.log(`Home: cleared search`)
-      }
-    }
-  }
-  const [currentIndex, setCurrentIndex] = useState(0)
-  const [likedItems, setLikedItems] = useState<number[]>([])
-  const [showLikedOnly, setShowLikedOnly] = useState(false)
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [isFriendsOpen, setIsFriendsOpen] = useState(false)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(allCategories)
   const [selectedAllergens, setSelectedAllergens] = useState<string[]>([])
-  const [screenData, setScreenData] = useState(Dimensions.get('window'))
-  
-  // No need for gesture refs with new API
-  
+  const [screenData, setScreenData] = useState(Dimensions.get("window"))
 
-  // Filter foods based on search, filters, and liked view
-  const getFilteredFoods = (): FoodItem[] => {
-    let filtered = [...foodItems]
-
-    // Search filter
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(
-        (food) =>
-          food.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          food.keywords.some((k) => k.toLowerCase().includes(searchQuery.toLowerCase()))
-      )
-    }
-
-    // Category filter
-    if (selectedCategories.length > 0) {
-      filtered = filtered.filter((food) => selectedCategories.includes(food.category))
-    }
-
-    // Allergen filter (exclude foods with selected allergens)
-    if (selectedAllergens.length > 0) {
-      filtered = filtered.filter(
-        (food) => !food.allergens.some((allergen) => selectedAllergens.includes(allergen))
-      )
-    }
-
-    // Liked filter
-    if (showLikedOnly) {
-      filtered = filtered.filter((food) => likedItems.includes(food.id))
-    }
-
-    return filtered
-  }
-
-  const filteredFoods = getFilteredFoods()
+  // 추천 메뉴 관련 상태
+  const [recommendedMenus, setRecommendedMenus] = useState<MenuRecommendationItem[]>([])
+  const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
 
   // Listen for screen dimension changes
   useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({ window }) => {
+    const subscription = Dimensions.addEventListener("change", ({ window }) => {
       setScreenData(window)
     })
-    
+
     return () => subscription?.remove()
   }, [])
 
@@ -99,207 +48,98 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     const loadScrapsFromServer = async () => {
       try {
         const response = await api.getScraps()
-        
+
         if (response.ok && response.data) {
           const serverScraps = response.data as any[]
-          
+
           // 서버에서 가져온 스크랩된 restaurant ID 목록
-          const scrapedRestaurantIds = serverScraps.map((scrap: any) => scrap.restaurant?.id).filter(Boolean)
-          
+          const scrapedRestaurantIds = serverScraps
+            .map((scrap: any) => scrap.restaurant?.id)
+            .filter(Boolean)
+
           // 로컬 store 초기화: 현재 로컬에 있는 것 중 서버에 없는 것은 제거
-          const currentLocalScraps = foodHistoryStore.scrappedItems.map(item => item.id)
-          
+          const currentLocalScraps = foodHistoryStore.scrappedItems.map((item) => item.id)
+
           // 서버에는 있는데 로컬에는 없는 것 추가
           scrapedRestaurantIds.forEach((restaurantId: number) => {
-            const foodItem = foodItems.find(f => f.id === restaurantId)
+            const foodItem = foodItems.find((f) => f.id === restaurantId)
             if (foodItem && !currentLocalScraps.includes(restaurantId)) {
               foodHistoryStore.toggleScrappedItem(foodItem)
             }
           })
-          
+
           // 로컬에는 있는데 서버에는 없는 것 제거
           currentLocalScraps.forEach((localId: number) => {
             if (!scrapedRestaurantIds.includes(localId)) {
-              const foodItem = foodItems.find(f => f.id === localId)
+              const foodItem = foodItems.find((f) => f.id === localId)
               if (foodItem) {
                 foodHistoryStore.toggleScrappedItem(foodItem)
               }
             }
           })
-          
+
           if (__DEV__) {
             console.log(`Home: Synced scraps from server. Total: ${scrapedRestaurantIds.length}`)
           }
         }
       } catch (error) {
         if (__DEV__) {
-          console.error('Home: Failed to load scraps from server:', error)
+          console.error("Home: Failed to load scraps from server:", error)
         }
       }
     }
-    
+
     loadScrapsFromServer()
   }, [])
 
-  
-  // Reset index when filters change
+  // 화면 로드 시 자동으로 추천 메뉴 가져오기
   useEffect(() => {
-    if (currentIndex >= filteredFoods.length && filteredFoods.length > 0) {
-      setCurrentIndex(0)
-    }
-  }, [filteredFoods.length, currentIndex])
-  
+    const fetchInitialRecommendations = async () => {
+      setIsLoadingRecommendations(true)
+      try {
+        // 사용자 위치 정보 (실제로는 GPS나 사용자 설정에서 가져와야 함)
+        const userLocation: [number, number] = [126.9619864, 37.477136] // 서울 강남역 좌표
 
-  const currentFood = filteredFoods[currentIndex]
+        const recommendations = await api.getMenuRecommendations(userLocation, {
+          maxResults: 10,
+        })
 
-  // Calculate dynamic scaling for middle section only
-  const getDynamicStyles = () => {
-    const { height, width } = screenData
-    
-    // Fixed element heights (these don't scale)
-    const counterHeight = 30 // Food counter indicator
-    const middleSectionMargins = spacing.md * 2 // Reduced margins due to constrained space
-    
-    // Calculate available space for middle section (food card + counter)
-    // With absolute positioning: mainContent has top: 120, bottom: 125
-    const availableMiddleHeight = height - 120 - 125 - middleSectionMargins
-    const availableWidth = width - (spacing.md * 2) // Side margins
-    
-    // Define ideal dimensions for middle section
-    const idealFoodCardHeight = 520
-    const idealFoodCardWidth = width - (spacing.lg * 2) // Full screen width minus margins
-    const idealMiddleSectionHeight = idealFoodCardHeight + counterHeight + spacing.md // food card + counter + margin between them
-    
-    // Calculate scaling factor for middle section only
-    const heightScale = Math.min(1, availableMiddleHeight / idealMiddleSectionHeight)
-    const widthScale = Math.min(1, availableWidth / idealFoodCardWidth)
-    const scale = Math.min(heightScale, widthScale, 1) // Don't scale up, only down
-    
-    return {
-      foodCardScale: scale,
-      foodCardHeight: idealFoodCardHeight * scale,
-      foodCardWidth: idealFoodCardWidth * scale,
-    }
-  }
-
-  const dynamicStyles = getDynamicStyles()
-
-
-  const handleLike = () => {
-    if (!currentFood) return
-    const isCurrentlyLiked = likedItems.includes(currentFood.id)
-    const action = isCurrentlyLiked ? "unliked" : "liked"
-    
-    if (__DEV__) {
-      console.log(`Home: ${action} food "${currentFood.name}" (ID: ${currentFood.id})`)
-    }
-    
-    setLikedItems((prev) =>
-      prev.includes(currentFood.id)
-        ? prev.filter((id) => id !== currentFood.id)
-        : [...prev, currentFood.id]
-    )
-  }
-
-  const handleScrap = async () => {
-    if (!currentFood) return
-    
-    try {
-      // 서버 API 호출
-      const response = await api.toggleScrap(currentFood.id)
-      
-      if (response.ok && response.data) {
-        // 서버 응답에서 실제 스크랩 상태를 가져옴
-        const serverScrapped = (response.data as any).scrapped
-        const localScrapped = foodHistoryStore.isScrapped(currentFood.id)
-        
-        // 서버 상태와 로컬 상태가 다르면 로컬을 서버에 맞춤
-        if (serverScrapped !== localScrapped) {
-          foodHistoryStore.toggleScrappedItem(currentFood)
+        if (recommendations && recommendations.success && recommendations.results) {
+          setRecommendedMenus(recommendations.results)
         }
-        
-        const action = serverScrapped ? "scrapped" : "unscrapped"
-        
-        if (__DEV__) {
-          console.log(`Home: ${action} food "${currentFood.name}" (ID: ${currentFood.id})`)
-          console.log(`Server response:`, response.data)
-        }
-      } else {
-        // 서버 에러 처리
-        if (__DEV__) {
-          console.error(`Home: Failed to scrap food:`, response.problem)
-        }
-        alert(`Failed to update scrap. Please try again.`)
+      } catch (error) {
+        console.error("추천 메뉴 가져오기 실패:", error)
+      } finally {
+        setIsLoadingRecommendations(false)
       }
-    } catch (error) {
-      // 네트워크 에러 등
-      if (__DEV__) {
-        console.error(`Home: Error scrapping food:`, error)
-      }
-      alert(`Error: Unable to update scrap. Check your connection.`)
     }
-  }
 
-  // Navigation functions are now handled directly in gesture callbacks
-
-  // Simple gesture handler for swipe detection
-  const panGesture = Gesture.Pan()
-    .activeOffsetX([-50, 50])
-    .failOffsetY([-20, 20])
-    .shouldCancelWhenOutside(true)
-    .runOnJS(true)
-    .onEnd((event) => {
-      const swipeThreshold = 100
-      const velocityThreshold = 300
-      
-      if (event.translationX < -swipeThreshold || event.velocityX < -velocityThreshold) {
-        // Swipe left - go to next
-        if (currentIndex < filteredFoods.length - 1) {
-          const newIndex = currentIndex + 1
-          if (__DEV__) {
-            console.log(`Home: swiped to food "${filteredFoods[newIndex].name}" (${newIndex + 1}/${filteredFoods.length})`)
-          }
-          runOnJS(() => setCurrentIndex(prev => prev + 1))()
-        }
-      } else if (event.translationX > swipeThreshold || event.velocityX > velocityThreshold) {
-        // Swipe right - go to previous  
-        if (currentIndex > 0) {
-          const newIndex = currentIndex - 1
-          if (__DEV__) {
-            console.log(`Home: swiped to food "${filteredFoods[newIndex].name}" (${newIndex + 1}/${filteredFoods.length})`)
-          }
-          runOnJS(() => setCurrentIndex(prev => prev - 1))()
-        }
-      }
-    })
+    fetchInitialRecommendations()
+  }, [])
 
   const handleCategoryToggle = (category: string) => {
     const isCurrentlySelected = selectedCategories.includes(category)
     const action = isCurrentlySelected ? "deselected" : "selected"
-    
+
     if (__DEV__) {
       console.log(`Home: ${action} category filter "${category}"`)
     }
-    
+
     setSelectedCategories((prev) =>
-      prev.includes(category)
-        ? prev.filter((c) => c !== category)
-        : [...prev, category]
+      prev.includes(category) ? prev.filter((c) => c !== category) : [...prev, category],
     )
   }
 
   const handleAllergenToggle = (allergen: string) => {
     const isCurrentlySelected = selectedAllergens.includes(allergen)
     const action = isCurrentlySelected ? "removed" : "added"
-    
+
     if (__DEV__) {
       console.log(`Home: ${action} allergen filter "${allergen}"`)
     }
-    
+
     setSelectedAllergens((prev) =>
-      prev.includes(allergen)
-        ? prev.filter((a) => a !== allergen)
-        : [...prev, allergen]
+      prev.includes(allergen) ? prev.filter((a) => a !== allergen) : [...prev, allergen],
     )
   }
 
@@ -308,61 +148,69 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
       {/* Header */}
       <View style={$header}>
         <Text style={$headerTitle}>foodigram</Text>
-        
-        {/* Search Bar */}
-        <View style={$searchContainer}>
-          <View style={$searchInputContainer}>
-            <TextField
-              value={searchQuery}
-              onChangeText={handleSearchChange}
-              placeholder="Search foods..."
-              containerStyle={$searchInput}
-              inputWrapperStyle={$searchInputWrapper}
-            />
-          </View>
-          <TouchableOpacity style={$searchButton}>
-            <Search size={20} color={colors.palette.neutral100} />
-          </TouchableOpacity>
-        </View>
       </View>
 
       {/* Main Content - Takes remaining space */}
       <View style={$mainContent}>
-        {filteredFoods.length === 0 ? (
-          <View style={$emptyState}>
-            <Text style={$emptyText}>No foods found</Text>
-            <Text style={$emptySubtext}>Try adjusting your filters or search</Text>
+        {isLoadingRecommendations ? (
+          // 로딩 스피너 표시
+          <View style={$loadingContainer}>
+            <Text style={$loadingText}>추천 메뉴를 가져오는 중...</Text>
           </View>
-        ) : currentFood ? (
-          <View style={$carouselContainer}>
-            <GestureDetector gesture={panGesture}>
-              <View style={$carouselContent}>
-                {/* Current card (visible) */}
-                <View style={$cardSlot}>
-                  <FoodCard
-                    key={currentFood.id}
-                    food={currentFood}
-                    isLiked={likedItems.includes(currentFood.id)}
-                    isScrapped={foodHistoryStore.isScrapped(currentFood.id)}
-                    onLike={handleLike}
-                    onScrap={handleScrap}
-                    scale={dynamicStyles.foodCardScale}
-                    maxWidth={dynamicStyles.foodCardWidth}
-                  />
+        ) : recommendedMenus.length > 0 ? (
+          // 추천 메뉴 카드 목록 표시
+          <View style={$recommendationsContainer}>
+            <Text style={$recommendationsTitle}>추천 메뉴</Text>
+            <FlatList
+              data={recommendedMenus}
+              keyExtractor={(item) => item.id.toString()}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={$recommendationsList}
+              renderItem={({ item }) => (
+                <View style={$recommendationCard}>
+                  {item.image_urls && item.image_urls.length > 0 ? (
+                    <Image
+                      source={{ uri: item.image_urls[0] }}
+                      style={$menuImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={$menuImagePlaceholder}>
+                      <Text style={$menuImagePlaceholderText}>이미지 없음</Text>
+                    </View>
+                  )}
+                  <View style={$menuInfo}>
+                    <Text style={$menuName}>{item.menu_name}</Text>
+                    <Text style={$placeName}>{item.place_name}</Text>
+                    <Text style={$menuPrice}>{item.price?.toLocaleString()}원</Text>
+                    <Text style={$menuCategory}>{item.category}</Text>
+                    <Text style={$menuLocation}>{item.location}</Text>
+                    <Text style={$menuRating}>
+                      ⭐ {item.rating} ({item.review_count}리뷰)
+                    </Text>
+                    <Text style={$menuReason}>{item.reason}</Text>
+                  </View>
                 </View>
-              </View>
-            </GestureDetector>
+              )}
+            />
           </View>
-        ) : null}
+        ) : (
+          // 에러 상태
+          <View style={$emptyState}>
+            <Text style={$emptyText}>추천 메뉴를 불러올 수 없습니다</Text>
+            <Text style={$emptySubtext}>잠시 후 다시 시도해주세요</Text>
+          </View>
+        )}
       </View>
 
       {/* Action Buttons */}
       <View style={$actionButtons}>
         <TouchableOpacity
           style={[
-            $actionButton, 
+            $actionButton,
             isFilterOpen && $actionButtonHighlighted,
-            (isFilterOpen || isFriendsOpen) && !isFilterOpen && $actionButtonDimmed
+            (isFilterOpen || isFriendsOpen) && !isFilterOpen && $actionButtonDimmed,
           ]}
           onPress={() => {
             if (__DEV__) {
@@ -377,36 +225,9 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
         <TouchableOpacity
           style={[
-            $actionButton, 
-            showLikedOnly && $actionButtonActive,
-            (isFilterOpen || isFriendsOpen) && $actionButtonDimmed
-          ]}
-          onPress={() => {
-            const newValue = !showLikedOnly
-            const action = newValue ? "enabled" : "disabled"
-            if (__DEV__) {
-              console.log(`Home: ${action} liked-only view`)
-            }
-            setShowLikedOnly(newValue)
-          }}
-        >
-          <Heart 
-            size={16} 
-            color={colors.palette.neutral700}
-            fill={showLikedOnly ? colors.background : "none"}
-            stroke={showLikedOnly ? colors.palette.primary500 : colors.palette.neutral700}
-          />
-          <Text style={[
-            $actionButtonText,
-            showLikedOnly && { color: colors.background }
-          ]}>Liked</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            $actionButton, 
+            $actionButton,
             isFriendsOpen && $actionButtonHighlighted,
-            (isFilterOpen || isFriendsOpen) && !isFriendsOpen && $actionButtonDimmed
+            (isFilterOpen || isFriendsOpen) && !isFriendsOpen && $actionButtonDimmed,
           ]}
           onPress={() => {
             if (__DEV__) {
@@ -432,10 +253,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             navigation.navigate("Foodigram")
           }}
         >
-          <Home 
-            size={28} 
-            color={colors.palette.primary500}
-          />
+          <Home size={28} color={colors.palette.primary500} />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -447,17 +265,14 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             navigation.navigate("Profile")
           }}
         >
-          <User 
-            size={28} 
-            color={colors.palette.neutral500}
-          />
+          <User size={28} color={colors.palette.neutral500} />
         </TouchableOpacity>
       </View>
 
       {/* Filter Speech Bubble */}
       {isFilterOpen && (
         <View style={$speechBubbleContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={$speechBubbleBackdrop}
             activeOpacity={1}
             onPress={() => {
@@ -470,18 +285,20 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           <View style={$speechBubble}>
             <View style={$speechBubbleHeader}>
               <Text style={$speechBubbleTitle}>Filters</Text>
-              <TouchableOpacity onPress={() => {
-                if (__DEV__) {
-                  console.log(`Home: closed filter panel (X button)`)
-                }
-                setIsFilterOpen(false)
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (__DEV__) {
+                    console.log(`Home: closed filter panel (X button)`)
+                  }
+                  setIsFilterOpen(false)
+                }}
+              >
                 <X size={20} color={colors.palette.neutral700} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView 
-              style={$speechBubbleContent} 
+            <ScrollView
+              style={$speechBubbleContent}
               showsVerticalScrollIndicator={true}
               scrollEnabled={true}
               nestedScrollEnabled={true}
@@ -493,14 +310,14 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                     key={category}
                     style={[
                       $filterChip,
-                      selectedCategories.includes(category) && $filterChipSelected
+                      selectedCategories.includes(category) && $filterChipSelected,
                     ]}
                     onPress={() => handleCategoryToggle(category)}
                   >
-                    <Text 
+                    <Text
                       style={[
                         $filterChipText,
-                        selectedCategories.includes(category) && $filterChipTextSelected
+                        selectedCategories.includes(category) && $filterChipTextSelected,
                       ]}
                     >
                       {category}
@@ -516,14 +333,14 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                     key={allergen}
                     style={[
                       $filterChip,
-                      selectedAllergens.includes(allergen) && $filterChipSelected
+                      selectedAllergens.includes(allergen) && $filterChipSelected,
                     ]}
                     onPress={() => handleAllergenToggle(allergen)}
                   >
-                    <Text 
+                    <Text
                       style={[
                         $filterChipText,
-                        selectedAllergens.includes(allergen) && $filterChipTextSelected
+                        selectedAllergens.includes(allergen) && $filterChipTextSelected,
                       ]}
                     >
                       {allergen}
@@ -539,7 +356,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
       {/* Friends Speech Bubble */}
       {isFriendsOpen && (
         <View style={$speechBubbleContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={$speechBubbleBackdrop}
             activeOpacity={1}
             onPress={() => {
@@ -552,12 +369,14 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           <View style={$speechBubble}>
             <View style={$speechBubbleHeader}>
               <Text style={$speechBubbleTitle}>Friends</Text>
-              <TouchableOpacity onPress={() => {
-                if (__DEV__) {
-                  console.log(`Home: closed friends panel (X button)`)
-                }
-                setIsFriendsOpen(false)
-              }}>
+              <TouchableOpacity
+                onPress={() => {
+                  if (__DEV__) {
+                    console.log(`Home: closed friends panel (X button)`)
+                  }
+                  setIsFriendsOpen(false)
+                }}
+              >
                 <X size={20} color={colors.palette.neutral700} />
               </TouchableOpacity>
             </View>
@@ -607,43 +426,14 @@ const $headerTitle: TextStyle = {
   fontSize: 24,
   fontWeight: "bold",
   textAlign: "center",
-  marginTop: spacing.lg,
+  marginTop: spacing.xxl,
   marginBottom: spacing.md,
   color: colors.text,
 }
 
-const $searchContainer: ViewStyle = {
-  flexDirection: "row",
-  gap: spacing.sm,
-}
-
-const $searchInputContainer: ViewStyle = {
-  flex: 1,
-}
-
-const $searchInput: ViewStyle = {
-  borderRadius: 12,
-  backgroundColor: colors.palette.neutral100,
-  overflow: "hidden",
-}
-
-const $searchInputWrapper: ViewStyle = {
-  borderRadius: 12,
-  backgroundColor: colors.palette.neutral100,
-  overflow: "hidden",
-}
-
-const $searchButton: ViewStyle = {
-  backgroundColor: colors.palette.primary500,
-  borderRadius: 12,
-  padding: spacing.sm,
-  justifyContent: "center",
-  alignItems: "center",
-}
-
 const $mainContent: ViewStyle = {
   position: "absolute",
-  top: 120, // Header height
+  top: 60, // Header height
   left: 0,
   right: 0,
   bottom: 125, // Action buttons (60) + bottom tabs (65)
@@ -651,7 +441,6 @@ const $mainContent: ViewStyle = {
   alignItems: "center",
   zIndex: 1,
 }
-
 
 const $emptyState: ViewStyle = {
   alignItems: "center",
@@ -669,7 +458,6 @@ const $emptySubtext: TextStyle = {
   color: colors.palette.neutral400,
   textAlign: "center",
 }
-
 
 const $actionButtons: ViewStyle = {
   position: "absolute",
@@ -729,7 +517,6 @@ const $tabButton: ViewStyle = {
 const $tabButtonActive: ViewStyle = {
   backgroundColor: colors.palette.primary100,
 }
-
 
 const $speechBubbleContainer: ViewStyle = {
   position: "absolute",
@@ -862,20 +649,128 @@ const $actionButtonDimmed: ViewStyle = {
   backgroundColor: "rgba(0, 0, 0, 0.4)", // Apply same darkening as other components
 }
 
-const $carouselContainer: ViewStyle = {
+// 로딩 관련 스타일
+const $loadingContainer: ViewStyle = {
   flex: 1,
-  width: "100%",
-  overflow: "hidden",
-}
-
-const $carouselContent: ViewStyle = {
-  flex: 1,
-  position: "relative",
-}
-
-const $cardSlot: ViewStyle = {
-  flex: 1,
-  width: "100%",
-  alignItems: "center",
   justifyContent: "center",
+  alignItems: "center",
+}
+
+const $loadingText: TextStyle = {
+  fontSize: 16,
+  color: colors.palette.neutral600,
+  textAlign: "center",
+}
+
+// 추천 메뉴 관련 스타일
+const $recommendationsContainer: ViewStyle = {
+  flex: 1,
+  backgroundColor: colors.background,
+  paddingHorizontal: spacing.md,
+}
+
+const $recommendationsTitle: TextStyle = {
+  fontSize: 20,
+  fontWeight: "bold",
+  color: colors.text,
+  marginBottom: spacing.md,
+  textAlign: "center",
+}
+
+const $recommendationsList: ViewStyle = {
+  paddingHorizontal: spacing.sm,
+}
+
+const $recommendationCard: ViewStyle = {
+  width: 280,
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: 16,
+  marginRight: spacing.md,
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 2,
+  },
+  shadowOpacity: 0.1,
+  shadowRadius: 4,
+  elevation: 3,
+}
+
+const $menuImage: ViewStyle = {
+  width: "100%",
+  height: 180,
+  borderTopLeftRadius: 16,
+  borderTopRightRadius: 16,
+}
+
+const $menuImagePlaceholder: ViewStyle = {
+  width: "100%",
+  height: 180,
+  backgroundColor: colors.palette.neutral200,
+  borderTopLeftRadius: 16,
+  borderTopRightRadius: 16,
+  justifyContent: "center",
+  alignItems: "center",
+}
+
+const $menuImagePlaceholderText: TextStyle = {
+  fontSize: 14,
+  color: colors.palette.neutral500,
+}
+
+const $menuInfo: ViewStyle = {
+  padding: spacing.md,
+}
+
+const $recommendationItem: ViewStyle = {
+  backgroundColor: colors.palette.neutral100,
+  padding: spacing.md,
+  marginVertical: spacing.sm,
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: colors.palette.neutral200,
+}
+
+const $menuName: TextStyle = {
+  fontSize: 16,
+  fontWeight: "bold",
+  color: colors.text,
+  marginBottom: spacing.xs,
+}
+
+const $placeName: TextStyle = {
+  fontSize: 14,
+  color: colors.palette.neutral700,
+  marginBottom: spacing.xs,
+}
+
+const $menuPrice: TextStyle = {
+  fontSize: 14,
+  fontWeight: "600",
+  color: colors.palette.primary500,
+  marginBottom: spacing.xs,
+}
+
+const $menuCategory: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral600,
+  marginBottom: spacing.xs,
+}
+
+const $menuLocation: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral600,
+  marginBottom: spacing.xs,
+}
+
+const $menuRating: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral600,
+  marginBottom: spacing.xs,
+}
+
+const $menuReason: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral500,
+  fontStyle: "italic",
 }

@@ -6,7 +6,21 @@ from django.shortcuts import get_object_or_404
 from .models import User, Follow, UserScrap, UserPreference
 from .serializers import UserSerializer, ProfileSerializer, FollowSerializer, UserScrapSerializer, UserPreferenceSerializer
 from restaurant.models import Restaurant
+from .serializers import UserGalleryImageSerializer, UserSerializer, ProfileSerializer, FollowSerializer
 from . import services
+
+class PhotoViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
+
+    def list(self, request):
+        photos = services.list_user_photos(user=request.user)
+        serializer = UserGalleryImageSerializer(photos, many=True)
+        return Response(serializer.data)
+
+    def create(self, request):
+        photo = services.upload_user_photo(user=request.user, photo_url=request.data["photo_url"])
+        serializer = UserGalleryImageSerializer(photo)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class MeViewSet(viewsets.ViewSet):

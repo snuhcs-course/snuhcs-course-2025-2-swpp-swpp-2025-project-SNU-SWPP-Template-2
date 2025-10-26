@@ -1,6 +1,6 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-from .models import User, Profile, Follow
+from .models import User, Profile, Follow, UserGalleryImage
 
 
 @transaction.atomic
@@ -53,3 +53,10 @@ def list_follow_suggestions(*, user: User, limit: int = 10):
         .exclude(id__in=user.following.values("following_id"))
         .order_by("-date_joined")[:limit]
     )
+
+def upload_user_photo(*, user: User, photo_url: str) -> str:
+    photo = UserGalleryImage.objects.create(user=user, image_url=photo_url)
+    return photo
+
+def list_user_photos(*, user: User):
+    return UserGalleryImage.objects.filter(user=user).order_by("-created_at")

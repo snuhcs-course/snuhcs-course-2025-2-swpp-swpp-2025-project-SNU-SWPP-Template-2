@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Profile, Follow, UserScrap, UserPreference
+from .models import User, Profile, Follow, UserScrap, UserPreference, UserGalleryImage
 from restaurant.serializers import RestaurantSerializer
 
 
@@ -70,3 +70,10 @@ class UserPreferenceSerializer(serializers.ModelSerializer):
         if value < 0 or value > 10:
             raise serializers.ValidationError("Salty level must be between 0 and 10")
         return value
+
+
+class UserGalleryImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserGalleryImage
+        fields = ("id", "user", "image_url", "created_at")
+        read_only_fields = ("created_at",)
