@@ -6,7 +6,7 @@ Handles book reviews and related data serialization.
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import BookReview, ReviewHelpfulVote
+from .models import BookReview
 
 User = get_user_model()
 
