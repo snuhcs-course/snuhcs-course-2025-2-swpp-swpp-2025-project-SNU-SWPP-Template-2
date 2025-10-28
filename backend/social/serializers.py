@@ -4,7 +4,7 @@ Serializers for the social app.
 
 from rest_framework import serializers
 
-from social.models import Post, PostLike
+from social.models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
