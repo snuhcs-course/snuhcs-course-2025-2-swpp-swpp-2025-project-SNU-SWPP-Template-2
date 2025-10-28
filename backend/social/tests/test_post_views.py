@@ -1,8 +1,9 @@
-from rest_framework.test import APITestCase
-from rest_framework import status
 from django.contrib.auth import get_user_model
-from social.models import Post, PostLike
+from rest_framework import status
+from rest_framework.test import APITestCase
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from social.models import Post, PostLike
 
 User = get_user_model()
 
@@ -10,20 +11,30 @@ User = get_user_model()
 class PostViewTests(APITestCase):
     def setUp(self):
         # Create test users
-        self.user = User.objects.create_user(username="user1", email="user1@example.com", password="password123")
-        self.other_user = User.objects.create_user(username="user2", email="user2@example.com", password="password123")
+        self.user = User.objects.create_user(
+            username="user1", email="user1@example.com", password="password123"
+        )
+        self.other_user = User.objects.create_user(
+            username="user2", email="user2@example.com", password="password123"
+        )
 
         # Generate and set JWT token
         refresh = RefreshToken.for_user(self.user)
-        self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+        self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}"
+        )
 
         # URLs
         self.create_url = "/posts/create/"
         self.home_feed_url = "/home/"
 
         # Create sample posts
-        self.public_post = Post.objects.create(author=self.other_user, content="Public post", is_public=True)
-        self.private_post = Post.objects.create(author=self.other_user, content="Private post", is_public=False)
+        self.public_post = Post.objects.create(
+            author=self.other_user, content="Public post", is_public=True
+        )
+        self.private_post = Post.objects.create(
+            author=self.other_user, content="Private post", is_public=False
+        )
 
     # ------------------------------------------------------------
     # 1️⃣ HOME FEED TESTS
@@ -56,12 +67,20 @@ class PostViewTests(APITestCase):
         # Like the post
         response = self.client.post(like_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(PostLike.objects.filter(post=self.public_post, user=self.user).exists())
+        self.assertTrue(
+            PostLike.objects.filter(
+                post=self.public_post, user=self.user
+            ).exists()
+        )
 
         # Unlike the post (toggle)
         response = self.client.post(like_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertFalse(PostLike.objects.filter(post=self.public_post, user=self.user).exists())
+        self.assertFalse(
+            PostLike.objects.filter(
+                post=self.public_post, user=self.user
+            ).exists()
+        )
 
     def test_like_post_not_found(self):
         """Return 404 if post does not exist."""

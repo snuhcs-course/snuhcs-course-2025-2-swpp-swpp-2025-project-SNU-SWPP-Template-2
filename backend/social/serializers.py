@@ -4,7 +4,7 @@ Serializers for the social app.
 
 from rest_framework import serializers
 
-from social.models import Post, PostLike
+from social.models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -41,7 +41,14 @@ class PostSerializer(serializers.ModelSerializer):
             "createdAt",
             "isLiked",
         ]
-        read_only_fields = ["id", "posterName", "posterProfile", "likeCount", "isLiked", "createdAt"]
+        read_only_fields = [
+            "id",
+            "posterName",
+            "posterProfile",
+            "likeCount",
+            "isLiked",
+            "createdAt",
+        ]
 
     def get_posterProfile(self, obj):
         """Get poster's profile picture URL."""
@@ -103,6 +110,7 @@ class LikeResponseSerializer(serializers.Serializer):
 
     post = PostSerializer(read_only=True)
 
+
 class PostCreateSerializer(serializers.ModelSerializer):
     """
     Serializer for creating new posts.
@@ -116,5 +124,3 @@ class PostCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user = self.context["request"].user
         return Post.objects.create(author=user, **validated_data)
-
-

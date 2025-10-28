@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social.models import Post, PostLike
-from social.serializers import PostSerializer, PostCreateSerializer
+from social.serializers import PostCreateSerializer, PostSerializer
 
 
 @api_view(["GET"])
@@ -39,17 +39,17 @@ def home_feed(request):
         }
     """
     # Get all public posts ordered by creation date (newest first)
-    posts = Post.objects.filter(is_public=True).select_related(
-        "author", "related_book"
-    ).prefetch_related(
-        "related_book__authors", "likes"
-    ).order_by("-created_at")
-
-    serializer = PostSerializer(
-        posts, many=True, context={"request": request}
+    posts = (
+        Post.objects.filter(is_public=True)
+        .select_related("author", "related_book")
+        .prefetch_related("related_book__authors", "likes")
+        .order_by("-created_at")
     )
 
+    serializer = PostSerializer(posts, many=True, context={"request": request})
+
     return Response({"results": serializer.data}, status=status.HTTP_200_OK)
+
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -66,12 +66,16 @@ def create_post(request):
         - image: file (optional)
         - is_public: boolean (optional, default True)
     """
-    serializer = PostCreateSerializer(data=request.data, context={"request": request})
+    serializer = PostCreateSerializer(
+        data=request.data, context={"request": request}
+    )
 
     if serializer.is_valid():
         serializer.save()
-        return Response({"post": serializer.data}, status=status.HTTP_201_CREATED)
-    
+        return Response(
+            {"post": serializer.data}, status=status.HTTP_201_CREATED
+        )
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -97,15 +101,14 @@ def like_post(request, post_id):
         }
     """
     try:
-        post = Post.objects.select_related(
-            "author", "related_book"
-        ).prefetch_related(
-            "related_book__authors", "likes"
-        ).get(id=post_id)
+        post = (
+            Post.objects.select_related("author", "related_book")
+            .prefetch_related("related_book__authors", "likes")
+            .get(id=post_id)
+        )
     except Post.DoesNotExist:
         return Response(
-            {"error": "Post not found"},
-            status=status.HTTP_404_NOT_FOUND
+            {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
     # Toggle like
