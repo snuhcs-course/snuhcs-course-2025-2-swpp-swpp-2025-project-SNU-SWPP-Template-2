@@ -292,7 +292,7 @@ class PasswordResetRequestView(APIView):
 
             # Check if user exists (but don't reveal this in response)
             try:
-                user = User.objects.get(email=email)
+                User.objects.get(email=email)
                 user_exists = True
             except User.DoesNotExist:
                 user_exists = False

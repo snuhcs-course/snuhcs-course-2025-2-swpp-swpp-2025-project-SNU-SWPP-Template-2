@@ -26,7 +26,7 @@ data class Post(
     val bookTitle: String,
     val authorName: String,
     val posterName: String,
-    val posterProfile: String,
+    val posterProfile: String, // profile image
     val content: String,
     val imageUrls: List<String> = emptyList(),
     val likeCount: Int = 0,
