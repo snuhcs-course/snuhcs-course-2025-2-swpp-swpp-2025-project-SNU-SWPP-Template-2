@@ -8,7 +8,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from social.models import Post, PostLike
-from social.serializers import PostSerializer, PostCreateSerializer
+from social.serializers import PostCreateSerializer, PostSerializer
 
 
 @api_view(["GET"])
@@ -71,6 +71,34 @@ def create_post(request):
         serializer.save()
         return Response({"post": serializer.data}, status=status.HTTP_201_CREATED)
     
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def create_post(request):
+    """
+    Create a new post with optional image upload.
+
+    POST /posts/create/
+    Content-Type: multipart/form-data
+    Fields:
+        - content: str
+        - post_type: str (optional, default "text")
+        - related_book: int (optional, book ID)
+        - image: file (optional)
+        - is_public: boolean (optional, default True)
+    """
+    serializer = PostCreateSerializer(
+        data=request.data, context={"request": request}
+    )
+
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            {"post": serializer.data}, status=status.HTTP_201_CREATED
+        )
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
