@@ -26,3 +26,11 @@ tqdm>=4.66.0
 
 # Type hints (included in Python 3.5+)
 # typing
+
+# HuggingFace Transformers for embeddings
+transformers>=4.30.0
+torch>=2.0.0
+sentencepiece>=0.1.99
+
+# Additional utilities
+python-dotenv>=1.0.0

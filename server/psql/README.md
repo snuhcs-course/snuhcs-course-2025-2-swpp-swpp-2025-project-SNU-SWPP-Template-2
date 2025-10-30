@@ -14,6 +14,7 @@ psql/
 ├── restaurants_gwanak.json # Raw restaurant data (Gwanak-gu area)
 ├── into_db.py              # Data loading script
 ├── preprocess.py           # AI-powered menu processing
+├── embedding.py            # ML embedding generation for recommendations
 ├── client.py               # Restaurant recommendation engine
 ├── sample_run.py           # Demo script with JSON-based user profiles
 ├── test.py                 # Test suite for recommendation system
@@ -27,17 +28,19 @@ psql/
 ├── .gitignore             # Git ignore rules
 ├── docker-compose.yml     # PostgreSQL container setup
 ├── db/
-│   └── schema.sql         # Database schema definition
+│   ├── schema.sql         # Database schema definition
+│   └── schema_update.sql  # Schema updates for embedding support
 └── README.md              # This file
 ```
 
 ## Features
 
 ### 1. Database Schema (`db/schema.sql`)
-- **db_restaurants**: Restaurant information with PostGIS spatial data
-- **db_menus**: Menu items with normalized name processing
+- **db_restaurants**: Restaurant information with PostGIS spatial data and embedding vectors
+- **db_menus**: Menu items with normalized name processing and embedding vectors
 - Automatic timestamp updates and optimized indexes
 - Full Unicode support for Korean text
+- ML embedding support for semantic similarity matching
 
 ### 2. Data Loading (`into_db.py`)
 - Loads restaurant data from JSON files
@@ -53,7 +56,14 @@ psql/
   - Removes quantity patterns: "2개", "500ml", etc.
   - Keeps only alphanumeric and Korean characters
 
-### 4. Recommendation System (`client.py`)
+### 4. ML Embedding Generation (`embedding.py`)
+- **Restaurant name analysis** using GPT-4o-mini for menu inference
+- **Vector embedding generation** using BM-K/KoSimCSE-roberta model
+- **Multiprocessing support** with connection pooling and retry logic
+- **Batch processing** for efficient database updates
+- **Meaningful name detection** for restaurants with specific cuisine indicators
+
+### 5. Recommendation System (`client.py`)
 - **PostGIS-based spatial queries** for nearby restaurants
 - **AI-powered menu categorization** using LangChain with gpt-4o-mini
 - **Optimized performance** with hexadecimal indices for token reduction
@@ -62,13 +72,13 @@ psql/
 - **Cuisine preference matching** with alias support (korean → 한식)
 - **Location-based restaurant filtering** limited to top 30 closest
 
-### 5. Demo System (`sample_run.py`)
+### 6. Demo System (`sample_run.py`)
 - **JSON-based user profiles** stored in `test_run/user/`
 - **Command line parameter support** for profile selection
 - **Automatic result saving** with timestamps in `test_run/result/`
 - **Human-readable location descriptions** in user profiles
 
-### 6. Test Suite (`test.py`)
+### 7. Test Suite (`test.py`)
 - Database connectivity and integrity tests
 - Recommendation algorithm validation
 - Performance benchmarking
@@ -102,7 +112,7 @@ psql/
 3. **Start Database**
    ```bash
    # Start PostgreSQL with PostGIS (first time may take a few minutes)
-   docker-compose up -d
+   docker compose up -d
    
    # Wait for database to be ready (check logs)
    docker logs foodigram_db
@@ -125,6 +135,9 @@ psql/
    
    # 2. Process and normalize menu names (takes ~1-2 minutes)
    python preprocess.py
+   
+   # 3. Generate ML embeddings for semantic search (takes ~10-15 minutes)
+   python embedding.py
    ```
 
 6. **Test the System**
@@ -144,72 +157,46 @@ python sample_run.py japanese_lover     # Japanese cuisine focused
 python sample_run.py --help            # Show all options
 ```
 
-## Setup Instructions
+## ML Embedding Features
 
-### 1. Environment Setup
+### Embedding Pipeline (`embedding.py`)
 
-Required environment variables in `.env` file:
-- `OPENAI_API_KEY`: OpenAI API key for AI processing (required for menu categorization)
-- `DB_HOST`: Database host (default: localhost)
-- `DB_PORT`: Database port (default: 5432) 
-- `DB_NAME`: Database name (default: foodigram)
-- `DB_USER`: Database user (default: postgres)
-- `DB_PASSWORD`: Database password (default: postgres)
-
-**Getting OpenAI API Key:**
-1. Visit https://platform.openai.com/
-2. Create account or sign in
-3. Go to API Keys section
-4. Create new secret key
-5. Copy key to `.env` file
-
-### 2. Database Setup
+The embedding system provides semantic similarity matching for restaurants and menus:
 
 ```bash
-# Start PostgreSQL with PostGIS
-docker-compose up -d
+# Run full embedding pipeline
+python embedding.py
 
-# Verify database is running
-docker logs foodigram_db
+# Run only restaurant name analysis
+python embedding.py --meaningful
+
+# Force regeneration of embeddings
+python embedding.py --menu-embedding --restaurant-embedding
 ```
 
-If port 5432 is occupied by host PostgreSQL service,
-```bash
-# Stop the service to use the port
-sudo service postgresql stop
+**Features:**
+- **Restaurant Name Analysis**: Uses GPT-4o-mini to detect meaningful menu information in restaurant names
+- **Vector Embeddings**: BM-K/KoSimCSE-roberta model for Korean text semantic similarity
+- **Multiprocessing**: Parallel database updates with connection pooling
+- **Retry Logic**: Handles connection failures with exponential backoff
+- **Performance Optimized**: Limited to 4 concurrent workers to prevent database overload
+
+**Database Schema Updates:**
+- `meaningful_name` (BOOLEAN): Whether restaurant name contains specific cuisine/menu info
+- `inferred_menu` (TEXT): Extracted menu information from restaurant name
+- `embedding_vector` (REAL[]): 768-dimensional embedding vectors for semantic search
+
+### Docker Configuration Improvements
+
+**Enhanced PostgreSQL Settings:**
+```yaml
+command: >
+  postgres
+  -c max_connections=200        # Increased from default 100
+  -c shared_buffers=256MB       # Optimized memory usage
+  -c effective_cache_size=1GB   # Better query performance
+  -c work_mem=4MB              # Improved sort operations
 ```
-
-### 3. Python Dependencies
-
-```bash
-# Install required packages
-pip install -r requirements.txt
-```
-
-### 4. Data Loading and Processing
-
-```bash
-# 1. Load raw data into database (~2-3 minutes, loads 3,799 restaurants)
-python into_db.py
-
-# 2. Process menu names (normalize menu names, ~1-2 minutes)
-python preprocess.py
-
-# 3. Run demo with default user profile
-python sample_run.py
-
-# 4. Run demo with specific user profile
-python sample_run.py japanese_lover
-
-# 5. Run test suite (optional, ~1-2 minutes)
-python test.py
-```
-
-**Expected Data Load Results:**
-- ✅ 3,799 restaurants loaded
-- ✅ 36,445 menus loaded  
-- ✅ 100% restaurants have coordinates
-- ✅ 96% menus have price information
 
 ## Usage Examples
 
@@ -301,8 +288,9 @@ ORDER BY r.name, m.name;
 1. **Raw Data** → `restaurants_gwanak.json`
 2. **Database Loading** → `into_db.py` → PostgreSQL tables
 3. **Menu Processing** → `preprocess.py` → Normalized menu names
-4. **Recommendations** → `client.py` → User-specific menu categories
-5. **Testing** → `test.py` → System validation
+4. **ML Embeddings** → `embedding.py` → Semantic vectors and restaurant analysis
+5. **Recommendations** → `client.py` → User-specific menu categories
+6. **Testing** → `test.py` → System validation
 
 ## Configuration Options
 
@@ -382,7 +370,7 @@ python -m unittest -v
 1. **Database Connection Error**
    ```bash
    # Restart database container
-   docker-compose down && docker-compose up -d
+   docker compose down && docker compose up -d
    
    # Check if port 5432 is occupied
    sudo lsof -i :5432
@@ -421,12 +409,12 @@ python -m unittest -v
 5. **Docker Issues**
    ```bash
    # Remove and recreate containers
-   docker-compose down -v
-   docker-compose up -d
+   docker compose down -v
+   docker compose up -d
    
    # Check Docker is running
    docker --version
-   docker-compose --version
+   docker compose --version
    ```
 
 ### Data Validation
@@ -443,11 +431,11 @@ cur.execute('SELECT COUNT(*) FROM db_menus')
 print(f'Menus: {cur.fetchone()[0]}')
 "
 ```
-#### Summary:
-  - 3,799 restaurants loaded (some duplicates were automatically skipped)
-  - 36,445 menus loaded
-  - 100% of restaurants have coordinates (spatial data working perfectly)
-  - 96% of menus have price information (price parsing working well)
+**Expected Data Load Results:**
+- ✅ 3,799 restaurants loaded
+- ✅ 36,445 menus loaded  
+- ✅ 100% restaurants have coordinates
+- ✅ 96% menus have price information
 
 ## API Reference
 
