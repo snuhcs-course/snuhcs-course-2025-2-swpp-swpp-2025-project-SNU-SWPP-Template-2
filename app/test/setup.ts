@@ -32,6 +32,12 @@ jest.mock("expo-localization", () => ({
   getLocales: () => [{ languageTag: "en-US", textDirection: "ltr" }],
 }))
 
+// Mock native cookies module to avoid requiring iOS/Android native files in Jest
+jest.mock("@react-native-cookies/cookies", () => ({
+  setFromResponse: jest.fn(),
+  get: jest.fn().mockResolvedValue({}),
+}))
+
 jest.mock("../app/i18n/i18n.ts", () => ({
   i18n: {
     locale: "en",
