@@ -128,12 +128,12 @@ class EmbeddingConfig:
     
     # OpenAI configuration
     openai_api_key: str = os.getenv('OPENAI_API_KEY', '')
-    openai_model: str = "gpt-4o-mini"
+    openai_model: str = os.getenv('OPENAI_MODEL', 'gpt-4o-mini')
     
     # HuggingFace model configuration
-    embedding_model_name: str = "BM-K/KoSimCSE-roberta"
-    max_length: int = 512
-    batch_size: int = 32
+    embedding_model_name: str = os.getenv('EMBEDDING_MODEL_NAME', 'BM-K/KoSimCSE-roberta')
+    max_length: int = int(os.getenv('EMBEDDING_MAX_LENGTH', '512'))
+    batch_size: int = int(os.getenv('EMBEDDING_BATCH_SIZE', '32'))
     device: str = "cuda" if torch.cuda.is_available() else "cpu"
 
 

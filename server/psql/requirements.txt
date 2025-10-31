@@ -32,5 +32,9 @@ transformers>=4.30.0
 torch>=2.0.0
 sentencepiece>=0.1.99
 
+# Machine Learning and Clustering
+scikit-learn>=1.3.0
+hdbscan>=0.8.33
+
 # Additional utilities
 python-dotenv>=1.0.0

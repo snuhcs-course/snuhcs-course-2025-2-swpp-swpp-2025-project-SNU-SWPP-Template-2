@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sample_run.py - Sample demonstration of the restaurant recommendation system
+recommend.py - Restaurant recommendation system demonstration
 
 This script demonstrates the recommendation system with output formatted
 according to specifications.md requirements.
@@ -12,6 +12,109 @@ import json
 import argparse
 from datetime import datetime
 from client import RestaurantRecommender, UserProfile
+
+def generate_recommendations_with_embedding(recommender, user_profile, clustering_method, max_menus_to_categorize, max_menus_per_category):
+    """Generate recommendations using embedding-based categorization"""
+    import time
+    
+    # Start total timing
+    total_start_time = time.time()
+    timing_info = {}
+    
+    # Use UserProfile's max_distance_km if available, otherwise default to 2.0
+    search_distance = user_profile.max_distance_km or 2.0
+    
+    # Find nearby restaurants
+    print("Finding nearby restaurants...")
+    restaurant_start_time = time.time()
+    restaurants = recommender.find_nearby_restaurants(user_profile, search_distance, user_profile.cuisine_preferences)
+    restaurant_end_time = time.time()
+    timing_info['restaurant_search_time'] = restaurant_end_time - restaurant_start_time
+    
+    if not restaurants:
+        return {"message": "No restaurants found matching criteria"}
+    
+    print(f"Found {len(restaurants)} restaurants (took {timing_info['restaurant_search_time']:.2f}s)")
+    
+    # Get menus for these restaurants
+    menu_fetch_start_time = time.time()
+    restaurant_ids = [r['id'] for r in restaurants]
+    restaurant_menus = recommender.get_restaurant_menus(restaurant_ids)
+    menu_fetch_end_time = time.time()
+    timing_info['menu_fetch_time'] = menu_fetch_end_time - menu_fetch_start_time
+    
+    # Collect all menus
+    all_menus = []
+    for menus in restaurant_menus.values():
+        all_menus.extend(menus)
+    
+    print(f"Found {len(all_menus)} total menus (took {timing_info['menu_fetch_time']:.2f}s)")
+    
+    # Categorize menus using embedding method
+    print("Categorizing menus using embedding method...")
+    categorization_start_time = time.time()
+    menus_to_categorize = min(len(all_menus), max_menus_to_categorize)
+    print(f"Processing {menus_to_categorize} menus for categorization (limit: {max_menus_to_categorize})")
+    categorized_menus = recommender.categorize_menus_embedding(
+        all_menus[:menus_to_categorize], 
+        user_profile, 
+        clustering_method
+    )
+    categorization_end_time = time.time()
+    timing_info['categorization_time'] = categorization_end_time - categorization_start_time
+    
+    print(f"Menu categorization completed (took {timing_info['categorization_time']:.2f}s)")
+    
+    # Generate final recommendations
+    recommendation_build_start_time = time.time()
+    recommendations = {}
+    for category, menus in categorized_menus.items():
+        if not menus:
+            continue
+        
+        # Get top menus in category (sorted by price as a simple metric)
+        menus_available = len(menus)
+        menus_to_show = min(menus_available, max_menus_per_category)
+        top_menus = sorted(menus, key=lambda x: x.get('price', 0) or 0)[:menus_to_show]
+        
+        # Generate reason
+        reason = recommender._generate_category_reason(category, user_profile)
+        
+        recommendations[category] = {
+            "reason": reason,
+            "menus": [
+                {
+                    "name": menu['name'],
+                    "restaurant": menu['restaurant_name'],
+                    "price": menu['price']
+                }
+                for menu in top_menus
+            ]
+        }
+    
+    recommendation_build_end_time = time.time()
+    timing_info['recommendation_build_time'] = recommendation_build_end_time - recommendation_build_start_time
+    
+    # Calculate total time
+    total_end_time = time.time()
+    timing_info['total_time'] = total_end_time - total_start_time
+    
+    # Print timing summary
+    print(f"\n⏱️  PERFORMANCE SUMMARY:")
+    print(f"   🔍 Restaurant search: {timing_info['restaurant_search_time']:.2f}s")
+    print(f"   📋 Menu fetch: {timing_info['menu_fetch_time']:.2f}s")
+    print(f"   🧠 Embedding categorization: {timing_info['categorization_time']:.2f}s")
+    print(f"   📊 Recommendation build: {timing_info['recommendation_build_time']:.2f}s")
+    print(f"   ⏰ Total time: {timing_info['total_time']:.2f}s")
+    
+    return {
+        "user_location": user_profile.location,
+        "search_radius_km": search_distance,
+        "total_restaurants": len(restaurants),
+        "total_menus_found": len(all_menus),
+        "recommendations": recommendations,
+        "timing_info": timing_info
+    }
 
 def print_recommendations(recommendations, user_profile):
     """Print recommendations in the format specified in specifications.md"""
@@ -125,6 +228,10 @@ def main():
     parser = argparse.ArgumentParser(description="Restaurant Recommendation System Demo")
     parser.add_argument("user_file", nargs="?", default="default", 
                        help="User profile file name (without .json extension)")
+    parser.add_argument("--method", choices=["langchain", "embedding"], 
+                       default="langchain", help="Categorization method to use")
+    parser.add_argument("--clustering", choices=["hdbscan", "spectral", "kmeans"], 
+                       default="hdbscan", help="Clustering method for embedding approach")
     args = parser.parse_args()
     
     print("Starting Restaurant Recommendation System Demo...")
@@ -158,13 +265,23 @@ def main():
         print(f"   📊 Max menus to categorize: {max_categorize}")
         print(f"   📋 Max menus per category: {max_per_category}")
         print(f"   🏷️  Filtering by cuisine preferences: {', '.join(user.cuisine_preferences)}")
-        recommendations = recommender.generate_recommendations(
-            user_profile=user,
-            max_distance_km=user.max_distance_km,
-            categories=user.cuisine_preferences,  # Use cuisine preferences as category filter
-            max_menus_to_categorize=max_categorize,
-            max_menus_per_category=max_per_category
-        )
+        print(f"   🧠 Categorization method: {args.method}")
+        if args.method == "embedding":
+            print(f"   🔧 Clustering method: {args.clustering}")
+        
+        # For embedding method, we need to modify the workflow
+        if args.method == "embedding":
+            recommendations = generate_recommendations_with_embedding(
+                recommender, user, args.clustering, max_categorize, max_per_category
+            )
+        else:
+            recommendations = recommender.generate_recommendations(
+                user_profile=user,
+                max_distance_km=user.max_distance_km,
+                categories=user.cuisine_preferences,
+                max_menus_to_categorize=max_categorize,
+                max_menus_per_category=max_per_category
+            )
         
         # Print formatted results according to specifications
         print_recommendations(recommendations, user)
@@ -192,9 +309,18 @@ if __name__ == "__main__":
     # Show usage if no args and help needed
     if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help']:
         print("\nUsage examples:")
-        print("  python sample_run.py                # Use default.json")
-        print("  python sample_run.py user1          # Use user1.json")
-        print("  python sample_run.py my_profile     # Use my_profile.json")
+        print("  python recommend.py                                     # Use default.json with embedding")
+        print("  python recommend.py user1                               # Use user1.json with embedding")
+        print("  python recommend.py --method langchain                  # Use langchain categorization")
+        print("  python recommend.py user1 --clustering hdbscan    # Use HDBScan clustering")
+        print("  python recommend.py user1 --clustering kmeans     # Use KMeans clustering")
+        print("\nCategorization methods:")
+        print("  --method langchain   # Traditional LangChain AI categorization (default)")
+        print("  --method embedding   # New embedding-based clustering")
+        print("\nClustering options (for embedding method):")
+        print("  --clustering spectral  # Spectral clustering (default)")
+        print("  --clustering hdbscan   # Density-based clustering")
+        print("  --clustering kmeans    # K-Means clustering")
         print("\nUser profiles should be in test_run/user/ directory")
         print("Results will be saved in test_run/result/ directory")
     
