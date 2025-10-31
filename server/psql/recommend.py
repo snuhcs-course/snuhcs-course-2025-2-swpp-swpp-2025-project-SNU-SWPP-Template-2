@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sample_run.py - Sample demonstration of the restaurant recommendation system
+recommend.py - Restaurant recommendation system demonstration
 
 This script demonstrates the recommendation system with output formatted
 according to specifications.md requirements.
@@ -67,11 +67,24 @@ def print_recommendations(recommendations, user_profile):
             menu_name = menu.get('name', 'Unknown Menu')
             restaurant_name = menu.get('restaurant', 'Unknown Restaurant')
             price = menu.get('price')
+            images = menu.get('images', [])
+            embedding_distance = menu.get('embedding_distance_to_center')
+            
+            # Build the menu line
+            menu_line = f"      {i}. {menu_name} ({restaurant_name})"
             
             if price:
-                print(f"      {i}. {menu_name} ({restaurant_name}) - {price:,}원")
-            else:
-                print(f"      {i}. {menu_name} ({restaurant_name})")
+                menu_line += f" - {price:,}원"
+            
+            # Add embedding distance info
+            #if embedding_distance is not None:
+            #    menu_line += f" - dist: {embedding_distance:.3f}"
+            
+            # Add image indicator
+            if images and len(images) > 0:
+                menu_line += f" 📷"
+            
+            print(menu_line)
     
     print("\n" + "=" * 60)
 
@@ -125,6 +138,10 @@ def main():
     parser = argparse.ArgumentParser(description="Restaurant Recommendation System Demo")
     parser.add_argument("user_file", nargs="?", default="default", 
                        help="User profile file name (without .json extension)")
+    parser.add_argument("--method", choices=["langchain", "embedding"], 
+                       default="embedding", help="Categorization method to use")
+    parser.add_argument("--clustering", choices=["hdbscan", "spectral", "kmeans"], 
+                       default="spectral", help="Clustering method for embedding approach")
     args = parser.parse_args()
     
     print("Starting Restaurant Recommendation System Demo...")
@@ -158,14 +175,20 @@ def main():
         print(f"   📊 Max menus to categorize: {max_categorize}")
         print(f"   📋 Max menus per category: {max_per_category}")
         print(f"   🏷️  Filtering by cuisine preferences: {', '.join(user.cuisine_preferences)}")
+        print(f"   🧠 Categorization method: {args.method}")
+        if args.method == "embedding":
+            print(f"   🔧 Clustering method: {args.clustering}")
+        
         recommendations = recommender.generate_recommendations(
             user_profile=user,
             max_distance_km=user.max_distance_km,
-            categories=user.cuisine_preferences,  # Use cuisine preferences as category filter
+            categories=user.cuisine_preferences,
             max_menus_to_categorize=max_categorize,
-            max_menus_per_category=max_per_category
+            max_menus_per_category=max_per_category,
+            method = args.method,
+            clustering_method = args.clustering
         )
-        
+
         # Print formatted results according to specifications
         print_recommendations(recommendations, user)
         
@@ -192,9 +215,18 @@ if __name__ == "__main__":
     # Show usage if no args and help needed
     if len(sys.argv) > 1 and sys.argv[1] in ['-h', '--help']:
         print("\nUsage examples:")
-        print("  python sample_run.py                # Use default.json")
-        print("  python sample_run.py user1          # Use user1.json")
-        print("  python sample_run.py my_profile     # Use my_profile.json")
+        print("  python recommend.py                                     # Use default.json with embedding")
+        print("  python recommend.py user1                               # Use user1.json with embedding")
+        print("  python recommend.py --method langchain                  # Use langchain categorization")
+        print("  python recommend.py user1 --clustering hdbscan    # Use HDBScan clustering")
+        print("  python recommend.py user1 --clustering kmeans     # Use KMeans clustering")
+        print("\nCategorization methods:")
+        print("  --method langchain   # Traditional LangChain AI categorization (default)")
+        print("  --method embedding   # New embedding-based clustering")
+        print("\nClustering options (for embedding method):")
+        print("  --clustering spectral  # Spectral clustering (default)")
+        print("  --clustering hdbscan   # Density-based clustering")
+        print("  --clustering kmeans    # K-Means clustering")
         print("\nUser profiles should be in test_run/user/ directory")
         print("Results will be saved in test_run/result/ directory")
     

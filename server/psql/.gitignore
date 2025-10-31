@@ -84,8 +84,8 @@ tmp/
 # Test run results (keep user profiles, ignore results)
 !test_run/user/
 !test_run/user/*.json
-!test_run/result/
-!test_run/result/*.json
+#!test_run/result/
+#!test_run/result/*.json
 
 # Backup files
 *.bak

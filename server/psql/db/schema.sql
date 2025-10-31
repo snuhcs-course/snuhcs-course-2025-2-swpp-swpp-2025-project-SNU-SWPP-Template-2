@@ -50,6 +50,8 @@ CREATE TABLE db_restaurants (
     place_images    TEXT[],                     -- Array of URLs
     avg_rating      NUMERIC(3,2),
     review_count    INTEGER,
+    meaningful_name BOOLEAN DEFAULT FALSE,
+    inferred_menu   TEXT DEFAULT '',
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -70,6 +72,7 @@ CREATE TABLE db_menus (
 
     -- Added fields (from preprocess.py)
     name_clean      TEXT,                       -- regex-cleaned version
+    embedding_vector REAL[] DEFAULT '{}',       -- embeddings for similarity search
 
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -114,6 +117,10 @@ CREATE INDEX IF NOT EXISTS idx_menus_name
 
 CREATE INDEX IF NOT EXISTS idx_menus_name_clean
     ON db_menus USING GIN (to_tsvector('simple', name_clean));
+
+-- Embedding vector index for similarity search
+CREATE INDEX IF NOT EXISTS idx_menus_embedding_vector
+    ON db_menus USING GIN (embedding_vector);
 
 -- ----------------------------------------------------------------------------
 -- 7. View (optional): Quick joined menu view

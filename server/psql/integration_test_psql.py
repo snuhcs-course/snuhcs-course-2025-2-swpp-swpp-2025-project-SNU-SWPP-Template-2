@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-test.py - Test suite for restaurant recommendation system
+integration_test_psql.py - Integration tests for restaurant recommendation system
 
-This module provides comprehensive tests for the recommendation system including:
-- Database connectivity tests
-- Data integrity tests
-- Recommendation algorithm tests
+This module provides comprehensive integration tests for the recommendation system including:
+- Database connectivity and schema validation
+- Data integrity verification
+- End-to-end recommendation pipeline testing
 - Performance benchmarks
 """
 
@@ -155,7 +155,7 @@ class RecommendationTestCase(unittest.TestCase):
     def setUpClass(cls):
         """Set up recommender for tests"""
         try:
-            cls.recommender = RestaurantRecommender()
+            cls.recommender = RestaurantRecommender(verbose=False)
         except Exception as e:
             raise unittest.SkipTest(f"Cannot initialize recommender: {e}")
     
@@ -256,7 +256,7 @@ class RecommendationTestCase(unittest.TestCase):
             self.skipTest("No menus found for categorization test")
         
         # Test categorization
-        categorized_menus = self.recommender.categorize_menus(all_menus[:10])  # Limit for test
+        categorized_menus = self.recommender.categorize_menus(all_menus[:10], method="langchain")  # Limit for test
         
         self.assertIsInstance(categorized_menus, dict)
         self.assertGreater(len(categorized_menus), 0, "No categories returned")
@@ -306,6 +306,49 @@ class RecommendationTestCase(unittest.TestCase):
         # Note: This test may pass even if normalization hasn't been run yet
         # It's mainly to verify the field exists and is accessible
     
+    def test_image_urls_in_menus(self):
+        """Test that image URLs are properly included in menu data"""
+        # Get some restaurants
+        restaurants = self.recommender.find_nearby_restaurants(
+            self.basic_user, 
+            max_distance_km=1.0
+        )
+        
+        if not restaurants:
+            self.skipTest("No restaurants found for image test")
+        
+        restaurant_ids = [r['id'] for r in restaurants[:3]]
+        all_menus_dict = self.recommender.get_restaurant_menus(restaurant_ids)
+        
+        # Check that menus include images field
+        has_images_field = False
+        has_actual_images = False
+        
+        for menus in all_menus_dict.values():
+            for menu in menus:
+                # Check if images field exists
+                if 'images' in menu:
+                    has_images_field = True
+                    images = menu['images']
+                    self.assertIsInstance(images, (list, type(None)))
+                    
+                    # Check if there are actual image URLs
+                    if images and len(images) > 0:
+                        has_actual_images = True
+                        for image_url in images:
+                            self.assertIsInstance(image_url, str)
+                        break
+            if has_actual_images:
+                break
+        
+        # At least the images field should exist
+        self.assertTrue(has_images_field, "Menus should have 'images' field")
+        
+        if has_actual_images:
+            print(f"✓ Found menus with actual image URLs")
+        else:
+            print(f"⚠ No menus with actual images found (field exists but empty)")
+    
     def test_full_recommendation_pipeline(self):
         """Test complete recommendation generation"""
         recommendations = self.recommender.generate_recommendations(
@@ -339,6 +382,64 @@ class RecommendationTestCase(unittest.TestCase):
                     self.assertIn('name', menu)
                     self.assertIn('restaurant', menu)
                     self.assertIn('price', menu)
+                    # Check new fields
+                    self.assertIn('images', menu)
+                    self.assertIn('embedding_distance_to_center', menu)
+                    self.assertIsInstance(menu['images'], list)
+                break  # Just check one category
+    
+    def test_embedding_based_recommendations(self):
+        """Test embedding-based recommendation pipeline with new features"""
+        recommendations = self.recommender.generate_recommendations(
+            user_profile=self.basic_user,
+            max_distance_km=1.0,
+            max_menus_to_categorize=20,
+            max_menus_per_category=5,
+            method="embedding",
+            clustering_method="spectral"
+        )
+        
+        self.assertIsInstance(recommendations, dict)
+        
+        if "message" in recommendations:
+            self.skipTest(f"No recommendations available: {recommendations['message']}")
+        
+        # Check embedding-specific features
+        if 'recommendations' in recommendations and recommendations['recommendations']:
+            recs = recommendations['recommendations']
+            
+            for category, rec_data in recs.items():
+                self.assertIn('menus', rec_data)
+                
+                # Check that menus are properly sorted (images first, then by embedding distance)
+                menus = rec_data['menus']
+                if len(menus) > 1:
+                    # Check if sorting is working: menus with images should come first
+                    images_first = True
+                    found_no_image = False
+                    
+                    for menu in menus:
+                        has_images = menu.get('images') and len(menu.get('images', [])) > 0
+                        
+                        if found_no_image and has_images:
+                            images_first = False  # Found image after no-image
+                            break
+                        
+                        if not has_images:
+                            found_no_image = True
+                    
+                    # This is a soft check - sorting might work even if no images exist
+                    if not images_first:
+                        print(f"⚠ Image-first sorting might not be working in category: {category}")
+                
+                # Check embedding distance values
+                for menu in menus:
+                    distance = menu.get('embedding_distance_to_center')
+                    if distance is not None:
+                        self.assertIsInstance(distance, (int, float))
+                        self.assertGreaterEqual(distance, 0)
+                        self.assertLessEqual(distance, 2)  # Cosine distance range
+                
                 break  # Just check one category
 
 class PerformanceTestCase(unittest.TestCase):
@@ -348,7 +449,7 @@ class PerformanceTestCase(unittest.TestCase):
     def setUpClass(cls):
         """Set up for performance tests"""
         try:
-            cls.recommender = RestaurantRecommender()
+            cls.recommender = RestaurantRecommender(verbose=False)
         except Exception as e:
             raise unittest.SkipTest(f"Cannot initialize recommender: {e}")
     
