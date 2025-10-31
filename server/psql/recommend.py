@@ -229,9 +229,9 @@ def main():
     parser.add_argument("user_file", nargs="?", default="default", 
                        help="User profile file name (without .json extension)")
     parser.add_argument("--method", choices=["langchain", "embedding"], 
-                       default="langchain", help="Categorization method to use")
+                       default="embedding", help="Categorization method to use")
     parser.add_argument("--clustering", choices=["hdbscan", "spectral", "kmeans"], 
-                       default="hdbscan", help="Clustering method for embedding approach")
+                       default="spectral", help="Clustering method for embedding approach")
     args = parser.parse_args()
     
     print("Starting Restaurant Recommendation System Demo...")
@@ -270,19 +270,28 @@ def main():
             print(f"   🔧 Clustering method: {args.clustering}")
         
         # For embedding method, we need to modify the workflow
-        if args.method == "embedding":
-            recommendations = generate_recommendations_with_embedding(
-                recommender, user, args.clustering, max_categorize, max_per_category
-            )
-        else:
-            recommendations = recommender.generate_recommendations(
-                user_profile=user,
-                max_distance_km=user.max_distance_km,
-                categories=user.cuisine_preferences,
-                max_menus_to_categorize=max_categorize,
-                max_menus_per_category=max_per_category
-            )
-        
+        #if args.method == "embedding":
+        #    recommendations = generate_recommendations_with_embedding(
+        #        recommender, user, args.clustering, max_categorize, max_per_category
+        #    )
+        #else:
+        #    recommendations = recommender.generate_recommendations(
+        #        user_profile=user,
+        #        max_distance_km=user.max_distance_km,
+        #        categories=user.cuisine_preferences,
+        #        max_menus_to_categorize=max_categorize,
+        #        max_menus_per_category=max_per_category
+        #    )
+        recommendations = recommender.generate_recommendations(
+            user_profile=user,
+            max_distance_km=user.max_distance_km,
+            categories=user.cuisine_preferences,
+            max_menus_to_categorize=max_categorize,
+            max_menus_per_category=max_per_category,
+            method = args.method,
+            clustering_method = args.clustering
+        )
+
         # Print formatted results according to specifications
         print_recommendations(recommendations, user)
         

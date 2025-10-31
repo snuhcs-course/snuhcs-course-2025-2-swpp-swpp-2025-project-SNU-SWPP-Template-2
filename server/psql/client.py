@@ -966,13 +966,13 @@ class RestaurantRecommender:
         except Exception as e:
             print(f"   ⚠️  Error generating cluster name: {e}")
             return "음식"
-    
-    def categorize_menus(self, menus: List[Dict], user_profile: UserProfile = None, method: str = "embedding") -> Dict[str, List[Dict]]:
+
+    def categorize_menus(self, menus: List[Dict], user_profile: UserProfile = None, method: str = "embedding", clustering_method: str = "spectral") -> Dict[str, List[Dict]]:
         """Wrapper method for menu categorization - supports both LangChain and embedding methods"""
         if method.lower() == "embedding" and user_profile:
-            return self.categorize_menus_embedding(menus, user_profile)
+            return self.categorize_menus_embedding(menus, user_profile, clustering_method=clustering_method)
         elif method.lower() == "embedding":
-            return self.categorize_menus_embedding(menus)
+            return self.categorize_menus_embedding(menus, clustering_method=clustering_method)
         elif method.lower() == "langchain":
             return self.categorize_menus_langchain(menus)
         else:
@@ -982,7 +982,10 @@ class RestaurantRecommender:
                                max_distance_km: float = None,
                                categories: List[str] = None,
                                max_menus_to_categorize: int = 30,
-                               max_menus_per_category: int = 3) -> Dict[str, Any]:
+                               max_menus_per_category: int = 3,
+                               method: str = "embedding",
+                               clustering_method: str = "spectral"
+                               ) -> Dict[str, Any]:
         """Generate complete recommendations
         
         Args:
@@ -1031,7 +1034,7 @@ class RestaurantRecommender:
         categorization_start_time = time.time()
         menus_to_categorize = min(len(all_menus), max_menus_to_categorize)
         print(f"Processing {menus_to_categorize} menus for categorization (limit: {max_menus_to_categorize})")
-        categorized_menus = self.categorize_menus(all_menus[:menus_to_categorize], user_profile)
+        categorized_menus = self.categorize_menus(all_menus[:menus_to_categorize], user_profile, method=method, clustering_method=clustering_method)
         categorization_end_time = time.time()
         timing_info['categorization_time'] = categorization_end_time - categorization_start_time
         
