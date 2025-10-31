@@ -8,6 +8,8 @@ A PostgreSQL-based restaurant management system with AI-powered recommendations,
 - **AI-powered menu categorization** using LangChain with GPT-4o-mini
 - **Semantic search** with Korean language embeddings (BM-K/KoSimCSE-roberta)
 - **Advanced clustering algorithms** (HDBSCAN, KMeans, Spectral)
+- **Image-aware recommendations** with support for menu image URLs
+- **Intelligent sorting** prioritizing menus with images and embedding similarity
 - **Configurable parameters** via environment variables
 
 ## Quick Start
@@ -207,6 +209,62 @@ psql/
     ├── user/              # User profile JSON files
     └── result/            # Recommendation results
 ```
+
+## Recommendation Features
+
+### Image-Aware Recommendations
+
+The system now includes support for menu image URLs and intelligent sorting:
+
+```python
+# Generate recommendations with image and embedding distance sorting
+recommendations = recommender.generate_recommendations(
+    user_profile=user,
+    max_distance_km=1.0,
+    method="embedding",  # or "langchain"
+    clustering_method="spectral"
+)
+
+# Each menu now includes:
+# - images: List of image URLs
+# - embedding_distance_to_center: Distance from category centroid
+```
+
+### Sorting Algorithm
+
+Menus within each category are sorted by:
+
+1. **Image priority**: Menus with images appear first
+2. **Embedding similarity**: Closest to category center (lowest cosine distance)
+
+### Output Format
+
+```json
+{
+  "user_location": [126.9338, 37.4721],
+  "total_restaurants": 30,
+  "recommendations": {
+    "찌개류": {
+      "reason": "matches your korean preference",
+      "menus": [
+        {
+          "name": "김치찌개",
+          "restaurant": "맛있는집",
+          "price": 8000,
+          "images": ["http://example.com/image1.jpg"],
+          "embedding_distance_to_center": 0.125
+        }
+      ]
+    }
+  }
+}
+```
+
+### Display Features
+
+- 📷 indicator for menus with images
+- Embedding distance values (lower = more representative of category)
+- Sorted output prioritizing visual content
 
 ## Troubleshooting
 

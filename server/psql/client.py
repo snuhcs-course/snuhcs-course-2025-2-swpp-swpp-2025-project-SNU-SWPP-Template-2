@@ -114,7 +114,8 @@ class UserProfile:
 class RestaurantRecommender:
     """Main recommendation system"""
     
-    def __init__(self, model_name: str = "gpt-4o-mini"):
+    def __init__(self, model_name: str = "gpt-4o-mini", verbose: bool = True):
+        self.verbose = verbose
         self.conn = self._get_db_connection()
         self.llm = self._setup_langchain(model_name)
         self.embedding_model = None
@@ -158,11 +159,13 @@ class RestaurantRecommender:
             device = "cuda" if torch.cuda.is_available() else "cpu"
             self.embedding_model.to(device)
             self.embedding_model.eval()
-            print(f"Loaded embedding model: {EMBEDDING_MODEL_NAME} on {device}")
+            if self.verbose:
+                print(f"Loaded embedding model: {EMBEDDING_MODEL_NAME} on {device}")
             
             self._precompute_category_embeddings()
         except Exception as e:
-            print(f"Warning: Failed to load embedding model: {e}")
+            if self.verbose:
+                print(f"Warning: Failed to load embedding model: {e}")
             self.embedding_model = None
             self.embedding_tokenizer = None
     
@@ -180,7 +183,8 @@ class RestaurantRecommender:
                 print("No categories found in database")
                 return
             
-            print(f"Precomputing embeddings for {len(categories)} categories...")
+            if self.verbose:
+                print(f"Precomputing embeddings for {len(categories)} categories...")
             
             device = next(self.embedding_model.parameters()).device
             embeddings = []
@@ -199,9 +203,11 @@ class RestaurantRecommender:
                 'categories': categories,
                 'embeddings': np.array(embeddings)
             }
-            print(f"Precomputed {len(categories)} category embeddings")
+            if self.verbose:
+                print(f"Precomputed {len(categories)} category embeddings")
         except Exception as e:
-            print(f"Warning: Failed to precompute category embeddings: {e}")
+            if self.verbose:
+                print(f"Warning: Failed to precompute category embeddings: {e}")
             self.category_embeddings = None
     
     def _get_embedding(self, text: str) -> np.ndarray:
@@ -220,7 +226,8 @@ class RestaurantRecommender:
                 embedding = torch.nn.functional.normalize(embedding, p=2, dim=1)
                 return embedding.cpu().numpy().flatten()
         except Exception as e:
-            print(f"Error getting embedding for '{text}': {e}")
+            if self.verbose:
+                print(f"Error getting embedding for '{text}': {e}")
             return None
     
     def _simple_similarity_clustering(self, vectors: np.ndarray, threshold: float = None, target_clusters: int = None) -> np.ndarray:
@@ -228,7 +235,8 @@ class RestaurantRecommender:
         if threshold is None:
             threshold = SIMILARITY_THRESHOLD_DEFAULT
             
-        print(f"Using simple similarity clustering with threshold {threshold}")
+        if self.verbose:
+            print(f"Using simple similarity clustering with threshold {threshold}")
         
         n_items = len(vectors)
         cluster_labels = np.full(n_items, -1)  # Initialize all as noise
@@ -259,7 +267,8 @@ class RestaurantRecommender:
             else:
                 cluster_labels[i] = -1  # Mark as noise
         
-        print(f"Simple clustering created {current_cluster} clusters")
+        if self.verbose:
+            print(f"Simple clustering created {current_cluster} clusters")
         return cluster_labels
     
     def _salvage_partial_json(self, json_str: str, batch_start: int, batch_end: int) -> Dict:
@@ -328,11 +337,13 @@ class RestaurantRecommender:
                         continue
                 
                 if salvaged:
-                    print(f"Salvaged {len(salvaged)} categories from malformed JSON")
+                    if self.verbose:
+                        print(f"Salvaged {len(salvaged)} categories from malformed JSON")
                     return salvaged
             
         except Exception as e:
-            print(f"Error in JSON salvage: {e}")
+            if self.verbose:
+                print(f"Error in JSON salvage: {e}")
         
         return {}
     
@@ -342,13 +353,15 @@ class RestaurantRecommender:
             conn = psycopg2.connect(**DB_CONFIG)
             return conn
         except Exception as e:
-            print(f"Error connecting to database: {e}")
+            if self.verbose:
+                print(f"Error connecting to database: {e}")
             sys.exit(1)
     
     def _setup_langchain(self, model_name: str = None):
         """Setup LangChain with OpenAI"""
         if not OPENAI_API_KEY:
-            print("Warning: OPENAI_API_KEY not set. Menu categorization will be skipped.")
+            if self.verbose:
+                print("Warning: OPENAI_API_KEY not set. Menu categorization will be skipped.")
             return None
         
         # Use environment variable if no model specified
@@ -426,7 +439,8 @@ class RestaurantRecommender:
             query_end_time = time.time()
             
             query_time = query_end_time - query_start_time
-            print(f"   🔍 Restaurant database query: {query_time:.3f}s")
+            if self.verbose:
+                print(f"   🔍 Restaurant database query: {query_time:.3f}s")
             
             return [dict(restaurant) for restaurant in restaurants]
     
@@ -596,16 +610,20 @@ class RestaurantRecommender:
                 successful_batches += 1
                 
             except Exception as e:
-                print(f"Error processing batch {batch_start}-{batch_end}: {e}")
+                if self.verbose:
+                    if self.verbose:
+                        print(f"Error processing batch {batch_start}-{batch_end}: {e}")
                 failed_batches += 1
                 # Skip this batch (no automatic "기타" category)
         
         # Log any uncategorized items without fallback categorization
         uncategorized = [menus[i] for i in range(len(menus)) if i not in all_used_indices]
         if uncategorized:
-            print(f"      ⚠️  {len(uncategorized)} menus uncategorized by LangChain: {[m.get('name', 'Unknown') for m in uncategorized[:5]]}")
+            if self.verbose:
+                print(f"      ⚠️  {len(uncategorized)} menus uncategorized by LangChain: {[m.get('name', 'Unknown') for m in uncategorized[:5]]}")
             if len(uncategorized) > 5:
-                print(f"      ... and {len(uncategorized) - 5} more items")
+                if self.verbose:
+                    print(f"      ... and {len(uncategorized) - 5} more items")
         
         # Clean up empty categories
         all_categorized_menus = {k: v for k, v in all_categorized_menus.items() if v}
@@ -632,7 +650,8 @@ class RestaurantRecommender:
             menu_vectors = []
             valid_menus = []
             
-            print(f"   📊 Starting with {len(menus)} total menus")
+            if self.verbose:
+                print(f"   📊 Starting with {len(menus)} total menus")
             
             no_embedding_count = 0
             no_name_clean_count = 0
@@ -657,16 +676,21 @@ class RestaurantRecommender:
                     else:
                         no_embedding_count += 1
             
-            print(f"   ✅ Valid for clustering: {len(valid_menus)}")
+            if self.verbose:
+                print(f"   ✅ Valid for clustering: {len(valid_menus)}")
             if no_name_clean_count > 0:
-                print(f"   🗑️  No name_clean field: {no_name_clean_count}")
+                if self.verbose:
+                    print(f"   🗑️  No name_clean field: {no_name_clean_count}")
             if no_embedding_count > 0:
-                print(f"   🗑️  No embedding available: {no_embedding_count}")
+                if self.verbose:
+                    print(f"   🗑️  No embedding available: {no_embedding_count}")
             if embedding_failed_count > 0:
-                print(f"   🗑️  Embedding generation failed: {embedding_failed_count}")
+                if self.verbose:
+                    print(f"   🗑️  Embedding generation failed: {embedding_failed_count}")
             
             if not menu_vectors:
-                print(f"   ⚠️  No valid embeddings found, returning all as '일반'")
+                if self.verbose:
+                    print(f"   ⚠️  No valid embeddings found, returning all as '일반'")
                 return {"일반": menus}
             
             menu_vectors = np.array(menu_vectors)
@@ -675,7 +699,8 @@ class RestaurantRecommender:
             original_dim = menu_vectors.shape[1]
             n_samples = len(menu_vectors)
             
-            print(f"   📊 Original vector dimensions: {original_dim}, samples: {n_samples}")
+            if self.verbose:
+                print(f"   📊 Original vector dimensions: {original_dim}, samples: {n_samples}")
             
             # PCA can only reduce to at most n_samples - 1 components
             max_components = min(50, original_dim, n_samples - 1) if n_samples > 1 else 1
@@ -692,10 +717,13 @@ class RestaurantRecommender:
                 menu_vectors = menu_vectors / norms
                 
                 explained_variance = np.sum(pca.explained_variance_ratio_)
-                print(f"   🔧 PCA compression: {original_dim}→{max_components} dims ({pca_end_time - pca_start_time:.3f}s)")
-                print(f"   📈 Variance retained: {explained_variance:.3f}")
+                if self.verbose:
+                    print(f"   🔧 PCA compression: {original_dim}→{max_components} dims ({pca_end_time - pca_start_time:.3f}s)")
+                if self.verbose:
+                    print(f"   📈 Variance retained: {explained_variance:.3f}")
             else:
-                print(f"   ⚠️  Skipping PCA: insufficient samples or dimensions")
+                if self.verbose:
+                    print(f"   ⚠️  Skipping PCA: insufficient samples or dimensions")
             
             
             # Step 2: Calculate menu vector v' = v(original) * average_similarity(restaurant vector, user categories)
@@ -751,7 +779,8 @@ class RestaurantRecommender:
             elif clustering_method.lower() == 'kmeans':
                 # KMeans clustering
                 n_clusters = max(3, min(KMEANS_MAX_CLUSTERS, len(valid_menus) // KMEANS_CLUSTER_DIVISOR))
-                print(f"   🎯 KMeans clustering: {len(valid_menus)} menus → {n_clusters} clusters (max={KMEANS_MAX_CLUSTERS}, divisor={KMEANS_CLUSTER_DIVISOR})")
+                if self.verbose:
+                    print(f"   🎯 KMeans clustering: {len(valid_menus)} menus → {n_clusters} clusters (max={KMEANS_MAX_CLUSTERS}, divisor={KMEANS_CLUSTER_DIVISOR})")
                 
                 clusterer = KMeans(
                     n_clusters=n_clusters,
@@ -768,8 +797,10 @@ class RestaurantRecommender:
                 if calculated_clusters < 2:
                     n_clusters = 2
                     
-                print(f"   🎯 Spectral clustering: {len(valid_menus)} menus → {n_clusters} clusters")
-                print(f"      📊 Config: max={SPECTRAL_MAX_CLUSTERS}, divisor={SPECTRAL_CLUSTER_DIVISOR}, calculated={calculated_clusters}")
+                if self.verbose:
+                    print(f"   🎯 Spectral clustering: {len(valid_menus)} menus → {n_clusters} clusters")
+                if self.verbose:
+                    print(f"      📊 Config: max={SPECTRAL_MAX_CLUSTERS}, divisor={SPECTRAL_CLUSTER_DIVISOR}, calculated={calculated_clusters}")
                 
                 clusterer = SpectralClustering(
                     n_clusters=n_clusters,
@@ -800,21 +831,26 @@ class RestaurantRecommender:
                 
                 clustering_end_time = time.time()
                 clustering_duration = clustering_end_time - clustering_start_time
-                print(f"   🔧 {clustering_method.upper()} clustering completed in {clustering_duration:.3f}s")
+                if self.verbose:
+                    print(f"   🔧 {clustering_method.upper()} clustering completed in {clustering_duration:.3f}s")
                 
                 # Log clustering results
                 noise_count = len([label for label in cluster_labels if label == -1])
                 valid_clusters = len(set(cluster_labels)) - (1 if -1 in cluster_labels else 0)
                 clustered_items = len([label for label in cluster_labels if label != -1])
                 
-                print(f"   📦 Created {valid_clusters} clusters with {clustered_items} items")
+                if self.verbose:
+                    print(f"   📦 Created {valid_clusters} clusters with {clustered_items} items")
                 if noise_count > 0:
-                    print(f"   🗑️  Noise/outliers dropped: {noise_count}")
+                    if self.verbose:
+                        print(f"   🗑️  Noise/outliers dropped: {noise_count}")
                 
                 
             except Exception as e:
-                print(f"   ⚠️  {clustering_method.upper()} clustering failed: {e}")
-                print(f"   🔄 Falling back to similarity clustering with larger clusters")
+                if self.verbose:
+                    print(f"   ⚠️  {clustering_method.upper()} clustering failed: {e}")
+                if self.verbose:
+                    print(f"   🔄 Falling back to similarity clustering with larger clusters")
                 
                 # Use lower threshold for bigger clusters when spectral fails
                 if clustering_method.lower() == 'spectral':
@@ -858,21 +894,28 @@ class RestaurantRecommender:
             final_categorized_count = sum(len(menu_list) for menu_list in categorized_menus.values())
             total_dropped = len(menus) - final_categorized_count
             
-            print(f"   📋 Final summary:")
-            print(f"      ✅ Successfully categorized: {final_categorized_count}")
-            print(f"      🗑️  Total dropped: {total_dropped}")
-            print(f"      📊 Success rate: {final_categorized_count/len(menus)*100:.1f}%")
+            if self.verbose:
+                print(f"   📋 Final summary:")
+            if self.verbose:
+                print(f"      ✅ Successfully categorized: {final_categorized_count}")
+            if self.verbose:
+                print(f"      🗑️  Total dropped: {total_dropped}")
+            if self.verbose:
+                print(f"      📊 Success rate: {final_categorized_count/len(menus)*100:.1f}%")
             if name_generation_times:
                 avg_name_time = sum(name_generation_times) / len(name_generation_times)
-                print(f"      ⏱️  Avg category name generation: {avg_name_time:.3f}s")
+                if self.verbose:
+                    print(f"      ⏱️  Avg category name generation: {avg_name_time:.3f}s")
             
             if categorized_menus:
-                print(f"      📂 Categories created: {list(categorized_menus.keys())}")
+                if self.verbose:
+                    print(f"      📂 Categories created: {list(categorized_menus.keys())}")
             
             return categorized_menus if categorized_menus else {"General": menus}
             
         except Exception as e:
-            print(f"Error in embedding-based categorization: {e}")
+            if self.verbose:
+                print(f"Error in embedding-based categorization: {e}")
             return {"일반": menus}
     
     def _clean_category_name(self, category_name: str) -> str:
@@ -964,7 +1007,8 @@ class RestaurantRecommender:
             return category_name
             
         except Exception as e:
-            print(f"   ⚠️  Error generating cluster name: {e}")
+            if self.verbose:
+                print(f"   ⚠️  Error generating cluster name: {e}")
             return "음식"
 
     def categorize_menus(self, menus: List[Dict], user_profile: UserProfile = None, method: str = "embedding", clustering_method: str = "spectral") -> Dict[str, List[Dict]]:
@@ -1004,7 +1048,8 @@ class RestaurantRecommender:
         timing_info = {}
         
         # Find nearby restaurants
-        print("Finding nearby restaurants...")
+        if self.verbose:
+            print("Finding nearby restaurants...")
         restaurant_start_time = time.time()
         restaurants = self.find_nearby_restaurants(user_profile, search_distance, categories)
         restaurant_end_time = time.time()
@@ -1013,7 +1058,8 @@ class RestaurantRecommender:
         if not restaurants:
             return {"message": "No restaurants found matching criteria"}
         
-        print(f"Found {len(restaurants)} restaurants (took {timing_info['restaurant_search_time']:.2f}s)")
+        if self.verbose:
+            print(f"Found {len(restaurants)} restaurants (took {timing_info['restaurant_search_time']:.2f}s)")
         
         # Get menus for these restaurants
         menu_fetch_start_time = time.time()
@@ -1027,44 +1073,100 @@ class RestaurantRecommender:
         for menus in restaurant_menus.values():
             all_menus.extend(menus)
         
-        print(f"Found {len(all_menus)} total menus (took {timing_info['menu_fetch_time']:.2f}s)")
+        if self.verbose:
+            print(f"Found {len(all_menus)} total menus (took {timing_info['menu_fetch_time']:.2f}s)")
         
         # Categorize menus using LangChain
-        print("Categorizing menus...")
+        if self.verbose:
+            print("Categorizing menus...")
         categorization_start_time = time.time()
         menus_to_categorize = min(len(all_menus), max_menus_to_categorize)
-        print(f"Processing {menus_to_categorize} menus for categorization (limit: {max_menus_to_categorize})")
+        if self.verbose:
+            print(f"Processing {menus_to_categorize} menus for categorization (limit: {max_menus_to_categorize})")
         categorized_menus = self.categorize_menus(all_menus[:menus_to_categorize], user_profile, method=method, clustering_method=clustering_method)
         categorization_end_time = time.time()
         timing_info['categorization_time'] = categorization_end_time - categorization_start_time
         
-        print(f"Menu categorization completed (took {timing_info['categorization_time']:.2f}s)")
+        if self.verbose:
+            print(f"Menu categorization completed (took {timing_info['categorization_time']:.2f}s)")
         
         # Generate final recommendations
         recommendation_build_start_time = time.time()
         recommendations = {}
+        
         for category, menus in categorized_menus.items():
             if not menus:
                 continue
             
-            # Get top menus in category (sorted by price as a simple metric)
-            menus_available = len(menus)
-            menus_to_show = min(menus_available, max_menus_per_category)
-            top_menus = sorted(menus, key=lambda x: x.get('price', 0) or 0)[:menus_to_show]
+            # Calculate category embedding center (centroid)
+            valid_embeddings = []
+            for menu in menus:
+                embedding = menu.get('embedding_vector')
+                if embedding and len(embedding) > 0:
+                    valid_embeddings.append(np.array(embedding))
+            
+            category_center = None
+            if valid_embeddings:
+                category_center = np.mean(valid_embeddings, axis=0)
+            
+            # Sort menus by the new criteria:
+            # 1. Menus with images come first
+            # 2. Then by distance to embedding center (closest to center first)
+            def menu_sort_key(menu):
+                # Check if menu has images (images is a text array)
+                has_images = bool(menu.get('images') and len(menu.get('images', [])) > 0)
+                
+                # Calculate distance to category embedding center
+                embedding_distance = 999999  # Default high value
+                if category_center is not None:
+                    menu_embedding = menu.get('embedding_vector')
+                    if menu_embedding and len(menu_embedding) > 0:
+                        menu_vector = np.array(menu_embedding)
+                        # Use cosine distance (1 - cosine similarity)
+                        dot_product = np.dot(menu_vector, category_center)
+                        norm_product = np.linalg.norm(menu_vector) * np.linalg.norm(category_center)
+                        if norm_product > 0:
+                            cosine_similarity = dot_product / norm_product
+                            embedding_distance = 1 - cosine_similarity  # Lower is better (closer to center)
+                
+                # Return tuple: (not has_images, embedding_distance)
+                # not has_images means: False (0) for menus with images, True (1) for menus without
+                # This ensures menus with images come first, then by closeness to embedding center
+                return (not has_images, embedding_distance)
+            
+            # Sort and limit menus
+            sorted_menus = sorted(menus, key=menu_sort_key)
+            menus_to_show = min(len(sorted_menus), max_menus_per_category)
+            top_menus = sorted_menus[:menus_to_show]
+            
+            # Calculate final embedding distances for display
+            menu_data = []
+            for menu in top_menus:
+                embedding_distance_to_center = None
+                if category_center is not None:
+                    menu_embedding = menu.get('embedding_vector')
+                    if menu_embedding and len(menu_embedding) > 0:
+                        menu_vector = np.array(menu_embedding)
+                        dot_product = np.dot(menu_vector, category_center)
+                        norm_product = np.linalg.norm(menu_vector) * np.linalg.norm(category_center)
+                        if norm_product > 0:
+                            cosine_similarity = dot_product / norm_product
+                            embedding_distance_to_center = 1 - cosine_similarity
+                
+                menu_data.append({
+                    "name": menu['name'],
+                    "restaurant": menu['restaurant_name'],
+                    "price": menu['price'],
+                    "images": menu.get('images', []) or [],  # Include image URLs
+                    "embedding_distance_to_center": embedding_distance_to_center
+                })
             
             # Generate reason
             reason = self._generate_category_reason(category, user_profile)
             
             recommendations[category] = {
                 "reason": reason,
-                "menus": [
-                    {
-                        "name": menu['name'],
-                        "restaurant": menu['restaurant_name'],
-                        "price": menu['price']
-                    }
-                    for menu in top_menus
-                ]
+                "menus": menu_data
             }
         
         recommendation_build_end_time = time.time()
@@ -1075,12 +1177,18 @@ class RestaurantRecommender:
         timing_info['total_time'] = total_end_time - total_start_time
         
         # Print timing summary
-        print(f"\n⏱️  PERFORMANCE SUMMARY:")
-        print(f"   🔍 Restaurant search: {timing_info['restaurant_search_time']:.2f}s")
-        print(f"   📋 Menu fetch: {timing_info['menu_fetch_time']:.2f}s")
-        print(f"   🤖 AI categorization: {timing_info['categorization_time']:.2f}s")
-        print(f"   📊 Recommendation build: {timing_info['recommendation_build_time']:.2f}s")
-        print(f"   ⏰ Total time: {timing_info['total_time']:.2f}s")
+        if self.verbose:
+            print(f"\n⏱️  PERFORMANCE SUMMARY:")
+        if self.verbose:
+            print(f"   🔍 Restaurant search: {timing_info['restaurant_search_time']:.2f}s")
+        if self.verbose:
+            print(f"   📋 Menu fetch: {timing_info['menu_fetch_time']:.2f}s")
+        if self.verbose:
+            print(f"   🤖 AI categorization: {timing_info['categorization_time']:.2f}s")
+        if self.verbose:
+            print(f"   📊 Recommendation build: {timing_info['recommendation_build_time']:.2f}s")
+        if self.verbose:
+            print(f"   ⏰ Total time: {timing_info['total_time']:.2f}s")
         
         return {
             "user_location": user_profile.location,

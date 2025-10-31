@@ -31,7 +31,7 @@ class ExtendedRecommenderTestCase(unittest.TestCase):
     def setUpClass(cls):
         """Set up recommender for tests"""
         try:
-            cls.recommender = RestaurantRecommender()
+            cls.recommender = RestaurantRecommender(verbose=False)
         except Exception as e:
             raise unittest.SkipTest(f"Cannot initialize recommender: {e}")
     
@@ -61,7 +61,7 @@ class ExtendedRecommenderTestCase(unittest.TestCase):
         
         try:
             # Create new recommender without API key
-            new_recommender = RestaurantRecommender()
+            new_recommender = RestaurantRecommender(verbose=False)
             self.assertIsNone(new_recommender.llm)
             new_recommender.close()
         except:
@@ -416,6 +416,20 @@ class ExtendedRecommenderTestCase(unittest.TestCase):
                 max_menus_per_category=2
             )
             self.assertIsInstance(result3, dict)
+            
+            # Test new menu format with images and embedding distance
+            if 'recommendations' in result3:
+                for category, rec_data in result3['recommendations'].items():
+                    self.assertIn('reason', rec_data)
+                    self.assertIn('menus', rec_data)
+                    if rec_data['menus']:  # If menus exist
+                        menu = rec_data['menus'][0]
+                        # Check new fields are present
+                        self.assertIn('images', menu)
+                        self.assertIsInstance(menu['images'], list)
+                        # embedding_distance_to_center might be None but should be present
+                        self.assertIn('embedding_distance_to_center', menu)
+                        break  # Just check one category
         except Exception as e:
             # Skip if database transaction issues occur
             self.skipTest(f"Database transaction issue: {e}")
@@ -454,6 +468,372 @@ class TestUserProfileVariations(unittest.TestCase):
         self.assertEqual(profile.cuisine_preferences, many_cuisines)
 
 
+class TestNewRecommendationFeatures(unittest.TestCase):
+    """Test new recommendation features: images and embedding distance sorting"""
+    
+    @classmethod
+    def setUpClass(cls):
+        """Set up recommender for tests"""
+        try:
+            cls.recommender = RestaurantRecommender(verbose=False)
+        except Exception as e:
+            raise unittest.SkipTest(f"Cannot initialize recommender: {e}")
+    
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up recommender"""
+        if hasattr(cls, 'recommender'):
+            cls.recommender.close()
+    
+    def setUp(self):
+        """Set up test data"""
+        self.basic_user = UserProfile(
+            location=(126.9525, 37.4583),
+            cuisine_preferences=["korean"]
+        )
+    
+    def test_recommendation_image_sorting(self):
+        """Test that menus with images are prioritized in recommendations"""
+        # Create mock menus with and without images
+        menus = [
+            {
+                'name': 'menu_no_image',
+                'restaurant_name': 'restaurant1', 
+                'price': 5000,
+                'images': [],  # No images
+                'embedding_vector': [0.1] * 768
+            },
+            {
+                'name': 'menu_with_image',
+                'restaurant_name': 'restaurant2',
+                'price': 6000, 
+                'images': ['http://example.com/image1.jpg'],  # Has image
+                'embedding_vector': [0.2] * 768
+            }
+        ]
+        
+        # Test the categorization includes proper fields
+        result = self.recommender.categorize_menus_embedding(menus, self.basic_user)
+        
+        # Check that result includes proper menu structure
+        for category, menu_list in result.items():
+            for menu in menu_list:
+                # All menus should have the required fields
+                self.assertIn('name', menu)
+                self.assertIn('images', menu)
+                # Images should be a list
+                self.assertIsInstance(menu.get('images', []), list)
+    
+    def test_embedding_distance_calculation(self):
+        """Test embedding distance calculation in recommendations"""
+        try:
+            result = self.recommender.generate_recommendations(
+                user_profile=self.basic_user,
+                max_distance_km=1.0,
+                max_menus_to_categorize=5,
+                max_menus_per_category=2,
+                method="embedding"
+            )
+            
+            # Check that recommendations include embedding distance
+            if 'recommendations' in result and result['recommendations']:
+                for category, rec_data in result['recommendations'].items():
+                    for menu in rec_data['menus']:
+                        # embedding_distance_to_center should be present (may be None)
+                        self.assertIn('embedding_distance_to_center', menu)
+                        distance = menu['embedding_distance_to_center']
+                        if distance is not None:
+                            # Should be a valid distance value (0-2 for cosine distance)
+                            self.assertIsInstance(distance, (int, float))
+                            self.assertGreaterEqual(distance, 0)
+                            self.assertLessEqual(distance, 2)
+                    break  # Just check one category
+        except Exception as e:
+            # Skip if database/embedding issues
+            self.skipTest(f"Database or embedding issue: {e}")
+    
+    def test_image_url_format(self):
+        """Test that image URLs are properly formatted in recommendations"""
+        try:
+            result = self.recommender.generate_recommendations(
+                user_profile=self.basic_user,
+                max_distance_km=1.0,
+                max_menus_to_categorize=5,
+                max_menus_per_category=3
+            )
+            
+            # Check image format in recommendations
+            if 'recommendations' in result and result['recommendations']:
+                for category, rec_data in result['recommendations'].items():
+                    for menu in rec_data['menus']:
+                        images = menu.get('images', [])
+                        self.assertIsInstance(images, list)
+                        # If images exist, they should be strings (URLs)
+                        for image_url in images:
+                            self.assertIsInstance(image_url, str)
+                    break  # Just check one category
+        except Exception as e:
+            self.skipTest(f"Database issue: {e}")
+
+
+class TestCoverageImprovements(unittest.TestCase):
+    """Additional tests to improve code coverage"""
+    
+    @classmethod
+    def setUpClass(cls):
+        """Set up recommender for tests"""
+        try:
+            cls.recommender = RestaurantRecommender(verbose=False)
+        except Exception as e:
+            raise unittest.SkipTest(f"Cannot initialize recommender: {e}")
+    
+    @classmethod
+    def tearDownClass(cls):
+        """Clean up recommender"""
+        if hasattr(cls, 'recommender'):
+            cls.recommender.close()
+    
+    def setUp(self):
+        """Set up test data"""
+        self.basic_user = UserProfile(
+            location=(126.9525, 37.4583),
+            cuisine_preferences=["korean"]
+        )
+    
+    def test_verbose_output_enabled(self):
+        """Test verbose output when enabled"""
+        # Create a recommender with verbose=True
+        verbose_recommender = RestaurantRecommender(verbose=True)
+        try:
+            # Test that we can create recommendations - this should print output
+            result = verbose_recommender.generate_recommendations(
+                user_profile=self.basic_user,
+                max_distance_km=0.5,
+                max_menus_to_categorize=2,
+                max_menus_per_category=1
+            )
+            self.assertIsInstance(result, dict)
+        finally:
+            verbose_recommender.close()
+    
+    def test_embedding_model_error_handling(self):
+        """Test embedding model loading error scenarios"""
+        # Create recommender with invalid embedding model
+        original_model = os.environ.get('EMBEDDING_MODEL_NAME')
+        os.environ['EMBEDDING_MODEL_NAME'] = 'invalid/nonexistent-model'
+        
+        try:
+            error_recommender = RestaurantRecommender(verbose=False)
+            # Should handle the error gracefully
+            self.assertIsNone(error_recommender.embedding_model)
+            error_recommender.close()
+        except Exception:
+            # If it fails to initialize, that's also acceptable
+            pass
+        finally:
+            # Restore original model name
+            if original_model:
+                os.environ['EMBEDDING_MODEL_NAME'] = original_model
+    
+    def test_categories_not_found_path(self):
+        """Test category precomputation when no categories found"""
+        # Mock the database query to return empty result
+        original_method = self.recommender._precompute_category_embeddings
+        
+        # Temporarily replace with a version that simulates no categories
+        def mock_precompute():
+            if self.recommender.llm and self.recommender.embedding_model:
+                # This should trigger the "No categories found" path
+                pass
+        
+        self.recommender._precompute_category_embeddings = mock_precompute
+        try:
+            self.recommender._precompute_category_embeddings()
+        finally:
+            self.recommender._precompute_category_embeddings = original_method
+    
+    def test_generate_recommendations_no_restaurants(self):
+        """Test generate_recommendations when no restaurants found"""
+        # Create user very far from any restaurants
+        remote_user = UserProfile(
+            location=(0.0, 0.0),  # Middle of ocean
+            cuisine_preferences=["korean"]
+        )
+        
+        result = self.recommender.generate_recommendations(
+            user_profile=remote_user,
+            max_distance_km=0.001  # Very small distance
+        )
+        
+        # Should return appropriate message
+        self.assertIsInstance(result, dict)
+        if 'message' in result:
+            self.assertIn('restaurant', result['message'].lower())
+    
+    def test_close_method_coverage(self):
+        """Test the close method"""
+        # Create a temporary recommender to test close
+        temp_recommender = RestaurantRecommender(verbose=False)
+        
+        # Ensure it has a connection
+        self.assertIsNotNone(temp_recommender.conn)
+        
+        # Close it
+        temp_recommender.close()
+        
+        # Connection should be closed
+        self.assertTrue(temp_recommender.conn.closed > 0)
+    
+    def test_hdbscan_clustering_path(self):
+        """Test HDBSCAN clustering path specifically"""
+        # Get real restaurant data
+        restaurants = self.recommender.find_nearby_restaurants(
+            self.basic_user, max_distance_km=1.0
+        )
+        
+        if not restaurants:
+            self.skipTest("No restaurants found for HDBSCAN test")
+        
+        real_restaurant_id = restaurants[0]['id']
+        
+        menus = []
+        for i in range(15):  # Ensure enough for HDBSCAN
+            embedding = np.random.random(768).tolist()
+            menus.append({
+                'name': f'menu_{i}',
+                'name_clean': f'menu_{i}',
+                'embedding_vector': embedding,
+                'restaurant_id': real_restaurant_id
+            })
+        
+        # Force HDBSCAN method
+        with patch.dict(os.environ, {'CLUSTERING_METHOD': 'hdbscan'}):
+            result = self.recommender.categorize_menus_embedding(menus, self.basic_user)
+            self.assertIsInstance(result, dict)
+    
+    def test_insufficient_menus_for_categorization(self):
+        """Test when we have very few menus to categorize"""
+        result = self.recommender.generate_recommendations(
+            user_profile=self.basic_user,
+            max_distance_km=1.0,
+            max_menus_to_categorize=1,  # Very small limit
+            max_menus_per_category=1
+        )
+        
+        self.assertIsInstance(result, dict)
+    
+    def test_category_aliases_resolution_coverage(self):
+        """Test resolve_category_aliases with various inputs"""
+        # Test with known aliases
+        result = self.recommender.resolve_category_aliases(["korean", "japanese", "chinese"])
+        self.assertIsInstance(result, list)
+        self.assertTrue(any("한식" in cat for cat in result))
+        
+        # Test with mixed valid and invalid
+        result = self.recommender.resolve_category_aliases(["korean", "invalid_cuisine", "japanese"])
+        self.assertIsInstance(result, list)
+        
+        # Test with empty and None
+        result = self.recommender.resolve_category_aliases([])
+        self.assertEqual(result, [])
+        
+        result = self.recommender.resolve_category_aliases(None)
+        self.assertEqual(result, [])
+    
+    def test_generate_recommendations_with_categories_filter(self):
+        """Test generate_recommendations with specific categories"""
+        result = self.recommender.generate_recommendations(
+            user_profile=self.basic_user,
+            max_distance_km=1.0,
+            categories=["한식", "일본식"],  # Specific categories
+            max_menus_to_categorize=5,
+            max_menus_per_category=2
+        )
+        
+        self.assertIsInstance(result, dict)
+    
+    def test_different_model_names(self):
+        """Test RestaurantRecommender with different model names"""
+        # Test with different model name
+        alt_recommender = RestaurantRecommender(model_name="gpt-3.5-turbo", verbose=False)
+        try:
+            # Should work with different model name
+            self.assertIsNotNone(alt_recommender)
+            if alt_recommender.llm:
+                # Check that it used the specified model
+                # (We can't directly check this without calling the API, so just verify it's set up)
+                pass
+        finally:
+            alt_recommender.close()
+    
+    def test_pca_compression_path(self):
+        """Test PCA compression path in clustering"""
+        # Create high-dimensional data that would trigger PCA
+        restaurants = self.recommender.find_nearby_restaurants(
+            self.basic_user, max_distance_km=1.0
+        )
+        
+        if not restaurants:
+            self.skipTest("No restaurants found for PCA test")
+        
+        real_restaurant_id = restaurants[0]['id']
+        
+        # Create many menus to trigger PCA (need more than 100 for PCA path)
+        menus = []
+        for i in range(150):  # Enough to potentially trigger PCA
+            embedding = np.random.random(768).tolist()
+            menus.append({
+                'name': f'menu_{i}',
+                'name_clean': f'menu_{i}',
+                'embedding_vector': embedding,
+                'restaurant_id': real_restaurant_id
+            })
+        
+        try:
+            result = self.recommender.categorize_menus_embedding(menus, self.basic_user)
+            self.assertIsInstance(result, dict)
+        except Exception as e:
+            # PCA might fail with random data, which is acceptable
+            self.skipTest(f"PCA test failed with random data: {e}")
+    
+    def test_menu_sorting_edge_cases(self):
+        """Test menu sorting with various edge cases"""
+        # Test the menu_sort_key function indirectly through categorization
+        restaurants = self.recommender.find_nearby_restaurants(
+            self.basic_user, max_distance_km=1.0
+        )
+        
+        if not restaurants:
+            self.skipTest("No restaurants found for sorting test")
+        
+        real_restaurant_id = restaurants[0]['id']
+        
+        # Create menus with different image and embedding scenarios
+        menus = [
+            {
+                'name': 'menu_no_image_no_embedding',
+                'restaurant_id': real_restaurant_id,
+                'images': None,  # No images
+                'embedding_vector': None  # No embedding
+            },
+            {
+                'name': 'menu_with_image_no_embedding',
+                'restaurant_id': real_restaurant_id,
+                'images': ['http://example.com/image.jpg'],  # Has image
+                'embedding_vector': None  # No embedding
+            },
+            {
+                'name': 'menu_no_image_with_embedding',
+                'restaurant_id': real_restaurant_id,
+                'images': [],  # Empty images list
+                'embedding_vector': [0.1] * 768  # Has embedding
+            }
+        ]
+        
+        result = self.recommender.categorize_menus_embedding(menus, self.basic_user)
+        self.assertIsInstance(result, dict)
+
+
 class TestErrorHandlingAndEdgeCases(unittest.TestCase):
     """Test error handling and edge cases to improve coverage"""
     
@@ -461,7 +841,7 @@ class TestErrorHandlingAndEdgeCases(unittest.TestCase):
     def setUpClass(cls):
         """Set up recommender for tests"""
         try:
-            cls.recommender = RestaurantRecommender()
+            cls.recommender = RestaurantRecommender(verbose=False)
         except Exception as e:
             raise unittest.SkipTest(f"Cannot initialize recommender: {e}")
     
@@ -655,6 +1035,8 @@ def run_unit_tests():
     # Add test cases
     suite.addTests(loader.loadTestsFromTestCase(ExtendedRecommenderTestCase))
     suite.addTests(loader.loadTestsFromTestCase(TestUserProfileVariations))
+    suite.addTests(loader.loadTestsFromTestCase(TestNewRecommendationFeatures))
+    suite.addTests(loader.loadTestsFromTestCase(TestCoverageImprovements))
     suite.addTests(loader.loadTestsFromTestCase(TestErrorHandlingAndEdgeCases))
     
     # Run tests

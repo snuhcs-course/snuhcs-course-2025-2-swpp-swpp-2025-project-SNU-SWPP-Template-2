@@ -13,109 +13,6 @@ import argparse
 from datetime import datetime
 from client import RestaurantRecommender, UserProfile
 
-def generate_recommendations_with_embedding(recommender, user_profile, clustering_method, max_menus_to_categorize, max_menus_per_category):
-    """Generate recommendations using embedding-based categorization"""
-    import time
-    
-    # Start total timing
-    total_start_time = time.time()
-    timing_info = {}
-    
-    # Use UserProfile's max_distance_km if available, otherwise default to 2.0
-    search_distance = user_profile.max_distance_km or 2.0
-    
-    # Find nearby restaurants
-    print("Finding nearby restaurants...")
-    restaurant_start_time = time.time()
-    restaurants = recommender.find_nearby_restaurants(user_profile, search_distance, user_profile.cuisine_preferences)
-    restaurant_end_time = time.time()
-    timing_info['restaurant_search_time'] = restaurant_end_time - restaurant_start_time
-    
-    if not restaurants:
-        return {"message": "No restaurants found matching criteria"}
-    
-    print(f"Found {len(restaurants)} restaurants (took {timing_info['restaurant_search_time']:.2f}s)")
-    
-    # Get menus for these restaurants
-    menu_fetch_start_time = time.time()
-    restaurant_ids = [r['id'] for r in restaurants]
-    restaurant_menus = recommender.get_restaurant_menus(restaurant_ids)
-    menu_fetch_end_time = time.time()
-    timing_info['menu_fetch_time'] = menu_fetch_end_time - menu_fetch_start_time
-    
-    # Collect all menus
-    all_menus = []
-    for menus in restaurant_menus.values():
-        all_menus.extend(menus)
-    
-    print(f"Found {len(all_menus)} total menus (took {timing_info['menu_fetch_time']:.2f}s)")
-    
-    # Categorize menus using embedding method
-    print("Categorizing menus using embedding method...")
-    categorization_start_time = time.time()
-    menus_to_categorize = min(len(all_menus), max_menus_to_categorize)
-    print(f"Processing {menus_to_categorize} menus for categorization (limit: {max_menus_to_categorize})")
-    categorized_menus = recommender.categorize_menus_embedding(
-        all_menus[:menus_to_categorize], 
-        user_profile, 
-        clustering_method
-    )
-    categorization_end_time = time.time()
-    timing_info['categorization_time'] = categorization_end_time - categorization_start_time
-    
-    print(f"Menu categorization completed (took {timing_info['categorization_time']:.2f}s)")
-    
-    # Generate final recommendations
-    recommendation_build_start_time = time.time()
-    recommendations = {}
-    for category, menus in categorized_menus.items():
-        if not menus:
-            continue
-        
-        # Get top menus in category (sorted by price as a simple metric)
-        menus_available = len(menus)
-        menus_to_show = min(menus_available, max_menus_per_category)
-        top_menus = sorted(menus, key=lambda x: x.get('price', 0) or 0)[:menus_to_show]
-        
-        # Generate reason
-        reason = recommender._generate_category_reason(category, user_profile)
-        
-        recommendations[category] = {
-            "reason": reason,
-            "menus": [
-                {
-                    "name": menu['name'],
-                    "restaurant": menu['restaurant_name'],
-                    "price": menu['price']
-                }
-                for menu in top_menus
-            ]
-        }
-    
-    recommendation_build_end_time = time.time()
-    timing_info['recommendation_build_time'] = recommendation_build_end_time - recommendation_build_start_time
-    
-    # Calculate total time
-    total_end_time = time.time()
-    timing_info['total_time'] = total_end_time - total_start_time
-    
-    # Print timing summary
-    print(f"\n⏱️  PERFORMANCE SUMMARY:")
-    print(f"   🔍 Restaurant search: {timing_info['restaurant_search_time']:.2f}s")
-    print(f"   📋 Menu fetch: {timing_info['menu_fetch_time']:.2f}s")
-    print(f"   🧠 Embedding categorization: {timing_info['categorization_time']:.2f}s")
-    print(f"   📊 Recommendation build: {timing_info['recommendation_build_time']:.2f}s")
-    print(f"   ⏰ Total time: {timing_info['total_time']:.2f}s")
-    
-    return {
-        "user_location": user_profile.location,
-        "search_radius_km": search_distance,
-        "total_restaurants": len(restaurants),
-        "total_menus_found": len(all_menus),
-        "recommendations": recommendations,
-        "timing_info": timing_info
-    }
-
 def print_recommendations(recommendations, user_profile):
     """Print recommendations in the format specified in specifications.md"""
     
@@ -170,11 +67,24 @@ def print_recommendations(recommendations, user_profile):
             menu_name = menu.get('name', 'Unknown Menu')
             restaurant_name = menu.get('restaurant', 'Unknown Restaurant')
             price = menu.get('price')
+            images = menu.get('images', [])
+            embedding_distance = menu.get('embedding_distance_to_center')
+            
+            # Build the menu line
+            menu_line = f"      {i}. {menu_name} ({restaurant_name})"
             
             if price:
-                print(f"      {i}. {menu_name} ({restaurant_name}) - {price:,}원")
-            else:
-                print(f"      {i}. {menu_name} ({restaurant_name})")
+                menu_line += f" - {price:,}원"
+            
+            # Add embedding distance info
+            #if embedding_distance is not None:
+            #    menu_line += f" - dist: {embedding_distance:.3f}"
+            
+            # Add image indicator
+            if images and len(images) > 0:
+                menu_line += f" 📷"
+            
+            print(menu_line)
     
     print("\n" + "=" * 60)
 
@@ -269,19 +179,6 @@ def main():
         if args.method == "embedding":
             print(f"   🔧 Clustering method: {args.clustering}")
         
-        # For embedding method, we need to modify the workflow
-        #if args.method == "embedding":
-        #    recommendations = generate_recommendations_with_embedding(
-        #        recommender, user, args.clustering, max_categorize, max_per_category
-        #    )
-        #else:
-        #    recommendations = recommender.generate_recommendations(
-        #        user_profile=user,
-        #        max_distance_km=user.max_distance_km,
-        #        categories=user.cuisine_preferences,
-        #        max_menus_to_categorize=max_categorize,
-        #        max_menus_per_category=max_per_category
-        #    )
         recommendations = recommender.generate_recommendations(
             user_profile=user,
             max_distance_km=user.max_distance_km,
