@@ -303,6 +303,7 @@ python integration_test_psql.py       # Full integration test suite
 python unit_test_psql.py               # Unit tests for components
 python -m unittest integration_test_psql.DatabaseTestCase      # Database tests only
 python -m unittest integration_test_psql.PerformanceTestCase   # Performance tests only
+coverage run --source=. unit_test_psql.py 2>/dev/null && coverage report # Checking coverage
 ```
 
 **Expected Results:**
@@ -310,6 +311,7 @@ python -m unittest integration_test_psql.PerformanceTestCase   # Performance tes
 - ✅ 36,445 menus loaded
 - ✅ All spatial queries under 5 seconds
 - ✅ Recommendations generated under 30 seconds
+- ✅ client.py unit test showing 86% coverage
 
 ## Contributing
 
