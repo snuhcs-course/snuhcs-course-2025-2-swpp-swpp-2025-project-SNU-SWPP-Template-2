@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-test.py - Test suite for restaurant recommendation system
+integration_test_psql.py - Integration tests for restaurant recommendation system
 
-This module provides comprehensive tests for the recommendation system including:
-- Database connectivity tests
-- Data integrity tests
-- Recommendation algorithm tests
+This module provides comprehensive integration tests for the recommendation system including:
+- Database connectivity and schema validation
+- Data integrity verification
+- End-to-end recommendation pipeline testing
 - Performance benchmarks
 """
 
@@ -256,7 +256,7 @@ class RecommendationTestCase(unittest.TestCase):
             self.skipTest("No menus found for categorization test")
         
         # Test categorization
-        categorized_menus = self.recommender.categorize_menus(all_menus[:10])  # Limit for test
+        categorized_menus = self.recommender.categorize_menus(all_menus[:10], method="langchain")  # Limit for test
         
         self.assertIsInstance(categorized_menus, dict)
         self.assertGreater(len(categorized_menus), 0, "No categories returned")

@@ -40,8 +40,9 @@ python embedding.py      # Generate embeddings (~15 min)
 
 ### 5. Test System
 ```bash
-python recommend.py      # Run demo
-python test.py           # Run test suite
+python recommend.py              # Run demo
+python integration_test_psql.py # Run integration tests
+python unit_test_psql.py         # Run unit tests
 ```
 
 ## Database Schema
@@ -195,7 +196,8 @@ psql/
 ├── client.py               # Main recommendation engine
 ├── embedding.py            # ML embedding generation  
 ├── recommend.py            # Demo script
-├── test.py                 # Test suite
+├── integration_test_psql.py # Integration tests
+├── unit_test_psql.py       # Unit tests
 ├── requirements.txt        # Dependencies
 ├── .env.example           # Configuration template
 ├── db/
@@ -239,9 +241,10 @@ echo $OPENAI_API_KEY  # Verify key is set
 ## Testing
 
 ```bash
-python test.py                         # Full test suite
-python -m unittest test.DatabaseTestCase      # Database tests only
-python -m unittest test.PerformanceTestCase   # Performance tests only
+python integration_test_psql.py       # Full integration test suite
+python unit_test_psql.py               # Unit tests for components
+python -m unittest integration_test_psql.DatabaseTestCase      # Database tests only
+python -m unittest integration_test_psql.PerformanceTestCase   # Performance tests only
 ```
 
 **Expected Results:**
@@ -255,7 +258,7 @@ python -m unittest test.PerformanceTestCase   # Performance tests only
 1. Update database schema in `db/schema.sql` or `db/schema_update.sql`
 2. Add new parameters to `.env.example`
 3. Update configuration documentation
-4. Add tests in `test.py`
+4. Add tests in `integration_test_psql.py` or `unit_test_psql.py`
 5. Update this README
 
 ## License

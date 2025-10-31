@@ -540,8 +540,11 @@ class RestaurantRecommender:
                 batch_ai_time = ai_end_time - ai_start_time
                 ai_total_time += batch_ai_time
                 
-                # Parse result
-                result_clean = result.strip()
+                # Parse result - Extract content from ChatOpenAI response
+                if hasattr(result, 'content'):
+                    result_clean = result.content.strip()
+                else:
+                    result_clean = str(result).strip()
                 
                 # Clean up markdown formatting
                 if result_clean.startswith('```'):
