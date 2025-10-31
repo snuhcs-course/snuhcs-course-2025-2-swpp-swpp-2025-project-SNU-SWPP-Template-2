@@ -159,6 +159,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
             </View>
           ))}
           <TouchableOpacity
+            testID="settings-button"
             style={$settingsButton}
             onPress={() => setIsPreferencesModalVisible(true)}
           >
@@ -193,6 +194,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           <Text style={$sectionTitle}>Food History</Text>
           <View style={$sectionButtons}>
             <TouchableOpacity
+              testID="filter-button"
               style={$sectionButton}
               onPress={() => {
                 if (__DEV__) {
@@ -204,6 +206,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               <Filter size={16} color={colors.palette.neutral700} />
             </TouchableOpacity>
             <TouchableOpacity
+              testID="refresh-button"
               style={$sectionButton}
               onPress={(event: GestureResponderEvent) => {
                 scanAlbums((asset: Asset) => {
@@ -287,6 +290,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       <View style={$bottomTabs}>
         <TouchableOpacity
           style={$tabButton}
+          testID="FoodigramTab"
           onPress={() => navigation.navigate("Foodigram")}
         >
           <Home
@@ -297,6 +301,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
         <TouchableOpacity
           style={[$tabButton, $tabButtonActive]}
+          testID="UserTab"
         >
           <User
             size={28}
@@ -310,6 +315,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         <View style={$speechBubbleContainer}>
           <TouchableOpacity
             style={$speechBubbleBackdrop}
+            testID="filter-modal-backdrop"
             activeOpacity={1}
             onPress={() => {
               if (__DEV__) {
@@ -326,7 +332,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                   console.log('Profile: closed filter panel (X button)')
                 }
                 setIsFilterOpen(false)
-              }}>
+              }} testID="filter-modal-close">
                 <X size={20} color={colors.palette.neutral700} />
               </TouchableOpacity>
             </View>
