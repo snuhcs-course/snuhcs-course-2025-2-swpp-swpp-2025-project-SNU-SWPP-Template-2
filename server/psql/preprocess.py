@@ -3,13 +3,21 @@
 preprocess.py - Create normalized menu names
 
 This script processes menu names to create normalized versions by:
-1. Removing size indicators: S, M, L, 대, 중, 소
-2. Removing set menu words: 세트, set, Set, SET
-3. Removing price ranges: patterns like "7000-12000원", "5000~8000원"
-4. Removing quantity patterns: "2개", "500ml", etc.
-5. Keeping only alphanumeric and Korean characters
+1. Converting all alphabets to uppercase
+2. Removing size indicators: S, M, L, 대, 중, 소, R, XL, mini, 미니
+3. Removing set menu words: 세트, set, Set, SET
+4. Removing price ranges: patterns like "7000-12000원", "5000~8000원"
+5. Removing quantity patterns: "2개", "500ml", "1.25L", etc.
+6. Keeping only alphabets, Korean characters, and blankspaces
+
+Usage:
+  python preprocess.py                    # Full processing (default)
+  python preprocess.py --update-names     # Update name_clean only
+  python preprocess.py --update-embeddings # Update embedding_vector only
+  python preprocess.py --update-all       # Update both name_clean and embedding_vector
 """
 
+import argparse
 import os
 import re
 import sys
@@ -307,35 +315,49 @@ def update_restaurant_normalized_categories(cursor, batch_size: int = 1000) -> N
 
 def clean_menu_name(menu_name: str) -> str:
     """
-    Clean menu name using regex to remove:
-    - Size indicators: S, M, L, 대, 중, 소
-    - Set menu words: 세트, set, Set, SET
-    - Price ranges: patterns like "7000-12000원", "5000~8000원"
-    - Quantity patterns: "2개", "500ml", etc.
-    - Keep only alphanumeric and Korean characters
+    Clean menu name using regex to:
+    1. Uppercase all alphabets
+    2. Remove price range patterns
+    3. Remove quantity/unit patterns
+    4. Remove size indicators
+    5. Remove common keywords
+    6. Remove set menu words
+    7. Keep only alphabets, Korean characters, and blankspaces
+    8. Replace multiple spaces with single space
+    9. Trim leading/trailing whitespace
     """
     if not menu_name:
         return ""
     
-    # Remove price range patterns (e.g., "7000-12000원", "5000~8000원")
-    price_range_pattern = r'\d+\s*[-~]\s*\d+\s*[A-Za-z가-힣]+'
-    cleaned = re.sub(price_range_pattern, '', menu_name)
+    # Convert alphabets to uppercase
+    cleaned = menu_name.upper()
     
-    # Remove quantity/unit patterns (e.g., "2개", "500ml", "1인분")
-    quantity_pattern = r'\d+\s*[A-Za-z가-힣]+'
+    # Remove price range patterns (e.g., "7000-12000원", "5000~8000원")
+    price_range_pattern = r'\d+\s*[-~]\s*\d+\s*[A-Z가-힣]+'
+    cleaned = re.sub(price_range_pattern, '', cleaned)
+
+    # Remove quantity/unit patterns (e.g., "2개", "500ml", "1인분", "1.5L", "30%")
+    quantity_pattern = r'\d+(.\d+)*\s*[A-Z가-힣%]+'
     cleaned = re.sub(quantity_pattern, '', cleaned)
     
     # Remove size indicators
-    size_pattern = r'\b[SML]\b|[대중소](?=\s|$)'
+    size_pattern = r'(?=\b)((XL)|[RSML대중소]|(미니)|(mini))(?=\b|$)'
     cleaned = re.sub(size_pattern, '', cleaned, flags=re.IGNORECASE)
     
+    # Remove common keywords
+    common_pattern = r'(NEW|추가|옵션|선택|판매종료)'
+    cleaned = re.sub(common_pattern, '', cleaned, flags=re.IGNORECASE)
+
     # Remove set menu words
-    set_pattern = r'\b(?:세트|set)\b'
+    set_pattern = r'[A-Z]?\s*(세트|SET)'
     cleaned = re.sub(set_pattern, '', cleaned, flags=re.IGNORECASE)
     
-    # Keep only alphanumeric, Korean characters, and basic punctuation
-    korean_alpha_pattern = r'[^가-힣a-zA-Z0-9\s\(\)\-]'
-    cleaned = re.sub(korean_alpha_pattern, '', cleaned)
+    # Keep only alphabets, Korean characters, and blankspaces
+    korean_alpha_pattern = r'[^가-힣A-Z\s]'
+    cleaned = re.sub(korean_alpha_pattern, ' ', cleaned)
+    
+    # Replace double or more space with singlespace
+    cleaned = re.sub(r'\s+', ' ', cleaned)
     
     # Clean up extra whitespace
     cleaned = ' '.join(cleaned.split())
@@ -352,13 +374,176 @@ def update_menu_normalized_name(cursor, menu_id: str, name_clean: str):
     """
     
     try:
+        #print("Trying to update menu:", menu_id, "with name_clean:", name_clean)
         cursor.execute(query, (name_clean, menu_id))
+        #print("Successfully updated menu:", menu_id)
     except Exception as e:
-        print(f"Error updating menu {menu_id}: {e}")
+        #print(f"Error updating menu {menu_id}: {e}")
         raise
 
+def update_embeddings_for_menu(cursor, menu_id: str, name_clean: str):
+    """Update embedding vector for a menu based on clean name"""
+    # This is a placeholder - you'll need to implement actual embedding generation
+    # For now, we'll set it to NULL to indicate it needs regeneration
+    query = """
+    UPDATE db_menus 
+    SET embedding_vector = NULL, updated_at = NOW()
+    WHERE id = %s;
+    """
+    
+    try:
+        cursor.execute(query, (menu_id,))
+    except Exception as e:
+        print(f"Error updating embedding for menu {menu_id}: {e}")
+        raise
+
+def update_menu_names_only(cursor, batch_size: int = 1000):
+    """Update only name_clean values for existing menus"""
+    
+    query = """
+    SELECT id, name, name_clean
+    FROM db_menus 
+    WHERE name IS NOT NULL AND TRIM(name) != ''
+    ORDER BY id;
+    """
+    
+    cursor.execute(query)
+    menus = cursor.fetchall()
+    
+    if not menus:
+        print("No menus to process.")
+        return
+    
+    print(f"Updating name_clean for {len(menus)} menus...")
+    
+    updated_count = 0
+    unchanged_count = 0
+    
+    # Process menus in batches with tqdm progress bar
+    num_batches = (len(menus) + batch_size - 1) // batch_size
+    
+    with tqdm(total=num_batches, desc="Updating names", unit="batch") as pbar:
+        for i in range(0, len(menus), batch_size):
+            batch = menus[i:i + batch_size]
+            
+            for menu in batch:
+                menu_id = menu['id']
+                menu_name = menu['name']
+                current_name_clean = menu['name_clean']
+                
+                # Generate new clean name
+                new_name_clean = clean_menu_name(menu_name)
+                
+                # Only update if changed
+                if current_name_clean != new_name_clean:
+                    #print(f"Updating menu ID {menu_id}: '{current_name_clean}' -> '{new_name_clean}'")
+                    update_menu_normalized_name(cursor, menu_id, new_name_clean)
+                    #print(f"Updated menu ID {menu_id}: '{new_name_clean}'")
+                    updated_count += 1
+                else:
+                    #print(f"No change for menu ID {menu_id}: '{current_name_clean}' remains unchanged")
+                    unchanged_count += 1
+            
+            # Commit batch
+            cursor.connection.commit()
+            pbar.update(1)
+    
+    print(f"✅ Name updates completed: {updated_count} updated, {unchanged_count} unchanged")
+
+def update_menu_embeddings_only(cursor, batch_size: int = 1000):
+    """Update only embedding_vector values for existing menus"""
+    query = """
+    SELECT id, name_clean
+    FROM db_menus 
+    WHERE name_clean IS NOT NULL AND TRIM(name_clean) != ''
+    ORDER BY id;
+    """
+    
+    cursor.execute(query)
+    menus = cursor.fetchall()
+    
+    if not menus:
+        print("No menus with clean names to process.")
+        return
+    
+    print(f"Updating embeddings for {len(menus)} menus...")
+    print("⚠️  Note: Setting embedding_vector to NULL - implement actual embedding generation")
+    
+    # Process menus in batches with tqdm progress bar
+    num_batches = (len(menus) + batch_size - 1) // batch_size
+    
+    with tqdm(total=num_batches, desc="Updating embeddings", unit="batch") as pbar:
+        for i in range(0, len(menus), batch_size):
+            batch = menus[i:i + batch_size]
+            
+            for menu in batch:
+                menu_id = menu['id']
+                name_clean = menu['name_clean']
+                
+                # Update embedding (placeholder implementation)
+                update_embeddings_for_menu(cursor, menu_id, name_clean)
+            
+            # Commit batch
+            cursor.connection.commit()
+            pbar.update(1)
+    
+    print(f"✅ Embedding updates completed for {len(menus)} menus")
+
+def update_both_names_and_embeddings(cursor, batch_size: int = 1000):
+    """Update both name_clean and embedding_vector values"""
+    query = """
+    SELECT id, name, name_clean
+    FROM db_menus 
+    WHERE name IS NOT NULL AND TRIM(name) != ''
+    ORDER BY id;
+    """
+    
+    cursor.execute(query)
+    menus = cursor.fetchall()
+    
+    if not menus:
+        print("No menus to process.")
+        return
+    
+    print(f"Updating both names and embeddings for {len(menus)} menus...")
+    
+    updated_names = 0
+    unchanged_names = 0
+    
+    # Process menus in batches with tqdm progress bar
+    num_batches = (len(menus) + batch_size - 1) // batch_size
+    
+    with tqdm(total=num_batches, desc="Updating names & embeddings", unit="batch") as pbar:
+        for i in range(0, len(menus), batch_size):
+            batch = menus[i:i + batch_size]
+            
+            for menu in batch:
+                menu_id = menu['id']
+                menu_name = menu['name']
+                current_name_clean = menu['name_clean']
+                
+                # Generate new clean name
+                new_name_clean = clean_menu_name(menu_name)
+                
+                # Update name_clean if changed
+                if current_name_clean != new_name_clean:
+                    update_menu_normalized_name(cursor, menu_id, new_name_clean)
+                    updated_names += 1
+                else:
+                    unchanged_names += 1
+                
+                # Always update embedding when requested
+                update_embeddings_for_menu(cursor, menu_id, new_name_clean)
+            
+            # Commit batch
+            cursor.connection.commit()
+            pbar.update(1)
+    
+    print(f"✅ Updates completed: {updated_names} names updated, {unchanged_names} names unchanged")
+    print(f"✅ Embeddings updated for all {len(menus)} menus")
+
 def process_menus(cursor, batch_size: int = 1000):
-    """Process menus to create normalized names"""
+    """Process menus to create normalized names (original function for new data)"""
     # Get all menus (overwrite existing normalized names)
     query = """
     SELECT id, name 
@@ -397,29 +582,106 @@ def process_menus(cursor, batch_size: int = 1000):
             cursor.connection.commit()
             pbar.update(1)
 
+def preview_name_changes(cursor, limit: int = 20):
+    """Preview what changes would be made to name_clean values"""
+    query = """
+    SELECT id, name, name_clean
+    FROM db_menus 
+    WHERE name IS NOT NULL AND TRIM(name) != ''
+    ORDER BY id
+    LIMIT %s;
+    """
+    
+    cursor.execute(query, (limit,))
+    menus = cursor.fetchall()
+    
+    changes = []
+    for menu in menus:
+        current_clean = menu['name_clean'] or ''
+        new_clean = clean_menu_name(menu['name'])
+        
+        if current_clean != new_clean:
+            changes.append({
+                'id': menu['id'],
+                'name': menu['name'],
+                'old_clean': current_clean,
+                'new_clean': new_clean
+            })
+    
+    print(f"Preview of changes (first {limit} menus):")
+    print("="*80)
+    
+    if changes:
+        print(f"Found {len(changes)} changes in sample:")
+        for i, change in enumerate(changes[:10]):  # Show first 10 changes
+            print(f"{i+1}. Menu: '{change['name']}'")
+            print(f"   Old clean: '{change['old_clean']}'")
+            print(f"   New clean: '{change['new_clean']}'")
+            print()
+    else:
+        print("No changes found in sample.")
+    
+    return len(changes)
+
 def main():
     """Main function to process menu data, validate and normalize restaurant categories"""
-    print("Starting menu name normalization, category validation, and category normalization...")
+    parser = argparse.ArgumentParser(description='Process menu names and restaurant categories')
+    parser.add_argument('--update-names', action='store_true', 
+                       help='Update name_clean values only')
+    parser.add_argument('--update-embeddings', action='store_true', 
+                       help='Update embedding_vector values only')
+    parser.add_argument('--update-all', action='store_true', 
+                       help='Update both name_clean and embedding_vector values')
+    parser.add_argument('--preview', action='store_true', 
+                       help='Preview changes without updating')
+    parser.add_argument('--force', action='store_true', 
+                       help='Skip confirmation prompts')
+    
+    args = parser.parse_args()
     
     # Connect to database
     conn = get_db_connection()
     
     try:
         with conn.cursor(cursor_factory=RealDictCursor) as cursor:
-            # First: Validate restaurant categories
-            validate_restaurant_categories(cursor)
-            
-            # Second: Ensure category_normalized column exists
-            ensure_category_normalized_column(cursor)
-            
-            # Third: Update restaurants with normalized categories
-            update_restaurant_normalized_categories(cursor, batch_size=1000)
-            
-            # Fourth: Process menus
-            print("\n" + "="*80)
-            print("MENU NAME NORMALIZATION")
-            print("="*80)
-            process_menus(cursor, batch_size=1000)
+            if args.preview:
+                print("Previewing name_clean changes...")
+                print("="*80)
+                preview_name_changes(cursor, limit=50)
+                
+            elif args.update_names:
+                print("Updating name_clean values only...")
+                print("="*80)
+                update_menu_names_only(cursor, batch_size=1000)
+                
+            elif args.update_embeddings:
+                print("Updating embedding_vector values only...")
+                print("="*80)
+                update_menu_embeddings_only(cursor, batch_size=1000)
+                
+            elif args.update_all:
+                print("Updating both name_clean and embedding_vector values...")
+                print("="*80)
+                update_both_names_and_embeddings(cursor, batch_size=1000)
+                
+            else:
+                # Default behavior: full processing
+                print("Starting full processing: menu name normalization, category validation, and category normalization...")
+                
+                # First: Validate restaurant categories
+                validate_restaurant_categories(cursor)
+                
+                # Second: Ensure category_normalized column exists
+                ensure_category_normalized_column(cursor)
+                
+                # Third: Update restaurants with normalized categories
+                update_restaurant_normalized_categories(cursor, batch_size=1000)
+                
+                # Fourth: Process menus
+                print("\n" + "="*80)
+                print("MENU NAME NORMALIZATION")
+                print("="*80)
+                process_menus(cursor, batch_size=1000)
             
         print("\n✅ All processing completed successfully!")
         

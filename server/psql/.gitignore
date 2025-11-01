@@ -9,6 +9,8 @@
 *.db
 *.sqlite
 *.sqlite3
+*.sql
+*.zip
 
 # Python
 __pycache__/
