@@ -5,20 +5,8 @@ import { NavigationContainer, DarkTheme } from "@react-navigation/native"
 import * as ReactNative from "react-native"
 
 // Mocks for native modules to prevent React Native/expo errors
-jest.mock('expo-media-library', () => ({
-    usePermissions: jest.fn(),
-    getAlbumsAsync: jest.fn(),
-    getAssetsAsync: jest.fn()
-}))
-jest.mock('@infinitered/react-native-mlkit-image-labeling', () => ({
-    useImageLabeling: jest.fn(),
-}))
 
 // Mock problematic ESM/cloud packages to prevent Jest transform errors
-jest.mock('aws-amplify/auth', () => ({}))
-jest.mock('aws-amplify', () => ({}))
-jest.mock('aws-amplify/storage', () => ({ uploadData: jest.fn() }))
-jest.mock('uuid', () => ({ v4: () => 'mock-uuid' }))
 
 // Additional native module mocks for common mobile errors
 jest.mock('react-native/Libraries/EventEmitter/NativeEventEmitter', () => {
