@@ -470,6 +470,9 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             return None
 
         data = UserTasteSerializer(taste, context=self.context).data
+        # For barter payloads, exclude precise coordinates to avoid exposing PII
+        data.pop("trade_latitude", None)
+        data.pop("trade_longitude", None)
         return data
 
     def get_distance_km(self, obj):
