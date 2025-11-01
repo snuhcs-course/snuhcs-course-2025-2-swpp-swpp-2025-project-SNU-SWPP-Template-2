@@ -4,9 +4,20 @@ import { View, Text } from "react-native"
 import { Screen } from "./Screen"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
+// Mock React Navigation's useScrollToTop
+jest.mock("@react-navigation/native", () => ({
+  ...jest.requireActual("@react-navigation/native"),
+  useScrollToTop: jest.fn(),
+}))
+
+const initialMetrics = {
+  frame: { x: 0, y: 0, width: 0, height: 0 },
+  insets: { top: 0, left: 0, right: 0, bottom: 0 },
+}
+
 const renderWithSafeArea = (component: React.ReactElement) => {
   return render(
-    <SafeAreaProvider>
+    <SafeAreaProvider initialMetrics={initialMetrics}>
       {component}
     </SafeAreaProvider>
   )
