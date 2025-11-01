@@ -20,6 +20,8 @@ from .models import (
     UserPreferences,
     UserTaste,
 )
+from books.models import BookWishlist, BookReview
+from books.serializers import BookSummarySerializer, ReviewSerializer
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -328,6 +330,194 @@ class KakaoAuthResponseSerializer(serializers.Serializer):
     message = serializers.CharField(required=False, allow_null=True)
 
 
+class UserProfileSerializer(serializers.ModelSerializer):
+    """
+    Comprehensive serializer for user profile tab.
+    Returns all profile info including computed stats, taste, preferences, and library.
+    """
+
+    # Computed counts
+    follower_count = serializers.ReadOnlyField()
+    following_count = serializers.ReadOnlyField()
+    post_count = serializers.ReadOnlyField()
+
+    # Nested related data
+    taste = serializers.SerializerMethodField()
+    preferences = UserPreferencesSerializer(read_only=True)
+
+    # Library and wishlist (from books app)
+    library_count = serializers.SerializerMethodField()
+    wishlist_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "email",
+            "first_name",
+            "last_name",
+            "bio",
+            "location",
+            "latitude",
+            "longitude",
+            "birth_date",
+            "profile_picture",
+            "phone_number",
+            "is_profile_public",
+            "allow_direct_messages",
+            "reputation_score",
+            "successful_trades",
+            "has_initial_taste",
+            "follower_count",
+            "following_count",
+            "post_count",
+            "library_count",
+            "wishlist_count",
+            "taste",
+            "preferences",
+            "created_at",
+            "last_active",
+        )
+        read_only_fields = (
+            "id",
+            "reputation_score",
+            "successful_trades",
+            "has_initial_taste",
+            "created_at",
+        )
+
+    def get_taste(self, obj):
+        """Return taste data if user completed initial taste survey."""
+        if obj.has_initial_taste:
+            try:
+                return UserTasteSerializer(obj.taste).data
+            except UserTaste.DoesNotExist:
+                return None
+        return None
+
+    def get_library_count(self, obj):
+        """Return count of books user owns."""
+        return obj.books.count()
+
+    def get_wishlist_count(self, obj):
+        """Return count of books in user's wishlist."""
+        return obj.wishlist.count()
+
+
+class UserBarterInfoSerializer(serializers.ModelSerializer):
+    """
+    Rich user info payload to attach to barter requests/notifications.
+    Includes counts and compact lists for library and wishlist.
+    """
+
+    follower_count = serializers.ReadOnlyField()
+    following_count = serializers.ReadOnlyField()
+    post_count = serializers.ReadOnlyField()
+    profilePicture = serializers.SerializerMethodField()
+
+    library = serializers.SerializerMethodField()
+    wishlist = serializers.SerializerMethodField()
+    taste = serializers.SerializerMethodField()
+    distance_km = serializers.SerializerMethodField()
+    reviews = serializers.SerializerMethodField()
+    reviewCount = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = (
+            "id",
+            "username",
+            "bio",
+            "location",
+            "follower_count",
+            "following_count",
+            "post_count",
+            "profilePicture",
+            "library",
+            "wishlist",
+            "taste",
+            "distance_km",
+            "reviews",
+            "reviewCount",
+        )
+
+    def get_profilePicture(self, obj):
+        request = self.context.get("request")
+        if obj.profile_picture:
+            return (
+                request.build_absolute_uri(obj.profile_picture.url)
+                if request
+                else obj.profile_picture.url
+            )
+        return None
+
+    def get_library(self, obj):
+        # All books owned by the user (use reverse relation to avoid import ambiguity)
+        qs = obj.books.select_related("publisher").prefetch_related("authors")
+        return BookSummarySerializer(qs, many=True, context=self.context).data
+
+    def get_wishlist(self, obj):
+        qs = BookWishlist.objects.filter(user=obj).select_related("book")
+        books = [item.book for item in qs]
+        return BookSummarySerializer(books, many=True, context=self.context).data
+
+    def get_taste(self, obj):
+        """Return the user's full taste profile."""
+        try:
+            taste = obj.taste
+        except UserTaste.DoesNotExist:
+            return None
+
+        data = UserTasteSerializer(taste, context=self.context).data
+        return data
+
+    def get_distance_km(self, obj):
+        """Compute approximate distance (km) from request.user to obj without exposing coords."""
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+
+        me = request.user
+        if not (me.latitude and me.longitude and obj.latitude and obj.longitude):
+            return None
+
+        from math import radians, sin, cos, sqrt, atan2
+
+        try:
+            lat1 = float(me.latitude)
+            lon1 = float(me.longitude)
+            lat2 = float(obj.latitude)
+            lon2 = float(obj.longitude)
+        except (TypeError, ValueError):
+            return None
+
+        # Haversine formula
+        R = 6371.0  # Earth radius in km
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = (
+            sin(dlat / 2) ** 2
+            + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+        )
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        km = R * c
+        return round(km, 2)
+
+    def get_reviews(self, obj):
+        """All reviews written by this user (as seen in their user tab)."""
+        qs = (
+            BookReview.objects.filter(reviewer=obj)
+            .select_related("reviewer")
+            .prefetch_related("helpful_votes")
+            .order_by("-created_at")
+        )
+        return ReviewSerializer(qs, many=True, context=self.context).data
+
+    def get_reviewCount(self, obj):
+        return BookReview.objects.filter(reviewer=obj).count()
+
+
 class UserTasteSerializer(serializers.ModelSerializer):
     """
     Serializer for user's book preferences and taste information.
@@ -353,6 +543,19 @@ class UserTasteSerializer(serializers.ModelSerializer):
         child=serializers.ChoiceField(choices=ReadingPurpose.choices),
         required=False,
     )
+    # Trade style fields (optional, can be set later from profile)
+    trade_place_name = serializers.CharField(
+        max_length=120, required=False, allow_blank=True
+    )
+    trade_address = serializers.CharField(
+        max_length=200, required=False, allow_blank=True
+    )
+    trade_latitude = serializers.DecimalField(
+        max_digits=9, decimal_places=6, required=False, allow_null=True
+    )
+    trade_longitude = serializers.DecimalField(
+        max_digits=9, decimal_places=6, required=False, allow_null=True
+    )
 
     class Meta:
         model = UserTaste
@@ -363,6 +566,10 @@ class UserTasteSerializer(serializers.ModelSerializer):
             "preferred_length",
             "preferred_moods",
             "reading_purposes",
+            "trade_place_name",
+            "trade_address",
+            "trade_latitude",
+            "trade_longitude",
             "current_step",
         )
         read_only_fields = ("current_step",)

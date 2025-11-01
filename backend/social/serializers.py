@@ -5,16 +5,18 @@ Serializers for the social app.
 from rest_framework import serializers
 
 from social.models import Post
+from books.models import BookWishlist
 
 
 class PostSerializer(serializers.ModelSerializer):
     """
     Serializer for Post model matching frontend expectations.
     Used for GET requests to return post data in the home feed.
+    Includes action buttons: like, comment, bookmark, barter.
     """
 
     # Frontend expects these exact field names (camelCase)
-    id = serializers.IntegerField(read_only=True)
+    id = serializers.UUIDField(read_only=True)
     posterName = serializers.CharField(
         source="author.username", read_only=True
     )
@@ -23,9 +25,19 @@ class PostSerializer(serializers.ModelSerializer):
     authorName = serializers.SerializerMethodField()
     content = serializers.CharField(read_only=True)
     imageUrls = serializers.SerializerMethodField()
+    
+    # Engagement stats
     likeCount = serializers.IntegerField(source="like_count", read_only=True)
-    createdAt = serializers.DateTimeField(source="created_at", read_only=True)
+    commentCount = serializers.IntegerField(source="comment_count", read_only=True)
+    
+    # User-specific interaction states
     isLiked = serializers.SerializerMethodField()
+    isBookmarked = serializers.SerializerMethodField()
+    
+    # Related book availability for barter button
+    bookAvailableForBarter = serializers.SerializerMethodField()
+    
+    createdAt = serializers.DateTimeField(source="created_at", read_only=True)
 
     class Meta:
         model = Post
@@ -38,15 +50,21 @@ class PostSerializer(serializers.ModelSerializer):
             "content",
             "imageUrls",
             "likeCount",
-            "createdAt",
+            "commentCount",
             "isLiked",
+            "isBookmarked",
+            "bookAvailableForBarter",
+            "createdAt",
         ]
         read_only_fields = [
             "id",
             "posterName",
             "posterProfile",
             "likeCount",
+            "commentCount",
             "isLiked",
+            "isBookmarked",
+            "bookAvailableForBarter",
             "createdAt",
         ]
 
@@ -93,6 +111,28 @@ class PostSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.likes.filter(id=request.user.id).exists()
         return False
+
+    def get_isBookmarked(self, obj):
+        """Check if the current user has wishlisted (bookmarked) the related book."""
+        request = self.context.get("request")
+        if not obj.related_book:
+            return False
+        if request and request.user.is_authenticated:
+            return BookWishlist.objects.filter(
+                user=request.user, book=obj.related_book
+            ).exists()
+        return False
+
+    def get_bookAvailableForBarter(self, obj):
+        """Return whether the related book is currently available for barter."""
+        if not obj.related_book:
+            return False
+        # Prefer model property to encapsulate availability logic
+        try:
+            return bool(getattr(obj.related_book, "is_available_for_barter", False))
+        except Exception:
+            # Fallback to basic field if property is unavailable
+            return bool(getattr(obj.related_book, "is_for_barter", False))
 
 
 class FeedResponseSerializer(serializers.Serializer):

@@ -102,8 +102,8 @@ class UserTasteView(APIView):
             # Update the taste profile
             taste = serializer.save()
 
-            # Move to next step or complete the process
-            if current_step < 6:
+            # Move to next step or complete the process (now 7 steps)
+            if current_step < 7:
                 taste.current_step += 1
                 taste.save()
             else:
@@ -155,6 +155,11 @@ class UserTasteView(APIView):
                 raise serializers.ValidationError(
                     "최소 3개 이상의 목적을 선택해주세요"
                 )
+        elif step == 7:
+            # Trade style step is optional; if provided, accept without strict min checks
+            # Fields: trade_place_name, trade_address, trade_latitude, trade_longitude
+            # No additional validation required here.
+            return
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
