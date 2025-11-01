@@ -19,9 +19,7 @@ config.transformer.getTransformOptions = async () => ({
 // such as Firebase that use the extension cjs.
 config.resolver.sourceExts.push("cjs")
 
-// Treat .bin files as assets (binary blobs) so Metro will load them via the asset
-// system instead of trying to parse them as JS sources.
-if (!config.resolver.assetExts) config.resolver.assetExts = []
-if (!config.resolver.assetExts.includes('bin')) config.resolver.assetExts.push('bin')
+// Add food non-food classifier to assets
+config.resolver.assetExts.push("tflite");
 
 module.exports = config;

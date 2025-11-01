@@ -9,8 +9,9 @@ import { colors, spacing } from "app/theme"
 import * as storage from "app/utils/storage"
 import { api } from "app/services/api"
 import { handleSignIn } from "app/services/aws/handleAwsSignin"
+import { signUp } from 'aws-amplify/auth';
 
-interface LoginScreenProps extends AppStackScreenProps<"Login"> {}
+interface LoginScreenProps extends AppStackScreenProps<"Login"> { }
 
 export const LoginScreen = observer(function LoginScreen({ navigation }: LoginScreenProps) {
   const [isLoginMode, setIsLoginMode] = useState(true)
@@ -41,7 +42,7 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
       await handleSignIn(username, password);
 
       await storage.saveString("IS_LOGGED_IN", "true")
-      
+
       // Check if user has preferences set
       try {
         const preferencesResponse = await api.getPreferences()
@@ -61,6 +62,40 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
       console.log(e)
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  type SignUpParameters = {
+    username: string;
+    password: string;
+    email: string;
+  };
+
+  async function handleAwsSignUp({
+    username,
+    password,
+    email,
+  }: SignUpParameters) {
+    try {
+      const { isSignUpComplete, userId, nextStep } = await signUp({
+        username,
+        password,
+        options: {
+          userAttributes: {
+            email,
+          },
+          // optional
+          autoSignIn: true, // or SignInOptions e.g { authFlowType: "USER_SRP_AUTH" }
+        },
+      });
+
+      console.log(`AWS Amplify userId: ${userId}`);
+
+      if (!isSignUpComplete) {
+        throw new Error(`Sign up not complete - something wrong with autosignin. Next step: ${JSON.stringify(nextStep)}`);
+      }
+    } catch (error) {
+      console.log('error signing up:', error);
     }
   }
 
@@ -91,19 +126,20 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
     setIsLoading(true)
     try {
       // Ensure CSRF cookie is set
-      await api.getCsrf()
-      const res = await api.register(username, email, password)
+      await api.getCsrf();
+      const res = await api.register(username, email, password);
+      handleAwsSignUp({username, password, email});
       if (!res.ok) {
         const errorMessage = (res.data as any)?.detail || "Registration failed."
         Alert.alert("Registration Failed", errorMessage)
         return
       }
-      
+
       // Auto login after successful registration
       await storage.saveString("IS_LOGGED_IN", "true")
       Alert.alert("Success", "Registration completed!", [
-        { 
-          text: "OK", 
+        {
+          text: "OK",
           onPress: () => {
             // New users always go to onboarding
             navigation.replace("Onboarding")
@@ -134,40 +170,40 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
     <View style={$container}>
       <View style={$form}>
         <Text style={$title}>{isLoginMode ? "Login" : "Sign Up"}</Text>
-        
-        <TextField 
-          placeholder="Username" 
-          value={username} 
+
+        <TextField
+          placeholder="Username"
+          value={username}
           onChangeText={setUsername}
           autoCapitalize="none"
         />
-        
+
         {!isLoginMode && (
-          <TextField 
-            placeholder="Email" 
-            value={email} 
+          <TextField
+            placeholder="Email"
+            value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
             autoCapitalize="none"
           />
         )}
-        
-        <TextField 
-          placeholder="Password" 
-          secureTextEntry 
-          value={password} 
+
+        <TextField
+          placeholder="Password"
+          secureTextEntry
+          value={password}
           onChangeText={setPassword}
         />
-        
+
         {!isLoginMode && (
-          <TextField 
-            placeholder="Confirm Password" 
-            secureTextEntry 
-            value={confirmPassword} 
+          <TextField
+            placeholder="Confirm Password"
+            secureTextEntry
+            value={confirmPassword}
             onChangeText={setConfirmPassword}
           />
         )}
-        
+
         {!isLoginMode && (
           <Text style={$validationText}>
             • Password must be at least 8 characters{'\n'}
@@ -175,14 +211,14 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
             • Email must be valid format
           </Text>
         )}
-        
-        <Button 
-          text={isLoginMode ? "Log In" : "Sign Up"} 
-          style={$submitButton} 
+
+        <Button
+          text={isLoginMode ? "Log In" : "Sign Up"}
+          style={$submitButton}
           onPress={isLoginMode ? tryLogin : tryRegister}
           disabled={isLoading}
         />
-        
+
         <TouchableOpacity onPress={toggleMode} style={$toggleButton}>
           <Text style={$toggleText}>
             {isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
