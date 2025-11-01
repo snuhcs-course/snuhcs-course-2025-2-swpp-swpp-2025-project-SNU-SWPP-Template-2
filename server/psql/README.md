@@ -89,7 +89,32 @@ python preprocess.py
 **Cleaned:** `보양식통문어 황제해물찜`
 
 **Original:** `A세트 NEW 치킨버거+콜라 1.5L 추가옵션`  
-**Cleaned:** `A 치킨버거 콜라`
+**Cleaned:** `치킨버거 콜라`
+
+### Korean Food Term Analysis (`foodlist.py`)
+
+Analyzes Korean food terms from menu data using morphological analysis.
+
+#### Features
+- Fetches all `name_clean` values from `db_menus` table
+- Short preprocessing: normalizes "돈카츠", "돈까스", "카츠" → "돈가스"
+- Uses KoNLPy Mecab for Korean POS (Part-of-Speech) tagging
+- Extracts NNG (일반명사/Common Noun), VA (형용사/Adjective), XR (어근/Root) tagged words
+- Counts occurrences and saves results to JSON
+
+#### Requirements
+- Java JDK installed on system
+- Python package: `konlpy>=0.6.0`
+
+#### Usage
+```bash
+python foodlist.py
+```
+
+#### Output
+- Generates `food_terms_nng.json` with word counts
+- Shows top 20 most common food terms
+- Includes metadata about analysis parameters
 
 ### 5. Test System
 ```bash

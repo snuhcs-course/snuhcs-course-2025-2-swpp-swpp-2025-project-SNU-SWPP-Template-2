@@ -88,6 +88,7 @@ tmp/
 !test_run/user/*.json
 #!test_run/result/
 #!test_run/result/*.json
+!foodlist.json
 
 # Backup files
 *.bak
