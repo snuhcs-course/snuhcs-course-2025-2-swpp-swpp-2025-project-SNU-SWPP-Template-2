@@ -27,15 +27,37 @@ jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 )
 
-jest.mock("expo-localization", () => ({
-  ...jest.requireActual("expo-localization"),
-  getLocales: () => [{ languageTag: "en-US", textDirection: "ltr" }],
-}))
-
 // Mock native cookies module to avoid requiring iOS/Android native files in Jest
 jest.mock("@react-native-cookies/cookies", () => ({
   setFromResponse: jest.fn(),
   get: jest.fn().mockResolvedValue({}),
+}))
+
+jest.mock("expo-localization", () => ({
+  getLocales: () => [{ languageTag: "en-US", textDirection: "ltr" }],
+}))
+
+jest.mock("expo-media-library", () => ({
+  usePermissions: jest.fn(),
+  getAlbumsAsync: jest.fn(),
+  getAssetsAsync: jest.fn(),
+}))
+
+jest.mock("@infinitered/react-native-mlkit-image-labeling", () => ({
+  useImageLabeling: jest.fn(),
+}))
+
+jest.mock("uuid", () => ({
+  v4: () => 'mock-uuid'
+}))
+
+jest.mock("aws-amplify/auth", () => ({
+  signIn: jest.fn(),
+  signOut: jest.fn(),
+}))
+
+jest.mock("aws-amplify/storage", () => ({
+  uploadData: jest.fn(),
 }))
 
 jest.mock("../app/i18n/i18n.ts", () => ({

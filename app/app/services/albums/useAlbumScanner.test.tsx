@@ -1,16 +1,5 @@
 import { waitFor } from "@testing-library/react-native";
 
-jest.mock('expo-media-library', () => ({
-    usePermissions: jest.fn(),
-    getAlbumsAsync: jest.fn(),
-    getAssetsAsync: jest.fn()
-}));
-jest.mock('@infinitered/react-native-mlkit-image-labeling', () => ({
-    useImageLabeling: jest.fn(),
-}));
-jest.mock('aws-amplify/storage', () => ({
-    uploadData: jest.fn(),
-}));
 jest.mock('../api', () => ({
     api: {
         uploadPhoto: jest.fn()
