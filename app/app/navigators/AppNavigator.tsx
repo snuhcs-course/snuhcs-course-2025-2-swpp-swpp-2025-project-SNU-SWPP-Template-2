@@ -66,21 +66,21 @@ const AppStack = observer(function AppStack() {
       const loginStatus = await storage.loadString("IS_LOGGED_IN")
       
       if (loginStatus === "true") {
-        // IS_LOGGED_IN 플래그가 있으면 실제 세션이 유효한지 확인
+        // If IS_LOGGED_IN flag exists, verify if the actual session is valid
         try {
-          await api.getCsrf() // CSRF 토큰 먼저 가져오기
-          const response = await api.me() // 실제 API 호출로 세션 확인
+          await api.getCsrf() // Get CSRF token first
+          const response = await api.me() // Verify session with actual API call
           
           if (response.ok) {
-            // 세션이 유효함
+            // Session is valid
             setIsLoggedIn(true)
           } else {
-            // 세션이 무효함 - 플래그 제거하고 로그아웃 처리
+            // Session is invalid - remove flag and logout
             await storage.remove("IS_LOGGED_IN")
             setIsLoggedIn(false)
           }
         } catch (error) {
-          // 네트워크 오류 등 - 안전하게 로그아웃 처리
+          // Network error or other issues - safely logout
           await storage.remove("IS_LOGGED_IN")
           setIsLoggedIn(false)
         }
@@ -105,8 +105,16 @@ const AppStack = observer(function AppStack() {
           <Stack.Screen name="Login" component={Screens.LoginScreen} />
           <Stack.Screen name="SignUp" component={Screens.SignUpScreen} />
           <Stack.Screen name="Onboarding" component={Screens.OnboardingScreen} />
-          <Stack.Screen name="Foodigram" component={Screens.FoodigramScreen} />
-          <Stack.Screen name="Profile" component={Screens.ProfileScreen} />
+          <Stack.Screen 
+            name="Foodigram" 
+            component={Screens.FoodigramScreen} 
+            options={{ animation: 'none' }}
+          />
+          <Stack.Screen 
+            name="Profile" 
+            component={Screens.ProfileScreen} 
+            options={{ animation: 'none' }}
+          />
       {/** 🔥 Your screens go here */}
       {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
     </Stack.Navigator>

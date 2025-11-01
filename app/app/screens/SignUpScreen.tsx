@@ -19,19 +19,19 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
   async function tryRegister() {
     // Form validation
     if (!fullName.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("오류", "모든 필드를 입력해주세요.")
+      Alert.alert("Error", "Please fill in all fields.")
       return
     }
 
     if (password.length < 8) {
-      Alert.alert("오류", "비밀번호는 최소 8자 이상이어야 합니다.")
+      Alert.alert("Error", "Password must be at least 8 characters long.")
       return
     }
 
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      Alert.alert("오류", "올바른 이메일 형식을 입력해주세요.")
+      Alert.alert("Error", "Please enter a valid email address.")
       return
     }
 
@@ -41,16 +41,16 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
       await api.getCsrf()
       const res = await api.register(fullName, email, password)
       if (!res.ok) {
-        const errorMessage = (res.data as any)?.detail || "회원가입에 실패했습니다."
-        Alert.alert("회원가입 실패", errorMessage)
+        const errorMessage = (res.data as any)?.detail || "Sign up failed."
+        Alert.alert("Sign Up Failed", errorMessage)
         return
       }
       
       // Auto login after successful registration
       await storage.saveString("IS_LOGGED_IN", "true")
-      Alert.alert("성공", "회원가입이 완료되었습니다!", [
+      Alert.alert("Success", "Your account has been created!", [
         { 
-          text: "확인", 
+          text: "OK", 
           onPress: () => {
             // New users always go to onboarding
             navigation.replace("Onboarding")
@@ -58,7 +58,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
         }
       ])
     } catch (e) {
-      Alert.alert("오류", "회원가입 중 오류가 발생했습니다.")
+      Alert.alert("Error", "An error occurred during sign up.")
       console.log(e)
     } finally {
       setIsLoading(false)

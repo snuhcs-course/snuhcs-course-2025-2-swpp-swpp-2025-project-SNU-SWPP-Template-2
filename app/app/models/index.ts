@@ -1,5 +1,6 @@
 export * from "./RootStore"
 export * from "./FoodHistoryStore"
+export * from "./MenuScrapStore"
 export * from "./helpers/getRootStore"
 export * from "./helpers/useStores"
 export * from "./helpers/setupRootStore"

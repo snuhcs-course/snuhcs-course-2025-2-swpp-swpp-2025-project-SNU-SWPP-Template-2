@@ -1,8 +1,7 @@
 import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert } from "react-native"
+import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText } from "react-native"
 import { Text } from "app/components"
-import { Button } from "app/components/Button"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { api } from "app/services/api"
@@ -61,9 +60,9 @@ const CUISINES = [
 export const OnboardingScreen = observer(function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [preferences, setPreferences] = useState<UserPreferences>({
-    spicy_level: 5,
-    sweet_level: 5,
-    salty_level: 5,
+    spicy_level: 2,
+    sweet_level: 2,
+    salty_level: 2,
     allergies: [],
     disliked_ingredients: [],
     favorite_cuisines: []
@@ -87,7 +86,14 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   const handleComplete = async () => {
     setIsLoading(true)
     try {
-      const response = await api.savePreferences(preferences)
+      // Convert 0-4 scale to 0-10 scale for API
+      const apiPreferences = {
+        ...preferences,
+        spicy_level: Math.round(preferences.spicy_level * 2.5),
+        sweet_level: Math.round(preferences.sweet_level * 2.5),
+        salty_level: Math.round(preferences.salty_level * 2.5),
+      }
+      const response = await api.savePreferences(apiPreferences)
       if (response.ok) {
         Alert.alert("Success", "Your preferences have been saved!", [
           { text: "OK", onPress: () => navigation.replace("Foodigram") }
@@ -118,64 +124,58 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
 
   const renderProgressBar = () => (
     <View style={$progressContainer}>
-      <Text style={$progressText}>Step {currentStep + 1} of {totalSteps}</Text>
       <View style={$progressBar}>
         <View style={[$progressFill, { width: `${((currentStep + 1) / totalSteps) * 100}%` }]} />
       </View>
     </View>
   )
 
+  const renderSlider = (
+    label: string,
+    value: number,
+    minLabel: string,
+    maxLabel: string,
+    key: 'sweet_level' | 'salty_level' | 'spicy_level'
+  ) => (
+    <View style={$sliderContainer}>
+      <Text style={$sliderLabel}>{label}</Text>
+      <View style={$sliderTrackWrapper}>
+        <View style={$sliderTrack}>
+          <View style={[$sliderFill, { width: `${(value / 4) * 100}%` }]} />
+        </View>
+        <View style={$sliderDotsContainer}>
+          {[0, 1, 2, 3, 4].map((dotValue) => (
+            <TouchableOpacity
+              key={dotValue}
+              style={$sliderDotTouchable}
+              onPress={() => updatePreference(key, dotValue)}
+            >
+              <View style={[
+                $sliderDot,
+                dotValue === value && $sliderDotActive
+              ]} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+      <View style={$sliderLabels}>
+        <Text style={$sliderLabelText}>{minLabel}</Text>
+        <Text style={$sliderLabelText}>{maxLabel}</Text>
+      </View>
+    </View>
+  )
+
   const renderTastePreferences = () => (
     <View style={$stepContainer}>
-      <Text style={$stepTitle}>What are your taste preferences?</Text>
-      <Text style={$stepSubtitle}>Help us recommend food you'll love</Text>
+      <Text style={$stepTitle}>Tell Us Your Taste</Text>
+      <Text style={$stepSubtitle}>
+        Adjust the sliders to tell us how you like your food. This helps us find the perfect flavor profile for you.
+      </Text>
       
-      <View style={$sliderContainer}>
-        <Text style={$sliderLabel}>Spicy Level: {preferences.spicy_level}</Text>
-        <View style={$sliderTrack}>
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-            <TouchableOpacity
-              key={value}
-              style={[
-                $sliderDot,
-                value <= preferences.spicy_level ? $sliderDotActive : $sliderDotInactive
-              ]}
-              onPress={() => updatePreference('spicy_level', value)}
-            />
-          ))}
-        </View>
-      </View>
-
-      <View style={$sliderContainer}>
-        <Text style={$sliderLabel}>Sweet Level: {preferences.sweet_level}</Text>
-        <View style={$sliderTrack}>
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-            <TouchableOpacity
-              key={value}
-              style={[
-                $sliderDot,
-                value <= preferences.sweet_level ? $sliderDotActive : $sliderDotInactive
-              ]}
-              onPress={() => updatePreference('sweet_level', value)}
-            />
-          ))}
-        </View>
-      </View>
-
-      <View style={$sliderContainer}>
-        <Text style={$sliderLabel}>Salty Level: {preferences.salty_level}</Text>
-        <View style={$sliderTrack}>
-          {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((value) => (
-            <TouchableOpacity
-              key={value}
-              style={[
-                $sliderDot,
-                value <= preferences.salty_level ? $sliderDotActive : $sliderDotInactive
-              ]}
-              onPress={() => updatePreference('salty_level', value)}
-            />
-          ))}
-        </View>
+      <View style={$slidersWrapper}>
+        {renderSlider('Sweet', preferences.sweet_level, 'Not Sweet', 'Very Sweet', 'sweet_level')}
+        {renderSlider('Salty', preferences.salty_level, 'Not Salty', 'Very Salty', 'salty_level')}
+        {renderSlider('Spicy', preferences.spicy_level, 'Not Spicy', 'Very Spicy', 'spicy_level')}
       </View>
     </View>
   )
@@ -196,17 +196,19 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
             onPress={() => toggleArrayItem('allergies', allergy.id)}
             activeOpacity={0.7}
           >
-            <Ionicons 
-              name={allergy.icon} 
-              size={32} 
-              color={preferences.allergies.includes(allergy.id) ? colors.background : colors.text}
-            />
-            <Text style={[
-              $cardText,
-              preferences.allergies.includes(allergy.id) && $cardTextSelected
-            ]}>
-              {allergy.label}
-            </Text>
+            <View style={$cardContent}>
+              <Ionicons 
+                name={allergy.icon} 
+                size={32} 
+                color={preferences.allergies.includes(allergy.id) ? colors.background : colors.text}
+              />
+              <Text style={[
+                $cardText,
+                preferences.allergies.includes(allergy.id) && $cardTextSelected
+              ]}>
+                {allergy.label}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -229,17 +231,19 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
             onPress={() => toggleArrayItem('disliked_ingredients', ingredient.id)}
             activeOpacity={0.7}
           >
-            <Ionicons 
-              name={ingredient.icon} 
-              size={32} 
-              color={preferences.disliked_ingredients.includes(ingredient.id) ? colors.background : colors.text}
-            />
-            <Text style={[
-              $cardText,
-              preferences.disliked_ingredients.includes(ingredient.id) && $cardTextSelected
-            ]}>
-              {ingredient.label}
-            </Text>
+            <View style={$cardContent}>
+              <Ionicons 
+                name={ingredient.icon} 
+                size={32} 
+                color={preferences.disliked_ingredients.includes(ingredient.id) ? colors.background : colors.text}
+              />
+              <Text style={[
+                $cardText,
+                preferences.disliked_ingredients.includes(ingredient.id) && $cardTextSelected
+              ]}>
+                {ingredient.label}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -262,17 +266,19 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
             onPress={() => toggleArrayItem('favorite_cuisines', cuisine.id)}
             activeOpacity={0.7}
           >
-            <Ionicons 
-              name={cuisine.icon} 
-              size={32} 
-              color={preferences.favorite_cuisines.includes(cuisine.id) ? colors.background : colors.text}
-            />
-            <Text style={[
-              $cardText,
-              preferences.favorite_cuisines.includes(cuisine.id) && $cardTextSelected
-            ]}>
-              {cuisine.label}
-            </Text>
+            <View style={$cardContent}>
+              <Ionicons 
+                name={cuisine.icon} 
+                size={32} 
+                color={preferences.favorite_cuisines.includes(cuisine.id) ? colors.background : colors.text}
+              />
+              <Text style={[
+                $cardText,
+                preferences.favorite_cuisines.includes(cuisine.id) && $cardTextSelected
+              ]}>
+                {cuisine.label}
+              </Text>
+            </View>
           </TouchableOpacity>
         ))}
       </View>
@@ -298,14 +304,17 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       </ScrollView>
 
       <View style={$buttonContainer}>
-        <Button
-          text={currentStep === totalSteps - 1 ? "Complete" : "Continue"}
+        <TouchableOpacity
           style={$continueButton}
           onPress={handleNext}
           disabled={isLoading}
-        />
+        >
+          <RNText style={$continueButtonText}>
+            {currentStep === totalSteps - 1 ? "Complete" : "Continue"}
+          </RNText>
+        </TouchableOpacity>
         <TouchableOpacity onPress={handleSkip} style={$skipButton}>
-          <Text style={$skipText}>Skip</Text>
+          <RNText style={$skipText}>Skip</RNText>
         </TouchableOpacity>
       </View>
     </View>
@@ -320,6 +329,7 @@ const $container: ViewStyle = {
 const $progressContainer: ViewStyle = {
   padding: spacing.lg,
   paddingTop: spacing.xl,
+  marginTop: spacing.xl,
   gap: spacing.xs,
 }
 
@@ -358,6 +368,7 @@ const $stepTitle: TextStyle = {
   color: colors.text,
   marginBottom: spacing.sm,
   textAlign: "left",
+  lineHeight: 40,
 }
 
 const $stepSubtitle: TextStyle = {
@@ -365,46 +376,94 @@ const $stepSubtitle: TextStyle = {
   color: colors.palette.neutral600,
   marginBottom: spacing.xl,
   textAlign: "left",
+  lineHeight: 24,
+}
+
+const $slidersWrapper: ViewStyle = {
+  paddingVertical: spacing.lg,
+  gap: spacing.xxl,
 }
 
 const $sliderContainer: ViewStyle = {
-  marginBottom: spacing.xl,
+  gap: spacing.sm,
 }
 
 const $sliderLabel: TextStyle = {
-  fontSize: 16,
-  fontWeight: "600",
+  fontSize: 18,
+  fontWeight: "bold",
   color: colors.text,
-  marginBottom: spacing.sm,
+  marginBottom: spacing.xs,
+}
+
+const $sliderTrackWrapper: ViewStyle = {
+  height: 40,
+  justifyContent: "center",
 }
 
 const $sliderTrack: ViewStyle = {
+  position: "absolute",
+  width: "100%",
+  height: 8,
+  backgroundColor: colors.palette.neutral300,
+  borderRadius: 4,
+}
+
+const $sliderFill: ViewStyle = {
+  height: "100%",
+  backgroundColor: colors.palette.primary500,
+  borderRadius: 4,
+}
+
+const $sliderDotsContainer: ViewStyle = {
   flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "center",
 }
 
+const $sliderDotTouchable: ViewStyle = {
+  flex: 1,
+  alignItems: "center",
+  justifyContent: "center",
+  paddingVertical: spacing.sm,
+}
+
 const $sliderDot: ViewStyle = {
-  width: 20,
-  height: 20,
-  borderRadius: 10,
+  width: 12,
+  height: 12,
+  borderRadius: 6,
+  backgroundColor: colors.palette.neutral300,
   borderWidth: 2,
+  borderColor: colors.background,
 }
 
 const $sliderDotActive: ViewStyle = {
+  width: 24,
+  height: 24,
+  borderRadius: 12,
   backgroundColor: colors.palette.primary500,
-  borderColor: colors.palette.primary500,
+  borderWidth: 4,
+  borderColor: colors.background,
+  shadowColor: colors.palette.neutral400,
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0.3,
+  shadowRadius: 2,
+  elevation: 2,
 }
 
-const $sliderDotInactive: ViewStyle = {
-  backgroundColor: colors.background,
-  borderColor: colors.palette.neutral300,
+const $sliderLabels: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  paddingHorizontal: spacing.xs,
+}
+
+const $sliderLabelText: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral600,
 }
 
 const $cardGrid: ViewStyle = {
   flexDirection: "row",
   flexWrap: "wrap",
-  gap: spacing.md,
   justifyContent: "space-between",
 }
 
@@ -415,9 +474,9 @@ const $card: ViewStyle = {
   borderWidth: 1,
   borderColor: colors.palette.neutral300,
   padding: spacing.md,
-  gap: spacing.sm,
   minHeight: 100,
-  justifyContent: "center",
+  marginBottom: spacing.md,
+  justifyContent: "flex-start",
   alignItems: "flex-start",
 }
 
@@ -426,10 +485,16 @@ const $cardSelected: ViewStyle = {
   borderColor: colors.palette.primary500,
 }
 
+const $cardContent: ViewStyle = {
+  flex: 1,
+  gap: spacing.sm,
+}
+
 const $cardText: TextStyle = {
   fontSize: 16,
   fontWeight: "bold",
   color: colors.text,
+  flexShrink: 1,
 }
 
 const $cardTextSelected: TextStyle = {
@@ -441,20 +506,37 @@ const $buttonContainer: ViewStyle = {
   borderTopWidth: 1,
   borderTopColor: colors.palette.neutral200,
   backgroundColor: colors.background,
-  gap: spacing.xs,
+  gap: 12,
 }
 
 const $continueButton: ViewStyle = {
+  backgroundColor: "#f66c51",
+  borderRadius: 12,
+  height: 48,
+  paddingHorizontal: 20,
+  alignItems: "center",
+  justifyContent: "center",
   width: "100%",
 }
 
+const $continueButtonText: TextStyle = {
+  color: "#FFFFFF",
+  fontSize: 16,
+  fontWeight: "bold",
+}
+
 const $skipButton: ViewStyle = {
-  alignSelf: "center",
-  paddingVertical: spacing.sm,
+  backgroundColor: "rgba(255, 255, 255, 0.2)",
+  borderRadius: 12,
+  height: 48,
+  paddingHorizontal: 20,
+  alignItems: "center",
+  justifyContent: "center",
+  width: "100%",
 }
 
 const $skipText: TextStyle = {
+  color: colors.text,
   fontSize: 16,
   fontWeight: "bold",
-  color: colors.text,
 }

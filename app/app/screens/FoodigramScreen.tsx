@@ -1,33 +1,35 @@
 import React, { useState, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, ImageBackground } from "react-native"
-import { Home, User, Bookmark, Heart } from "lucide-react-native"
+import { View, ViewStyle, TextStyle, TouchableOpacity, ImageBackground, Image, ActivityIndicator } from "react-native"
+import { Home, User, Bookmark } from "lucide-react-native"
 import { Text } from "../components"
 import { colors, spacing } from "../theme"
 import { AppStackScreenProps } from "../navigators"
 import { api } from "../services/api"
 import type { MenuRecommendationItem } from "../services/api/api.types"
 import { LinearGradient } from "expo-linear-gradient"
+import { useStores } from "../models"
 
 interface FoodigramScreenProps extends AppStackScreenProps<"Foodigram"> {}
 
 export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function FoodigramScreen({
   navigation,
 }) {
-  // 추천 메뉴 관련 상태
+  const { menuScrapStore } = useStores()
+  
+  // Recommended menu related states
   const [recommendedMenus, setRecommendedMenus] = useState<MenuRecommendationItem[]>([])
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
   const [currentMenuIndex, setCurrentMenuIndex] = useState(0)
-  const [bookmarkedItems, setBookmarkedItems] = useState<Set<number>>(new Set())
-  const [favoritedItems, setFavoritedItems] = useState<Set<number>>(new Set())
+  const [isImageLoading, setIsImageLoading] = useState(true)
 
-  // 화면 로드 시 자동으로 추천 메뉴 가져오기
+  // Automatically fetch recommended menus on screen load
   useEffect(() => {
     const fetchInitialRecommendations = async () => {
       setIsLoadingRecommendations(true)
       try {
-        // 사용자 위치 정보 (실제로는 GPS나 사용자 설정에서 가져와야 함)
-        const userLocation: [number, number] = [126.9619864, 37.477136] // 서울 강남역 좌표
+        // User location info (should be obtained from GPS or user settings)
+        const userLocation: [number, number] = [126.9619864, 37.477136] // Seoul Gangnam Station coordinates
 
         const recommendations = await api.getMenuRecommendations(userLocation, {
           maxResults: 10,
@@ -37,7 +39,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           setRecommendedMenus(recommendations.results)
         }
       } catch (error) {
-        console.error("추천 메뉴 가져오기 실패:", error)
+        console.error("Failed to fetch recommended menus:", error)
       } finally {
         setIsLoadingRecommendations(false)
       }
@@ -46,37 +48,90 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     fetchInitialRecommendations()
   }, [])
 
+  // Preload images
+  useEffect(() => {
+    if (recommendedMenus.length === 0) return
+
+    const preloadImages = async () => {
+      try {
+        // Preload current image and next 3 images
+        const imagesToPreload = recommendedMenus.slice(0, 4).map((menu) => {
+          if (menu.image_urls && menu.image_urls.length > 0) {
+            return Image.prefetch(menu.image_urls[0])
+          }
+          return Promise.resolve()
+        })
+
+        await Promise.all(imagesToPreload)
+        if (__DEV__) {
+          console.log("Image preload completed")
+        }
+      } catch (error) {
+        if (__DEV__) {
+          console.error("Image preload failed:", error)
+        }
+      }
+    }
+
+    preloadImages()
+  }, [recommendedMenus])
+
+  // Preload next images when index changes
+  useEffect(() => {
+    if (recommendedMenus.length === 0) return
+
+    const preloadNextImages = async () => {
+      try {
+        const nextIndexes = [
+          (currentMenuIndex + 1) % recommendedMenus.length,
+          (currentMenuIndex + 2) % recommendedMenus.length,
+        ]
+
+        const imagesToPreload = nextIndexes.map((index) => {
+          const menu = recommendedMenus[index]
+          if (menu?.image_urls && menu.image_urls.length > 0) {
+            return Image.prefetch(menu.image_urls[0])
+          }
+          return Promise.resolve()
+        })
+
+        await Promise.all(imagesToPreload)
+      } catch (error) {
+        // Ignore errors
+      }
+    }
+
+    preloadNextImages()
+  }, [currentMenuIndex, recommendedMenus])
+
   const handleNextMenu = () => {
     if (recommendedMenus.length === 0) return
+    setIsImageLoading(true)
     setCurrentMenuIndex((prev) => (prev + 1) % recommendedMenus.length)
   }
 
   const handlePreviousMenu = () => {
     if (recommendedMenus.length === 0) return
-    setCurrentMenuIndex((prev) => (prev - 1 + recommendedMenus.length) % recommendedMenus.length)
+    // Don't go back from the first item
+    if (currentMenuIndex === 0) return
+    setIsImageLoading(true)
+    setCurrentMenuIndex((prev) => prev - 1)
   }
 
-  const toggleBookmark = (menuId: number) => {
-    setBookmarkedItems((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(menuId)) {
-        newSet.delete(menuId)
-      } else {
-        newSet.add(menuId)
-      }
-      return newSet
-    })
-  }
-
-  const toggleFavorite = (menuId: number) => {
-    setFavoritedItems((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(menuId)) {
-        newSet.delete(menuId)
-      } else {
-        newSet.add(menuId)
-      }
-      return newSet
+  const toggleBookmark = (menu: MenuRecommendationItem) => {
+    const imageUrl = menu.image_urls && menu.image_urls.length > 0 ? menu.image_urls[0] : undefined
+    
+    menuScrapStore.toggleScrappedMenu({
+      id: menu.id,
+      menu_name: menu.menu_name,
+      place_name: menu.place_name,
+      price: menu.price,
+      category: menu.category,
+      location: menu.location,
+      rating: menu.rating,
+      review_count: menu.review_count,
+      image_url: imageUrl,
+      coordinates: menu.coordinates,
     })
   }
 
@@ -87,12 +142,12 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
       {/* Main Full Screen Content */}
       <View style={$fullScreenContainer}>
         {isLoadingRecommendations ? (
-          // 로딩 상태
+          // Loading state
           <View style={$loadingContainer}>
-            <Text style={$loadingText}>추천 메뉴를 가져오는 중...</Text>
+            <Text style={$loadingText}>Loading recommendations...</Text>
           </View>
         ) : recommendedMenus.length > 0 && currentMenu ? (
-          // 전체 화면 메뉴 표시
+          // Full screen menu display
           <>
             {/* Background Image */}
             <ImageBackground
@@ -104,56 +159,78 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
               }}
               style={$backgroundImage}
               resizeMode="cover"
+              onLoadStart={() => setIsImageLoading(true)}
+              onLoadEnd={() => setIsImageLoading(false)}
+              onError={() => setIsImageLoading(false)}
             >
-              {/* Gradient Overlay */}
+              {/* Image Loading Indicator */}
+              {isImageLoading && (
+                <View style={$imageLoadingContainer}>
+                  <ActivityIndicator size="large" color="#fff" />
+                </View>
+              )}
+
+              {/* Top Gradient Overlay */}
+              <LinearGradient
+                colors={["rgba(0,0,0,0.6)", "transparent"]}
+                style={$gradientOverlayTop}
+              />
+
+              {/* Bottom Gradient Overlay */}
               <LinearGradient
                 colors={["transparent", "rgba(0,0,0,0.8)"]}
                 style={$gradientOverlay}
               />
 
+              {/* Progress Indicators */}
+              <View style={$progressContainer}>
+                {recommendedMenus.map((_, index) => (
+                  <View
+                    key={index}
+                    style={[
+                      $progressBar,
+                      index <= currentMenuIndex && $progressBarActive,
+                    ]}
+                  />
+                ))}
+              </View>
+
               {/* Top Header */}
               <View style={$topHeader}>
-                <Text style={$discoverTitle}>Discover</Text>
-                <View style={$headerButtons}>
-                  <TouchableOpacity
-                    style={$headerButton}
-                    onPress={() => toggleBookmark(currentMenu.id)}
-                  >
-                    <Bookmark
-                      size={24}
-                      color="#fff"
-                      fill={bookmarkedItems.has(currentMenu.id) ? "#fff" : "transparent"}
-                    />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={$headerButton}
-                    onPress={() => toggleFavorite(currentMenu.id)}
-                  >
-                    <Heart
-                      size={24}
-                      color={favoritedItems.has(currentMenu.id) ? "#f66c51" : "#fff"}
-                      fill={favoritedItems.has(currentMenu.id) ? "#f66c51" : "transparent"}
-                    />
-                  </TouchableOpacity>
-                </View>
+                <TouchableOpacity
+                  style={$headerButton}
+                  onPress={() => toggleBookmark(currentMenu)}
+                >
+                  <Bookmark
+                    size={24}
+                    color="#fff"
+                    fill={menuScrapStore.isScrapped(currentMenu.id) ? "#fff" : "transparent"}
+                  />
+                </TouchableOpacity>
               </View>
 
               {/* Bottom Info */}
               <View style={$bottomInfo}>
-                <Text style={$restaurantName}>{currentMenu.place_name}</Text>
-                <Text style={$restaurantDetails}>
+                <Text style={$restaurantName} numberOfLines={2}>
+                  {currentMenu.place_name}
+                </Text>
+                <Text style={$restaurantDetails} numberOfLines={1}>
                   {currentMenu.category} • {currentMenu.location}
                 </Text>
                 <View style={$menuDetails}>
-                  <Text style={$menuNameLarge}>{currentMenu.menu_name}</Text>
-                  <Text style={$menuPriceLarge}>
-                    {currentMenu.price?.toLocaleString()}원
+                  <Text style={$menuNameLarge} numberOfLines={1}>
+                    {currentMenu.menu_name}
                   </Text>
-                  <Text style={$menuRatingLarge}>
-                    ⭐ {currentMenu.rating} ({currentMenu.review_count} 리뷰)
+                  <Text style={$menuPriceLarge} numberOfLines={1}>
+                    ₩{currentMenu.price?.toLocaleString()}
+                  </Text>
+                  <Text style={$menuRatingLarge} numberOfLines={1}>
+                    ⭐ {currentMenu.rating} ({currentMenu.review_count} reviews)
                   </Text>
                   {currentMenu.reason && (
-                    <Text style={$menuReasonLarge}>{currentMenu.reason}</Text>
+                    <Text style={$menuReasonLarge} numberOfLines={2}>
+                      {currentMenu.reason}
+                    </Text>
                   )}
                 </View>
               </View>
@@ -172,10 +249,10 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             </ImageBackground>
           </>
         ) : (
-          // 에러 상태
+          // Error state
           <View style={$emptyState}>
-            <Text style={$emptyText}>추천 메뉴를 불러올 수 없습니다</Text>
-            <Text style={$emptySubtext}>잠시 후 다시 시도해주세요</Text>
+            <Text style={$emptyText}>Unable to load recommendations</Text>
+            <Text style={$emptySubtext}>Please try again later</Text>
           </View>
         )}
       </View>
@@ -183,7 +260,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
       {/* Bottom Tabs */}
       <View style={$bottomTabs}>
         <TouchableOpacity
-          style={[$tabButton, $tabButtonActive]}
+          style={$tabButton}
           onPress={() => {
             if (__DEV__) {
               console.log(`Home: tapped home button (already on Foodigram)`)
@@ -191,7 +268,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             navigation.navigate("Foodigram")
           }}
         >
-          <Home size={28} color={colors.palette.primary500} />
+          <Home size={24} color={colors.palette.primary500} strokeWidth={2} />
           <Text style={$tabButtonTextActive}>Discover</Text>
         </TouchableOpacity>
 
@@ -204,7 +281,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             navigation.navigate("Profile")
           }}
         >
-          <User size={28} color={colors.palette.neutral500} />
+          <User size={24} color={colors.palette.neutral400} strokeWidth={2} />
           <Text style={$tabButtonText}>Profile</Text>
         </TouchableOpacity>
       </View>
@@ -229,6 +306,14 @@ const $backgroundImage: ViewStyle = {
   height: "100%",
 }
 
+const $gradientOverlayTop: ViewStyle = {
+  position: "absolute",
+  left: 0,
+  right: 0,
+  top: 0,
+  height: "25%",
+}
+
 const $gradientOverlay: ViewStyle = {
   position: "absolute",
   left: 0,
@@ -237,29 +322,40 @@ const $gradientOverlay: ViewStyle = {
   height: "50%",
 }
 
+const $progressContainer: ViewStyle = {
+  position: "absolute",
+  top: spacing.xl + spacing.xs,
+  left: spacing.sm,
+  right: spacing.sm,
+  flexDirection: "row",
+  gap: 4,
+  zIndex: 15,
+  marginTop: spacing.lg,
+}
+
+const $progressBar: ViewStyle = {
+  flex: 1,
+  height: 3,
+  backgroundColor: "rgba(255, 255, 255, 0.3)",
+  borderRadius: 2,
+}
+
+const $progressBarActive: ViewStyle = {
+  backgroundColor: "rgba(255, 255, 255, 0.9)",
+}
+
 const $topHeader: ViewStyle = {
   position: "absolute",
-  top: 0,
+  top: 24,
   left: 0,
   right: 0,
   paddingTop: spacing.xxl + spacing.md,
   paddingHorizontal: spacing.md,
   paddingBottom: spacing.md,
   flexDirection: "row",
-  justifyContent: "space-between",
+  justifyContent: "flex-end",
   alignItems: "center",
   zIndex: 10,
-}
-
-const $discoverTitle: TextStyle = {
-  fontSize: 28,
-  fontWeight: "bold",
-  color: "#fff",
-}
-
-const $headerButtons: ViewStyle = {
-  flexDirection: "row",
-  gap: spacing.sm,
 }
 
 const $headerButton: ViewStyle = {
@@ -273,25 +369,26 @@ const $headerButton: ViewStyle = {
 
 const $bottomInfo: ViewStyle = {
   position: "absolute",
-  bottom: 65, // Above bottom tabs
+  bottom: 85, // Above bottom tabs
   left: 0,
   right: 0,
   paddingHorizontal: spacing.lg,
-  paddingBottom: spacing.lg,
+  paddingBottom: spacing.sm,
   zIndex: 10,
 }
 
 const $restaurantName: TextStyle = {
-  fontSize: 32,
+  fontSize: 28,
   fontWeight: "bold",
   color: "#fff",
-  marginBottom: spacing.xs,
+  marginBottom: 4,
+  lineHeight: 36,
 }
 
 const $restaurantDetails: TextStyle = {
-  fontSize: 20,
+  fontSize: 16,
   color: "#fff",
-  marginBottom: spacing.md,
+  marginBottom: spacing.sm,
 }
 
 const $menuDetails: ViewStyle = {
@@ -299,27 +396,27 @@ const $menuDetails: ViewStyle = {
 }
 
 const $menuNameLarge: TextStyle = {
-  fontSize: 18,
-  fontWeight: "600",
-  color: "#fff",
-}
-
-const $menuPriceLarge: TextStyle = {
   fontSize: 16,
   fontWeight: "600",
   color: "#fff",
 }
 
+const $menuPriceLarge: TextStyle = {
+  fontSize: 15,
+  fontWeight: "500",
+  color: "#fff",
+}
+
 const $menuRatingLarge: TextStyle = {
-  fontSize: 14,
+  fontSize: 13,
   color: "#fff",
 }
 
 const $menuReasonLarge: TextStyle = {
-  fontSize: 14,
-  color: "rgba(255,255,255,0.8)",
+  fontSize: 13,
+  color: "rgba(255,255,255,0.85)",
   fontStyle: "italic",
-  marginTop: spacing.xs,
+  marginTop: 4,
 }
 
 const $leftTouchArea: ViewStyle = {
@@ -352,6 +449,18 @@ const $loadingText: TextStyle = {
   color: colors.text,
 }
 
+const $imageLoadingContainer: ViewStyle = {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "rgba(0,0,0,0.3)",
+  zIndex: 20,
+}
+
 const $emptyState: ViewStyle = {
   flex: 1,
   justifyContent: "center",
@@ -377,12 +486,13 @@ const $bottomTabs: ViewStyle = {
   bottom: 0,
   left: 0,
   right: 0,
-  height: 65,
+  height: 80,
   flexDirection: "row",
-  borderTopWidth: 1,
-  borderTopColor: colors.palette.neutral200,
-  backgroundColor: colors.background,
+  borderTopWidth: 0.5,
+  borderTopColor: colors.palette.neutral300,
+  backgroundColor: "#ffffff",
   zIndex: 100,
+  paddingBottom: spacing.xs,
 }
 
 const $tabButton: ViewStyle = {
@@ -390,23 +500,20 @@ const $tabButton: ViewStyle = {
   height: "100%",
   alignItems: "center",
   justifyContent: "center",
-  paddingVertical: spacing.xs,
-}
-
-const $tabButtonActive: ViewStyle = {
-  backgroundColor: colors.palette.primary100,
+  paddingVertical: spacing.sm,
+  gap: 4,
 }
 
 const $tabButtonText: TextStyle = {
-  fontSize: 12,
-  color: colors.palette.neutral500,
-  marginTop: 2,
+  fontSize: 11,
+  color: colors.palette.neutral400,
+  fontWeight: "500",
 }
 
 const $tabButtonTextActive: TextStyle = {
-  fontSize: 12,
+  fontSize: 11,
   color: colors.palette.primary500,
-  marginTop: 2,
+  fontWeight: "600",
 }
 
 
