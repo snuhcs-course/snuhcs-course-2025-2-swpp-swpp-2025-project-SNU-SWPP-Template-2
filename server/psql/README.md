@@ -40,6 +40,57 @@ python preprocess.py     # Process menu names (~2 min)
 python embedding.py      # Generate embeddings (~15 min)
 ```
 
+## Data Preprocessing
+
+### Menu Name Normalization (`preprocess.py`)
+
+Processes menu names to create clean, normalized versions for better search and recommendation accuracy.
+
+#### Processing Steps
+1. Convert all alphabets to uppercase
+2. Remove size indicators (S, M, L, R, XL, 대, 중, 소, mini, 미니)
+3. Remove set menu words (세트, SET)
+4. Remove price ranges (e.g., "7000-12000원", "5000~8000원")
+5. Remove quantity patterns (e.g., "2개", "500ml", "1.25L")
+6. Remove common keywords (NEW, 추가, 옵션, 선택, 판매종료)
+7. Keep only alphabets, Korean characters, and spaces
+8. Replace multiple spaces with single space
+
+#### Usage Commands
+
+**Preview changes without updating:**
+```bash
+python preprocess.py --preview
+```
+
+**Update name_clean values only:**
+```bash
+python preprocess.py --update-names --force
+```
+
+**Update embedding vectors only:**
+```bash
+python preprocess.py --update-embeddings --force
+```
+
+**Update both names and embeddings:**
+```bash
+python preprocess.py --update-all --force
+```
+
+**Full processing (categories + menus):**
+```bash
+python preprocess.py
+```
+
+#### Examples
+
+**Original:** `보양식통문어 황제해물찜(중) 2인분 15000원`  
+**Cleaned:** `보양식통문어 황제해물찜`
+
+**Original:** `A세트 NEW 치킨버거+콜라 1.5L 추가옵션`  
+**Cleaned:** `A 치킨버거 콜라`
+
 ### 5. Test System
 ```bash
 python recommend.py              # Run demo
