@@ -37,8 +37,6 @@ from .serializers import (
     UserSerializer,
 )
 
-from notify import create_notification
-
 User = get_user_model()
 
 

@@ -2,6 +2,7 @@ from .models import Notification
 from social.models import Post
 from accounts.models import Follow
 from barter.models import BarterRequest, BarterCounter
+from books.models import BookReview
 
 def create_notification(request, type_of_notification, post_id=None, follow_id=None, barter_id=None, review_id=None):
     """
@@ -16,17 +17,17 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
     # --- Post Like ---
     if type_of_notification == 'post_like' and post_id:
         post = Post.objects.get(pk=post_id)
-        recipient = post.created_by
+        recipient = post.author
         title = "Post Liked"
-        message = f"{sender.name} liked one of your posts!"
+        message = f"{sender.first_name} liked one of your posts!"
         content_object = post
 
     # --- Post Comment ---
     elif type_of_notification == 'post_comment' and post_id:
         post = Post.objects.get(pk=post_id)
-        recipient = post.created_by
+        recipient = post.author
         title = "Comment Received"
-        message = f"{sender.name} commented on one of your posts!"
+        message = f"{sender.first_name} commented on one of your posts!"
         content_object = post
     
     # --- Review Like ---
@@ -34,7 +35,7 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         review = BookReview.objects.get(pk=review_id)
         recipient = review.reviewer
         title = "Review Liked"
-        message = f"{request.user.name} liked your review!"
+        message = f"{request.user.first_name} liked your review!"
         content_object = review
 
     # --- New Follow ---
@@ -42,7 +43,7 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         follow = Follow.objects.get(pk=follow_id)
         recipient = follow.following
         title = "User Followed"
-        message = f"{sender.name} started following you!"
+        message = f"{sender.first_name} started following you!"
         content_object = follow
 
     # --- Barter Request ---
@@ -50,7 +51,7 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         barter = BarterRequest.objects.get(pk=barter_id)
         recipient = barter.recipient
         title = "Barter Request"
-        message = f"{sender.name} sent you a barter request!"
+        message = f"{sender.first_name} sent you a barter request!"
         content_object = barter
 
     # --- Barter Accepted ---
@@ -58,7 +59,7 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         barter = BarterRequest.objects.get(pk=barter_id)
         recipient = barter.requester
         title = "Barter Accepted"
-        message = f"{sender.name} accepted your barter request!"
+        message = f"{sender.first_name} accepted your barter request!"
         content_object = barter
 
     # --- Barter Rejected ---
@@ -66,7 +67,7 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         barter = BarterRequest.objects.get(pk=barter_id)
         recipient = barter.requester
         title = "Barter Rejected"
-        message = f"{sender.name} rejected your barter request!"
+        message = f"{sender.first_name} rejected your barter request!"
         content_object = barter
 
     # --- Barter Counter Offer ---
@@ -74,7 +75,7 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         counter_offer = BarterCounter.objects.get(pk=barter_id)
         recipient = counter_offer.original_request.requester
         title = "Barter Counter Offered"
-        message = f"{sender.name} made a counter offer!"
+        message = f"{sender.first_name} made a counter offer!"
         content_object = counter_offer
 
 
@@ -89,7 +90,7 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         else:
             return None  # safety check
         title = "Barter Completed"
-        message = f"{sender.name} completed the barter with you!"
+        message = f"{sender.first_name} completed the barter with you!"
         content_object = barter
 
     # Safety check

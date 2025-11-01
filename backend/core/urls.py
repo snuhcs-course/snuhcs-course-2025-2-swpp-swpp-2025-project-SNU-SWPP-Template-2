@@ -49,8 +49,8 @@ urlpatterns = [
     path("auth/", include("accounts.urls")),  # Matches frontend expectations
     path("library/", include("books.urls")),  # User's library (reviews, books)
     path("", include("social.urls")),  # Social features (home feed, posts)
-    # path("api/v1/barter/", include("barter.urls")),
-    # path("api/v1/notifications/", include("notify.urls")),
+    path("api/v1/barter/", include("barter.urls")),
+    path("api/v1/notifications/", include("notify.urls")),
 ]
 
 # Serve media files in development
