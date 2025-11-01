@@ -9,6 +9,8 @@ from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from notify.utils import create_notification
+
 from .models import BookReview, ReviewHelpfulVote
 from .serializers import (
     CreateReviewSerializer,
@@ -129,6 +131,9 @@ class ReviewLikeView(APIView):
         else:
             # Like: add a new like
             ReviewHelpfulVote.objects.create(review=review, user=request.user)
+            if request.user != review.reviewer:
+                create_notification(request,type_of_notification='review_like',review_id=review.id)
+
 
         # Refresh the review to get updated helpful_votes
         review.refresh_from_db()
