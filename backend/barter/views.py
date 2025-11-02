@@ -25,13 +25,14 @@ User = get_user_model()
 @permission_classes([permissions.IsAuthenticated])
 def create_barter_request(request):
     """
-    Create a barter request from requester to a specific user for a book.
-    This is used when user finds nearby owners via search/wishlist flow.
+    Create a 1:1 barter request from requester to a specific user.
+    Requester offers one book in exchange for one requested book.
     
     POST /barter/requests/create/
     Body:
       - recipient_id: int (user ID)
-      - requested_book_id: uuid (book ID)
+      - requested_book_id: uuid (book ID from recipient)
+      - offered_book_id: uuid (book ID from requester)
       - message: str (optional)
       - preferred_meeting_type: str (optional)
       - proposed_meeting_location: str (optional)
@@ -39,10 +40,11 @@ def create_barter_request(request):
     """
     recipient_id = request.data.get("recipient_id")
     requested_book_id = request.data.get("requested_book_id")
+    offered_book_id = request.data.get("offered_book_id")
 
-    if not recipient_id or not requested_book_id:
+    if not recipient_id or not requested_book_id or not offered_book_id:
         return Response(
-            {"error": "recipient_id and requested_book_id are required"},
+            {"error": "recipient_id, requested_book_id, and offered_book_id are required"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
@@ -62,11 +64,35 @@ def create_barter_request(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    try:
+        offered_book = Book.objects.get(pk=offered_book_id)
+    except Book.DoesNotExist:
+        return Response(
+            {"error": "Offered book not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Verify ownership
+    if offered_book.owner_id != request.user.id:
+        return Response(
+            {"error": "You can only offer books you own"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if requested_book.owner_id != recipient_id:
+        return Response(
+            {"error": "Requested book must belong to recipient"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
     # Build message with requester's info
     msg = request.data.get("message")
     if not msg:
         requester = request.user
-        parts = [f"Hi {recipient.username}, I'd like to barter for '{requested_book.title}'."]
+        parts = [
+            f"Hi {recipient.username}, I'd like to trade my '{offered_book.title}' "
+            f"for your '{requested_book.title}'."
+        ]
         if hasattr(requester, "taste") and requester.taste and requester.taste.trade_place_name:
             parts.append(
                 f"Preferred place: {requester.taste.trade_place_name} ({requester.taste.trade_address or 'N/A'})"
@@ -75,16 +101,17 @@ def create_barter_request(request):
             parts.append(f"My location: lat {requester.latitude}, lng {requester.longitude}")
         msg = "\n".join(parts)
 
-    # Create barter request
+    # Create barter request with 1:1 exchange
     barter = BarterRequest.objects.create(
         requester=request.user,
         recipient=recipient,
+        offered_book=offered_book,
+        requested_book=requested_book,
         message=msg,
         preferred_meeting_type=request.data.get("preferred_meeting_type", "in_person"),
         proposed_meeting_location=request.data.get("proposed_meeting_location", ""),
         proposed_meeting_time=request.data.get("proposed_meeting_time"),
     )
-    barter.requested_books.add(requested_book)
 
     # Notify recipient
     Notification.objects.create(
@@ -92,7 +119,7 @@ def create_barter_request(request):
         sender=request.user,
         notification_type="barter_request",
         title="New barter request",
-        message=f"{request.user.username} wants to barter for '{requested_book.title}'.",
+        message=f"{request.user.username} wants to trade for '{requested_book.title}'.",
         content_object=barter,
     )
 
