@@ -75,6 +75,8 @@ android {
 
 dependencies {
 
+    testImplementation(libs.hamcrest)
+    testImplementation(libs.truth)
     androidTestImplementation(libs.hilt.android.testing)
     kaptAndroidTest(libs.hilt.android.compiler)
     androidTestImplementation(libs.androidx.fragment.testing)
@@ -117,4 +119,5 @@ dependencies {
     implementation("androidx.credentials:credentials-play-services-auth:1.6.0-alpha05")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.0")
     implementation("com.kakao.sdk:v2-user:2.20.0")
+    testImplementation("org.robolectric:robolectric:4.12.2")
 }

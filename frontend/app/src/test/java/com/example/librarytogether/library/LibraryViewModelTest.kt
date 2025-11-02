@@ -2,7 +2,9 @@ package com.example.librarytogether.library
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.example.librarytogether.feature.library.LibraryViewModel
+import com.example.librarytogether.feature.library.data.Book
 import com.example.librarytogether.feature.library.data.LibraryRepository
+import com.example.librarytogether.feature.library.data.PostBook
 import com.example.librarytogether.testing.MainDispatcherRule
 import com.example.librarytogether.testing.getOrAwaitValue
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -19,6 +21,7 @@ import org.mockito.Mockito.verify
 import org.mockito.Mockito.verifyNoMoreInteractions
 import org.mockito.Mockito.`when`
 import org.mockito.junit.MockitoJUnitRunner
+import org.mockito.kotlin.whenever
 
 @RunWith(MockitoJUnitRunner::class)
 class LibraryViewModelTest {
@@ -180,6 +183,67 @@ class LibraryViewModelTest {
     }
 
     @Test
+    fun addNewBook_success_refresh_and_navigate() = runTest {
+        val post = PostBook(title = "T", author = "A", publisher = null, isbn = null, isForBarter = true)
+        val newBookList =
+            listOf(Book(id = 1, title = "T", author = "A", publisher = null, isbn = null, coverUrl = null))
+
+        `when`(repo.addBook(post)).thenReturn(true)
+        `when`(repo.getMyBooks()).thenReturn(newBookList)
+
+        val vm = createVM()
+        // init {}
+        advanceUntilIdle()
+
+        // Act
+        vm.addNewBook(post)
+        advanceUntilIdle()
+
+        // Assert
+        assertThat(vm.myBooks.getOrAwaitValue().size, `is`(1))
+        assertThat(vm.navigateToLibrary.getOrAwaitValue(), `is`(true))
+
+        vm.onBookAddedNavigationComplete()
+
+        // Assert 2
+        assertThat(vm.navigateToLibrary.getOrAwaitValue(), `is`(false))
+    }
+
+    @Test
+    fun addNewBook_failure_sets_error() = runTest {
+        // Arrange
+        val post = PostBook("T", "A", null, null, true)
+        `when`(repo.addBook(post)).thenReturn(false)
+
+        val vm = createVM()
+        advanceUntilIdle()
+
+        // Act
+        vm.addNewBook(post)
+        advanceUntilIdle()
+
+        // Assert
+        assertThat(vm.error.getOrAwaitValue(), `is`("책 추가에 실패했습니다."))
+    }
+
+    @Test
+    fun addNewBook_exception_sets_error() = runTest {
+        // Arrange
+        val post = PostBook("T", "A", null, null, true)
+        `when`(repo.addBook(post)).thenThrow(RuntimeException("boom"))
+
+        val vm = createVM()
+        advanceUntilIdle()
+
+        // Act
+        vm.addNewBook(post)
+        advanceUntilIdle()
+
+        // Assert
+        assertThat(vm.error.getOrAwaitValue(), `is`("책 추가 중 오류가 발생했습니다."))
+    }
+
+    @Test
     fun refreshWishlist_throwsException_setsError() = runTest {
         // Arrange
         `when`(repo.getMyWishlist()).thenThrow(RuntimeException("Network Error"))
@@ -292,31 +356,7 @@ class LibraryViewModelTest {
         val error = vm.error.getOrAwaitValue()
         assertThat(error, `is`("프로필 저장에 실패했습니다."))
     }
-//    @Test
-//    fun saveProfile_repoReturnsNull_doesNotUpdateProfile_andSetsError() = runTest {
-//        // Arrange: 초기 프로필 로드
-//        val initialProfile = LibraryFixtures.profile(bio = "initial")
-//        `when`(repo.getMyProfile()).thenReturn(initialProfile)
-//
-//        val vm = createVM()
-//        advanceUntilIdle()
-//
-//        // 프로필 업데이트 시 Repository가 null을 반환하도록 설정
-//        val newProfileData = initialProfile.copy(bio = "updated")
-//        `when`(repo.updateMyProfile(newProfileData)).thenReturn(null)
-//
-//        // Act: 프로필 저장 시도
-//        vm.saveProfile(newProfileData)
-//        advanceUntilIdle()
-//
-//        // Assert:
-//        // 1. 에러 메시지가 설정되었는지 확인
-//        assertThat(vm.error.getOrAwaitValue(), `is`("프로필 저장에 실패했습니다."))
-//
-//        // 2. userProfile LiveData의 값이 이전 상태 그대로인지 확인 (중요)
-//        val finalProfile = vm.userProfile.getOrAwaitValue()
-//        assertThat(finalProfile?.bio, `is`("initial"))
-//    }
+
     // --- Add review ---
 
     @Test
@@ -385,43 +425,6 @@ class LibraryViewModelTest {
         assertThat(list.first().isLiked, `is`(false))
         assertThat(vm.error.getOrAwaitValue(), `is`("좋아요 처리에 실패했습니다."))
     }
-
-//    @Test
-//    fun toggleLike_listIsEmpty_doesNothing() = runTest {// Arrange: 초기 리뷰 목록이 비어있는 상태
-//        `when`(repo.getMyReviews()).thenReturn(emptyList())
-//        val vm = createVM()
-//        advanceUntilIdle()
-//
-//        val reviewToLike = LibraryFixtures.review(1)
-//
-//        // Act: 존재하지 않는 리뷰에 대해 좋아요 시도
-//        vm.toggleLike(reviewToLike)
-//        advanceUntilIdle()
-//
-//        // Assert: toggleReviewLike API가 아예 호출되지 않았는지 검증
-//        verify(repo, Mockito.never()).toggleReviewLike(reviewToLike.id)
-//        // 에러도 발생하지 않아야 함
-//        assertThat(vm.error.getOrAwaitValue(), `is`(null as String?))
-//    }
-//
-//    @Test
-//    fun toggleLike_targetReviewNotInList_doesNothing() = runTest {
-//        // Arrange: 좋아요 하려는 리뷰가 현재 목록에 없는 상태
-//        `when`(repo.getMyReviews()).thenReturn(listOf(LibraryFixtures.review(1)))
-//        val vm = createVM()
-//        advanceUntilIdle()
-//
-//        val notExistingReview = LibraryFixtures.review(99) // 목록에 없는 리뷰
-//
-//        // Act
-//        vm.toggleLike(notExistingReview)
-//        advanceUntilIdle()
-//
-//        // Assert: API가 호출되지 않았는지 검증 (indexOfFirst가 -1을 반환하는 경로)
-//        verify(repo, Mockito.never()).toggleReviewLike(notExistingReview.id)
-//        assertThat(vm.error.getOrAwaitValue(), `is`(null as String?))
-//    }
-    // --- Error reset ---
 
     @Test
     fun onErrorShown_resetsErrorToNull() = runTest {

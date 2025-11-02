@@ -29,8 +29,12 @@ testRunner = "1.6.1"
 espresso = "3.6.1"
 mockitoAndroid = "5.11.0"
 navigation = "2.9.5"
+truth = "1.4.4"
+hamcrest = "2.2"
 
 [libraries]
+hamcrest = { group = "org.hamcrest", name = "hamcrest", version.ref = "hamcrest" } # <-- 이 라인 추가
+truth = { group = "com.google.truth", name = "truth", version.ref = "truth" }
 hilt-android-testing = { group = "com.google.dagger", name = "hilt-android-testing", version.ref = "hilt" }
 hilt-android-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
 androidx-fragment-testing = { group = "androidx.fragment", name = "fragment-testing", version.ref = "fragmentTesting" }

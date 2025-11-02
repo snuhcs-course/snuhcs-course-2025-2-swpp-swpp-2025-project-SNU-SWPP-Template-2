@@ -37,5 +37,9 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    fun clearSearch() {
+        _results.value = emptyList()
+    }
+
     fun onErrorShown() { _error.value = null }
 }
