@@ -133,6 +133,17 @@
     <string name="book_note_placeholder">한 줄 메모</string>
     <string name="more_options">더보기</string>
 
+    <!-- 책 추가-->
+    <string name="add_book_title">내 서재에 책 추가</string>
+    <string name="save">저장</string>
+    <string name="book_title_hint">책 제목</string>
+    <string name="book_author_hint">저자</string>
+    <string name="book_publisher_hint">출판사</string>
+    <string name="book_isbn_hint">ISBN</string>
+    <string name="add_book_cover_desc">책 표지 이미지 추가/수정</string>
+    <string name="book_search_paste_desc">ISBN으로 검색 또는 붙여넣기</string>
+    <string name="book_add_barter_toggle_label">교환 가능</string>
+
     <!-- fab -->
     <string name="fab_add_review">리뷰 추가</string>
     <string name="fab_add_book">책 추가</string>
@@ -145,5 +156,9 @@
     <string name="library_books_empty">내 책장에 등록된 책이 없어요.</string>
     <string name="profile_field_empty">입력된 내용이 없습니다.</string>
     <string name="profile_bio_empty">소개글이 없습니다.</string>
+
+    <!-- photo-->
+    <string name="review_photos">사진</string>
+    <string name="review_add_photo">사진 추가</string>
 
 </resources>

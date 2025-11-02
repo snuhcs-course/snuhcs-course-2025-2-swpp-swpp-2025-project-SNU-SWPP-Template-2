@@ -1,7 +1,5 @@
 package com.example.librarytogether.feature.library.data
 
-import com.example.librarytogether.feature.library.data.Review
-
 //data class ApiResponse<T>(
 //    val success: Boolean,
 //    val data: T? = null,
@@ -37,18 +35,31 @@ data class Review(
     val isLiked: Boolean = false,
 )
 
-data class postReview(
+data class PostReview(
     val bookTitle: String,
     val authorName: String,
     val content: String,
+    val publisher: String?,
+    val isbn: String?,
     val imageUrls: List<String> = emptyList(),
 )
 
 data class Book(
-    val id: String,
+    val id: Int,
     val title: String,
     val author: String?,
     val coverUrl: String?,
+    val publisher: String?,
+    val isbn: String?
+)
+
+data class PostBook(
+    val title: String,
+    val author: String,
+    val publisher: String?,
+    val isbn: String?,
+    val isForBarter: Boolean,
+    val coverUrl: String? = null
 )
 
 data class UserProfile(

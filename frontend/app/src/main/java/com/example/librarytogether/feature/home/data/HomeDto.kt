@@ -31,7 +31,8 @@ data class Post(
     val imageUrls: List<String> = emptyList(),
     val likeCount: Int = 0,
     val createdAt: String? = null,
-    val isLiked: Boolean = false
+    val isLiked: Boolean = false,
+    val userBookId: Int // 교환 대상 책 아이디
 )
 
 data class FeedResponse(
