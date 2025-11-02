@@ -116,7 +116,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           </View>
           <Text style={$userName}>{user.name}</Text>
           
-          <TouchableOpacity style={$editButton} onPress={() => setIsPreferencesModalVisible(true)}>
+          <TouchableOpacity 
+            testID="settings-button"
+            style={$editButton} 
+            onPress={() => setIsPreferencesModalVisible(true)}
+          >
             <Text style={$editButtonText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
@@ -230,6 +234,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       <View style={$bottomTabs}>
         <TouchableOpacity
           style={$tabButton}
+          testID="FoodigramTab"
           onPress={() => {
             if (__DEV__) {
               console.log(`Profile: navigated to Foodigram`)
@@ -242,7 +247,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={$tabButton}
+          style={[$tabButton, $tabButtonActive]}
+          testID="UserTab"
           onPress={() => {
             if (__DEV__) {
               console.log(`Profile: tapped profile button (already on Profile)`)
@@ -258,6 +264,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       {/* Floating Add Button - Only show on My Photos tab */}
       {activeTab === 'photos' && (
         <TouchableOpacity 
+          testID="refresh-button"
           style={$floatingButton}
           onPress={() => {
             scanAlbums((asset: Asset) => {
@@ -507,6 +514,10 @@ const $tabButton: ViewStyle = {
   justifyContent: "center",
   paddingVertical: spacing.sm,
   gap: 4,
+}
+
+const $tabButtonActive: ViewStyle = {
+  backgroundColor: colors.palette.primary500,
 }
 
 const $tabButtonText: TextStyle = {
