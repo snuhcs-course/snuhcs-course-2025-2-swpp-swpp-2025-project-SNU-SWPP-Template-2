@@ -1,3 +1,4 @@
+import sys
 """
 음식점 & 메뉴 추천 시스템 (ChromaDB 버전)
 
@@ -128,7 +129,10 @@ class DocumentTemplateGenerator:
             
             # 키워드 추출
             keyword_list = place_data.get("keyword_list", [])
-            keywords = [kw.get("label", "") for kw in keyword_list[:8] if kw.get("label")]
+            if type(keyword_list[0]) == type(dict):
+                keywords = [kw.get("label", "") for kw in keyword_list[:8] if kw.get("label")]
+            else:
+                keywords = keyword_list
             
             # 투표 키워드 추출
             voted_keywords = []
@@ -183,7 +187,6 @@ class DocumentTemplateGenerator:
             group3 = place_data.get("group3", "")
             location = f"{group1}/{group2}/{group3}"
             
-            # 좌표
             x = float(place_data.get("x", 0))
             y = float(place_data.get("y", 0))
             coordinates = (x, y)
@@ -198,7 +201,10 @@ class DocumentTemplateGenerator:
             
             # 키워드 추출
             keyword_list = place_data.get("keyword_list", [])
-            keywords = [kw.get("label", "") for kw in keyword_list[:8] if kw.get("label")]
+            if isinstance(keyword_list[0], str):
+                keywords = [kw for kw in keyword_list[:8]]
+            else:
+                keywords = [kw.get("label", "") for kw in keyword_list[:8] if kw.get("label")]
             
             # 투표 키워드 추출
             voted_keywords = []
@@ -207,6 +213,7 @@ class DocumentTemplateGenerator:
                 if detail.get("displayName"):
                     voted_keywords.append(detail["displayName"])
             
+            # 좌표
             # 특징(배지) 추출
             features = []
             feature_list = place_data.get("features", [])
@@ -220,6 +227,7 @@ class DocumentTemplateGenerator:
                 avg_price, voted_keywords, features
             )
             
+            # 좌표
             return PlaceDocument(
                 id=place_id,
                 name=name,
@@ -371,7 +379,7 @@ def process_restaurant_data(restaurant_data: List[Dict]) -> Tuple[List[MenuDocum
             place_documents.append(place_doc)
             
             # 메뉴 문서 생성
-            menus = place_data.get("menus", [])
+            menus = detail_info.get("menus", [])
             if menus:
                 for menu in menus:
                     menu_doc = template_generator.build_menu_document(place_data, menu, visitor_review_stats)
@@ -382,7 +390,7 @@ def process_restaurant_data(restaurant_data: List[Dict]) -> Tuple[List[MenuDocum
                 for i, keyword in enumerate(keyword_list[:5]):
                     fake_menu = {
                         "id": f"{place_data.get('id', '')}_{i}",
-                        "name": keyword.get("label", ""),
+                        "name": keyword.get("label", "") if isinstance(keyword, dict) else keyword,
                         "index": i,
                         "price": "0",
                         "images": []
@@ -402,7 +410,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
     
     # 데이터 로드
-    json_file_path = "/Users/jaejoon/swpp-2025-project-team-13/server/restaurant/management/commands/장블랑제리_상세.json"
+    json_file_path = "restaurant/management/commands/관악구_음식점_상세_전체.json"
     restaurant_data = load_restaurant_data(json_file_path)
     
     # 데이터 처리
