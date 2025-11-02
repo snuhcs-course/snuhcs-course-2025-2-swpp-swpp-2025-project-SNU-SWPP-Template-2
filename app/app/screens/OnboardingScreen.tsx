@@ -64,7 +64,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     spicy_level: 2,
     sweet_level: 2,
     salty_level: 2,
-    exploration_preference: 2.5,
+    exploration_preference: 2,
     allergies: [],
     disliked_ingredients: [],
     favorite_cuisines: []
@@ -95,6 +95,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
         spicy_level: Math.round(preferences.spicy_level * 2.5),
         sweet_level: Math.round(preferences.sweet_level * 2.5),
         salty_level: Math.round(preferences.salty_level * 2.5),
+        exploration_preference: Math.round(preferences.exploration_preference * 2.5),
       }
       const response = await api.savePreferences(apiPreferences)
       if (response.ok) {
@@ -138,7 +139,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     value: number,
     minLabel: string,
     maxLabel: string,
-    key: 'sweet_level' | 'salty_level' | 'spicy_level'
+    key: 'sweet_level' | 'salty_level' | 'spicy_level' | 'exploration_preference'
   ) => (
     <View style={$sliderContainer}>
       <Text style={$sliderLabel}>{label}</Text>
@@ -179,31 +180,13 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
         {renderSlider('Sweet', preferences.sweet_level, 'Not Sweet', 'Very Sweet', 'sweet_level')}
         {renderSlider('Salty', preferences.salty_level, 'Not Salty', 'Very Salty', 'salty_level')}
         {renderSlider('Spicy', preferences.spicy_level, 'Not Spicy', 'Very Spicy', 'spicy_level')}
-      </View>
-
-      <View style={$sliderContainer}>
-        <Text style={$sliderLabel}>
-          Food Exploration: {preferences.exploration_preference.toFixed(1)}
-        </Text>
-        <Text style={$sliderDescription}>
-          How adventurous are you with food?
-        </Text>
-        <View style={$explorationLabels}>
-          <Text style={$explorationLabelText}>Familiar</Text>
-          <Text style={$explorationLabelText}>Adventurous</Text>
-        </View>
-        <View style={$sliderTrack}>
-          {[0, 1, 2, 3, 4, 5].map((value) => (
-            <TouchableOpacity
-              key={value}
-              style={[
-                $sliderDot,
-                value <= preferences.exploration_preference ? $sliderDotActive : $sliderDotInactive
-              ]}
-              onPress={() => updatePreference('exploration_preference', value)}
-            />
-          ))}
-        </View>
+        {renderSlider(
+          'Food Exploration',
+          preferences.exploration_preference,
+          'Familiar',
+          'Adventurous',
+          'exploration_preference'
+        )}
       </View>
     </View>
   )
