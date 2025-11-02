@@ -39,6 +39,7 @@ class UserPreference(models.Model):
     spicy_level = models.PositiveSmallIntegerField(default=0)
     sweet_level = models.PositiveSmallIntegerField(default=0)
     salty_level = models.PositiveSmallIntegerField(default=0)
+    exploration_preference = models.FloatField(default=2.5, help_text="0=familiar foods, 5=adventurous")
     allergies = models.JSONField(default=list, blank=True)
     disliked_ingredients = models.JSONField(default=list, blank=True)
     favorite_cuisines = models.JSONField(default=list, blank=True)

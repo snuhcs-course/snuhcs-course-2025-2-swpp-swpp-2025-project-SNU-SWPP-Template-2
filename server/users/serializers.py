@@ -49,6 +49,7 @@ class UserPreferenceSerializer(serializers.ModelSerializer):
             "spicy_level", 
             "sweet_level", 
             "salty_level", 
+            "exploration_preference",
             "allergies", 
             "disliked_ingredients", 
             "favorite_cuisines", 
@@ -69,6 +70,11 @@ class UserPreferenceSerializer(serializers.ModelSerializer):
     def validate_salty_level(self, value):
         if value < 0 or value > 10:
             raise serializers.ValidationError("Salty level must be between 0 and 10")
+        return value
+    
+    def validate_exploration_preference(self, value):
+        if value < 0 or value > 5:
+            raise serializers.ValidationError("Exploration preference must be between 0 and 5")
         return value
 
 

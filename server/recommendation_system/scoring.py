@@ -233,9 +233,19 @@ class HybridScorer:
 class MMRReranker:
     """MMR 리랭크 클래스"""
     
-    def __init__(self, lambda_param: float = 0.7):
-        self.lambda_param = lambda_param  # 다양성 vs 관련성 균형
+    def __init__(self, lambda_param: float = None, exploration_preference: float = None):
+        # exploration_preference가 주어진 경우 동적으로 lambda 계산
+        if exploration_preference is not None:
+            # 0 (familiar) -> lambda=0.9 (관련성 중시)
+            # 5 (adventurous) -> lambda=0.3 (다양성 중시)
+            self.lambda_param = 0.9 - (exploration_preference / 5.0) * 0.6
+        elif lambda_param is not None:
+            self.lambda_param = lambda_param
+        else:
+            self.lambda_param = 0.7  # 기본값
+        
         self.logger = logging.getLogger(__name__)
+        self.logger.info(f"MMR initialized with lambda={self.lambda_param:.2f}")
     
     def rerank_with_mmr(self, items: List[Tuple[Any, float]], 
                        max_results: int = 20) -> List[Tuple[Any, float]]:
