@@ -1,7 +1,5 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-
-from server.users.image_utils import get_food_image_category
 from .models import User, Profile, Follow, UserGalleryImage
 
 
@@ -56,10 +54,8 @@ def list_follow_suggestions(*, user: User, limit: int = 10):
         .order_by("-date_joined")[:limit]
     )
 
-@transaction.atomic
 def upload_user_photo(*, user: User, photo_url: str) -> str:
     photo = UserGalleryImage.objects.create(user=user, image_url=photo_url)
-    photo.category_tag = get_food_image_category(photo_url)
     return photo
 
 def list_user_photos(*, user: User):
