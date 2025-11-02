@@ -92,6 +92,22 @@ class User(AbstractUser):
     )
     birth_date = models.DateField(null=True, blank=True)
 
+    # GPS Location (for barter proximity and user location features)
+    latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Current latitude coordinate",
+    )
+    longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Current longitude coordinate",
+    )
+
     # Profile Picture
     profile_picture = models.ImageField(
         upload_to="profile_pictures/",
@@ -127,7 +143,7 @@ class User(AbstractUser):
         "self", through="Follow", related_name="following", symmetrical=False
     )
 
-    # User Taste Information
+    # User Taste Information #(가입할때만 하게. skip하고 싶을수도있으니까)
     has_initial_taste = models.BooleanField(default=False)
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -170,6 +186,21 @@ class User(AbstractUser):
             except Exception:
                 # don't crash user save on image processing errors
                 pass
+
+    @property
+    def follower_count(self):
+        """Return the number of followers."""
+        return self.follower_relationships.count()
+
+    @property
+    def following_count(self):
+        """Return the number of users this user is following."""
+        return self.following_relationships.count()
+
+    @property
+    def post_count(self):
+        """Return the number of posts this user has created."""
+        return self.posts.count()
 
 
 class UserTaste(models.Model):
@@ -216,9 +247,35 @@ class UserTaste(models.Model):
         default=list, help_text="List of reading purposes (keys)"
     )
 
+    # Step 7: Trade style (location and place)
+    trade_place_name = models.CharField(
+        max_length=120,
+        blank=True,
+        help_text="Preferred trade place name (e.g., cafe, library)",
+    )
+    trade_address = models.CharField(
+        max_length=200,
+        blank=True,
+        help_text="Preferred trade address (optional)",
+    )
+    trade_latitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Preferred trade latitude coordinate",
+    )
+    trade_longitude = models.DecimalField(
+        max_digits=9,
+        decimal_places=6,
+        null=True,
+        blank=True,
+        help_text="Preferred trade longitude coordinate",
+    )
+
     # Categorization progress (1..6)
     current_step = models.IntegerField(
-        default=1, help_text="Current categorization step (1-6)"
+        default=1, help_text="Current categorization step (1-7)"
     )
 
     created_at = models.DateTimeField(auto_now_add=True)
