@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.librarytogether.R
 import com.example.librarytogether.feature.notification.data.NotificationDto
+import com.example.librarytogether.util.TimeUtils
 import de.hdodenhof.circleimageview.CircleImageView
 
 data class NotificationClicks(
@@ -32,7 +33,9 @@ class NotificationAdapter(
         fun bind(item: NotificationDto) {
             tvUser.text = item.title
             tvBody.text = item.body
-            tvTime.text = formatRelativeTime(item.createdAt)
+
+            tvTime.text = TimeUtils.relativeTime(itemView.context, item.createdAt)
+
             btnAction.text = "교환"
             tvUser.setTypeface(null, if (item.isRead) Typeface.NORMAL else Typeface.BOLD)
             Glide.with(itemView).load(R.drawable.sample_profile).into(imgProfile)
@@ -52,19 +55,3 @@ class NotificationAdapter(
         holder.bind(getItem(position))
     }
 }
-
-private fun formatRelativeTime(iso: String): String {
-    return try {
-        val time = java.time.OffsetDateTime.parse(iso)
-        val diffMin = java.time.Duration.between(time, java.time.OffsetDateTime.now()).toMinutes()
-        when {
-            diffMin < 1 -> "방금 전"
-            diffMin < 60 -> "${diffMin}분 전"
-            diffMin < 60 * 24 -> "${diffMin / 60}시간 전"
-            else -> "${diffMin / (60 * 24)}일 전"
-        }
-    } catch (e: Exception) {
-        ""
-    }
-}
-

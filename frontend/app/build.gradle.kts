@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.example.librarytogether"
-    compileSdk = 36
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.librarytogether"
@@ -86,5 +86,6 @@ dependencies {
     implementation("com.kakao.sdk:v2-user:2.20.0")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
 
 }
