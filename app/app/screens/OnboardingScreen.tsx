@@ -13,6 +13,7 @@ interface UserPreferences {
   spicy_level: number
   sweet_level: number
   salty_level: number
+  exploration_preference: number
   allergies: string[]
   disliked_ingredients: string[]
   favorite_cuisines: string[]
@@ -63,6 +64,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     spicy_level: 2,
     sweet_level: 2,
     salty_level: 2,
+    exploration_preference: 2.5,
     allergies: [],
     disliked_ingredients: [],
     favorite_cuisines: []
@@ -177,6 +179,31 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
         {renderSlider('Sweet', preferences.sweet_level, 'Not Sweet', 'Very Sweet', 'sweet_level')}
         {renderSlider('Salty', preferences.salty_level, 'Not Salty', 'Very Salty', 'salty_level')}
         {renderSlider('Spicy', preferences.spicy_level, 'Not Spicy', 'Very Spicy', 'spicy_level')}
+      </View>
+
+      <View style={$sliderContainer}>
+        <Text style={$sliderLabel}>
+          Food Exploration: {preferences.exploration_preference.toFixed(1)}
+        </Text>
+        <Text style={$sliderDescription}>
+          How adventurous are you with food?
+        </Text>
+        <View style={$explorationLabels}>
+          <Text style={$explorationLabelText}>Familiar</Text>
+          <Text style={$explorationLabelText}>Adventurous</Text>
+        </View>
+        <View style={$sliderTrack}>
+          {[0, 1, 2, 3, 4, 5].map((value) => (
+            <TouchableOpacity
+              key={value}
+              style={[
+                $sliderDot,
+                value <= preferences.exploration_preference ? $sliderDotActive : $sliderDotInactive
+              ]}
+              onPress={() => updatePreference('exploration_preference', value)}
+            />
+          ))}
+        </View>
       </View>
     </View>
   )
@@ -407,6 +434,24 @@ const $sliderLabel: TextStyle = {
 const $sliderTrackWrapper: ViewStyle = {
   height: 40,
   justifyContent: "center",
+}
+
+const $sliderDescription: TextStyle = {
+  fontSize: 14,
+  color: colors.palette.neutral600,
+  marginBottom: spacing.xs,
+}
+
+const $explorationLabels: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  marginBottom: spacing.xs,
+}
+
+const $explorationLabelText: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral500,
+  fontStyle: "italic",
 }
 
 const $sliderTrack: ViewStyle = {
