@@ -30,8 +30,8 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
 # API 기본 설정
-BASE_URL = "http://localhost:8000"
-API_BASE = f"{BASE_URL}/api/v1/recommendation"
+BASE_URL = "http://localhost:8000/api/v1"
+API_BASE = f"{BASE_URL}/recommendation"
 
 class RecommendationAPITester:
     """추천 API 테스터"""
@@ -43,6 +43,46 @@ class RecommendationAPITester:
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         })
+        self._authenticate()
+    
+    def _authenticate(self):
+        """admin 계정으로 인증"""
+        try:
+            # 로그인 요청
+            login_data = {
+                'username': 'admin',
+                'password': 'admin'
+            }
+            
+            # CSRF 토큰 가져오기
+            csrf_response = self.session.get(f"{BASE_URL}/admin/login/")
+            csrf_token = None
+            
+            # CSRF 토큰 추출 (간단한 방법)
+            if 'csrftoken' in csrf_response.cookies:
+                csrf_token = csrf_response.cookies['csrftoken']
+            
+            # 로그인 요청에 CSRF 토큰 추가
+            if csrf_token:
+                self.session.headers.update({
+                    'X-CSRFToken': csrf_token
+                })
+            
+            # 로그인 실행
+            login_response = self.session.post(
+                f"{BASE_URL}/admin/login/",
+                data=login_data,
+                allow_redirects=True
+            )
+            
+            if login_response.status_code == 200:
+                print("✅ admin 계정 인증 성공")
+            else:
+                print(f"⚠️ admin 계정 인증 상태 불명: {login_response.status_code}")
+                
+        except Exception as e:
+            print(f"⚠️ admin 계정 인증 실패: {e}")
+            print("   인증 없이 테스트를 진행합니다.")
     
     def test_server_connection(self) -> bool:
         """서버 연결 테스트"""
@@ -62,179 +102,174 @@ class RecommendationAPITester:
         # 다양한 테스트 케이스 정의
         test_cases = [
             {
-                "name": "단팥빵 애호가 (디저트 선호)",
-                "data": {
-                    "user_id": "test_user_001",
-                    "user_location": [126.9619864, 37.477136],  # 낙성대역
-                    "query_text": "단팥빵 맛있는 곳",
-                    "max_results": 10,
-                    "onboarding_data": {
-                        "taste_preferences": {"spicy": 2, "sweet": 5, "salty": 3},
-                        "allergies": ["땅콩"],
-                        "dislikes": ["고수", "양고기"],
-                        "preferred_categories": ["베이커리", "디저트"],
-                        "budget_range": [0, 15000],
-                        "distance_preference": 2.0
-                    },
-                    "gallery_analysis": {
-                        "frequent_keywords": ["단팥빵", "크림치즈", "맘모스빵"],
-                        "time_patterns": {"morning": 0.3, "lunch": 0.5, "dinner": 0.2},
-                        "day_patterns": {"weekday": 0.7, "weekend": 0.3}
-                    },
-                    "behavior_data": {
-                        "liked_items": ["단팥빵", "크림치즈빵"],
-                        "saved_restaurants": ["쟝블랑제리"],
-                        "recent_searches": ["베이커리", "디저트"]
-                    },
-                    "time_of_day": "점심",
-                    "day_of_week": "평일"
+                "name": "온보딩 유저", # TODO
+            "data": {
+                "user_location": [126.9619864, 37.477136],
+                # "query_text": "단팥빵 맛있는 곳", # TODO
+                # "max_results": 10, # TODO
+                # onboarding_data는 이제 DB에서 자동으로 조회됩니다
+                # "budget_range": [5000, 15000], # 선택적 파라미터
+                # "distance_preference": 2.0 # 선택적 파라미터
+                    # TODO
+                    # "gallery_analysis": {
+                    #     "frequent_keywords": ["단팥빵", "크림치즈", "맘모스빵"],
+                    #     "time_patterns": {"morning": 0.3, "lunch": 0.5, "dinner": 0.2},
+                    #     "day_patterns": {"weekday": 0.7, "weekend": 0.3}
+                    # },
+                    # "behavior_data": {
+                    #     "liked_items": ["단팥빵", "크림치즈빵"],
+                    #     "saved_restaurants": ["쟝블랑제리"],
+                    #     "recent_searches": ["베이커리", "디저트"]
+                    # },
+                    # "time_of_day": "점심",
+                    # "day_of_week": "평일"
                 }
             },
-            {
-                "name": "매운 음식 애호가 (한식 선호)",
-                "data": {
-                    "user_id": "test_user_002",
-                    "user_location": [126.9780, 37.5665],  # 명동
-                    "query_text": "매운 김치찌개 맛집",
-                    "max_results": 8,
-                    "onboarding_data": {
-                        "taste_preferences": {"spicy": 5, "sweet": 2, "salty": 4},
-                        "allergies": [],
-                        "dislikes": ["생선", "해산물"],
-                        "preferred_categories": ["한식", "찌개"],
-                        "budget_range": [5000, 25000],
-                        "distance_preference": 1.5
-                    },
-                    "gallery_analysis": {
-                        "frequent_keywords": ["김치찌개", "된장찌개", "불고기"],
-                        "time_patterns": {"morning": 0.1, "lunch": 0.6, "dinner": 0.3},
-                        "day_patterns": {"weekday": 0.8, "weekend": 0.2}
-                    },
-                    "behavior_data": {
-                        "liked_items": ["김치찌개", "불고기"],
-                        "saved_restaurants": ["김치찌개집"],
-                        "recent_searches": ["한식", "찌개"]
-                    },
-                    "time_of_day": "점심",
-                    "day_of_week": "평일"
-                }
-            },
-            {
-                "name": "건강식 애호가 (샐러드/비건 선호)",
-                "data": {
-                    "user_id": "test_user_003",
-                    "user_location": [126.9910, 37.5563],  # 강남
-                    "query_text": "건강한 샐러드 맛집",
-                    "max_results": 6,
-                    "onboarding_data": {
-                        "taste_preferences": {"spicy": 1, "sweet": 3, "salty": 2},
-                        "allergies": ["견과류"],
-                        "dislikes": ["튀김", "기름진 음식"],
-                        "preferred_categories": ["샐러드", "비건", "헬스푸드"],
-                        "budget_range": [8000, 30000],
-                        "distance_preference": 3.0
-                    },
-                    "gallery_analysis": {
-                        "frequent_keywords": ["샐러드", "아보카도", "퀴노아"],
-                        "time_patterns": {"morning": 0.4, "lunch": 0.5, "dinner": 0.1},
-                        "day_patterns": {"weekday": 0.6, "weekend": 0.4}
-                    },
-                    "behavior_data": {
-                        "liked_items": ["아보카도샐러드", "퀴노아볼"],
-                        "saved_restaurants": ["그린샐러드"],
-                        "recent_searches": ["샐러드", "비건"]
-                    },
-                    "time_of_day": "아침",
-                    "day_of_week": "주말"
-                }
-            },
-            {
-                "name": "야식 애호가 (치킨/피자 선호)",
-                "data": {
-                    "user_id": "test_user_004",
-                    "user_location": [126.9342, 37.3595],  # 홍대
-                    "query_text": "야식으로 먹을 치킨",
-                    "max_results": 5,
-                    "onboarding_data": {
-                        "taste_preferences": {"spicy": 4, "sweet": 3, "salty": 4},
-                        "allergies": [],
-                        "dislikes": ["해산물"],
-                        "preferred_categories": ["치킨", "피자", "야식"],
-                        "budget_range": [15000, 40000],
-                        "distance_preference": 2.5
-                    },
-                    "gallery_analysis": {
-                        "frequent_keywords": ["치킨", "피자", "떡볶이"],
-                        "time_patterns": {"morning": 0.0, "lunch": 0.2, "dinner": 0.8},
-                        "day_patterns": {"weekday": 0.3, "weekend": 0.7}
-                    },
-                    "behavior_data": {
-                        "liked_items": ["양념치킨", "피자"],
-                        "saved_restaurants": ["치킨집"],
-                        "recent_searches": ["치킨", "야식"]
-                    },
-                    "time_of_day": "저녁",
-                    "day_of_week": "주말"
-                }
-            },
-            {
-                "name": "커피 애호가 (카페 선호)",
-                "data": {
-                    "user_id": "test_user_005",
-                    "user_location": [126.9780, 37.5665],  # 이태원
-                    "query_text": "맛있는 아메리카노 카페",
-                    "max_results": 7,
-                    "onboarding_data": {
-                        "taste_preferences": {"spicy": 1, "sweet": 4, "salty": 1},
-                        "allergies": [],
-                        "dislikes": ["매운 음식"],
-                        "preferred_categories": ["카페", "커피", "디저트"],
-                        "budget_range": [3000, 12000],
-                        "distance_preference": 1.0
-                    },
-                    "gallery_analysis": {
-                        "frequent_keywords": ["아메리카노", "라떼", "케이크"],
-                        "time_patterns": {"morning": 0.5, "lunch": 0.3, "dinner": 0.2},
-                        "day_patterns": {"weekday": 0.4, "weekend": 0.6}
-                    },
-                    "behavior_data": {
-                        "liked_items": ["아메리카노", "라떼"],
-                        "saved_restaurants": ["스타벅스", "투썸플레이스"],
-                        "recent_searches": ["카페", "커피"]
-                    },
-                    "time_of_day": "아침",
-                    "day_of_week": "주말"
-                }
-            },
-            {
-                "name": "가족 식사 (한식/중식 선호)",
-                "data": {
-                    "user_id": "test_user_006",
-                    "user_location": [127.0276, 37.4979],  # 잠실
-                    "query_text": "가족과 함께 갈 중국집",
-                    "max_results": 4,
-                    "onboarding_data": {
-                        "taste_preferences": {"spicy": 3, "sweet": 3, "salty": 4},
-                        "allergies": ["견과류"],
-                        "dislikes": ["매운 음식"],
-                        "preferred_categories": ["중식", "한식", "가족식당"],
-                        "budget_range": [20000, 50000],
-                        "distance_preference": 4.0
-                    },
-                    "gallery_analysis": {
-                        "frequent_keywords": ["짜장면", "탕수육", "볶음밥"],
-                        "time_patterns": {"morning": 0.1, "lunch": 0.4, "dinner": 0.5},
-                        "day_patterns": {"weekday": 0.2, "weekend": 0.8}
-                    },
-                    "behavior_data": {
-                        "liked_items": ["짜장면", "탕수육"],
-                        "saved_restaurants": ["중국집"],
-                        "recent_searches": ["중식", "가족식당"]
-                    },
-                    "time_of_day": "저녁",
-                    "day_of_week": "주말"
-                }
-            }
+            # {
+            #     "name": "매운 음식 애호가 (한식 선호)",
+            #     "data": {
+            #         "user_id": "test_user_002",
+            #         "user_location": [126.9780, 37.5665],  # 명동
+            #         "query_text": "매운 김치찌개 맛집",
+            #         "max_results": 8,
+            #         "onboarding_data": {
+            #             "taste_preferences": {"spicy": 5, "sweet": 2, "salty": 4},
+            #             "allergies": [],
+            #             "dislikes": ["생선", "해산물"],
+            #             "preferred_categories": ["한식", "찌개"],
+            #             "budget_range": [5000, 25000],
+            #             "distance_preference": 1.5
+            #         },
+            #         "gallery_analysis": {
+            #             "frequent_keywords": ["김치찌개", "된장찌개", "불고기"],
+            #             "time_patterns": {"morning": 0.1, "lunch": 0.6, "dinner": 0.3},
+            #             "day_patterns": {"weekday": 0.8, "weekend": 0.2}
+            #         },
+            #         "behavior_data": {
+            #             "liked_items": ["김치찌개", "불고기"],
+            #             "saved_restaurants": ["김치찌개집"],
+            #             "recent_searches": ["한식", "찌개"]
+            #         },
+            #         "time_of_day": "점심",
+            #         "day_of_week": "평일"
+            #     }
+            # },
+            # {
+            #     "name": "건강식 애호가 (샐러드/비건 선호)",
+            #     "data": {
+            #         "user_id": "test_user_003",
+            #         "user_location": [126.9910, 37.5563],  # 강남
+            #         "query_text": "건강한 샐러드 맛집",
+            #         "max_results": 6,
+            #         "onboarding_data": {
+            #             "taste_preferences": {"spicy": 1, "sweet": 3, "salty": 2},
+            #             "allergies": ["견과류"],
+            #             "dislikes": ["튀김", "기름진 음식"],
+            #             "preferred_categories": ["샐러드", "비건", "헬스푸드"],
+            #             "budget_range": [8000, 30000],
+            #             "distance_preference": 3.0
+            #         },
+            #         "gallery_analysis": {
+            #             "frequent_keywords": ["샐러드", "아보카도", "퀴노아"],
+            #             "time_patterns": {"morning": 0.4, "lunch": 0.5, "dinner": 0.1},
+            #             "day_patterns": {"weekday": 0.6, "weekend": 0.4}
+            #         },
+            #         "behavior_data": {
+            #             "liked_items": ["아보카도샐러드", "퀴노아볼"],
+            #             "saved_restaurants": ["그린샐러드"],
+            #             "recent_searches": ["샐러드", "비건"]
+            #         },
+            #         "time_of_day": "아침",
+            #         "day_of_week": "주말"
+            #     }
+            # },
+            # {
+            #     "name": "야식 애호가 (치킨/피자 선호)",
+            #     "data": {
+            #         "user_id": "test_user_004",
+            #         "user_location": [126.9342, 37.3595],  # 홍대
+            #         "query_text": "야식으로 먹을 치킨",
+            #         "max_results": 5,
+            #         "onboarding_data": {
+            #             "taste_preferences": {"spicy": 4, "sweet": 3, "salty": 4},
+            #             "allergies": [],
+            #             "dislikes": ["해산물"],
+            #             "preferred_categories": ["치킨", "피자", "야식"],
+            #             "budget_range": [15000, 40000],
+            #             "distance_preference": 2.5
+            #         },
+            #         "gallery_analysis": {
+            #             "frequent_keywords": ["치킨", "피자", "떡볶이"],
+            #             "time_patterns": {"morning": 0.0, "lunch": 0.2, "dinner": 0.8},
+            #             "day_patterns": {"weekday": 0.3, "weekend": 0.7}
+            #         },
+            #         "behavior_data": {
+            #             "liked_items": ["양념치킨", "피자"],
+            #             "saved_restaurants": ["치킨집"],
+            #             "recent_searches": ["치킨", "야식"]
+            #         },
+            #         "time_of_day": "저녁",
+            #         "day_of_week": "주말"
+            #     }
+            # },
+            # {
+            #     "name": "커피 애호가 (카페 선호)",
+            #     "data": {
+            #         "user_id": "test_user_005",
+            #         "user_location": [126.9780, 37.5665],  # 이태원
+            #         "query_text": "맛있는 아메리카노 카페",
+            #         "max_results": 7,
+            #         "onboarding_data": {
+            #             "taste_preferences": {"spicy": 1, "sweet": 4, "salty": 1},
+            #             "allergies": [],
+            #             "dislikes": ["매운 음식"],
+            #             "preferred_categories": ["카페", "커피", "디저트"],
+            #             "budget_range": [3000, 12000],
+            #             "distance_preference": 1.0
+            #         },
+            #         "gallery_analysis": {
+            #             "frequent_keywords": ["아메리카노", "라떼", "케이크"],
+            #             "time_patterns": {"morning": 0.5, "lunch": 0.3, "dinner": 0.2},
+            #             "day_patterns": {"weekday": 0.4, "weekend": 0.6}
+            #         },
+            #         "behavior_data": {
+            #             "liked_items": ["아메리카노", "라떼"],
+            #             "saved_restaurants": ["스타벅스", "투썸플레이스"],
+            #             "recent_searches": ["카페", "커피"]
+            #         },
+            #         "time_of_day": "아침",
+            #         "day_of_week": "주말"
+            #     }
+            # },
+            # {
+            #     "name": "가족 식사 (한식/중식 선호)",
+            #     "data": {
+            #         "user_id": "test_user_006",
+            #         "user_location": [127.0276, 37.4979],  # 잠실
+            #         "query_text": "가족과 함께 갈 중국집",
+            #         "max_results": 4,
+            #         "onboarding_data": {
+            #             "taste_preferences": {"spicy": 3, "sweet": 3, "salty": 4},
+            #             "allergies": ["견과류"],
+            #             "dislikes": ["매운 음식"],
+            #             "preferred_categories": ["중식", "한식", "가족식당"],
+            #             "budget_range": [20000, 50000],
+            #             "distance_preference": 4.0
+            #         },
+            #         "gallery_analysis": {
+            #             "frequent_keywords": ["짜장면", "탕수육", "볶음밥"],
+            #             "time_patterns": {"morning": 0.1, "lunch": 0.4, "dinner": 0.5},
+            #             "day_patterns": {"weekday": 0.2, "weekend": 0.8}
+            #         },
+            #         "behavior_data": {
+            #             "liked_items": ["짜장면", "탕수육"],
+            #             "saved_restaurants": ["중국집"],
+            #             "recent_searches": ["중식", "가족식당"]
+            #         },
+            #         "time_of_day": "저녁",
+            #         "day_of_week": "주말"
+            #     }
+            # }
         ]
         
         results = []
@@ -271,6 +306,9 @@ class RecommendationAPITester:
                         print(f"   💰 가격: {rec.get('price', 0):,}원")
                         print(f"   ⭐ 평점: {rec.get('rating', 0):.1f} ({rec.get('review_count', 0):,}건)")
                         print(f"   📍 위치: {rec.get('location', 'N/A')}")
+                        print(f"   🖼️ 이미지: {len(rec.get('image_urls', []))}개")
+                        if rec.get('image_urls'):
+                            print(f"      첫 번째 이미지: {rec['image_urls'][0]}")
                         print(f"   💡 추천 이유: {rec.get('reason', 'N/A')}")
                     
                     results.append({

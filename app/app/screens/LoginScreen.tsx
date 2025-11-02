@@ -1,25 +1,20 @@
-import React, { useState } from "react"
-import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, Alert } from "react-native"
-import { TextField } from "app/components/TextField"
-import { Button } from "app/components/Button"
 import { Text } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
-import { colors, spacing } from "app/theme"
-import * as storage from "app/utils/storage"
 import { api } from "app/services/api"
 import { handleSignIn } from "app/services/aws/handleAwsSignin"
-import { signUp } from 'aws-amplify/auth';
+import * as storage from "app/utils/storage"
+import { Eye, EyeOff } from "lucide-react-native"
+import { observer } from "mobx-react-lite"
+import React, { useState } from "react"
+import { Alert, TextInput, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native"
 
 interface LoginScreenProps extends AppStackScreenProps<"Login"> { }
 
 export const LoginScreen = observer(function LoginScreen({ navigation }: LoginScreenProps) {
-  const [isLoginMode, setIsLoginMode] = useState(true)
   const [username, setUsername] = useState("")
-  const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   async function tryLogin() {
     if (!username.trim() || !password.trim()) {
@@ -65,211 +60,185 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
     }
   }
 
-  type SignUpParameters = {
-    username: string;
-    password: string;
-    email: string;
-  };
-
-  async function handleAwsSignUp({
-    username,
-    password,
-    email,
-  }: SignUpParameters) {
-    try {
-      const { isSignUpComplete, userId, nextStep } = await signUp({
-        username,
-        password,
-        options: {
-          userAttributes: {
-            email,
-          },
-          // optional
-          autoSignIn: true, // or SignInOptions e.g { authFlowType: "USER_SRP_AUTH" }
-        },
-      });
-
-      console.log(`AWS Amplify userId: ${userId}`);
-
-      if (!isSignUpComplete) {
-        throw new Error(`Sign up not complete - something wrong with autosignin. Next step: ${JSON.stringify(nextStep)}`);
-      }
-    } catch (error) {
-      console.log('error signing up:', error);
-    }
-  }
-
-  async function tryRegister() {
-    // Form validation
-    if (!username.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert("Error", "Please fill in all fields.")
-      return
-    }
-
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match.")
-      return
-    }
-
-    if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters long.")
-      return
-    }
-
-    // Email format validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Please enter a valid email format.")
-      return
-    }
-
-    setIsLoading(true)
-    try {
-      // Ensure CSRF cookie is set
-      await api.getCsrf();
-      const res = await api.register(username, email, password);
-      handleAwsSignUp({username, password, email});
-      if (!res.ok) {
-        const errorMessage = (res.data as any)?.detail || "Registration failed."
-        Alert.alert("Registration Failed", errorMessage)
-        return
-      }
-
-      // Auto login after successful registration
-      await storage.saveString("IS_LOGGED_IN", "true")
-      Alert.alert("Success", "Registration completed!", [
-        {
-          text: "OK",
-          onPress: () => {
-            // New users always go to onboarding
-            navigation.replace("Onboarding")
-          }
-        }
-      ])
-    } catch (e) {
-      Alert.alert("Error", "An error occurred during registration.")
-      console.log(e)
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  function resetForm() {
-    setUsername("")
-    setEmail("")
-    setPassword("")
-    setConfirmPassword("")
-  }
-
-  function toggleMode() {
-    setIsLoginMode(!isLoginMode)
-    resetForm()
+  function navigateToSignUp() {
+    navigation.navigate("SignUp")
   }
 
   return (
-    <View style={$container}>
-      <View style={$form}>
-        <Text style={$title}>{isLoginMode ? "Login" : "Sign Up"}</Text>
+    <View style={$containerNew}>
+      <View style={$contentWrapper}>
+        <View style={$formNew}>
+          <View style={$inputWrapper}>
+            <Text style={$label}>Username</Text>
+            <TextInput
+              style={$input}
+              placeholder="Enter your username"
+              placeholderTextColor="#9c5749"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
+          </View>
 
-        <TextField
-          placeholder="Username"
-          value={username}
-          onChangeText={setUsername}
-          autoCapitalize="none"
-        />
+          <View style={$inputWrapper}>
+            <Text style={$label}>Password</Text>
+            <View style={$passwordContainer}>
+              <TextInput
+                style={$passwordInput}
+                placeholder="Enter your password"
+                placeholderTextColor="#9c5749"
+                secureTextEntry={!showPassword}
+                value={password}
+                onChangeText={setPassword}
+              />
+              <TouchableOpacity 
+                style={$eyeButton}
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <Eye size={24} color="#9c5749" />
+                ) : (
+                  <EyeOff size={24} color="#9c5749" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
 
-        {!isLoginMode && (
-          <TextField
-            placeholder="Email"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
-        )}
+          <TouchableOpacity style={$forgotPassword}>
+            <Text style={$forgotPasswordText}>Forgot Password?</Text>
+          </TouchableOpacity>
 
-        <TextField
-          placeholder="Password"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
+          <TouchableOpacity 
+            style={[$loginButton, isLoading && $loginButtonDisabled]}
+            onPress={tryLogin}
+            disabled={isLoading}
+          >
+            <Text style={$loginButtonText}>Log In</Text>
+          </TouchableOpacity>
 
-        {!isLoginMode && (
-          <TextField
-            placeholder="Confirm Password"
-            secureTextEntry
-            value={confirmPassword}
-            onChangeText={setConfirmPassword}
-          />
-        )}
-
-        {!isLoginMode && (
-          <Text style={$validationText}>
-            • Password must be at least 8 characters{'\n'}
-            • Passwords must match{'\n'}
-            • Email must be valid format
-          </Text>
-        )}
-
-        <Button
-          text={isLoginMode ? "Log In" : "Sign Up"}
-          style={$submitButton}
-          onPress={isLoginMode ? tryLogin : tryRegister}
-          disabled={isLoading}
-        />
-
-        <TouchableOpacity onPress={toggleMode} style={$toggleButton}>
-          <Text style={$toggleText}>
-            {isLoginMode ? "Don't have an account? Sign Up" : "Already have an account? Log In"}
-          </Text>
-        </TouchableOpacity>
+          <View style={$signUpPrompt}>
+            <Text style={$signUpPromptText}>
+              Don't have an account?{" "}
+              <Text style={$signUpLink} onPress={navigateToSignUp}>
+                Sign Up
+              </Text>
+            </Text>
+          </View>
+        </View>
       </View>
     </View>
   )
 })
 
-const $container: ViewStyle = {
+const $containerNew: ViewStyle = {
   flex: 1,
-  backgroundColor: colors.background,
+  backgroundColor: "#f8f6f5",
   justifyContent: "center",
-  padding: spacing.lg,
+  alignItems: "center",
+  paddingHorizontal: 16,
+  paddingVertical: 40,
 }
 
-const $form: ViewStyle = {
-  backgroundColor: colors.palette.neutral100,
-  padding: spacing.lg,
-  borderRadius: 12,
-}
-
-const $title: TextStyle = {
-  fontSize: 24,
-  fontWeight: "bold",
-  textAlign: "center",
-  marginBottom: spacing.lg,
-  color: colors.text,
-}
-
-const $submitButton: ViewStyle = {
-  marginTop: spacing.md,
-}
-
-const $toggleButton: ViewStyle = {
-  marginTop: spacing.md,
+const $contentWrapper: ViewStyle = {
+  width: "100%",
+  maxWidth: 480,
   alignItems: "center",
 }
 
-const $toggleText: TextStyle = {
-  color: colors.palette.primary500,
+const $formNew: ViewStyle = {
+  width: "100%",
+}
+
+const $inputWrapper: ViewStyle = {
+  width: "100%",
+  marginBottom: 12,
+}
+
+const $label: TextStyle = {
+  fontSize: 16,
+  fontWeight: "500",
+  color: "#1c100d",
+  marginBottom: 8,
+}
+
+const $input: TextStyle = {
+  width: "100%",
+  height: 56,
+  backgroundColor: "#f4e9e7",
+  borderRadius: 12,
+  paddingHorizontal: 16,
+  fontSize: 16,
+  color: "#1c100d",
+}
+
+const $passwordContainer: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  backgroundColor: "#f4e9e7",
+  borderRadius: 12,
+  height: 56,
+}
+
+const $passwordInput: TextStyle = {
+  flex: 1,
+  height: "100%",
+  paddingHorizontal: 16,
+  fontSize: 16,
+  color: "#1c100d",
+}
+
+const $eyeButton: ViewStyle = {
+  paddingHorizontal: 16,
+  justifyContent: "center",
+  alignItems: "center",
+}
+
+const $forgotPassword: ViewStyle = {
+  alignSelf: "flex-end",
+  marginTop: 4,
+  marginBottom: 12,
+}
+
+const $forgotPasswordText: TextStyle = {
   fontSize: 14,
+  color: "#f66c51",
+  textDecorationLine: "underline",
 }
 
-const $validationText: TextStyle = {
-  fontSize: 12,
-  color: colors.palette.neutral600,
-  marginTop: spacing.sm,
-  marginBottom: spacing.xs,
-  lineHeight: 16,
+const $loginButton: ViewStyle = {
+  width: "100%",
+  height: 48,
+  backgroundColor: "#f66c51",
+  borderRadius: 12,
+  justifyContent: "center",
+  alignItems: "center",
+  marginTop: 12,
 }
 
-// (no unused headline)
+const $loginButtonDisabled: ViewStyle = {
+  opacity: 0.6,
+}
+
+const $loginButtonText: TextStyle = {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#FFFFFF",
+}
+
+const $signUpPrompt: ViewStyle = {
+  marginTop: 16,
+  alignItems: "center",
+}
+
+const $signUpPromptText: TextStyle = {
+  fontSize: 14,
+  color: "#9c5749",
+  textAlign: "center",
+}
+
+const $signUpLink: TextStyle = {
+  fontSize: 14,
+  color: "#f66c51",
+  fontWeight: "500",
+  textDecorationLine: "underline",
+}
