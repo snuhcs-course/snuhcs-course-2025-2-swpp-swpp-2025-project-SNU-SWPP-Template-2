@@ -1,11 +1,13 @@
 import { Instance, SnapshotOut, types } from "mobx-state-tree"
 import { FoodHistoryStoreModel } from "./FoodHistoryStore"
+import { MenuScrapStoreModel } from "./MenuScrapStore"
 
 /**
  * A RootStore model.
  */
 export const RootStoreModel = types.model("RootStore").props({
   foodHistoryStore: types.optional(FoodHistoryStoreModel, {}),
+  menuScrapStore: types.optional(MenuScrapStoreModel, {}),
 })
 
 /**
