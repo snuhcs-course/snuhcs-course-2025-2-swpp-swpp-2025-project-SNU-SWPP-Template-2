@@ -5,7 +5,9 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.librarytogether.NavigationGraphDirections
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentHomeBinding
 import com.example.librarytogether.feature.home.data.Post
@@ -85,12 +87,14 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun navigateToReview(post: Post) {
         Toast.makeText(requireContext(), "서평", Toast.LENGTH_SHORT).show()
-        // TODO: 서평 작성 화면으로 이동
+        // TODO: 서평 댓글 화면으로 이동
     }
 
     private fun navigateToExchange(post: Post) {
-        Toast.makeText(requireContext(), "교환", Toast.LENGTH_SHORT).show()
-        // TODO: 교환 화면으로 이동
+        val userBookId = post.userBookId
+        val action = NavigationGraphDirections.actionGlobalToBarterDetailFragment(userBookId)
+
+        findNavController().navigate(action)
     }
 
     private fun navigateToProfile(post: Post) {
@@ -105,12 +109,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun searchTitle(post: Post) {
         Toast.makeText(requireContext(), "제목", Toast.LENGTH_SHORT).show()
-        // TODO: 제목 클릭 시 상세 페이지로 이동
+        // TODO: 제목 클릭 시 제목 검색
     }
 
     private fun searchAuthor(post: Post) {
         Toast.makeText(requireContext(), "작가", Toast.LENGTH_SHORT).show()
-        // TODO: 작가 클릭 시 작가 프로필 화면으로 이동
+        // TODO: 작가 클릭 시 작가 검색
     }
 
     private fun expandContent(post: Post) {

@@ -6,9 +6,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.librarytogether.feature.library.data.Book
 import com.example.librarytogether.feature.library.data.LibraryRepository
+import com.example.librarytogether.feature.library.data.PostBook
 import com.example.librarytogether.feature.library.data.Review
 import com.example.librarytogether.feature.library.data.UserProfile
-import com.example.librarytogether.feature.library.data.postReview
+import com.example.librarytogether.feature.library.data.PostReview
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,6 +26,11 @@ class LibraryViewModel @Inject constructor(
     val userProfile: LiveData<UserProfile?> = _userProfile
     private val _myWishlist = MutableLiveData<List<Book>>(emptyList())
     val myWishlist: LiveData<List<Book>> = _myWishlist
+    private val _searchResults = MutableLiveData<List<Book>>(emptyList())
+    val searchResults: LiveData<List<Book>> = _searchResults
+    private val _navigateToLibrary = MutableLiveData<Boolean>(false)
+    val navigateToLibrary: LiveData<Boolean> = _navigateToLibrary
+
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
@@ -90,11 +96,47 @@ class LibraryViewModel @Inject constructor(
         _error.value = null
     }
 
-    fun addNewReview(review: postReview) {
+    fun addNewReview(review: PostReview) {
         viewModelScope.launch {
             repository.addReview(review)
             refreshMyReviews()
         }
+    }
+
+    fun addNewBook(book: PostBook) {
+        viewModelScope.launch {
+            try {
+                val success = repository.addBook(book) // 1. Repository 호출
+                if (success) {
+                    refreshMyBooks()
+                    _navigateToLibrary.value = true
+                } else {
+                    _error.value = "책 추가에 실패했습니다."
+                }
+            } catch (e: Exception) {
+                _error.value = "책 추가 중 오류가 발생했습니다."
+            }
+        }
+    }
+
+    fun searchBook(query: String) {
+        viewModelScope.launch {
+            try {
+                _searchResults.value = repository.searchBooks(query) ?: emptyList()
+            } catch (e: Exception) {
+                _error.value = "검색 중 오류가 발생했습니다."
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun clearSearch() {
+        _searchResults.value = emptyList()
+    }
+
+    fun onBookAddedNavigationComplete() {
+        _navigateToLibrary.value = false
     }
 
     fun toggleLike(review: Review) {

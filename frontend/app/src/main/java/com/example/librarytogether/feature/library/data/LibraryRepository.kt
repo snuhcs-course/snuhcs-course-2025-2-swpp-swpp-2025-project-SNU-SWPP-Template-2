@@ -2,13 +2,12 @@ package com.example.librarytogether.feature.library.data
 
 import android.util.Log
 import javax.inject.Inject
-import javax.inject.Singleton
 
-@Singleton
-class LibraryRepository @Inject constructor(
+//@Singleton
+open class LibraryRepository @Inject constructor(
     private val libraryApi: LibraryApi
 ) {
-    suspend fun getMyReviews(): List<Review>? {
+    open suspend fun getMyReviews(): List<Review>? {
         return try {
             val response = libraryApi.getMyReviews()
             if (response.isSuccessful) {
@@ -23,7 +22,7 @@ class LibraryRepository @Inject constructor(
         }
     }
 
-    suspend fun addReview(review: postReview) {
+    suspend fun addReview(review: PostReview) {
         try {
             libraryApi.addReview(review)
         } catch (e: Exception) {
@@ -31,7 +30,7 @@ class LibraryRepository @Inject constructor(
         }
     }
 
-    suspend fun toggleReviewLike(reviewId: Int): Review? {
+    open suspend fun toggleReviewLike(reviewId: Int): Review? {
         return try {
             val response = libraryApi.toggleReviewLike(reviewId)
             if (response.isSuccessful) {
@@ -46,7 +45,7 @@ class LibraryRepository @Inject constructor(
         }
     }
 
-    suspend fun getMyBooks(): List<Book>? {
+    open suspend fun getMyBooks(): List<Book>? {
         return try {
             val response = libraryApi.getMyBooks()
             if (response.isSuccessful) {
@@ -61,7 +60,35 @@ class LibraryRepository @Inject constructor(
         }
     }
 
-    suspend fun getMyProfile(): UserProfile? {
+    open suspend fun addBook(book: PostBook): Boolean {
+        return try {
+            val response = libraryApi.addBook(book)
+            if (!response.isSuccessful) {
+                Log.e("LibraryRepository", "addBook failed: ${response.code()}")
+            }
+            response.isSuccessful
+        } catch (e: Exception) {
+            Log.e("LibraryRepository", "Error adding book", e)
+            false
+        }
+    }
+
+    open suspend fun searchBooks(query: String): List<Book>? {
+        return try {
+            val response = libraryApi.searchBooks(query) // Api 호출
+            if (response.isSuccessful) {
+                response.body()
+            } else {
+                Log.e("LibraryRepository", "searchBooks failed: ${response.code()}")
+                emptyList()
+            }
+        } catch (e: Exception) {
+            Log.e("LibraryRepository", "Error searching books", e)
+            emptyList()
+        }
+    }
+
+    open suspend fun getMyProfile(): UserProfile? {
         return try {
             val response = libraryApi.getMyProfile()
             if (response.isSuccessful) {

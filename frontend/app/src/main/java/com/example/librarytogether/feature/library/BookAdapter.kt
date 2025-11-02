@@ -5,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.librarytogether.R
@@ -86,3 +87,10 @@ class BookAdapter(
     }
 }
 
+object BookDiff : DiffUtil.ItemCallback<Book>() {
+    override fun areItemsTheSame(oldItem: Book, newItem: Book): Boolean =
+        oldItem.id == newItem.id
+
+    override fun areContentsTheSame(oldItem: Book, newItem: Book): Boolean =
+        oldItem == newItem
+}

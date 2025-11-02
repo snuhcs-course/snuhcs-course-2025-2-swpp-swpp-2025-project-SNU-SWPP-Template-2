@@ -5,37 +5,24 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
-import android.widget.EditText
-import android.widget.TextView
 import android.widget.Toast
-import androidx.annotation.RequiresPermission
-import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.example.librarytogether.R
-import com.example.librarytogether.databinding.FragmentHomeBinding
 import com.example.librarytogether.databinding.FragmentLibraryBinding
-import com.example.librarytogether.feature.home.FeedAdapter
-import com.example.librarytogether.feature.home.FeedClicks
-import com.example.librarytogether.feature.home.data.HomeApi
-import com.example.librarytogether.feature.library.LibraryViewModel
-import com.example.librarytogether.network.RetrofitClient
 import com.example.librarytogether.util.loadAvatar
-import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class LibraryFragment : Fragment() {
 
-    private val viewModel: LibraryViewModel by viewModels()
+    private val viewModel: LibraryViewModel by activityViewModels()
     private var _binding: FragmentLibraryBinding? = null
     private val binding get() = _binding!!
 
@@ -248,15 +235,14 @@ class LibraryFragment : Fragment() {
                 setImageResource(R.drawable.plus_icon)
                 contentDescription = getString(R.string.fab_add_review)
                 setOnClickListener {
-                    WriteReviewSheet().show(childFragmentManager, "WriteReviewSheet")
+                    findNavController().navigate(R.id.action_libraryFragment_to_writeReviewFragment)
                 }
-                show()
             }
             1 -> { // 책장 탭
                 setImageResource(R.drawable.plus_icon)
                 contentDescription = getString(R.string.fab_add_book)
                 setOnClickListener {
-//                    findNavController().navigate(R.id.action_libraryFragment_to_bookSearchFragment)
+                    findNavController().navigate(R.id.action_libraryFragment_to_addBookFragment)
                 }
                 show()
             }
