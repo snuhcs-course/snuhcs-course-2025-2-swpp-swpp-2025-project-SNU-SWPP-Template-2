@@ -1,14 +1,14 @@
-import React, { useState } from "react"
-import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, Alert, TextInput } from "react-native"
 import { Text } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
-import * as storage from "app/utils/storage"
 import { api } from "app/services/api"
 import { handleSignIn } from "app/services/aws/handleAwsSignin"
+import * as storage from "app/utils/storage"
 import { Eye, EyeOff } from "lucide-react-native"
+import { observer } from "mobx-react-lite"
+import React, { useState } from "react"
+import { Alert, TextInput, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native"
 
-interface LoginScreenProps extends AppStackScreenProps<"Login"> {}
+interface LoginScreenProps extends AppStackScreenProps<"Login"> { }
 
 export const LoginScreen = observer(function LoginScreen({ navigation }: LoginScreenProps) {
   const [username, setUsername] = useState("")
@@ -37,7 +37,7 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
       await handleSignIn(username, password);
 
       await storage.saveString("IS_LOGGED_IN", "true")
-      
+
       // Check if user has preferences set
       try {
         const preferencesResponse = await api.getPreferences()

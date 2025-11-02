@@ -1,14 +1,20 @@
-import React, { useState, useEffect } from "react"
+import { LinearGradient } from "expo-linear-gradient"
+import { Bookmark, Home, User } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, ImageBackground, Image, ActivityIndicator } from "react-native"
-import { Home, User, Bookmark } from "lucide-react-native"
+import React, { useEffect, useState } from "react"
+import {
+  ActivityIndicator,
+  Image,
+  ImageBackground,
+  TextStyle, TouchableOpacity,
+  View, ViewStyle
+} from "react-native"
 import { Text } from "../components"
-import { colors, spacing } from "../theme"
+import { useStores } from "../models"
 import { AppStackScreenProps } from "../navigators"
 import { api } from "../services/api"
 import type { MenuRecommendationItem } from "../services/api/api.types"
-import { LinearGradient } from "expo-linear-gradient"
-import { useStores } from "../models"
+import { colors, spacing } from "../theme"
 
 interface FoodigramScreenProps extends AppStackScreenProps<"Foodigram"> {}
 
@@ -515,5 +521,3 @@ const $tabButtonTextActive: TextStyle = {
   color: colors.palette.primary500,
   fontWeight: "600",
 }
-
-

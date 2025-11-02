@@ -1,31 +1,33 @@
-import React, { useEffect, useState } from "react"
+import { useAlbumScanner } from "app/services/albums/useAlbumScanner"
+import { api } from "app/services/api"
+import { getImage as getImageName } from "app/utils/imagenameFromAsseturi"
+import * as storage from "app/utils/storage"
+import { Asset } from "expo-media-library"
+import { Home, Plus, Settings, User } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
+import React, { useEffect, useState } from "react"
 import {
-  View,
-  ViewStyle,
-  TextStyle,
-  ScrollView,
+  Dimensions,
   Image,
   ImageStyle,
-  TouchableOpacity,
-  Dimensions,
+  ScrollView,
   StatusBar,
+  TextStyle,
+  TouchableOpacity,
+  View,
+  ViewStyle
 } from "react-native"
-import { Home, User, Settings, Plus } from "lucide-react-native"
-import { Text, RestaurantDetailModal, PreferencesModal } from "../components"
-import { colors, spacing } from "../theme"
-import { AppStackScreenProps } from "../navigators"
+import { PreferencesModal, RestaurantDetailModal, Text } from "../components"
 import { useStores } from "../models"
-import { api } from "app/services/api"
-import * as MediaLibrary from 'expo-media-library';
-import { processAlbum } from "app/services/albums/processAlbum"
-import * as storage from "app/utils/storage"
+import { AppStackScreenProps } from "../navigators"
+import { colors, spacing } from "../theme"
 
 
 interface ProfileScreenProps extends AppStackScreenProps<"Profile"> {}
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function ProfileScreen({ navigation }) {
   const { foodHistoryStore, menuScrapStore } = useStores()
+  const { scanAlbums } = useAlbumScanner();
   const screenWidth = Dimensions.get('window').width
   const imageSize = (screenWidth - spacing.lg * 2 - spacing.sm) / 2 // 2 columns with padding
   const [userName, setUserName] = useState("John Doe")
@@ -33,7 +35,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isPreferencesModalVisible, setIsPreferencesModalVisible] = useState(false)
-  const [permissionResponse, requestPermission] = MediaLibrary.usePermissions();
 
   const [userImages, setUserImages] = useState<Array<{id: string, type: string, image: any, name: string}>>([
     // { id: 'user1', type: 'user', image: require("../../assets/images/restaurant1.jpg"), name: 'My Food Photo 1' },
@@ -77,24 +78,6 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   
   // Combine user images and scrapped images
   const allPhotos = [...userImages, ...scrappedImages]
-
-  // Album sync functionality
-  async function getAlbums() {
-    if (permissionResponse?.status !== 'granted') {
-      await requestPermission();
-    }
-    const fetchedAlbums = await MediaLibrary.getAlbumsAsync({
-      includeSmartAlbums: true,
-    });
-    for (const album of fetchedAlbums) {
-      if (album.assetCount === 0) {
-        continue; // skip empty albums
-      }
-      if (album.title.toLowerCase().includes('camera')) {
-        processAlbum(album, userImages, setUserImages);
-      }
-    }
-  }
 
   const handleSettingsPress = async () => {
     try {
@@ -276,7 +259,16 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       {activeTab === 'photos' && (
         <TouchableOpacity 
           style={$floatingButton}
-          onPress={getAlbums}
+          onPress={() => {
+            scanAlbums((asset: Asset) => {
+              setUserImages(userImages => [...userImages, {
+                id: asset.id,
+                type: 'user',
+                image: { uri: asset.uri },
+                name: getImageName(asset),
+              }]);
+            })
+          }}
         >
           <Plus size={32} color="#FFFFFF" />
         </TouchableOpacity>

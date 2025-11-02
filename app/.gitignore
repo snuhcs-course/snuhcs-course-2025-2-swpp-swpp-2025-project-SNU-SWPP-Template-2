@@ -1,3 +1,6 @@
+# machine-specific expo development server settings
+.expo/
+
 # OSX
 #
 .DS_Store

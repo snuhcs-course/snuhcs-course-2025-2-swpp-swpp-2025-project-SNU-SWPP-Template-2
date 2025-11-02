@@ -6,6 +6,7 @@ import { AppStackScreenProps } from "app/navigators"
 import * as storage from "app/utils/storage"
 import { api } from "app/services/api"
 import { Eye, EyeOff } from "lucide-react-native"
+import { signUp } from "aws-amplify/auth"
 
 interface SignUpScreenProps extends AppStackScreenProps<"SignUp"> {}
 
@@ -15,6 +16,40 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+
+  type SignUpParameters = {
+    username: string;
+    password: string;
+    email: string;
+  };
+
+  async function handleAwsSignUp({
+    username,
+    password,
+    email,
+  }: SignUpParameters) {
+    try {
+      const { isSignUpComplete, userId, nextStep } = await signUp({
+        username,
+        password,
+        options: {
+          userAttributes: {
+            email,
+          },
+          // optional
+          autoSignIn: true, // or SignInOptions e.g { authFlowType: "USER_SRP_AUTH" }
+        },
+      });
+
+      console.log(`AWS Amplify userId: ${userId}`);
+
+      if (!isSignUpComplete) {
+        throw new Error(`Sign up not complete - something wrong with autosignin. Next step: ${JSON.stringify(nextStep)}`);
+      }
+    } catch (error) {
+      console.log('error signing up:', error);
+    }
+  }
 
   async function tryRegister() {
     // Form validation
@@ -40,6 +75,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
       // Ensure CSRF cookie is set
       await api.getCsrf()
       const res = await api.register(fullName, email, password)
+      handleAwsSignUp({username: fullName, email, password});
       if (!res.ok) {
         const errorMessage = (res.data as any)?.detail || "Sign up failed."
         Alert.alert("Sign Up Failed", errorMessage)

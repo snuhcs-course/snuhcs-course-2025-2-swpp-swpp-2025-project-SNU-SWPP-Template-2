@@ -14,6 +14,16 @@
 - **JDK**: 17 (for Gradle)
 - **adb**: for Android device/emulator connection
 
+# AWS setup
+```bash
+pip install awscli
+awscli # and then enter AWS credentials in .env.dev
+
+cd app
+npm install -g @aws-amplify/cli
+amplify pull --appId dhwiac5kwn2e4 --envName dev
+```
+
 ### Backend Setup
 ```bash
 cd server

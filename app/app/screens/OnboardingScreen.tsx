@@ -7,7 +7,7 @@ import { colors, spacing } from "app/theme"
 import { api } from "app/services/api"
 import { Ionicons } from "@expo/vector-icons"
 
-interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> {}
+interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> { }
 
 interface UserPreferences {
   spicy_level: number
@@ -82,6 +82,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   const handleSkip = () => {
     navigation.replace("Foodigram")
   }
+
 
   const handleComplete = async () => {
     setIsLoading(true)
@@ -298,7 +299,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   return (
     <View style={$container}>
       {renderProgressBar()}
-      
+
       <ScrollView style={$content} showsVerticalScrollIndicator={false}>
         {renderCurrentStep()}
       </ScrollView>
@@ -382,6 +383,14 @@ const $stepSubtitle: TextStyle = {
 const $slidersWrapper: ViewStyle = {
   paddingVertical: spacing.lg,
   gap: spacing.xxl,
+}
+
+const $syncDescription: TextStyle = {
+  fontSize: 14,
+  color: colors.palette.neutral500,
+  fontStyle: "italic",
+  flex: 1,
+  marginRight: spacing.sm
 }
 
 const $sliderContainer: ViewStyle = {
