@@ -1,5 +1,16 @@
 import { waitFor } from "@testing-library/react-native";
 
+jest.mock('expo-media-library', () => ({
+    usePermissions: jest.fn(),
+    getAlbumsAsync: jest.fn(),
+    getAssetsAsync: jest.fn()
+}));
+jest.mock('@infinitered/react-native-mlkit-image-labeling', () => ({
+    useImageLabeling: jest.fn(),
+}), { virtual: true });
+jest.mock('aws-amplify/storage', () => ({
+    uploadData: jest.fn(),
+}));
 jest.mock('../api', () => ({
     api: {
         uploadPhoto: jest.fn()
@@ -119,7 +130,7 @@ describe("useAlbumScanner", () => {
             ok: true
         })
         const { scanAlbums } = useAlbumScanner();
-        let mockCallBack = jest.fn();
+        const mockCallBack = jest.fn();
         await scanAlbums(mockCallBack);
 
         await waitFor(() => {

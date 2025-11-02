@@ -1,10 +1,16 @@
-import React from "react"
 import { render } from "@testing-library/react-native"
+import React from "react"
 import { AppNavigator } from "./AppNavigator"
-import { NavigationContainer, DarkTheme } from "@react-navigation/native"
-import * as ReactNative from "react-native"
 
 // Mocks for native modules to prevent React Native/expo errors
+jest.mock('expo-media-library', () => ({
+    usePermissions: jest.fn(),
+    getAlbumsAsync: jest.fn(),
+    getAssetsAsync: jest.fn()
+}))
+jest.mock('@infinitered/react-native-mlkit-image-labeling', () => ({
+    useImageLabeling: jest.fn(),
+}), { virtual: true })
 
 // Mock problematic ESM/cloud packages to prevent Jest transform errors
 
