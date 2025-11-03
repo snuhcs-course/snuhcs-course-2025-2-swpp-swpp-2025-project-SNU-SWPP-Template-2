@@ -105,61 +105,29 @@ python settings/db_export.py --restaurant-id-first
 
 ### Command Line Recommendations
 ```bash
-# Note: Activate virtual environment first
+# Activate virtual environment and run recommendations
 cd server && source venv/bin/activate
-
-# Can run from any of these directories:
-python psql/recommend/recommend.py               # From server/
-cd psql && python recommend/recommend.py         # From server/psql/
-cd psql/recommend && python recommend.py         # From server/psql/recommend/
-
-# Basic recommendations
-python recommend/recommend.py                     # Default profile
-python recommend/recommend.py user1               # Custom profile (user1.json)
-
-# Different methods and clustering
-python recommend/recommend.py --method langchain  # Traditional AI categorization
-python recommend/recommend.py --method embedding  # Embedding-based clustering
-python recommend/recommend.py user1 --clustering hdbscan    # Use HDBScan
-python recommend/recommend.py user1 --clustering kmeans     # Use KMeans
+python psql/recommend/recommend.py               # Default user profile
+python psql/recommend/recommend.py user1         # Custom profile (user1.json)
 ```
 
 ### Programmatic API
 ```python
-# Django models (run from server/ directory)
-import django
-import os
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-django.setup()
-
+# Simple Django queries (from server/ directory)
 from psql_data.models import DbRestaurant, DbMenu
 
-# Get restaurants near Seoul National University
 restaurants = DbRestaurant.objects.filter(name__icontains='서울대')
-print(f"Found {restaurants.count()} restaurants")
+sweet_menus = DbMenu.objects.filter(recommend=True, taste_profile__sweet__gt=0.7)
 
-# Get recommended menus with taste profiles
-sweet_menus = DbMenu.objects.filter(
-    recommend=True,
-    taste_profile__sweet__gt=0.7
-)
-print(f"Found {sweet_menus.count()} sweet menus")
-
-# Using recommendation engine (works from any directory with venv activated)
-import sys
-sys.path.append('psql/recommend')  # Adjust path based on current directory
-from client import RestaurantRecommender, UserProfile
-
+# Recommendation engine
+from psql.recommend.client import RestaurantRecommender, UserProfile
 user = UserProfile(
     location=(126.9525, 37.4583),
-    cuisine_preferences=["korean"],
-    max_distance_km=1.5
-)
-
-recommender = RestaurantRecommender()  # Automatically finds .env files
+    cuisine_preferences=["korean"]
+    )
+recommender = RestaurantRecommender()
 recommendations = recommender.generate_recommendations(user_profile=user)
-print(f"Generated {len(recommendations)} recommendations")
-recommender.close()  # Don't forget to close!
+recommender.close()
 ```
 
 ## Configuration
