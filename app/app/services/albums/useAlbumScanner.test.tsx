@@ -7,7 +7,7 @@ jest.mock('expo-media-library', () => ({
 }));
 jest.mock('@infinitered/react-native-mlkit-image-labeling', () => ({
     useImageLabeling: jest.fn(),
-}));
+}), { virtual: true });
 jest.mock('aws-amplify/storage', () => ({
     uploadData: jest.fn(),
 }));
@@ -130,7 +130,7 @@ describe("useAlbumScanner", () => {
             ok: true
         })
         const { scanAlbums } = useAlbumScanner();
-        let mockCallBack = jest.fn();
+        const mockCallBack = jest.fn();
         await scanAlbums(mockCallBack);
 
         await waitFor(() => {

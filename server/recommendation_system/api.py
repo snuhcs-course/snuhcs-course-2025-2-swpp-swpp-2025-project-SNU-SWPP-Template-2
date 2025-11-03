@@ -309,11 +309,15 @@ def recommend_menu(request):
         user_id = request.user.username  # 인증된 사용자의 username 사용
         
         # DB에서 유저의 온보딩 정보 조회
+        exploration_preference = 2.5  # 기본값
         try:
             # 커스텀 User 모델 사용
             from users.models import User
             user = request.user  # 이미 인증된 사용자
             user_preference = UserPreference.objects.get(user=user)
+            
+            # exploration_preference 가져오기
+            exploration_preference = user_preference.exploration_preference
             
             # DB에서 가져온 정보로 onboarding_data 구성
             onboarding_data = {
@@ -398,8 +402,8 @@ def recommend_menu(request):
             score = scorer.calculate_hybrid_score(similarity_score, item_data, search_context)
             scored_results.append((menu_doc, score))
         
-        # MMR 리랭킹 적용
-        reranker = MMRReranker()
+        # MMR 리랭킹 적용 (exploration_preference 사용)
+        reranker = MMRReranker(exploration_preference=exploration_preference)
         final_results = reranker.rerank_with_mmr(scored_results, max_results)
         
         # 결과 포맷팅
@@ -459,6 +463,9 @@ def recommend_place(request):
         gallery_analysis = data.get('gallery_analysis')
         behavior_data = data.get('behavior_data')
         
+        # exploration_preference 가져오기 (기본값 2.5)
+        exploration_preference = onboarding_data.get('exploration_preference', 2.5)
+        
         user_profile_text = user_profile_service.create_user_profile(
             user_id, onboarding_data, gallery_analysis, behavior_data
         )
@@ -507,8 +514,8 @@ def recommend_place(request):
             score = scorer.calculate_hybrid_score(similarity_score, item_data, search_context)
             scored_results.append((place_doc, score))
         
-        # MMR 리랭킹 적용
-        reranker = MMRReranker()
+        # MMR 리랭킹 적용 (exploration_preference 사용)
+        reranker = MMRReranker(exploration_preference=exploration_preference)
         final_results = reranker.rerank_with_mmr(scored_results, max_results)
         
         # 결과 포맷팅

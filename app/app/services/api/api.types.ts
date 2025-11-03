@@ -35,10 +35,10 @@ export interface ApiFeedResponse {
 }
 
 /**
- * 메뉴 추천 API 응답 타입
+ * Menu recommendation API response type
  */
 export interface MenuRecommendationItem {
-  id: number
+  id: string | number  // ChromaDB ID can be a string
   menu_name: string
   place_name: string
   price: number
@@ -49,7 +49,7 @@ export interface MenuRecommendationItem {
   keywords: string[]
   voted_keywords: string[]
   has_image: boolean
-  image_urls: string[]  // 이미지 URL 배열 추가
+  image_urls: string[]  // Image URL array
   coordinates: [number, number]
   score: number
   reason: string
