@@ -5,9 +5,9 @@ import django
 from functools import reduce
 from tqdm import tqdm
 
-# Setup Django - need to go up one directory to find config
+# Setup Django - need to go up two directories to find config
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
 django.setup()
 
@@ -16,7 +16,7 @@ from django.db import transaction
 
 def load_foodlist_data():
     """Load the foodlist.json file"""
-    foodlist_path = os.path.join(os.path.dirname(__file__), 'foodlist.json')
+    foodlist_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'raw', 'foodlist.json')
     with open(foodlist_path, 'r', encoding='utf-8') as f:
         return json.load(f)
 

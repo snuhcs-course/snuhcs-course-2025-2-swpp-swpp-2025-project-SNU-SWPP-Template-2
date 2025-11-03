@@ -11,7 +11,7 @@ import sys
 import json
 import argparse
 from datetime import datetime
-from client import RestaurantRecommender, UserProfile
+from .client import RestaurantRecommender, UserProfile
 
 def print_recommendations(recommendations, user_profile):
     """Print recommendations in the format specified in specifications.md"""
