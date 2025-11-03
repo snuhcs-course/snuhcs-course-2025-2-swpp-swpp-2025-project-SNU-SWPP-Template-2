@@ -15,6 +15,7 @@ import os
 from datetime import datetime
 import argparse
 from pathlib import Path
+import re
 
 # Load environment variables from .env file if it exists
 env_file = Path(__file__).parent / '.env'
@@ -39,8 +40,151 @@ def run_command(cmd, description, env=None):
         print(f"Error: {e.stderr}")
         return False
 
-def export_database(compress=True):
-    """Export the database to SQL file."""
+def reorder_db_menus_columns(sql_content):
+    """Reorder db_menus INSERT statements to place restaurant_id at the end."""
+    
+    # Pattern to match db_menus INSERT statements
+    # This handles both single and multi-line INSERT statements
+    pattern = r"INSERT INTO public\.db_menus\s*\([^)]+\)\s*VALUES[^;]+;"
+    
+    def reorder_insert(match):
+        insert_statement = match.group(0)
+        
+        # Extract column list and values
+        columns_match = re.search(r"INSERT INTO public\.db_menus\s*\(([^)]+)\)", insert_statement)
+        if not columns_match:
+            return insert_statement
+        
+        columns_str = columns_match.group(1)
+        columns = [col.strip() for col in columns_str.split(',')]
+        
+        # Find restaurant_id column index
+        restaurant_id_idx = None
+        for i, col in enumerate(columns):
+            if 'restaurant_id' in col:
+                restaurant_id_idx = i
+                break
+        
+        if restaurant_id_idx is None or restaurant_id_idx == len(columns) - 1:
+            # restaurant_id not found or already at the end
+            return insert_statement
+        
+        # Reorder columns: move restaurant_id to the end
+        restaurant_id_col = columns.pop(restaurant_id_idx)
+        columns.append(restaurant_id_col)
+        
+        # Extract VALUES part
+        values_match = re.search(r"VALUES\s*(.+);", insert_statement, re.DOTALL)
+        if not values_match:
+            return insert_statement
+        
+        values_part = values_match.group(1).strip()
+        
+        # Handle multiple value rows
+        if values_part.startswith('(') and values_part.endswith(')'):
+            # Parse individual value rows
+            value_rows = []
+            current_row = ""
+            paren_count = 0
+            in_quotes = False
+            quote_char = None
+            
+            for char in values_part:
+                if char in ('"', "'") and not in_quotes:
+                    in_quotes = True
+                    quote_char = char
+                elif char == quote_char and in_quotes:
+                    in_quotes = False
+                    quote_char = None
+                elif char == '(' and not in_quotes:
+                    paren_count += 1
+                elif char == ')' and not in_quotes:
+                    paren_count -= 1
+                
+                current_row += char
+                
+                if paren_count == 0 and char == ')' and not in_quotes:
+                    # End of a row
+                    value_rows.append(current_row.strip())
+                    current_row = ""
+                    # Skip comma and whitespace
+                    continue
+                elif paren_count == 0 and char == ',' and not in_quotes:
+                    # Between rows
+                    current_row = ""
+                    continue
+            
+            # Reorder values in each row
+            reordered_rows = []
+            for row in value_rows:
+                if row.startswith('(') and row.endswith(')'):
+                    row_values_str = row[1:-1]  # Remove parentheses
+                    row_values = parse_value_list(row_values_str)
+                    
+                    if len(row_values) == len(columns) + 1:  # +1 because we moved restaurant_id
+                        # Move restaurant_id value to the end
+                        restaurant_id_value = row_values.pop(restaurant_id_idx)
+                        row_values.append(restaurant_id_value)
+                        
+                        reordered_row = '(' + ', '.join(row_values) + ')'
+                        reordered_rows.append(reordered_row)
+                    else:
+                        reordered_rows.append(row)
+            
+            # Reconstruct the INSERT statement
+            new_columns_str = ', '.join(columns)
+            new_values_str = ',\n'.join(reordered_rows)
+            
+            return f"INSERT INTO public.db_menus ({new_columns_str}) VALUES\n{new_values_str};"
+        
+        return insert_statement
+    
+    # Apply the reordering to all db_menus INSERT statements
+    return re.sub(pattern, reorder_insert, sql_content, flags=re.MULTILINE | re.DOTALL)
+
+def parse_value_list(values_str):
+    """Parse a comma-separated list of SQL values, handling quotes and escapes."""
+    values = []
+    current_value = ""
+    in_quotes = False
+    quote_char = None
+    i = 0
+    
+    while i < len(values_str):
+        char = values_str[i]
+        
+        if char in ('"', "'") and not in_quotes:
+            in_quotes = True
+            quote_char = char
+            current_value += char
+        elif char == quote_char and in_quotes:
+            # Check if it's escaped
+            if i + 1 < len(values_str) and values_str[i + 1] == quote_char:
+                # Escaped quote
+                current_value += char + char
+                i += 1
+            else:
+                # End quote
+                in_quotes = False
+                quote_char = None
+                current_value += char
+        elif char == ',' and not in_quotes:
+            # End of value
+            values.append(current_value.strip())
+            current_value = ""
+        else:
+            current_value += char
+        
+        i += 1
+    
+    # Add the last value
+    if current_value.strip():
+        values.append(current_value.strip())
+    
+    return values
+
+def export_database(compress=True, restaurant_id_last=False):
+    """Export the database to SQL file with configurable column ordering."""
     
     # Ensure we're in the psql directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -105,9 +249,14 @@ def export_database(compress=True):
             print(f"Command: {' '.join(dump_cmd)}")
             result = subprocess.run(dump_cmd, check=True, capture_output=True, text=True, env=env)
             
+            # Process output for column ordering if needed
+            output_content = result.stdout
+            if restaurant_id_last:
+                output_content = reorder_db_menus_columns(output_content)
+            
             # Write Docker output to file
             with open(output_file, 'w') as f:
-                f.write(result.stdout)
+                f.write(output_content)
             print(f"✅ Exporting database completed successfully")
         except subprocess.CalledProcessError as e:
             print(f"❌ Exporting database failed:")
@@ -117,6 +266,14 @@ def export_database(compress=True):
         # For native PostgreSQL, use the existing method
         if not run_command(dump_cmd, "Exporting database", env):
             return False
+        
+        # Process output for column ordering if needed
+        if restaurant_id_last:
+            with open(output_file, 'r') as f:
+                content = f.read()
+            content = reorder_db_menus_columns(content)
+            with open(output_file, 'w') as f:
+                f.write(content)
     
     print(f"📁 Database exported to: {output_file}")
     
@@ -156,6 +313,8 @@ def main():
     parser = argparse.ArgumentParser(description='Export database for team sharing')
     parser.add_argument('--no-compress', action='store_true', 
                        help='Do not compress the exported file (compression is default)')
+    parser.add_argument('--restaurant-id-first', action='store_true',
+                       help='Place restaurant_id as second column (default: restaurant_id last)')
     
     args = parser.parse_args()
     
@@ -165,7 +324,15 @@ def main():
     # Compression is default, only disable if --no-compress is specified
     compress = not args.no_compress
     
-    if export_database(compress=compress):
+    # Column ordering: restaurant_id is last by default (matches current DB structure)
+    restaurant_id_last = not args.restaurant_id_first
+    
+    if restaurant_id_last:
+        print("📋 Column ordering: restaurant_id will be placed LAST in db_menus (matches current structure)")
+    else:
+        print("📋 Column ordering: restaurant_id will be placed as SECOND column in db_menus (legacy compatibility)")
+    
+    if export_database(compress=compress, restaurant_id_last=restaurant_id_last):
         print("=" * 50)
         print("✅ Database export completed successfully!")
         print("\nNext steps for team sharing:")

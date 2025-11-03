@@ -63,7 +63,6 @@ CREATE TABLE db_restaurants (
 -- ----------------------------------------------------------------------------
 CREATE TABLE db_menus (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    restaurant_id   UUID REFERENCES db_restaurants(id) ON DELETE CASCADE,
     external_id     TEXT,                       -- {restaurant_id}_{menu_index}
     name            TEXT NOT NULL,              -- e.g., "단팥빵"
     price           INTEGER,
@@ -76,9 +75,10 @@ CREATE TABLE db_menus (
     name_clean      TEXT,                       -- regex-cleaned version
     taste_profile   JSONB,                      -- JSON object for taste characteristics
     allergen_info   JSONB,                      -- JSON object for allergen information
-    embedding_vector REAL[] DEFAULT '{}',       -- embeddings for similarity search
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    embedding_vector REAL[] DEFAULT '{}',       -- embeddings for similarity search
+    restaurant_id   UUID REFERENCES db_restaurants(id) ON DELETE CASCADE
 );
 
 -- ----------------------------------------------------------------------------
@@ -127,6 +127,13 @@ CREATE INDEX IF NOT EXISTS idx_restaurants_embedding_vector
     
 CREATE INDEX IF NOT EXISTS idx_menus_embedding_vector
     ON db_menus USING GIN (embedding_vector);
+
+-- Additional indexes for menu fields
+CREATE INDEX IF NOT EXISTS idx_menus_taste_profile
+    ON db_menus USING GIN (taste_profile);
+
+CREATE INDEX IF NOT EXISTS idx_menus_allergen_info
+    ON db_menus USING GIN (allergen_info);
 
 -- ----------------------------------------------------------------------------
 -- 7. View (optional): Quick joined menu view

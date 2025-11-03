@@ -98,6 +98,9 @@ python settings/team_sync.py setup
 
 # Export without compression (if needed for special cases)
 python settings/db_export.py --no-compress
+
+# Export with restaurant_id as second column (for legacy compatibility)
+python settings/db_export.py --restaurant-id-first
 ```
 
 ### Command Line Recommendations

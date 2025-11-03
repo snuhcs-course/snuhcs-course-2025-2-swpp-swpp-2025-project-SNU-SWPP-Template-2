@@ -239,3 +239,5 @@ Visit http://localhost:8000/admin/ for database management.
 For detailed usage, troubleshooting, and team workflows, see README.md
 
 **Note**: PostGIS spatial data is stored as TEXT in the `geom` field due to GDAL library compatibility issues. This ensures both Django migrations and schema.sql create identical table structures. The geometric data is preserved but not processed as spatial data by Django.
+
+**Database Schema**: The `db_menus` table has `restaurant_id` as the last column to ensure consistency across all systems. This matches the current Docker database structure and Django models.
