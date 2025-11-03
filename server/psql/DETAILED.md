@@ -92,19 +92,6 @@ python preprocess/foodlist.py
 - `db_restaurants`: Restaurant data with PostGIS coordinates
 - `db_menus`: Menu items with pricing and categories
 
-### Schema Updates (`db/schema_update.sql`)
-
-**When to update:** After initial data loading, before running embeddings.
-
-```bash
-# Apply schema updates for embedding support
-docker exec -it foodigram_db psql -U postgres -d foodigram -f /docker-entrypoint-initdb.d/schema_update.sql
-```
-
-**Added columns:**
-- `meaningful_name` (BOOLEAN): Restaurant name contains cuisine info
-- `inferred_menu` (TEXT): AI-extracted menu information  
-- `embedding_vector` (REAL[]): 768-dimensional semantic vectors
 
 ## Configuration Parameters
 
@@ -312,7 +299,7 @@ cd testing && coverage run --source=. unit_test_psql.py 2>/dev/null && coverage 
 
 ## Contributing
 
-1. Update database schema in `db/schema.sql` or `db/schema_update.sql`
+1. Update database schema in `db/schema.sql`
 2. Add new parameters to `.env.example`
 3. Update configuration documentation
 4. Add tests in `integration_test_psql.py` or `unit_test_psql.py`

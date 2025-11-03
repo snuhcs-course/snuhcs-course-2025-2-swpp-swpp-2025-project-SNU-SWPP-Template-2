@@ -52,6 +52,7 @@ CREATE TABLE db_restaurants (
     review_count    INTEGER,
     meaningful_name BOOLEAN DEFAULT FALSE,
     inferred_menu   TEXT DEFAULT '',
+    embedding_vector REAL[] DEFAULT '{}',
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -73,7 +74,6 @@ CREATE TABLE db_menus (
     -- Added fields (from preprocess.py)
     name_clean      TEXT,                       -- regex-cleaned version
     embedding_vector REAL[] DEFAULT '{}',       -- embeddings for similarity search
-
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -119,6 +119,9 @@ CREATE INDEX IF NOT EXISTS idx_menus_name_clean
     ON db_menus USING GIN (to_tsvector('simple', name_clean));
 
 -- Embedding vector index for similarity search
+CREATE INDEX IF NOT EXISTS idx_restaurants_embedding_vector
+    ON db_restaurants USING GIN (embedding_vector);
+    
 CREATE INDEX IF NOT EXISTS idx_menus_embedding_vector
     ON db_menus USING GIN (embedding_vector);
 

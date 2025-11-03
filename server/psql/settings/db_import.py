@@ -16,14 +16,24 @@ import os
 import argparse
 import glob
 from datetime import datetime
+from pathlib import Path
 
-def run_command(cmd, description):
+# Load environment variables from .env file if it exists
+env_file = Path(__file__).parent / '.env'
+if env_file.exists():
+    with open(env_file) as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                os.environ.setdefault(key, value)
+
+def run_command(cmd, description, env=None):
     """Run a shell command and handle errors."""
     print(f"Running: {description}")
     print(f"Command: {' '.join(cmd)}")
     
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        subprocess.run(cmd, check=True, capture_output=True, text=True, env=env)
         print(f"✅ {description} completed successfully")
         return True
     except subprocess.CalledProcessError as e:
@@ -83,72 +93,142 @@ def import_database(filename=None):
     if filename.endswith('.gz'):
         print("📦 Decompressing file...")
         decompress_cmd = ['gunzip', '-k', filename]
-        if not run_command(decompress_cmd, "Decompressing database file"):
+        if not run_command(decompress_cmd, "Decompressing database file", env):
             return False
         sql_file = filename[:-3]  # Remove .gz extension
     
     # Database connection parameters
+    use_docker = os.getenv('USE_DOCKER', 'true').lower() == 'true'
+    container_name = os.getenv('POSTGRES_CONTAINER', 'foodigram_db')
+    
     db_params = {
         'user': 'postgres',
         'host': 'localhost',
-        'database': 'foodigram'
+        'database': 'foodigram',
+        'password': 'postgres'  # Default password for local development
     }
+    
+    # Set environment variables to avoid password prompts
+    if not use_docker:
+        env = os.environ.copy()
+        env['PGPASSWORD'] = db_params['password']
+    else:
+        env = os.environ.copy()
     
     # Create backup of current data (optional)
     backup_file = f"db/backup_before_import_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
     print(f"💾 Creating backup: {backup_file}")
     
-    backup_cmd = [
-        'pg_dump',
-        '-U', db_params['user'],
-        '-h', db_params['host'],
-        '-d', db_params['database'],
-        '--data-only',
-        '--no-owner',
-        '--no-privileges',
-        '-f', backup_file
-    ]
-    
-    # Create backup (continue even if this fails)
-    run_command(backup_cmd, "Creating backup")
+    if use_docker:
+        backup_cmd = [
+            'docker', 'exec', container_name,
+            'pg_dump',
+            '-U', db_params['user'],
+            '-d', db_params['database'],
+            '--data-only',
+            '--no-owner',
+            '--no-privileges'
+        ]
+        # Create backup (continue even if this fails)
+        try:
+            result = subprocess.run(backup_cmd, capture_output=True, text=True, env=env)
+            with open(backup_file, 'w') as f:
+                f.write(result.stdout)
+        except Exception:
+            print("⚠️  Warning: Could not create backup")
+    else:
+        backup_cmd = [
+            'pg_dump',
+            '-U', db_params['user'],
+            '-h', db_params['host'],
+            '-d', db_params['database'],
+            '--data-only',
+            '--no-owner',
+            '--no-privileges',
+            '-f', backup_file
+        ]
+        # Create backup (continue even if this fails)
+        run_command(backup_cmd, "Creating backup", env)
     
     # Clear existing data (required for data-only imports)
     print("🗑️  Clearing existing data...")
-    clear_cmd = [
-        'psql',
-        '-U', db_params['user'],
-        '-h', db_params['host'],
-        '-d', db_params['database'],
-        '-c', 'DELETE FROM db_menus; DELETE FROM db_restaurants;'
-    ]
     
-    if not run_command(clear_cmd, "Clearing existing data"):
+    if use_docker:
+        clear_cmd = [
+            'docker', 'exec', container_name,
+            'psql',
+            '-U', db_params['user'],
+            '-d', db_params['database'],
+            '-c', 'DELETE FROM db_menus; DELETE FROM db_restaurants;'
+        ]
+    else:
+        clear_cmd = [
+            'psql',
+            '-U', db_params['user'],
+            '-h', db_params['host'],
+            '-d', db_params['database'],
+            '-c', 'DELETE FROM db_menus; DELETE FROM db_restaurants;'
+        ]
+    
+    if not run_command(clear_cmd, "Clearing existing data", env):
         print("❌ Error: Could not clear existing data. Import will fail.")
         return False
     
     # Import the new data
-    import_cmd = [
-        'psql',
-        '-U', db_params['user'],
-        '-h', db_params['host'],
-        '-d', db_params['database'],
-        '-f', sql_file
-    ]
-    
-    if not run_command(import_cmd, "Importing database"):
-        return False
+    if use_docker:
+        # For Docker, we need to pipe the SQL file content into the container
+        try:
+            print(f"Running: Importing database")
+            print(f"Command: docker exec -i {container_name} psql -U {db_params['user']} -d {db_params['database']}")
+            
+            with open(sql_file, 'r') as f:
+                sql_content = f.read()
+            
+            import_cmd = [
+                'docker', 'exec', '-i', container_name,
+                'psql',
+                '-U', db_params['user'],
+                '-d', db_params['database']
+            ]
+            
+            result = subprocess.run(import_cmd, input=sql_content, text=True, check=True, capture_output=True, env=env)
+            print(f"✅ Importing database completed successfully")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Importing database failed:")
+            print(f"Error: {e.stderr}")
+            return False
+    else:
+        import_cmd = [
+            'psql',
+            '-U', db_params['user'],
+            '-h', db_params['host'],
+            '-d', db_params['database'],
+            '-f', sql_file
+        ]
+        
+        if not run_command(import_cmd, "Importing database", env):
+            return False
     
     # Verify import
-    verify_cmd = [
-        'psql',
-        '-U', db_params['user'],
-        '-h', db_params['host'],
-        '-d', db_params['database'],
-        '-c', 'SELECT COUNT(*) AS restaurants FROM db_restaurants; SELECT COUNT(*) AS menus FROM db_menus;'
-    ]
+    if use_docker:
+        verify_cmd = [
+            'docker', 'exec', container_name,
+            'psql',
+            '-U', db_params['user'],
+            '-d', db_params['database'],
+            '-c', 'SELECT COUNT(*) AS restaurants FROM db_restaurants; SELECT COUNT(*) AS menus FROM db_menus;'
+        ]
+    else:
+        verify_cmd = [
+            'psql',
+            '-U', db_params['user'],
+            '-h', db_params['host'],
+            '-d', db_params['database'],
+            '-c', 'SELECT COUNT(*) AS restaurants FROM db_restaurants; SELECT COUNT(*) AS menus FROM db_menus;'
+        ]
     
     print("🔍 Verifying import...")
-    subprocess.run(verify_cmd)
+    subprocess.run(verify_cmd, env=env)
     
     # Show file info
     file_size = os.path.getsize(sql_file) / (1024 * 1024)  # MB

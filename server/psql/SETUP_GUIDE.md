@@ -43,10 +43,31 @@ sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'postgres';"
 
 ## 2. Database Setup
 
-### Create Database
+### Using Docker (Recommended)
+```bash
+cd server/psql/settings
+
+# Stop any existing PostgreSQL services
+sudo service postgresql stop
+
+# Remove any existing foodigram database containers (for clean setup)
+docker compose down
+docker volume rm settings_postgres_data 2>/dev/null || true
+
+# Start fresh Docker PostgreSQL
+docker compose up -d
+
+# Verify container is running
+docker ps | grep foodigram_db
+```
+
+### Manual Database Creation (Alternative)
 ```bash
 # Connect to PostgreSQL
 psql -U postgres -h localhost
+
+# Drop existing database if it exists (for clean setup)
+DROP DATABASE IF EXISTS foodigram;
 
 # Create the database
 CREATE DATABASE foodigram
@@ -66,11 +87,6 @@ CREATE EXTENSION IF NOT EXISTS "postgis";
 \q
 ```
 
-### Alternative: Using Docker (Recommended for Teams)
-```bash
-cd /path/to/project/server/psql/settings
-docker compose up -d
-```
 
 ## 3. Python Environment Setup
 
@@ -81,9 +97,16 @@ cd /path/to/project/server
 
 ### Activate Virtual Environment
 ```bash
-# The server virtual environment already contains all dependencies
+python3 -m venv venv # if no environment exists yet
 source venv/bin/activate  # Linux/macOS
 # venv\Scripts\activate     # Windows
+```
+
+### Install Dependencies
+```bash
+# Install all required dependencies (Django + psql system requirements)
+pip install --upgrade pip
+pip install -r requirements.txt
 ```
 
 ### Verify Dependencies
@@ -93,6 +116,21 @@ python -c "import django, psycopg2, langchain, transformers; print('All dependen
 ```
 
 ## 4. Django Configuration
+
+### Environment Variables Setup
+Django requires AWS environment variables. Create the environment file:
+
+```bash
+# From server/ directory
+# Create .env.dev file with required AWS variables
+cat > .env.dev << 'EOF'
+AWS_ACCESS_KEY_ID=dummy_key_for_local_dev
+AWS_SECRET_ACCESS_KEY=dummy_secret_for_local_dev
+AWS_STORAGE_BUCKET_NAME=dummy_bucket_for_local_dev
+EOF
+```
+
+**Note**: These are dummy values for local development. The actual AWS functionality won't work, but Django will start properly.
 
 ### Database Configuration
 The database settings are already configured in `server/config/settings.py`:
@@ -108,10 +146,15 @@ DATABASES = {
     }
 }
 ```
+### Check docker is running
+```bash
+sudo docker ps # if not running, then execute the following
+sudo docker compose up -d
+```
 
 ### Test Django Connection
 ```bash
-# From server/ directory
+# From server/ directory (only after PostgreSQL connection works)
 python manage.py check
 ```
 
@@ -125,11 +168,20 @@ python manage.py migrate
 
 ## 5. Initialize psql Database Schema
 
-### Apply Database Schema
+### Apply Database Schema (Docker)
 ```bash
-# From server/ directory
-psql -U postgres -d foodigram -f psql/db/schema.sql
-psql -U postgres -d foodigram -f psql/db/schema_update.sql
+# From server/ directory - using Docker PostgreSQL
+docker exec -i foodigram_db psql -U postgres -d foodigram < psql/db/schema.sql
+
+# Alternative: Copy files into container and execute
+# docker cp psql/db/schema.sql foodigram_db:/tmp/
+# docker exec foodigram_db psql -U postgres -d foodigram -f /tmp/schema.sql
+```
+
+### Apply Database Schema (Native PostgreSQL - Alternative)
+```bash
+# Only use this if not using Docker
+psql -U postgres -h localhost -d foodigram -f psql/db/schema.sql
 ```
 
 ### Load Initial Data
@@ -144,13 +196,16 @@ python preprocess/preprocess.py     # Clean menu names (~2 min)
 
 ### Verify Data Loading
 ```bash
-# Check data was loaded correctly
+# Method 1: Check via Docker PostgreSQL directly
+docker exec foodigram_db psql -U postgres -d foodigram -c "
+SELECT 'Restaurants: ' || COUNT(*) FROM db_restaurants;
+SELECT 'Menus: ' || COUNT(*) FROM db_menus;
+"
+
+# Method 2: Check via Django (from server/ directory)
 python -c "
-from django.core.management import setup_environ
-import sys, os
-sys.path.append('../')
+import os, django
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'config.settings')
-import django
 django.setup()
 from psql_data.models import DbRestaurant, DbMenu
 print(f'Restaurants: {DbRestaurant.objects.count()}')
@@ -176,27 +231,47 @@ python preprocess/embedding.py
 
 ## 7. Team Database Sharing
 
-### Export Database for Sharing
+### Export Database for Sharing (Docker)
 ```bash
-# Create a database dump with data
-pg_dump -U postgres -h localhost -d foodigram \
-  --no-owner --no-privileges --clean --if-exists \
-  -f db/foodigram_data.sql
+# Method 1: Use automated export script (recommended)
+cd psql/
+python settings/team_sync.py export
 
-# Create a compressed version for easier sharing
+# Method 2: Manual Docker export
+docker exec foodigram_db pg_dump -U postgres -d foodigram \
+  --no-owner --no-privileges --data-only \
+  > db/foodigram_data.sql
+
+# Compress for sharing
 gzip -k db/foodigram_data.sql
 ```
 
-### Import Shared Database
+### Import Shared Database (Docker)
 ```bash
-# When receiving a database from teammate
+# Method 1: Use automated import script (recommended)
 cd psql/
+python settings/team_sync.py import
 
+# Method 2: Manual Docker import
+cd psql/
 # If using compressed file
 gunzip -k db/foodigram_data.sql.gz
 
-# Import the database
-psql -U postgres -d foodigram -f db/foodigram_data.sql
+# Clear existing data and import
+docker exec foodigram_db psql -U postgres -d foodigram -c "DELETE FROM db_menus; DELETE FROM db_restaurants;"
+docker exec -i foodigram_db psql -U postgres -d foodigram < db/foodigram_data.sql
+```
+
+### Export/Import for Native PostgreSQL (Alternative)
+```bash
+# Only use if not using Docker
+# Export
+pg_dump -U postgres -h localhost -d foodigram \
+  --no-owner --no-privileges --data-only \
+  -f db/foodigram_data.sql
+
+# Import  
+psql -U postgres -h localhost -d foodigram -f db/foodigram_data.sql
 ```
 
 ## 8. Django Admin Setup
@@ -293,20 +368,6 @@ python recommend/recommend.py
 - ✅ Django admin accessible
 - ✅ Recommendations generated
 
-## 11. Troubleshooting
-
-### Database Connection Issues
-```bash
-# Check PostgreSQL is running
-sudo systemctl status postgresql  # Linux
-brew services list | grep postgresql  # macOS
-
-# Check port 5432 is available
-sudo lsof -i :5432
-
-# Test direct connection
-psql -U postgres -h localhost -d foodigram -c "SELECT 1;"
-```
 
 ### Permission Issues
 ```bash
@@ -318,13 +379,26 @@ GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO postgres;
 ```
 
 ### Data Loading Issues
+
+#### Using Docker (Default)
 ```bash
-# Clear and reload data
-psql -U postgres -d foodigram -c "
+# Clear and reload data using Docker
+docker exec foodigram_db psql -U postgres -d foodigram -c "
 DROP TABLE IF EXISTS db_menus CASCADE;
 DROP TABLE IF EXISTS db_restaurants CASCADE;
 "
-psql -U postgres -d foodigram -f psql/db/schema.sql
+docker exec -i foodigram_db psql -U postgres -d foodigram < psql/db/schema.sql
+python psql/preprocess/into_db.py
+```
+
+#### Using Native PostgreSQL (Alternative)
+```bash
+# Only use if not using Docker
+psql -U postgres -h localhost -d foodigram -c "
+DROP TABLE IF EXISTS db_menus CASCADE;
+DROP TABLE IF EXISTS db_restaurants CASCADE;
+"
+psql -U postgres -h localhost -d foodigram -f psql/db/schema.sql
 python psql/preprocess/into_db.py
 ```
 

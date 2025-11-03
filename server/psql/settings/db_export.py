@@ -14,14 +14,24 @@ import sys
 import os
 from datetime import datetime
 import argparse
+from pathlib import Path
 
-def run_command(cmd, description):
+# Load environment variables from .env file if it exists
+env_file = Path(__file__).parent / '.env'
+if env_file.exists():
+    with open(env_file) as f:
+        for line in f:
+            if line.strip() and not line.startswith('#'):
+                key, value = line.strip().split('=', 1)
+                os.environ.setdefault(key, value)
+
+def run_command(cmd, description, env=None):
     """Run a shell command and handle errors."""
     print(f"Running: {description}")
     print(f"Command: {' '.join(cmd)}")
     
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        subprocess.run(cmd, check=True, capture_output=True, text=True, env=env)
         print(f"✅ {description} completed successfully")
         return True
     except subprocess.CalledProcessError as e:
@@ -41,38 +51,79 @@ def export_database(compress=True):
     os.makedirs('db', exist_ok=True)
     
     # Database connection parameters
+    use_docker = os.getenv('USE_DOCKER', 'true').lower() == 'true'
+    container_name = os.getenv('POSTGRES_CONTAINER', 'foodigram_db')
+    
     db_params = {
         'user': 'postgres',
         'host': 'localhost',
-        'database': 'foodigram'
+        'database': 'foodigram',
+        'password': 'postgres'  # Default password for local development
     }
+    
+    # Set environment variables to avoid password prompts
+    if not use_docker:
+        env = os.environ.copy()
+        env['PGPASSWORD'] = db_params['password']
+    else:
+        env = os.environ.copy()
     
     # Output file with timestamp
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_file = f"db/foodigram_data_{timestamp}.sql"
     
-    # pg_dump command
-    dump_cmd = [
-        'pg_dump',
-        '-U', db_params['user'],
-        '-h', db_params['host'],
-        '-d', db_params['database'],
-        '--no-owner',
-        '--no-privileges',
-        '--data-only',  # Only export data, not schema
-        '-f', output_file
-    ]
+    # Choose export method based on Docker usage
+    if use_docker:
+        # Docker export command
+        dump_cmd = [
+            'docker', 'exec', container_name,
+            'pg_dump',
+            '-U', db_params['user'],
+            '-d', db_params['database'],
+            '--no-owner',
+            '--no-privileges',
+            '--data-only'  # Only export data, not schema
+        ]
+    else:
+        # Native PostgreSQL export command
+        dump_cmd = [
+            'pg_dump',
+            '-U', db_params['user'],
+            '-h', db_params['host'],
+            '-d', db_params['database'],
+            '--no-owner',
+            '--no-privileges',
+            '--data-only',  # Only export data, not schema
+            '-f', output_file
+        ]
     
     # Export database
-    if not run_command(dump_cmd, "Exporting database"):
-        return False
+    if use_docker:
+        # For Docker, we need to capture output and write to file
+        try:
+            print(f"Running: Exporting database")
+            print(f"Command: {' '.join(dump_cmd)}")
+            result = subprocess.run(dump_cmd, check=True, capture_output=True, text=True, env=env)
+            
+            # Write Docker output to file
+            with open(output_file, 'w') as f:
+                f.write(result.stdout)
+            print(f"✅ Exporting database completed successfully")
+        except subprocess.CalledProcessError as e:
+            print(f"❌ Exporting database failed:")
+            print(f"Error: {e.stderr}")
+            return False
+    else:
+        # For native PostgreSQL, use the existing method
+        if not run_command(dump_cmd, "Exporting database", env):
+            return False
     
     print(f"📁 Database exported to: {output_file}")
     
     # Compress if requested
     if compress:
         gzip_cmd = ['gzip', '-k', output_file]
-        if run_command(gzip_cmd, "Compressing database file"):
+        if run_command(gzip_cmd, "Compressing database file", env):
             compressed_file = f"{output_file}.gz"
             print(f"📦 Compressed file: {compressed_file}")
             

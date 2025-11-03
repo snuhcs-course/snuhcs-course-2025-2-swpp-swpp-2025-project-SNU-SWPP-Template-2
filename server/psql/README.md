@@ -1,6 +1,6 @@
-# Restaurant Recommendation System
+# Backend (Recommendation System)
 
-A PostgreSQL-based restaurant management system with AI-powered recommendations and semantic search.
+A PostgreSQL-based management system with AI-powered recommendations and semantic search.
 
 ## Quick Start
 
