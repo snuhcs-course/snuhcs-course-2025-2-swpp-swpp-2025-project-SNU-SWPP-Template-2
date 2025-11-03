@@ -46,14 +46,16 @@ CREATE TABLE db_restaurants (
     group3          TEXT,                       -- e.g., "봉천동"
     category_code   TEXT,
     category_code_list TEXT[],
-    geom            GEOMETRY(POINT, 4326),      -- For PostGIS spatial queries
+    geom            TEXT,                       -- PostGIS geometry stored as text (GDAL compatibility)
     place_images    TEXT[],                     -- Array of URLs
     avg_rating      NUMERIC(3,2),
     review_count    INTEGER,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    category_normalized TEXT,                  -- Normalized category for consistent querying
     meaningful_name BOOLEAN DEFAULT FALSE,
     inferred_menu   TEXT DEFAULT '',
-    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    embedding_vector REAL[]                     -- Allows NULL (changed from DEFAULT '{}')
 );
 
 -- ----------------------------------------------------------------------------
@@ -61,7 +63,6 @@ CREATE TABLE db_restaurants (
 -- ----------------------------------------------------------------------------
 CREATE TABLE db_menus (
     id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    restaurant_id   UUID REFERENCES db_restaurants(id) ON DELETE CASCADE,
     external_id     TEXT,                       -- {restaurant_id}_{menu_index}
     name            TEXT NOT NULL,              -- e.g., "단팥빵"
     price           INTEGER,
@@ -72,10 +73,12 @@ CREATE TABLE db_menus (
 
     -- Added fields (from preprocess.py)
     name_clean      TEXT,                       -- regex-cleaned version
-    embedding_vector REAL[] DEFAULT '{}',       -- embeddings for similarity search
-
+    taste_profile   JSONB,                      -- JSON object for taste characteristics
+    allergen_info   JSONB,                      -- JSON object for allergen information
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    embedding_vector REAL[],                    -- Allows NULL (changed from DEFAULT '{}')
+    restaurant_id   UUID REFERENCES db_restaurants(id) ON DELETE CASCADE
 );
 
 -- ----------------------------------------------------------------------------
@@ -101,9 +104,9 @@ FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 -- 6. Indexes (for performance)
 -- ----------------------------------------------------------------------------
 
--- Spatial index (PostGIS)
+-- Geometry text index (for when PostGIS is available)
 CREATE INDEX IF NOT EXISTS idx_restaurants_geom
-    ON db_restaurants USING GIST (geom);
+    ON db_restaurants (geom);
 
 -- Text search / filtering
 CREATE INDEX IF NOT EXISTS idx_restaurants_name
@@ -119,8 +122,18 @@ CREATE INDEX IF NOT EXISTS idx_menus_name_clean
     ON db_menus USING GIN (to_tsvector('simple', name_clean));
 
 -- Embedding vector index for similarity search
+CREATE INDEX IF NOT EXISTS idx_restaurants_embedding_vector
+    ON db_restaurants USING GIN (embedding_vector);
+    
 CREATE INDEX IF NOT EXISTS idx_menus_embedding_vector
     ON db_menus USING GIN (embedding_vector);
+
+-- Additional indexes for menu fields
+CREATE INDEX IF NOT EXISTS idx_menus_taste_profile
+    ON db_menus USING GIN (taste_profile);
+
+CREATE INDEX IF NOT EXISTS idx_menus_allergen_info
+    ON db_menus USING GIN (allergen_info);
 
 -- ----------------------------------------------------------------------------
 -- 7. View (optional): Quick joined menu view

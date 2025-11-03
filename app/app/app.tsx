@@ -32,7 +32,9 @@ import { customFontsToLoad } from "./theme"
 import Config from "./config"
 
 import { Amplify } from "aws-amplify"
-import amplifyconfig from "../amplifyconfiguration.json"
+import amplifyconfig from "./amplifyconfiguration.json"
+import { useImageLabelingModels, useImageLabelingProvider } from "@infinitered/react-native-mlkit-image-labeling"
+import { MODELS } from "./config/ImageLabelingConfig"
 Amplify.configure(amplifyconfig)
 
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
@@ -68,6 +70,9 @@ interface AppProps {
  * @returns {JSX.Element} The rendered `App` component.
  */
 function App(props: AppProps) {
+  const models = useImageLabelingModels(MODELS);
+  const { ImageLabelingModelProvider } = useImageLabelingProvider(models);
+
   const { hideSplashScreen } = props
   const {
     initialNavigationState,
@@ -104,6 +109,7 @@ function App(props: AppProps) {
 
   // otherwise, we're ready to render the app
   return (
+    <ImageLabelingModelProvider>
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider initialMetrics={initialWindowMetrics}>
         <ErrorBoundary catchErrors={Config.catchErrors}>
@@ -115,6 +121,7 @@ function App(props: AppProps) {
         </ErrorBoundary>
       </SafeAreaProvider>
     </GestureHandlerRootView>
+    </ImageLabelingModelProvider>
   )
 }
 
