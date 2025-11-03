@@ -235,6 +235,30 @@ def import_database(filename=None):
     print(f"📊 File size: {file_size:.1f} MB")
     print(f"📊 File date: {mod_time.strftime('%Y-%m-%d %H:%M:%S')}")
     
+    # Cleanup: Remove .sql files and symlinks to .gz files
+    print("🧹 Cleaning up temporary files...")
+    
+    # Remove decompressed .sql files (but keep the original .gz)
+    if sql_file.endswith('.sql') and sql_file != filename:
+        # Only remove if it's a decompressed file, not the original input
+        try:
+            os.remove(sql_file)
+            print(f"🗑️  Removed decompressed file: {sql_file}")
+        except OSError as e:
+            print(f"⚠️  Could not remove {sql_file}: {e}")
+    
+    # Remove symlinks to .gz files in db directory
+    db_dir = 'db'
+    if os.path.exists(db_dir):
+        for item in os.listdir(db_dir):
+            item_path = os.path.join(db_dir, item)
+            if os.path.islink(item_path) and item.endswith('.gz'):
+                try:
+                    os.unlink(item_path)
+                    print(f"🗑️  Removed symlink: {item_path}")
+                except OSError as e:
+                    print(f"⚠️  Could not remove symlink {item_path}: {e}")
+    
     return True
 
 def main():
