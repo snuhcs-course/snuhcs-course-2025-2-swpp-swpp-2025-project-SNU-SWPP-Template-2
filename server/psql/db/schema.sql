@@ -38,7 +38,6 @@ CREATE TABLE db_restaurants (
     external_id     VARCHAR(20) UNIQUE,         -- Original ID from source JSON
     name            TEXT NOT NULL,              -- e.g., "쟝블랑제리 낙성대본점"
     category        TEXT,                       -- e.g., "베이커리"
-    category_normalized TEXT,                  -- Normalized category for consistent querying
     phone           TEXT,
     address         TEXT,
     road_address    TEXT,
@@ -51,11 +50,12 @@ CREATE TABLE db_restaurants (
     place_images    TEXT[],                     -- Array of URLs
     avg_rating      NUMERIC(3,2),
     review_count    INTEGER,
+    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    category_normalized TEXT,                  -- Normalized category for consistent querying
     meaningful_name BOOLEAN DEFAULT FALSE,
     inferred_menu   TEXT DEFAULT '',
-    embedding_vector REAL[] DEFAULT '{}',
-    created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    embedding_vector REAL[] DEFAULT '{}'
 );
 
 -- ----------------------------------------------------------------------------
