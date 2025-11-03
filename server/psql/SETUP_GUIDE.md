@@ -184,11 +184,17 @@ docker exec -i foodigram_db psql -U postgres -d foodigram < psql/db/schema.sql
 psql -U postgres -h localhost -d foodigram -f psql/db/schema.sql
 ```
 
-### Load Initial Data
+### Before Loading Initial Data
 ```bash
 # Navigate to psql directory
 cd psql/
 
+cp settings/.env.example settings/.env
+# Edit settings/.env and add your OpenAI API key
+```
+
+### Loading Initial Data
+```bash
 # Load restaurant and menu data (~5 minutes total)
 python preprocess/into_db.py        # Load raw data (~3 min)
 python preprocess/preprocess.py     # Clean menu names (~2 min)
@@ -222,10 +228,6 @@ Menus: 36445
 ## 6. Generate Embeddings (Optional - for AI features)
 
 ```bash
-# This step takes ~15 minutes and requires OpenAI API key
-cp settings/.env.example settings/.env
-# Edit settings/.env and add your OpenAI API key
-
 python preprocess/embedding.py
 ```
 

@@ -38,6 +38,7 @@ CREATE TABLE db_restaurants (
     external_id     VARCHAR(20) UNIQUE,         -- Original ID from source JSON
     name            TEXT NOT NULL,              -- e.g., "쟝블랑제리 낙성대본점"
     category        TEXT,                       -- e.g., "베이커리"
+    category_normalized TEXT,                  -- Normalized category for consistent querying
     phone           TEXT,
     address         TEXT,
     road_address    TEXT,
@@ -73,6 +74,8 @@ CREATE TABLE db_menus (
 
     -- Added fields (from preprocess.py)
     name_clean      TEXT,                       -- regex-cleaned version
+    taste_profile   JSONB,                      -- JSON object for taste characteristics
+    allergen_info   JSONB,                      -- JSON object for allergen information
     embedding_vector REAL[] DEFAULT '{}',       -- embeddings for similarity search
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW()

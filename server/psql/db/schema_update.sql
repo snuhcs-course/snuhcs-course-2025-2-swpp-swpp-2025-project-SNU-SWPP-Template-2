@@ -1,17 +1,22 @@
-ALTER TABLE db_restaurants 
-    ADD COLUMN IF NOT EXISTS meaningful_name BOOLEAN DEFAULT FALSE;
+-- ============================================================================
+-- Schema Update File - DEPRECATED
+-- ============================================================================
+-- 
+-- All schema updates have been merged into schema.sql for consistent
+-- database initialization. This file is kept for reference but should
+-- not be executed as all changes are now included in the main schema.
+--
+-- The following fields are now included in schema.sql:
+-- - db_restaurants.meaningful_name
+-- - db_restaurants.inferred_menu  
+-- - db_restaurants.embedding_vector
+-- - db_restaurants.category_normalized
+-- - db_menus.embedding_vector
+-- - db_menus.taste_profile
+-- - db_menus.allergen_info
+-- - All related indexes
+--
+-- NO-OP: This file intentionally does nothing to prevent duplicate schema changes.
+-- ============================================================================
 
-ALTER TABLE db_restaurants 
-    ADD COLUMN IF NOT EXISTS inferred_menu TEXT DEFAULT '';
-
-ALTER TABLE db_restaurants 
-    ADD COLUMN IF NOT EXISTS embedding_vector REAL[] DEFAULT '{}';
-
-ALTER TABLE db_menus 
-    ADD COLUMN IF NOT EXISTS embedding_vector REAL[] DEFAULT '{}';
-
-CREATE INDEX IF NOT EXISTS idx_menus_embedding_vector 
-    ON db_menus USING GIN (embedding_vector);
-
-CREATE INDEX IF NOT EXISTS idx_restaurants_embedding_vector
-    ON db_restaurants USING GIN (embedding_vector);
+SELECT 'Schema updates are now handled in schema.sql - this file is deprecated' AS notice;

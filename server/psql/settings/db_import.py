@@ -72,6 +72,22 @@ def import_database(filename=None):
     psql_dir = os.path.dirname(script_dir)
     os.chdir(psql_dir)
     
+    # Database connection parameters (set up early for environment variables)
+    use_docker = os.getenv('USE_DOCKER', 'true').lower() == 'true'
+    container_name = os.getenv('POSTGRES_CONTAINER', 'foodigram_db')
+    
+    db_params = {
+        'user': 'postgres',
+        'host': 'localhost',
+        'database': 'foodigram',
+        'password': 'postgres'  # Default password for local development
+    }
+    
+    # Set environment variables to avoid password prompts
+    env = os.environ.copy()
+    if not use_docker:
+        env['PGPASSWORD'] = db_params['password']
+    
     # Find the file to import
     if filename is None:
         filename = find_latest_export()
@@ -96,24 +112,6 @@ def import_database(filename=None):
         if not run_command(decompress_cmd, "Decompressing database file", env):
             return False
         sql_file = filename[:-3]  # Remove .gz extension
-    
-    # Database connection parameters
-    use_docker = os.getenv('USE_DOCKER', 'true').lower() == 'true'
-    container_name = os.getenv('POSTGRES_CONTAINER', 'foodigram_db')
-    
-    db_params = {
-        'user': 'postgres',
-        'host': 'localhost',
-        'database': 'foodigram',
-        'password': 'postgres'  # Default password for local development
-    }
-    
-    # Set environment variables to avoid password prompts
-    if not use_docker:
-        env = os.environ.copy()
-        env['PGPASSWORD'] = db_params['password']
-    else:
-        env = os.environ.copy()
     
     # Create backup of current data (optional)
     backup_file = f"db/backup_before_import_{datetime.now().strftime('%Y%m%d_%H%M%S')}.sql"
