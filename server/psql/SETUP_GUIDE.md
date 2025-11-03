@@ -155,10 +155,13 @@ DATABASES = {
     }
 }
 ```
-### Check docker is running
+### Ensure Docker is Running
 ```bash
-sudo docker ps # if not running, then execute the following
-sudo docker compose up -d
+# docker goes down after pip installation sometimes
+docker ps # if not running, then execute the following
+cd psql/settings
+docker compose up -d
+cd ../.. # back to server
 ```
 
 ### Test Django Connection
@@ -203,15 +206,7 @@ python settings/team_sync.py import
 python preprocess/embedding.py
 ```
 
-## 7. Initial Database Import
-
-### Import Database (One-time setup)
-```bash
-cd psql/
-python settings/team_sync.py import
-```
-
-## 8. Verify Setup
+## 7. Verify Setup
 
 ### Test the Setup
 ```bash
