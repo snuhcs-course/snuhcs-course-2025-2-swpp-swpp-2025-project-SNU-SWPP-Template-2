@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'menu',
     'recommendation',
     'recommendation_system',
+    'psql_data',
 ]
 
 MIDDLEWARE = [
@@ -83,8 +84,12 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'foodigram',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'localhost',
+        'PORT': '5432',
     }
 }
 
