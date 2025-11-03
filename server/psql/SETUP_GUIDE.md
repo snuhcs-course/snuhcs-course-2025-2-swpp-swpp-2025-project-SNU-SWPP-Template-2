@@ -241,3 +241,5 @@ For detailed usage, troubleshooting, and team workflows, see README.md
 **Note**: PostGIS spatial data is stored as TEXT in the `geom` field due to GDAL library compatibility issues. This ensures both Django migrations and schema.sql create identical table structures. The geometric data is preserved but not processed as spatial data by Django.
 
 **Database Schema**: The `db_menus` table has `restaurant_id` as the last column to ensure consistency across all systems. This matches the current Docker database structure and Django models.
+
+**Embedding Vectors**: The `embedding_vector` fields in both `db_restaurants` and `db_menus` tables allow NULL values to accommodate imported data that may not have embeddings yet. This ensures compatibility with SQL exports that contain NULL embedding values. The fields are defined as `REAL[]` (PostgreSQL) / `ArrayField(FloatField())` (Django) with `null=True, blank=True`.

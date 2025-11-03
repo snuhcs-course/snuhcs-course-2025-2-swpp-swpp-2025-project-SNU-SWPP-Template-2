@@ -55,7 +55,7 @@ CREATE TABLE db_restaurants (
     category_normalized TEXT,                  -- Normalized category for consistent querying
     meaningful_name BOOLEAN DEFAULT FALSE,
     inferred_menu   TEXT DEFAULT '',
-    embedding_vector REAL[] DEFAULT '{}'
+    embedding_vector REAL[]                     -- Allows NULL (changed from DEFAULT '{}')
 );
 
 -- ----------------------------------------------------------------------------
@@ -77,7 +77,7 @@ CREATE TABLE db_menus (
     allergen_info   JSONB,                      -- JSON object for allergen information
     created_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at      TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    embedding_vector REAL[] DEFAULT '{}',       -- embeddings for similarity search
+    embedding_vector REAL[],                    -- Allows NULL (changed from DEFAULT '{}')
     restaurant_id   UUID REFERENCES db_restaurants(id) ON DELETE CASCADE
 );
 

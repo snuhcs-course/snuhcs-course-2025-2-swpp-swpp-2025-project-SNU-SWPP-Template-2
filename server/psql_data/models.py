@@ -28,7 +28,7 @@ class DbRestaurant(models.Model):
     category_normalized = models.TextField(null=True, blank=True)
     meaningful_name = models.BooleanField(default=False)
     inferred_menu = models.TextField(default='', blank=True)
-    embedding_vector = ArrayField(models.FloatField(), default=list, blank=True)
+    embedding_vector = ArrayField(models.FloatField(), null=True, blank=True)
 
     class Meta:
         db_table = 'db_restaurants'
@@ -54,7 +54,7 @@ class DbMenu(models.Model):
     allergen_info = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    embedding_vector = ArrayField(models.FloatField(), default=list, blank=True)
+    embedding_vector = ArrayField(models.FloatField(), null=True, blank=True)
     restaurant = models.ForeignKey(DbRestaurant, on_delete=models.CASCADE, db_column='restaurant_id')
 
     class Meta:
