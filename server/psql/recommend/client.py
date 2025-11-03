@@ -31,8 +31,24 @@ import warnings
 # Suppress sklearn convergence warnings for cleaner output
 warnings.filterwarnings("ignore", category=UserWarning, module="sklearn")
 
-# Load environment variables
-load_dotenv()
+# Load environment variables - look for .env files in multiple locations
+# 1. Current directory
+# 2. Same directory as this script  
+# 3. Parent directory (psql/)
+# 4. Parent's parent directory (server/)
+script_dir = os.path.dirname(os.path.abspath(__file__))
+env_locations = [
+    '.env',  # Current working directory
+    os.path.join(script_dir, '.env'),  # recommend/
+    os.path.join(script_dir, '..', '.env'),  # psql/
+    os.path.join(script_dir, '..', 'settings', '.env'),  # psql/settings/
+    os.path.join(script_dir, '..', '..', '.env'),  # server/
+]
+
+for env_path in env_locations:
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+        break
 
 # Database connection parameters
 DB_CONFIG = {

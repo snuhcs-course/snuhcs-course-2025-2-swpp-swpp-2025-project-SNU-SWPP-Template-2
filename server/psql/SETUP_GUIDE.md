@@ -26,6 +26,9 @@ createuser -s postgres
 sudo apt update
 sudo apt install postgresql-14 postgresql-14-postgis-3 postgresql-client-14
 
+# Install GDAL for Django PostGIS support (required)
+sudo apt install gdal-bin libgdal-dev
+
 # Start PostgreSQL service
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
@@ -107,12 +110,18 @@ source venv/bin/activate  # Linux/macOS
 # Install all required dependencies (Django + psql system requirements)
 pip install --upgrade pip
 pip install -r requirements.txt
+
+# Install GDAL Python package matching system version
+GDAL_VERSION=$(gdal-config --version)
+pip install GDAL==$GDAL_VERSION
 ```
 
 ### Verify Dependencies
 ```bash
 # Check that all psql dependencies are installed
 python -c "import django, psycopg2, langchain, transformers; print('All dependencies OK')"
+
+# Note: PostGIS/GDAL may need troubleshooting - see README.md if you get GDAL errors
 ```
 
 ## 4. Django Configuration
@@ -228,3 +237,5 @@ cd ../.. && source venv/bin/activate && python manage.py runserver
 Visit http://localhost:8000/admin/ for database management.
 
 For detailed usage, troubleshooting, and team workflows, see README.md
+
+**Note**: PostGIS spatial data is stored as TEXT in the `geom` field due to GDAL library compatibility issues. This ensures both Django migrations and schema.sql create identical table structures. The geometric data is preserved but not processed as spatial data by Django.

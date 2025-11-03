@@ -46,7 +46,7 @@ CREATE TABLE db_restaurants (
     group3          TEXT,                       -- e.g., "봉천동"
     category_code   TEXT,
     category_code_list TEXT[],
-    geom            GEOMETRY(POINT, 4326),      -- For PostGIS spatial queries
+    geom            TEXT,                       -- PostGIS geometry stored as text (GDAL compatibility)
     place_images    TEXT[],                     -- Array of URLs
     avg_rating      NUMERIC(3,2),
     review_count    INTEGER,
@@ -104,9 +104,9 @@ FOR EACH ROW EXECUTE FUNCTION update_timestamp();
 -- 6. Indexes (for performance)
 -- ----------------------------------------------------------------------------
 
--- Spatial index (PostGIS)
+-- Geometry text index (for when PostGIS is available)
 CREATE INDEX IF NOT EXISTS idx_restaurants_geom
-    ON db_restaurants USING GIST (geom);
+    ON db_restaurants (geom);
 
 -- Text search / filtering
 CREATE INDEX IF NOT EXISTS idx_restaurants_name

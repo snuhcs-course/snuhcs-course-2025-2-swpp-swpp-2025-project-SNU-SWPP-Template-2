@@ -20,6 +20,7 @@ from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
 # Import our modules
+sys.path.append(os.path.join(os.path.dirname(__file__), '../recommend'))
 from client import RestaurantRecommender, UserProfile
 
 # Load environment variables

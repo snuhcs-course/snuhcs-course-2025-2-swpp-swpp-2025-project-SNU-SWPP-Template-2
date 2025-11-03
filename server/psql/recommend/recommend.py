@@ -11,7 +11,10 @@ import sys
 import json
 import argparse
 from datetime import datetime
-from .client import RestaurantRecommender, UserProfile
+try:
+    from .client import RestaurantRecommender, UserProfile
+except ImportError:
+    from client import RestaurantRecommender, UserProfile
 
 def print_recommendations(recommendations, user_profile):
     """Print recommendations in the format specified in specifications.md"""
@@ -90,7 +93,10 @@ def print_recommendations(recommendations, user_profile):
 
 def load_user_profile(user_file: str) -> UserProfile:
     """Load user profile from JSON file"""
-    user_path = f"test_run/user/{user_file}.json"
+    # Get paths relative to script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    psql_dir = os.path.dirname(script_dir)
+    user_path = os.path.join(psql_dir, "test_run", "user", f"{user_file}.json")
     
     if not os.path.exists(user_path):
         raise FileNotFoundError(f"User profile file not found: {user_path}")
@@ -107,9 +113,14 @@ def load_user_profile(user_file: str) -> UserProfile:
 
 def save_results(recommendations: dict, user_profile: UserProfile, user_file: str):
     """Save recommendation results to JSON file"""
+    # Get paths relative to script location
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    psql_dir = os.path.dirname(script_dir)
+    
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     result_filename = f"{user_file}_{timestamp}.json"
-    result_path = f"test_run/result/{result_filename}"
+    result_dir = os.path.join(psql_dir, "test_run", "result")
+    result_path = os.path.join(result_dir, result_filename)
     
     # Prepare data for JSON serialization
     result_data = {
@@ -124,7 +135,7 @@ def save_results(recommendations: dict, user_profile: UserProfile, user_file: st
     }
     
     # Create result directory if it doesn't exist
-    os.makedirs("test_run/result", exist_ok=True)
+    os.makedirs(result_dir, exist_ok=True)
     
     with open(result_path, 'w', encoding='utf-8') as f:
         json.dump(result_data, f, indent=2, ensure_ascii=False)
@@ -203,9 +214,12 @@ def main():
         print("\n✅ Demo completed!")
 
 if __name__ == "__main__":
-    # Check if we're in the right directory
-    if not os.path.exists('client.py'):
-        print("❌ Please run this script from the psql/ directory")
+    # Check if client.py exists relative to this script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    client_path = os.path.join(script_dir, 'client.py')
+    
+    if not os.path.exists(client_path):
+        print("❌ client.py not found. Please ensure the recommend/ directory structure is intact.")
         sys.exit(1)
     
     # Check environment
@@ -227,8 +241,15 @@ if __name__ == "__main__":
         print("  --clustering spectral  # Spectral clustering (default)")
         print("  --clustering hdbscan   # Density-based clustering")
         print("  --clustering kmeans    # K-Means clustering")
-        print("\nUser profiles should be in test_run/user/ directory")
-        print("Results will be saved in test_run/result/ directory")
+        # Get paths relative to script location for help text
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        psql_dir = os.path.dirname(script_dir)
+        user_dir = os.path.join(psql_dir, "test_run", "user")
+        result_dir = os.path.join(psql_dir, "test_run", "result")
+        
+        print(f"\nUser profiles should be in: {user_dir}")
+        print(f"Results will be saved to: {result_dir}")
+        print(f"Script can be run from any directory (uses relative paths)")
     
     try:
         main()
