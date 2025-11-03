@@ -1,63 +1,57 @@
-import React, { useEffect, useState } from "react"
+import { useAlbumScanner } from "app/services/albums/useAlbumScanner"
+import { api } from "app/services/api"
+import { getImage as getImageName } from "app/utils/imagenameFromAsseturi"
+import * as storage from "app/utils/storage"
+import { Asset } from "expo-media-library"
+import { Home, Plus, Settings, User } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
+import React, { useEffect, useState } from "react"
 import {
-  View,
-  ViewStyle,
-  TextStyle,
-  ScrollView,
+  Dimensions,
   Image,
   ImageStyle,
+  ScrollView,
+  StatusBar,
+  TextStyle,
   TouchableOpacity,
-  Dimensions,
-  GestureResponderEvent,
+  View,
+  ViewStyle
 } from "react-native"
-import { Home, User, Filter, RefreshCw, X, Settings } from "lucide-react-native"
-import { Text, RestaurantDetailModal, PreferencesModal } from "../components"
-import { colors, spacing } from "../theme"
-import { AppStackScreenProps } from "../navigators"
+import { PreferencesModal, RestaurantDetailModal, Text } from "../components"
 import { useStores } from "../models"
-import { api } from "app/services/api"
-import * as storage from "app/utils/storage"
-import { allCategories, allAllergens } from "../data/mockData"
-import { handleSignOut } from "app/services/aws/handleAwsSignin"
-import { useAlbumScanner } from "app/services/albums/useAlbumScanner"
-import { Asset } from "expo-media-library"
-import { getImage as getImageName } from "app/utils/imagenameFromAsseturi"
+import { AppStackScreenProps } from "../navigators"
+import { colors, spacing } from "../theme"
 
 
-interface ProfileScreenProps extends AppStackScreenProps<"Profile"> { }
+interface ProfileScreenProps extends AppStackScreenProps<"Profile"> {}
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function ProfileScreen({ navigation }) {
+  const { foodHistoryStore, menuScrapStore } = useStores()
   const { scanAlbums } = useAlbumScanner();
-  const { foodHistoryStore } = useStores()
   const screenWidth = Dimensions.get('window').width
-  const imageSize = (screenWidth - spacing.md * 3 - 12) / 2 // 2 columns with padding
-  const [userName, setUserName] = useState("Sophia")
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [hideUserImages, setHideUserImages] = useState(false)
-  const [hideScrappedImages, setHideScrappedImages] = useState(false)
-  const [excludedCategories, setExcludedCategories] = useState<string[]>([])
-  const [excludedAllergens, setExcludedAllergens] = useState<string[]>([])
+  const imageSize = (screenWidth - spacing.lg * 2 - spacing.sm) / 2 // 2 columns with padding
+  const [userName, setUserName] = useState("John Doe")
+  const [activeTab, setActiveTab] = useState<'photos' | 'restaurants'>('photos')
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isPreferencesModalVisible, setIsPreferencesModalVisible] = useState(false)
 
-  const [userImages, setUserImages] = useState<Array<{ id: string, type: string, image: any, name: string }>>([
-    { id: 'user1', type: 'user', image: require("../../assets/images/restaurant1.jpg"), name: 'My Food Photo 1' },
-    { id: 'user2', type: 'user', image: require("../../assets/images/restaurant2.jpg"), name: 'My Food Photo 2' },
+  const [userImages, setUserImages] = useState<Array<{id: string, type: string, image: any, name: string}>>([
+    // { id: 'user1', type: 'user', image: require("../../assets/images/restaurant1.jpg"), name: 'My Food Photo 1' },
+    // { id: 'user2', type: 'user', image: require("../../assets/images/restaurant2.jpg"), name: 'My Food Photo 2' },
   ]);
 
   useEffect(() => {
     let mounted = true
-      ; (async () => {
-        try {
-          const res = await api.me()
-          const d: any = res.data
-          if (mounted && res.ok && d && d.username) setUserName(d.username)
-        } catch (e) {
-          // ignore
-        }
-      })()
+    ;(async () => {
+      try {
+        const res = await api.me()
+        const d: any = res.data
+        if (mounted && res.ok && d && d.username) setUserName(d.username)
+      } catch (e) {
+        // ignore
+      }
+    })()
     return () => {
       mounted = false
     }
@@ -66,19 +60,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   // Mock data for profile
   const user = {
     name: userName,
-    role: "Foodie",
-    tags: ["Italian", "Seafood", "Desserts"],
   }
 
-  const likedRestaurants = [
-    { id: 1, name: "The Pasta Place", image: require("../../assets/images/restaurant1.jpg") },
-    { id: 2, name: "Ocean's Catch", image: require("../../assets/images/restaurant2.jpg") },
-    { id: 3, name: "Sweet Garden", image: require("../../assets/images/restaurant3.jpg") },
-  ]
+  // Get scrapped menus from store
+  const scrappedMenus = menuScrapStore.scrappedMenusList
 
   // Get scrapped items from store
   const scrappedFoods = foodHistoryStore.scrappedItemsList
-
+  
   // Convert scrapped foods to consistent format
   const scrappedImages = scrappedFoods.map(food => ({
     id: food.id.toString(),
@@ -86,204 +75,159 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
     image: { uri: food.image },
     name: food.name
   }))
+  
+  // Combine user images and scrapped images
+  const allPhotos = [...userImages, ...scrappedImages]
 
-  // Combine and filter all images
-  const getAllImages = (): Array<{ id: string, type: string, image: any, name: string }> => {
-    let allImages: Array<{ id: string, type: string, image: any, name: string }> = []
-
-    if (!hideUserImages) {
-      allImages = [...allImages, ...userImages]
+  const handleSettingsPress = async () => {
+    try {
+        await api.logout()
+    } catch (e) {
+      // ignore network errors and continue logout locally
     }
-
-    if (!hideScrappedImages) {
-      allImages = [...allImages, ...scrappedImages]
-    }
-
-    return allImages
+    await storage.remove("IS_LOGGED_IN")
+    navigation.replace("Welcome")
   }
-
-  // Filter images based on category and allergen exclusions
-  const getFilteredImages = () => {
-    const allImages = getAllImages()
-
-    return allImages.filter(item => {
-      // Find the corresponding food item from scrapped foods
-      const foodItem = scrappedFoods.find(food => food.id.toString() === item.id)
-
-      if (foodItem) {
-        // Check category exclusion
-        if (excludedCategories.includes(foodItem.category)) {
-          return false
-        }
-
-        // Check allergen exclusion
-        if (foodItem.allergens && foodItem.allergens.some(allergen => excludedAllergens.includes(allergen))) {
-          return false
-        }
-      }
-
-      return true
-    })
-  }
-
-  const filteredImages = getFilteredImages()
 
   return (
     <View style={$container}>
-      {/* Scrollable Content */}
-      <ScrollView style={$scrollView} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={$headerInScroll}>
-          <Text style={$headerTitle}>foodigram</Text>
-        </View>
+      <StatusBar barStyle="dark-content" />
+      
+      {/* Header */}
+      <View style={$header}>
+        <View style={$headerButton} />
+        <Text style={$headerTitle}>Profile</Text>
+        <TouchableOpacity 
+          style={$headerButton}
+          onPress={() => handleSettingsPress()}
+        >
+          <Settings size={24} color={colors.text} />
+        </TouchableOpacity>
+      </View>
 
+      <ScrollView style={$scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Section */}
         <View style={$profileSection}>
-          {/* Profile Image */}
           <View style={$profileImageContainer}>
-            <View style={$profileImage} />
+            <Image 
+              style={$profileImage}
+              resizeMode="cover"
+            />
           </View>
-
-          {/* User Name */}
           <Text style={$userName}>{user.name}</Text>
-
-          {/* Foodie Label */}
-          <Text style={$userRole}>{user.role}</Text>
-        </View>
-
-        {/* Food Tags */}
-        <View style={$tagsContainer}>
-          {user.tags.map((tag, index) => (
-            <View key={index} style={$tag}>
-              <Text style={$tagText}>{tag}</Text>
-            </View>
-          ))}
-          <TouchableOpacity
+          
+          <TouchableOpacity 
             testID="settings-button"
-            style={$settingsButton}
+            style={$editButton} 
             onPress={() => setIsPreferencesModalVisible(true)}
           >
-            <Settings size={16} color={colors.palette.neutral600} />
+            <Text style={$editButtonText}>Edit Profile</Text>
           </TouchableOpacity>
         </View>
 
-        {/* Liked Restaurants Section */}
-        <Text style={$sectionTitle}>Liked Restaurants</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={$restaurantsScroll}
-          style={$restaurantsScrollView}
-        >
-          {likedRestaurants.map((restaurant) => (
-            <TouchableOpacity key={restaurant.id} style={$restaurantCard}>
-              <View style={$restaurantImageContainer}>
-                <Image
-                  source={restaurant.image}
-                  style={$restaurantImage}
-                  resizeMode="cover"
-                />
-              </View>
-              <Text style={$restaurantName}>{restaurant.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-
-        {/* Food History Section */}
-        <View style={$sectionTitleContainer}>
-          <Text style={$sectionTitle}>Food History</Text>
-          <View style={$sectionButtons}>
-            <TouchableOpacity
-              testID="filter-button"
-              style={$sectionButton}
-              onPress={() => {
-                if (__DEV__) {
-                  console.log('Profile: opened filter panel')
-                }
-                setIsFilterOpen(true)
-              }}
-            >
-              <Filter size={16} color={colors.palette.neutral700} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              testID="refresh-button"
-              style={$sectionButton}
-              onPress={(event: GestureResponderEvent) => {
-                scanAlbums((asset: Asset) => {
-                  setUserImages(userImages => [...userImages, {
-                    id: asset.id,
-                    type: 'user',
-                    image: { uri: asset.uri },
-                    name: getImageName(asset),
-                  }]);
-                })
-              }}
-            >
-              <RefreshCw size={16} color={colors.palette.neutral700} />
-            </TouchableOpacity>
-          </View>
-        </View>
-        {filteredImages.length === 0 ? (
-          <View style={$emptyState}>
-            <Text style={$emptyText}>No food images to show</Text>
-            <Text style={$emptySubtext}>
-              {hideUserImages && hideScrappedImages
-                ? "All content types are hidden. Adjust filters to see your food images!"
-                : hideScrappedImages
-                  ? "Scrapped images are hidden or no images match your filters. Adjust filters or scrap foods from the Recommendation tab!"
-                  : "Add photos to your 'Foodigram' album or scrap foods from Recommendation!"}
+        {/* Tab Navigation */}
+        <View style={$tabContainer}>
+          <TouchableOpacity 
+            style={[$tab, activeTab === 'photos' && $tabActive]}
+            onPress={() => setActiveTab('photos')}
+          >
+            <Text style={[
+              $tabText, 
+              activeTab === 'photos' && $tabTextActive
+            ]}>
+              My Photos
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[$tab, activeTab === 'restaurants' && $tabActive]}
+            onPress={() => setActiveTab('restaurants')}
+          >
+            <Text style={[
+              $tabText, 
+              activeTab === 'restaurants' && $tabTextActive
+            ]}>
+              Liked Restaurants
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Content based on active tab */}
+        {activeTab === 'photos' ? (
+          <View style={$gridContainer}>
+            {allPhotos.length === 0 ? (
+              <View style={$emptyState}>
+                <Text style={$emptyText}>No photos yet</Text>
+                <Text style={$emptySubtext}>
+                  Add photos from your camera or scrap foods from recommendations!
+                </Text>
+              </View>
+            ) : (
+              <View style={$photoGrid}>
+                {allPhotos.map((item) => (
+                  <TouchableOpacity 
+                    key={item.id} 
+                    style={[$photoCard, { width: imageSize, height: imageSize }]}
+                    onPress={() => {
+                      if (item.type === 'scrapped') {
+                        setSelectedRestaurantId(parseInt(item.id))
+                        setIsModalVisible(true)
+                      }
+                    }}
+                  >
+                    <Image 
+                      source={item.image} 
+                      style={$photoImage}
+                      resizeMode="cover"
+                    />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
           </View>
         ) : (
-          <View style={$foodGrid}>
-            {filteredImages.map((item) => {
-              console.log('Rendering image item: ', item);
-              return (<TouchableOpacity
-                key={item.id}
-                style={[$foodCard, { width: imageSize }]}
-                onPress={() => {
-                  if (item.type === 'scrapped') {
-                    // 스크랩된 음식점 클릭 시 모달 열기
-                    setSelectedRestaurantId(parseInt(item.id))
-                    setIsModalVisible(true)
-                    if (__DEV__) {
-                      console.log(`Profile: Opened restaurant detail modal for ID ${item.id}`)
-                    }
-                  }
-                }}
-              >
-                <Image
-                  source={item.image}
-                  style={[$foodImage, { width: imageSize, height: 160 }]}
-                  resizeMode="cover"
-                />
-                {/* Show type indicator */}
-                <View style={item.type === 'user' ? $userImageBadge : $scrappedImageBadge}>
-                  <Text style={$imageBadgeText}>{item.type === 'user' ? 'U' : 'S'}</Text>
-                </View>
-              </TouchableOpacity>);
-            }
-
+          <View style={$gridContainer}>
+            {scrappedMenus.length === 0 ? (
+              <View style={$emptyState}>
+                <Text style={$emptyText}>No liked menus yet</Text>
+                <Text style={$emptySubtext}>
+                  Start exploring and save your favorite menus!
+                </Text>
+              </View>
+            ) : (
+              <View style={$photoGrid}>
+                {scrappedMenus.map((menu) => (
+                  <TouchableOpacity 
+                    key={menu.id}
+                    style={[$photoCard, { width: imageSize, height: imageSize }]}
+                  >
+                    {menu.image_url ? (
+                      <Image 
+                        source={{ uri: menu.image_url }} 
+                        style={$photoImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={[$photoImage, $placeholderImage]}>
+                        <Text style={$placeholderText}>No Image</Text>
+                      </View>
+                    )}
+                    <View style={$menuOverlay}>
+                      <Text style={$menuOverlayTitle} numberOfLines={1}>
+                        {menu.menu_name}
+                      </Text>
+                      <Text style={$menuOverlaySubtitle} numberOfLines={1}>
+                        {menu.place_name}
+                      </Text>
+                      <Text style={$menuOverlayPrice}>
+                        ₩{menu.price.toLocaleString()}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+                ))}
+              </View>
             )}
           </View>
         )}
-
-        {/* Logout Button */}
-        <TouchableOpacity
-          style={$logoutButton}
-          onPress={async () => {
-            try {
-              await api.logout()
-              await handleSignOut();
-            } catch (e) {
-              // ignore network errors and continue logout locally
-            }
-            await storage.remove("IS_LOGGED_IN")
-            navigation.replace("Login")
-          }}
-        >
-          <Text style={$logoutText}>Log out</Text>
-        </TouchableOpacity>
       </ScrollView>
 
       {/* Bottom Tabs */}
@@ -291,162 +235,50 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         <TouchableOpacity
           style={$tabButton}
           testID="FoodigramTab"
-          onPress={() => navigation.navigate("Foodigram")}
+          onPress={() => {
+            if (__DEV__) {
+              console.log(`Profile: navigated to Foodigram`)
+            }
+            navigation.navigate("Foodigram")
+          }}
         >
-          <Home
-            size={28}
-            color={colors.palette.neutral500}
-          />
+          <Home size={24} color={colors.palette.neutral400} strokeWidth={2} />
+          <Text style={$tabButtonText}>Discover</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           style={[$tabButton, $tabButtonActive]}
           testID="UserTab"
+          onPress={() => {
+            if (__DEV__) {
+              console.log(`Profile: tapped profile button (already on Profile)`)
+            }
+            navigation.navigate("Profile")
+          }}
         >
-          <User
-            size={28}
-            color={colors.palette.primary500}
-          />
+          <User size={24} color={colors.palette.primary500} strokeWidth={2} />
+          <Text style={$tabButtonTextActive}>Profile</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Filter Modal */}
-      {isFilterOpen && (
-        <View style={$speechBubbleContainer}>
-          <TouchableOpacity
-            style={$speechBubbleBackdrop}
-            testID="filter-modal-backdrop"
-            activeOpacity={1}
-            onPress={() => {
-              if (__DEV__) {
-                console.log('Profile: closed filter panel')
-              }
-              setIsFilterOpen(false)
-            }}
-          />
-          <View style={$speechBubble}>
-            <View style={$speechBubbleHeader}>
-              <Text style={$speechBubbleTitle}>History Filters</Text>
-              <TouchableOpacity onPress={() => {
-                if (__DEV__) {
-                  console.log('Profile: closed filter panel (X button)')
-                }
-                setIsFilterOpen(false)
-              }} testID="filter-modal-close">
-                <X size={20} color={colors.palette.neutral700} />
-              </TouchableOpacity>
-            </View>
-
-            <ScrollView style={$speechBubbleContent} showsVerticalScrollIndicator={false}>
-              <Text style={$filterSectionTitle}>Hide Content</Text>
-              <View style={$filterGrid}>
-                <TouchableOpacity
-                  style={[
-                    $filterChip,
-                    hideUserImages && $filterChipSelected
-                  ]}
-                  onPress={() => {
-                    if (__DEV__) {
-                      console.log(`Profile: ${!hideUserImages ? 'hiding' : 'showing'} User Images`)
-                    }
-                    setHideUserImages(!hideUserImages)
-                  }}
-                >
-                  <Text style={[
-                    $filterChipText,
-                    hideUserImages && $filterChipTextSelected
-                  ]}
-                  >
-                    User Images
-                  </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[
-                    $filterChip,
-                    hideScrappedImages && $filterChipSelected
-                  ]}
-                  onPress={() => {
-                    if (__DEV__) {
-                      console.log(`Profile: ${!hideScrappedImages ? 'hiding' : 'showing'} Scrapped Images`)
-                    }
-                    setHideScrappedImages(!hideScrappedImages)
-                  }}
-                >
-                  <Text style={[
-                    $filterChipText,
-                    hideScrappedImages && $filterChipTextSelected
-                  ]}
-                  >
-                    Scrapped
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <Text style={$filterSectionTitle}>Exclude Categories</Text>
-              <View style={$filterGrid}>
-                {allCategories.map((category) => (
-                  <TouchableOpacity
-                    key={category}
-                    style={[
-                      $filterChip,
-                      excludedCategories.includes(category) && $filterChipSelected
-                    ]}
-                    onPress={() => {
-                      if (__DEV__) {
-                        console.log(`Profile: ${excludedCategories.includes(category) ? 'including' : 'excluding'} category "${category}"`)
-                      }
-                      setExcludedCategories(prev =>
-                        prev.includes(category)
-                          ? prev.filter(c => c !== category)
-                          : [...prev, category]
-                      )
-                    }}
-                  >
-                    <Text style={[
-                      $filterChipText,
-                      excludedCategories.includes(category) && $filterChipTextSelected
-                    ]}
-                    >
-                      {category}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={$filterSectionTitle}>Exclude Allergens</Text>
-              <View style={$filterGrid}>
-                {allAllergens.map((allergen) => (
-                  <TouchableOpacity
-                    key={allergen}
-                    style={[
-                      $filterChip,
-                      excludedAllergens.includes(allergen) && $filterChipSelected
-                    ]}
-                    onPress={() => {
-                      if (__DEV__) {
-                        console.log(`Profile: ${excludedAllergens.includes(allergen) ? 'allowing' : 'excluding'} allergen "${allergen}"`)
-                      }
-                      setExcludedAllergens(prev =>
-                        prev.includes(allergen)
-                          ? prev.filter(a => a !== allergen)
-                          : [...prev, allergen]
-                      )
-                    }}
-                  >
-                    <Text style={[
-                      $filterChipText,
-                      excludedAllergens.includes(allergen) && $filterChipTextSelected
-                    ]}
-                    >
-                      {allergen}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-          </View>
-        </View>
+      {/* Floating Add Button - Only show on My Photos tab */}
+      {activeTab === 'photos' && (
+        <TouchableOpacity 
+          testID="refresh-button"
+          style={$floatingButton}
+          onPress={() => {
+            scanAlbums((asset: Asset) => {
+              setUserImages(userImages => [...userImages, {
+                id: asset.id,
+                type: 'user',
+                image: { uri: asset.uri },
+                name: getImageName(asset),
+              }]);
+            })
+          }}
+        >
+          <Plus size={32} color="#FFFFFF" />
+        </TouchableOpacity>
       )}
 
       {/* Restaurant Detail Modal */}
@@ -471,148 +303,181 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 const $container: ViewStyle = {
   flex: 1,
   backgroundColor: colors.background,
-  paddingBottom: 65, // Space for bottom tabs
 }
 
-const $headerInScroll: ViewStyle = {
+const $header: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
   paddingHorizontal: spacing.md,
-  paddingTop: spacing.md,
+  paddingTop: spacing.lg,
   paddingBottom: spacing.sm,
   backgroundColor: colors.background,
+  marginTop: spacing.lg,
+}
+
+const $headerButton: ViewStyle = {
+  width: 48,
+  height: 48,
+  alignItems: "center",
+  justifyContent: "center",
 }
 
 const $headerTitle: TextStyle = {
-  fontSize: 24,
+  fontSize: 18,
   fontWeight: "bold",
-  textAlign: "center",
-  marginTop: spacing.lg,
-  marginBottom: spacing.md,
   color: colors.text,
+  flex: 1,
+  textAlign: "center",
 }
 
 const $scrollView: ViewStyle = {
   flex: 1,
   backgroundColor: colors.background,
+  marginBottom: 80, // Space for bottom tabs
 }
 
 const $profileSection: ViewStyle = {
   alignItems: "center",
-  paddingTop: spacing.lg,
-  paddingBottom: spacing.md,
+  paddingVertical: spacing.lg,
+  paddingHorizontal: spacing.lg,
 }
 
 const $profileImageContainer: ViewStyle = {
-  width: 100,
-  height: 100,
-  borderRadius: 50,
+  width: 128,
+  height: 128,
+  borderRadius: 64,
   overflow: "hidden",
-  marginBottom: spacing.sm,
+  marginBottom: spacing.md,
 }
 
-const $profileImage: ViewStyle = {
+const $profileImage: ImageStyle = {
   width: "100%",
   height: "100%",
-  backgroundColor: "#E8C4A8",
+  backgroundColor: colors.palette.neutral300, // 회색 배경
 }
 
 const $userName: TextStyle = {
   fontSize: 22,
   fontWeight: "bold",
   color: colors.text,
-  marginTop: spacing.sm,
-}
-
-const $userRole: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.primary500,
   marginTop: spacing.xs,
-}
-
-const $tagsContainer: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "center",
-  gap: spacing.sm,
-  paddingHorizontal: spacing.lg,
-  marginBottom: spacing.lg,
-  flexWrap: "wrap",
-}
-
-const $tag: ViewStyle = {
-  paddingHorizontal: spacing.md,
-  paddingVertical: spacing.xs,
-  backgroundColor: colors.palette.neutral100,
-  borderRadius: 16,
-}
-
-const $tagText: TextStyle = {
-  fontSize: 14,
-  color: colors.text,
-}
-
-const $sectionTitle: TextStyle = {
-  fontSize: 18,
-  fontWeight: "bold",
-  color: colors.text,
-  marginLeft: spacing.lg,
   marginBottom: spacing.md,
-  marginTop: spacing.xs,
 }
 
-const $restaurantsScrollView: ViewStyle = {
-  marginBottom: spacing.lg,
-}
-
-const $restaurantsScroll: ViewStyle = {
-  paddingHorizontal: spacing.lg,
-  gap: spacing.md,
-}
-
-const $restaurantCard: ViewStyle = {
-  width: 140,
-  marginRight: spacing.md,
-}
-
-const $restaurantImageContainer: ViewStyle = {
-  width: 140,
-  height: 140,
+const $editButton: ViewStyle = {
+  backgroundColor: "#f66c51",
+  paddingHorizontal: 20,
   borderRadius: 12,
+  height: 48,
+  minWidth: 200,
+  alignItems: "center",
+  justifyContent: "center",
+}
+
+const $editButtonText: TextStyle = {
+  color: "#FFFFFF",
+  fontSize: 16,
+  fontWeight: "bold",
+}
+
+const $tabContainer: ViewStyle = {
+  flexDirection: "row",
+  borderBottomWidth: 1,
+  borderBottomColor: colors.palette.neutral200,
+  marginTop: spacing.md,
+}
+
+const $tab: ViewStyle = {
+  flex: 1,
+  paddingVertical: spacing.md,
+  alignItems: "center",
+  borderBottomWidth: 3,
+  borderBottomColor: "transparent",
+}
+
+const $tabActive: ViewStyle = {
+  borderBottomColor: colors.palette.primary500,
+}
+
+const $tabText: TextStyle = {
+  fontSize: 14,
+  fontWeight: "bold",
+  color: colors.palette.neutral500,
+}
+
+const $tabTextActive: TextStyle = {
+  color: colors.palette.primary500,
+}
+
+const $gridContainer: ViewStyle = {
+  paddingTop: spacing.md,
+}
+
+const $photoGrid: ViewStyle = {
+  flexDirection: "row",
+  flexWrap: "wrap",
+  paddingHorizontal: spacing.lg,
+  gap: spacing.sm,
+  paddingBottom: spacing.xl,
+}
+
+const $photoCard: ViewStyle = {
+  borderRadius: 24,
   overflow: "hidden",
   backgroundColor: colors.palette.neutral200,
-  marginBottom: spacing.sm,
 }
 
-const $restaurantImage: ImageStyle = {
+const $photoImage: ImageStyle = {
   width: "100%",
   height: "100%",
 }
 
-const $restaurantName: TextStyle = {
-  fontSize: 14,
-  fontWeight: "bold",
-  color: colors.text,
+const $placeholderImage: ViewStyle = {
+  backgroundColor: colors.palette.neutral300,
+  justifyContent: "center",
+  alignItems: "center",
 }
 
-const $foodGrid: ViewStyle = {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  paddingHorizontal: spacing.lg,
-  gap: 12,
-  paddingBottom: spacing.xl,
+const $placeholderText: TextStyle = {
+  color: colors.palette.neutral500,
+  fontSize: 12,
+  fontWeight: "500",
 }
 
-const $foodCard: ViewStyle = {
-  marginBottom: spacing.sm,
+const $menuOverlay: ViewStyle = {
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  right: 0,
+  backgroundColor: "rgba(0,0,0,0.7)",
+  paddingVertical: spacing.xs,
+  paddingHorizontal: spacing.sm,
 }
 
-const $foodImage: ImageStyle = {
-  borderRadius: 12,
-  backgroundColor: colors.palette.neutral200,
+const $menuOverlayTitle: TextStyle = {
+  color: "#fff",
+  fontSize: 13,
+  fontWeight: "700",
+  marginBottom: 2,
+}
+
+const $menuOverlaySubtitle: TextStyle = {
+  color: "rgba(255,255,255,0.85)",
+  fontSize: 11,
+  marginBottom: 2,
+}
+
+const $menuOverlayPrice: TextStyle = {
+  color: "#fff",
+  fontSize: 11,
+  fontWeight: "600",
 }
 
 const $emptyState: ViewStyle = {
   alignItems: "center",
   paddingHorizontal: spacing.lg,
-  paddingVertical: spacing.xl,
+  paddingVertical: spacing.xxl,
 }
 
 const $emptyText: TextStyle = {
@@ -633,11 +498,13 @@ const $bottomTabs: ViewStyle = {
   bottom: 0,
   left: 0,
   right: 0,
-  height: 65,
+  height: 80,
   flexDirection: "row",
-  borderTopWidth: 1,
-  borderTopColor: colors.palette.neutral200,
-  backgroundColor: colors.background,
+  borderTopWidth: 0.5,
+  borderTopColor: colors.palette.neutral300,
+  backgroundColor: "#ffffff",
+  zIndex: 100,
+  paddingBottom: spacing.xs,
 }
 
 const $tabButton: ViewStyle = {
@@ -645,184 +512,42 @@ const $tabButton: ViewStyle = {
   height: "100%",
   alignItems: "center",
   justifyContent: "center",
-  paddingVertical: spacing.md,
+  paddingVertical: spacing.sm,
+  gap: 4,
 }
 
 const $tabButtonActive: ViewStyle = {
-  backgroundColor: colors.palette.primary100,
-}
-
-const $logoutButton: ViewStyle = {
-  marginTop: spacing.lg,
-  marginHorizontal: spacing.lg,
-  marginBottom: spacing.xl,
   backgroundColor: colors.palette.primary500,
-  paddingVertical: spacing.md,
-  borderRadius: 12,
-  alignItems: "center",
-  width: "auto",
 }
 
-const $logoutText: TextStyle = {
-  color: colors.palette.neutral100,
+const $tabButtonText: TextStyle = {
+  fontSize: 11,
+  color: colors.palette.neutral400,
+  fontWeight: "500",
+}
+
+const $tabButtonTextActive: TextStyle = {
+  fontSize: 11,
+  color: colors.palette.primary500,
   fontWeight: "600",
 }
 
-const $sectionTitleContainer: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  paddingHorizontal: spacing.md,
-  marginBottom: spacing.sm,
-  marginTop: spacing.xs,
-}
-
-const $sectionButtons: ViewStyle = {
-  flexDirection: "row",
-  gap: spacing.sm,
-}
-
-const $sectionButton: ViewStyle = {
-  padding: spacing.xs,
-  borderRadius: 20,
-  backgroundColor: colors.palette.neutral100,
+const $floatingButton: ViewStyle = {
+  position: "absolute",
+  bottom: spacing.xl + 80, // Above bottom tabs
+  right: spacing.xl,
+  width: 64,
+  height: 64,
+  borderRadius: 32,
+  backgroundColor: colors.palette.primary500,
   alignItems: "center",
   justifyContent: "center",
-}
-
-const $speechBubbleContainer: ViewStyle = {
-  position: "absolute",
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
-  justifyContent: "center",
-  alignItems: "center",
-  paddingHorizontal: spacing.md,
-  zIndex: 2000,
-}
-
-const $speechBubbleBackdrop: ViewStyle = {
-  position: "absolute",
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: "rgba(0, 0, 0, 0.4)",
-}
-
-const $speechBubble: ViewStyle = {
-  backgroundColor: colors.background,
-  borderRadius: 16,
-  width: "90%",
-  maxHeight: "85%",
-  minHeight: "60%",
   shadowColor: "#000",
   shadowOffset: {
     width: 0,
     height: 4,
   },
-  shadowOpacity: 0.25,
+  shadowOpacity: 0.3,
   shadowRadius: 8,
   elevation: 8,
-}
-
-const $speechBubbleHeader: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  paddingHorizontal: spacing.md,
-  paddingVertical: spacing.sm,
-  borderBottomWidth: 1,
-  borderBottomColor: colors.palette.neutral400,
-}
-
-const $speechBubbleTitle: TextStyle = {
-  fontSize: 16,
-  fontWeight: "bold",
-  color: colors.text,
-}
-
-const $speechBubbleContent: ViewStyle = {
-  flex: 1,
-  paddingHorizontal: spacing.md,
-}
-
-const $filterSectionTitle: TextStyle = {
-  fontSize: 16,
-  fontWeight: "bold",
-  marginTop: spacing.lg,
-  marginBottom: spacing.sm,
-  color: colors.text,
-}
-
-const $filterGrid: ViewStyle = {
-  flexDirection: "row",
-  flexWrap: "wrap",
-  gap: spacing.xs,
-  marginBottom: spacing.md,
-}
-
-const $filterChip: ViewStyle = {
-  paddingHorizontal: spacing.sm,
-  paddingVertical: spacing.xs,
-  borderRadius: 16,
-  borderWidth: 1,
-  borderColor: colors.palette.neutral300,
-  backgroundColor: colors.background,
-}
-
-const $filterChipSelected: ViewStyle = {
-  backgroundColor: colors.palette.primary500,
-  borderColor: colors.palette.primary500,
-}
-
-const $filterChipText: TextStyle = {
-  fontSize: 12,
-  color: colors.palette.neutral700,
-}
-
-const $filterChipTextSelected: TextStyle = {
-  color: colors.palette.neutral100,
-}
-
-const $userImageBadge: ViewStyle = {
-  position: "absolute",
-  top: spacing.xs,
-  right: spacing.xs,
-  backgroundColor: colors.palette.primary500,
-  borderRadius: 12,
-  width: 24,
-  height: 24,
-  alignItems: "center",
-  justifyContent: "center",
-}
-
-const $scrappedImageBadge: ViewStyle = {
-  position: "absolute",
-  top: spacing.xs,
-  right: spacing.xs,
-  backgroundColor: colors.palette.secondary500,
-  borderRadius: 12,
-  width: 24,
-  height: 24,
-  alignItems: "center",
-  justifyContent: "center",
-}
-
-const $imageBadgeText: TextStyle = {
-  fontSize: 10,
-  fontWeight: "bold",
-  color: colors.palette.neutral100,
-}
-
-const $settingsButton: ViewStyle = {
-  marginLeft: spacing.sm,
-  padding: spacing.sm,
-  borderRadius: 20,
-  backgroundColor: colors.palette.neutral100,
-  borderWidth: 1,
-  borderColor: colors.palette.neutral300,
-  alignItems: "center",
-  justifyContent: "center",
 }

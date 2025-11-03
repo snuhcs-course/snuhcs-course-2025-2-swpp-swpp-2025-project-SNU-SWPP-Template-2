@@ -285,7 +285,7 @@ export class Api {
   }
 
   /**
-   * 메뉴 추천 API 호출
+   * Get menu recommendations API call
    */
   async getMenuRecommendations(userLocation: [number, number], options?: {
     queryText?: string
@@ -305,7 +305,7 @@ export class Api {
     if (response.ok) {
       return response.data as MenuRecommendationResponse
     } else {
-      throw new Error((response.data as any)?.error || '메뉴 추천 요청 실패')
+      throw new Error((response.data as any)?.error || 'Failed to request menu recommendations')
     }
   }
 

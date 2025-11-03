@@ -51,7 +51,7 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
   useEffect(() => {
     if (visible && restaurantId) {
       loadRestaurantDetail()
-      // 스크랩 상태 확인
+      // Check scrap status
       setIsScrapped(foodHistoryStore.isScrapped(restaurantId))
     }
   }, [visible, restaurantId])
@@ -83,14 +83,14 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
       if (response.ok && response.data) {
         const serverScrapped = (response.data as any).scrapped
         
-        // 로컬 상태 업데이트
+        // Update local state
         setIsScrapped(serverScrapped)
         
-        // foodHistoryStore 업데이트
+        // Update foodHistoryStore
         const foodItem = {
           id: restaurant.id,
           name: restaurant.name,
-          distance: restaurant.address || "주소 정보 없음",
+          distance: restaurant.address || "Address not available",
           image: restaurant.image_url || "",
           keywords: [],
           category: "restaurant",
@@ -111,17 +111,17 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
   }
 
   const formatPrice = (price: string): string => {
-    // 숫자만 추출 (15900.00 -> 15900)
+    // Extract numbers only (15900.00 -> 15900)
     const numericPrice = parseFloat(price)
     
     if (isNaN(numericPrice)) {
-      return price // 숫자가 아니면 원본 반환
+      return price // Return original if not a number
     }
     
-    // 정수로 변환하고 3자리마다 콤마 추가
+    // Convert to integer and add comma separators
     const formattedPrice = Math.floor(numericPrice).toLocaleString('ko-KR')
     
-    return `${formattedPrice}원`
+    return `₩${formattedPrice}`
   }
 
   return (
@@ -136,7 +136,7 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
         <View style={$modalContent}>
           {/* Header with close button */}
           <View style={$header}>
-            <Text style={$headerTitle}>음식점 정보</Text>
+            <Text style={$headerTitle}>Restaurant Info</Text>
             <TouchableOpacity onPress={onClose} style={$closeButton}>
               <X size={24} color={colors.palette.neutral700} />
             </TouchableOpacity>
@@ -177,13 +177,13 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
                 </View>
                 {restaurant.address && (
                   <View style={$infoRow}>
-                    <Text style={$infoLabel}>주소:</Text>
+                    <Text style={$infoLabel}>Address:</Text>
                     <Text style={$infoText}>{restaurant.address}</Text>
                   </View>
                 )}
                 {restaurant.phone && (
                   <View style={$infoRow}>
-                    <Text style={$infoLabel}>전화:</Text>
+                    <Text style={$infoLabel}>Phone:</Text>
                     <Text style={$infoText}>{restaurant.phone}</Text>
                   </View>
                 )}
@@ -192,7 +192,7 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
               {/* Menus */}
               {restaurant.menus && restaurant.menus.length > 0 && (
                 <View style={$menuSection}>
-                  <Text style={$sectionTitle}>메뉴</Text>
+                  <Text style={$sectionTitle}>Menu</Text>
                   {restaurant.menus.map((menu, index) => (
                     <View key={index} style={$menuItem}>
                       {menu.image_url && (
@@ -215,7 +215,7 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
             </ScrollView>
           ) : (
             <View style={$loadingContainer}>
-              <Text style={$errorText}>음식점 정보를 불러올 수 없습니다</Text>
+              <Text style={$errorText}>Unable to load restaurant information</Text>
             </View>
           )}
         </View>

@@ -7,6 +7,9 @@ jest.doMock("react-native", () => {
   // Extend ReactNative
   return Object.setPrototypeOf(
     {
+      Alert: {
+        alert: jest.fn(),
+      },
       Image: {
         ...ReactNative.Image,
         resolveAssetSource: jest.fn((_source) => mockFile), // eslint-disable-line @typescript-eslint/no-unused-vars
@@ -58,6 +61,31 @@ jest.mock("aws-amplify/auth", () => ({
 
 jest.mock("aws-amplify/storage", () => ({
   uploadData: jest.fn(),
+}))
+
+jest.mock("lucide-react-native", () => ({
+  X: "X",
+  Heart: "Heart",
+  Bookmark: "Bookmark",
+  Home: "Home",
+  User: "User",
+  Users: "Users",
+  Filter: "Filter",
+  RefreshCw: "RefreshCw",
+  Settings: "Settings",
+  MapPin: "MapPin",
+  Star: "Star",
+  Clock: "Clock",
+  DollarSign: "DollarSign",
+  ChevronRight: "ChevronRight",
+  ChevronLeft: "ChevronLeft",
+  Search: "Search",
+  Camera: "Camera",
+  Image: "Image",
+  LogOut: "LogOut",
+  Check: "Check",
+  Plus: "Plus",
+  Minus: "Minus",
 }))
 
 jest.mock("../app/i18n/i18n.ts", () => ({

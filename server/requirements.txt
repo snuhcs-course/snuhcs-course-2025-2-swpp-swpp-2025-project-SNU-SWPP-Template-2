@@ -29,4 +29,6 @@ hdbscan>=0.8.33
 
 # Korean morphological analysis
 konlpy>=0.6.0
+sentence-transformers>=2.2.2
+chromadb>=0.4.0
 
