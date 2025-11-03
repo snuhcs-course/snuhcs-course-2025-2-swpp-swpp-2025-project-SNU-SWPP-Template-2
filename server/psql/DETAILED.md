@@ -290,13 +290,6 @@ python -m unittest testing.integration_test_psql.PerformanceTestCase   # Perform
 cd testing && coverage run --source=. unit_test_psql.py 2>/dev/null && coverage report # Checking coverage
 ```
 
-**Expected Results:**
-- ✅ 3,799 restaurants loaded
-- ✅ 36,445 menus loaded
-- ✅ All spatial queries under 5 seconds
-- ✅ Recommendations generated under 30 seconds
-- ✅ client.py unit test showing 86% coverage
-
 ## Contributing
 
 1. Update database schema in `db/schema.sql`
