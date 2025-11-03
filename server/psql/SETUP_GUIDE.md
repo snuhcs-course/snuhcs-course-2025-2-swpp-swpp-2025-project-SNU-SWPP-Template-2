@@ -163,26 +163,12 @@ python manage.py check
 # Create initial Django tables (users, sessions, etc.)
 python manage.py migrate
 
-# The psql tables are managed separately (see step 5)
+# The psql tables are automatically created by Django migrations
 ```
 
-## 5. Initialize psql Database Schema
+## 5. Initialize Database Schema
 
-### Apply Database Schema (Docker)
-```bash
-# From server/ directory - using Docker PostgreSQL
-docker exec -i foodigram_db psql -U postgres -d foodigram < psql/db/schema.sql
-
-# Alternative: Copy files into container and execute
-# docker cp psql/db/schema.sql foodigram_db:/tmp/
-# docker exec foodigram_db psql -U postgres -d foodigram -f /tmp/schema.sql
-```
-
-### Apply Database Schema (Native PostgreSQL - Alternative)
-```bash
-# Only use this if not using Docker
-psql -U postgres -h localhost -d foodigram -f psql/db/schema.sql
-```
+Django will automatically create the database tables when you run migrations.
 
 ### Before Loading Data
 ```bash
@@ -197,6 +183,10 @@ cp settings/.env.example settings/.env
 ```bash
 # .sql.gz file stored in psql/db/
 python settings/team_sync.py import
+
+# if verifying import returns 0 menus, make sure you ran:
+# python manage.py migrate (from server/ directory)
+# then try import again
 ```
 ## 6. Generate Embeddings (Optional - for AI features)
 
