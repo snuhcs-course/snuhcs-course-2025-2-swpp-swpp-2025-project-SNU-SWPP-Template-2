@@ -1,7 +1,7 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
 
-from server.users.image_utils import get_food_image_category
+from .image_utils import get_food_image_category
 from .models import User, Profile, Follow, UserGalleryImage
 
 
