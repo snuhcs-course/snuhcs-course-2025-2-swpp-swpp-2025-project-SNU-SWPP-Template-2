@@ -77,6 +77,7 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
 
@@ -90,6 +91,7 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
+                autoCorrect={false}
               />
               <TouchableOpacity 
                 style={$eyeButton}

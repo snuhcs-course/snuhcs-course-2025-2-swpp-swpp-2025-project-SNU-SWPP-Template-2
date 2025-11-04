@@ -119,7 +119,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
         <View style={$form}>
           {/* Full Name */}
           <View style={$inputWrapper}>
-            <Text style={$label}>Full Name</Text>
+            <Text style={$label}>Nickname</Text>
             <TextInput
               style={$input}
               placeholder="Enter your full name"
@@ -127,6 +127,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
               value={fullName}
               onChangeText={setFullName}
               autoCapitalize="words"
+              autoCorrect={false}
             />
           </View>
 
@@ -141,6 +142,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
 
@@ -155,6 +157,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
+                autoCorrect={false}
               />
               <TouchableOpacity 
                 style={$eyeButton}
