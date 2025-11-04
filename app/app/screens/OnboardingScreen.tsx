@@ -1,6 +1,6 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText } from "react-native"
+import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText, Animated } from "react-native"
 import { Text } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
@@ -99,6 +99,18 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   const currentStep = TASTE_STEPS[currentStepIdx]
   const totalSteps = TASTE_STEPS.length
 
+  // 프로그레스바 애니메이션
+  const progressAnim = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    const targetProgress = ((currentStepIdx + 1) / totalSteps) * 100
+    Animated.timing(progressAnim, {
+      toValue: targetProgress,
+      duration: 300,
+      useNativeDriver: false,
+    }).start()
+  }, [currentStepIdx, totalSteps])
+
   const handleLocationPermission = async () => {
     const moveToNextStep = () => {
       if (currentStepIdx < totalSteps - 1) {
@@ -173,10 +185,6 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
 
   const updatePreference = (key: keyof UserPreferences, value: any) => {
     setPreferences(prev => ({ ...prev, [key]: value }))
-
-    setTimeout(() => {
-      handleNext()
-    }, 200)
   }
 
   const toggleArrayItem = (key: 'allergies' | 'disliked_ingredients' | 'favorite_cuisines', item: string) => {
@@ -408,11 +416,16 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     }
   }
 
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
+
   return (
     <View style={$container}>
       <View style={$progressContainer}>
         <View style={$progressBar}>
-          <View style={[$progressFill, { width: `${((currentStepIdx + 1) / totalSteps) * 100}%` }]} />
+          <Animated.View style={[$progressFill, { width: progressWidth }]} />
         </View>
       </View>
       <ScrollView contentContainerStyle={$contentContainer} style={$content} showsVerticalScrollIndicator={false}>
@@ -431,17 +444,48 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
         )).with("allergies", 'disliked', () => (
           <>
             <TouchableOpacity style={$continueButton} onPress={handleNext} disabled={isLoading}>
-              <RNText style={$continueButtonText}>계속하기</RNText>
+              <RNText style={$continueButtonText}>다음</RNText>
             </TouchableOpacity>
             <TouchableOpacity style={$skipButton} onPress={handleBack} disabled={isLoading}>
               <RNText style={$skipText}>뒤로</RNText>
             </TouchableOpacity>
           </>
-        )).with("spicy", "salty", "exploration", () => (
-          <TouchableOpacity style={$skipButton} onPress={handleBack} disabled={isLoading}>
-            <RNText style={$skipText}>뒤로</RNText>
-          </TouchableOpacity>
-        )).with("cuisine", () => (
+        )).with('sweet', 'spicy', 'salty', 'exploration', () => {
+          const isDisabled = (() => {
+            switch (currentStep) {
+              case 'sweet':
+                return preferences.sweet_level === null
+              case 'spicy':
+                return preferences.spicy_level === null
+              case 'salty':
+                return preferences.salty_level === null
+              case 'exploration':
+                return preferences.exploration_preference === null
+              default:
+                return false
+            }
+          })()
+          
+          return (
+            <>  
+              <TouchableOpacity 
+                style={[
+                  $continueButton,
+                  (isDisabled || isLoading) && $continueButtonDisabled
+                ]} 
+                onPress={handleNext} 
+                disabled={isDisabled || isLoading}
+              >
+                <RNText style={[
+                  $continueButtonText,
+                  (isDisabled || isLoading) && $continueButtonTextDisabled
+                ]}>
+                  다음
+                </RNText>
+              </TouchableOpacity>
+            </>
+          )
+        }).with("cuisine", () => (
           <TouchableOpacity style={$continueButton} onPress={handleComplete} disabled={isLoading}>
             <RNText style={$continueButtonText}>완료</RNText>
           </TouchableOpacity>
@@ -612,6 +656,15 @@ const $continueButtonText: TextStyle = {
   color: "#FFFFFF",
   fontSize: 16,
   fontWeight: "bold",
+}
+
+const $continueButtonDisabled: ViewStyle = {
+  backgroundColor: colors.palette.neutral300,
+  opacity: 0.6,
+}
+
+const $continueButtonTextDisabled: TextStyle = {
+  color: colors.palette.neutral600,
 }
 
 const $skipButton: ViewStyle = {
