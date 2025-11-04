@@ -430,7 +430,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
     
     # 데이터 로드
-    json_file_path = "restaurant/management/commands/관악구_음식점_상세_전체.json"
+    json_file_path = "restaurant/management/commands/관악구_음식점_상세_전체.json"
     restaurant_data = load_restaurant_data(json_file_path)
     
     # 데이터 처리
