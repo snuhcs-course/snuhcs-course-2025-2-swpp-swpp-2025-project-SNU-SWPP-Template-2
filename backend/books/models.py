@@ -3,6 +3,8 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from PIL import Image
 from taggit.managers import TaggableManager
 
@@ -427,3 +429,22 @@ class ReadingStatus(models.Model):
         if self.book.pages and self.pages_read:
             return min(100, (self.pages_read / self.book.pages) * 100)
         return 0
+
+
+# Signal to create Post when BookReview is created
+@receiver(post_save, sender=BookReview)
+def create_post_for_book_review(sender, instance, created, **kwargs):
+    """
+    Automatically create a Post in the home feed when a BookReview is created.
+    """
+    if created:
+        from social.models import Post
+        
+        # Create post with review content as-is
+        Post.objects.create(
+            author=instance.reviewer,
+            post_type="book_review",
+            content=instance.content,
+            related_book=instance.book,
+            is_public=True,
+        )
