@@ -63,7 +63,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = observer(function WelcomeSc
           </View>
 
           {/* Buttons */}
-          <View style={[styles.buttonContainer, $bottomContainerInsets]}>
+          <View style={styles.buttonContainer}>
             <View style={styles.buttonWrapper}>
               <TouchableOpacity 
                 style={styles.signUpButton}
