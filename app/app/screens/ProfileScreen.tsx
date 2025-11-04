@@ -3,7 +3,7 @@ import { api } from "app/services/api"
 import { getImage as getImageName } from "app/utils/imagenameFromAsseturi"
 import * as storage from "app/utils/storage"
 import { Asset } from "expo-media-library"
-import { Home, Plus, Settings, User } from "lucide-react-native"
+import { Home, Plus, User } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
 import {
@@ -11,7 +11,6 @@ import {
   Image,
   ImageStyle,
   ScrollView,
-  StatusBar,
   TextStyle,
   TouchableOpacity,
   View,
@@ -22,7 +21,6 @@ import { useStores } from "../models"
 import { AppStackScreenProps } from "../navigators"
 import { colors, spacing } from "../theme"
 
-
 interface ProfileScreenProps extends AppStackScreenProps<"Profile"> {}
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function ProfileScreen({ navigation }) {
@@ -30,7 +28,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   const { scanAlbums } = useAlbumScanner();
   const screenWidth = Dimensions.get('window').width
   const imageSize = (screenWidth - spacing.lg * 2 - spacing.sm) / 2 // 2 columns with padding
-  const [userName, setUserName] = useState("John Doe")
+  const [userName, setUserName] = useState("")
   const [activeTab, setActiveTab] = useState<'photos' | 'restaurants'>('photos')
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
@@ -79,7 +77,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   // Combine user images and scrapped images
   const allPhotos = [...userImages, ...scrappedImages]
 
-  const handleSettingsPress = async () => {
+  const logout = async () => {
     try {
         await api.logout()
     } catch (e) {
@@ -91,37 +89,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
   return (
     <View style={$container}>
-      <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
-      <View style={$header}>
-        <View style={$headerButton} />
-        <Text style={$headerTitle}>Profile</Text>
-        <TouchableOpacity 
-          style={$headerButton}
-          onPress={() => handleSettingsPress()}
-        >
-          <Settings size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={$scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Section */}
-        <View style={$profileSection}>
-          <View style={$profileImageContainer}>
-            <Image 
-              style={$profileImage}
-              resizeMode="cover"
-            />
-          </View>
-          <Text style={$userName}>{user.name}</Text>
-          
+        <View style={$profileSectionHorizontal}>
+          <TouchableOpacity onPress={() => logout()}>
+            <Text style={$userNameHorizontal}>{user.name}</Text>
+          </TouchableOpacity>
           <TouchableOpacity 
             testID="settings-button"
-            style={$editButton} 
+            style={$editButtonHorizontal} 
             onPress={() => setIsPreferencesModalVisible(true)}
           >
-            <Text style={$editButtonText}>Edit Profile</Text>
+            <Text style={$editButtonText}>Edit Preferences</Text>
           </TouchableOpacity>
         </View>
 
@@ -135,7 +114,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               $tabText, 
               activeTab === 'photos' && $tabTextActive
             ]}>
-              My Photos
+              Food History
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -146,7 +125,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               $tabText, 
               activeTab === 'restaurants' && $tabTextActive
             ]}>
-              Liked Restaurants
+              Liked Menus
             </Text>
           </TouchableOpacity>
         </View>
@@ -158,7 +137,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               <View style={$emptyState}>
                 <Text style={$emptyText}>No photos yet</Text>
                 <Text style={$emptySubtext}>
-                  Add photos from your camera or scrap foods from recommendations!
+                  Add photos from your camera
                 </Text>
               </View>
             ) : (
@@ -190,7 +169,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               <View style={$emptyState}>
                 <Text style={$emptyText}>No liked menus yet</Text>
                 <Text style={$emptySubtext}>
-                  Start exploring and save your favorite menus!
+                Scrap foods from recommendations
                 </Text>
               </View>
             ) : (
@@ -247,7 +226,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[$tabButton, $tabButtonActive]}
+          style={$tabButton}
           testID="UserTab"
           onPress={() => {
             if (__DEV__) {
@@ -305,44 +284,39 @@ const $container: ViewStyle = {
   backgroundColor: colors.background,
 }
 
-const $header: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  paddingHorizontal: spacing.md,
-  paddingTop: spacing.lg,
-  paddingBottom: spacing.sm,
-  backgroundColor: colors.background,
-  marginTop: spacing.lg,
-}
-
-const $headerButton: ViewStyle = {
-  width: 48,
-  height: 48,
-  alignItems: "center",
-  justifyContent: "center",
-}
-
-const $headerTitle: TextStyle = {
-  fontSize: 18,
-  fontWeight: "bold",
-  color: colors.text,
-  flex: 1,
-  textAlign: "center",
-}
-
 const $scrollView: ViewStyle = {
   flex: 1,
   backgroundColor: colors.background,
   marginBottom: 80, // Space for bottom tabs
 }
 
-const $profileSection: ViewStyle = {
+// --- 새로 추가된 horizontal profile section 스타일 ---
+const $profileSectionHorizontal: ViewStyle = {
+  flexDirection: "row",
   alignItems: "center",
+  justifyContent: "space-between",
   paddingVertical: spacing.lg,
   paddingHorizontal: spacing.lg,
+  marginBottom: spacing.xs,
 }
 
+const $userNameHorizontal: TextStyle = {
+  fontSize: 22,
+  fontWeight: "bold",
+  color: colors.text,
+}
+
+const $editButtonHorizontal: ViewStyle = {
+  backgroundColor: "#f66c51",
+  paddingHorizontal: 20,
+  borderRadius: 12,
+  height: 40,
+  alignItems: "center",
+  justifyContent: "center",
+  marginLeft: spacing.md,
+}
+
+// ------- 기존 스타일 계속 -------
 const $profileImageContainer: ViewStyle = {
   width: 128,
   height: 128,
@@ -514,10 +488,6 @@ const $tabButton: ViewStyle = {
   justifyContent: "center",
   paddingVertical: spacing.sm,
   gap: 4,
-}
-
-const $tabButtonActive: ViewStyle = {
-  backgroundColor: colors.palette.primary500,
 }
 
 const $tabButtonText: TextStyle = {
