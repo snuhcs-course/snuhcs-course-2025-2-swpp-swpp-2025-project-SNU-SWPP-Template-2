@@ -67,7 +67,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = observer(function WelcomeSc
             <View style={styles.buttonWrapper}>
               <TouchableOpacity 
                 style={styles.signUpButton}
-                onPress={() => navigation.navigate("Login", { mode: "signup" } as any)}
+                onPress={() => navigation.navigate("SignUp", { mode: "signup" } as any)}
               >
                 <RNText style={styles.buttonText}>
                   Sign Up
