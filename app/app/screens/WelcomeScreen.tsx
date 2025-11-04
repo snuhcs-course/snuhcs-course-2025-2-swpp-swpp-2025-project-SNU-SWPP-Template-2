@@ -13,7 +13,7 @@ const backgroundImage = require("../../assets/images/welcome-background.jpg")
 const PRIMARY_COLOR = "#f66c51"
 const WHITE_COLOR = "#FFFFFF"
 const OVERLAY_COLOR = "rgba(255, 255, 255, 0.2)"
-const TEXT_SHADOW_COLOR = "rgba(0, 0, 0, 0.8)"
+const TEXT_SHADOW_COLOR = "rgba(0, 0, 0, 0.4)"
 
 interface WelcomeScreenProps extends AppStackScreenProps<"Welcome"> {}
 
@@ -52,14 +52,14 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = observer(function WelcomeSc
           {/* Content */}
           <View style={styles.centerContent}>
             <View style={styles.logoContainer}>
-              <MaterialIcons name="restaurant" size={36} color="white" />
+              {/* <MaterialIcons name="restaurant" size={36} color="white" /> */}
               <RNText style={styles.logoText}>
                 Foodigram
               </RNText>
             </View>
-            <RNText style={styles.subtitleText}>
-              Your personalized food journey starts here
-            </RNText>
+            {/* <RNText style={styles.subtitleText}>
+              내 근처 찐맛집
+            </RNText> */}
           </View>
 
           {/* Buttons */}
@@ -70,7 +70,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = observer(function WelcomeSc
                 onPress={() => navigation.navigate("SignUp", { mode: "signup" } as any)}
               >
                 <RNText style={styles.buttonText}>
-                  Sign Up
+                  회원가입
                 </RNText>
               </TouchableOpacity>
               
@@ -79,7 +79,7 @@ export const WelcomeScreen: FC<WelcomeScreenProps> = observer(function WelcomeSc
                 onPress={() => navigation.navigate("Login", { mode: "login" } as any)}
               >
                 <RNText style={styles.buttonText}>
-                  Log In
+                  로그인
                 </RNText>
               </TouchableOpacity>
             </View>
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     lineHeight: 38,
     textShadowColor: TEXT_SHADOW_COLOR,
     textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 8,
+    textShadowRadius: 4,
   } as TextStyle,
   signUpButton: {
     backgroundColor: PRIMARY_COLOR,

@@ -27,7 +27,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
   const [recommendedMenus, setRecommendedMenus] = useState<MenuRecommendationItem[]>([])
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
   const [currentMenuIndex, setCurrentMenuIndex] = useState(0)
-  const [isImageLoading, setIsImageLoading] = useState(true)
+  const [isImageLoading, setIsImageLoading] = useState(false)
 
   // Automatically fetch recommended menus on screen load
   useEffect(() => {
@@ -121,7 +121,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
   const handleNextMenu = () => {
     if (recommendedMenus.length === 0) return
-    setIsImageLoading(true)
     setCurrentMenuIndex((prev) => (prev + 1) % recommendedMenus.length)
   }
 
@@ -129,7 +128,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     if (recommendedMenus.length === 0) return
     // Don't go back from the first item
     if (currentMenuIndex === 0) return
-    setIsImageLoading(true)
     setCurrentMenuIndex((prev) => prev - 1)
   }
 
@@ -159,7 +157,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         {isLoadingRecommendations ? (
           // Loading state
           <View style={$loadingContainer}>
-            <Text style={$loadingText}>Loading recommendations...</Text>
+            <Text style={$loadingText}>근처 맛집을 찾고 있어요...</Text>
           </View>
         ) : recommendedMenus.length > 0 && currentMenu ? (
           // Full screen menu display
@@ -245,7 +243,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                     ₩{currentMenu.price?.toLocaleString()}
                   </Text>
                   <Text style={$menuRatingLarge} numberOfLines={1}>
-                    ⭐ {currentMenu.rating} ({currentMenu.review_count} reviews)
+                    ⭐ {currentMenu.rating} (리뷰 {currentMenu.review_count}개)
                   </Text>
                   {currentMenu.reason && (
                     <Text style={$menuReasonLarge} numberOfLines={2}>
@@ -271,8 +269,8 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         ) : (
           // Error state
           <View style={$emptyState}>
-            <Text style={$emptyText}>Unable to load recommendations</Text>
-            <Text style={$emptySubtext}>Please try again later</Text>
+            <Text style={$emptyText}>음식점을 불러오지 못했어요</Text>
+            <Text style={$emptySubtext}>잠시 후 다시 시도해 주세요</Text>
           </View>
         )}
       </View>
@@ -289,7 +287,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           }}
         >
           <Home size={24} color={colors.palette.primary500} strokeWidth={2} />
-          <Text style={$tabButtonTextActive}>Discover</Text>
+          <Text style={$tabButtonTextActive}>추천</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -302,7 +300,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           }}
         >
           <User size={24} color={colors.palette.neutral400} strokeWidth={2} />
-          <Text style={$tabButtonText}>Profile</Text>
+          <Text style={$tabButtonText}>마이페이지</Text>
         </TouchableOpacity>
       </View>
 
@@ -473,7 +471,7 @@ const $loadingContainer: ViewStyle = {
 
 const $loadingText: TextStyle = {
   fontSize: 16,
-  color: colors.text,
+  color: colors.palette.neutral400,
 }
 
 const $imageLoadingContainer: ViewStyle = {

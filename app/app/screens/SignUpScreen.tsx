@@ -14,8 +14,10 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
   const [fullName, setFullName] = useState("")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   type SignUpParameters = {
     username: string;
@@ -44,29 +46,34 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
       console.log(`AWS Amplify userId: ${userId}`);
 
       if (!isSignUpComplete) {
-        throw new Error(`Sign up not complete - something wrong with autosignin. Next step: ${JSON.stringify(nextStep)}`);
+        throw new Error(`회원가입이 완료되지 않았습니다 - 자동 로그인 문제가 발생하였습니다. 다음 단계: ${JSON.stringify(nextStep)}`);
       }
     } catch (error) {
-      console.log('error signing up:', error);
+      console.log('회원가입 에러:', error);
     }
   }
 
   async function tryRegister() {
     // Form validation
-    if (!fullName.trim() || !email.trim() || !password.trim()) {
-      Alert.alert("Error", "Please fill in all fields.")
+    if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
+      Alert.alert("모든 항목을 입력해 주세요.")
       return
     }
 
     if (password.length < 8) {
-      Alert.alert("Error", "Password must be at least 8 characters long.")
+      Alert.alert("비밀번호는 8자 이상이어야 합니다.")
+      return
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
       return
     }
 
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      Alert.alert("Error", "Please enter a valid email address.")
+      Alert.alert("올바른 이메일 주소를 입력해 주세요.")
       return
     }
 
@@ -77,16 +84,16 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
       const res = await api.register(fullName, email, password)
       handleAwsSignUp({username: fullName, email, password});
       if (!res.ok) {
-        const errorMessage = (res.data as any)?.detail || "Sign up failed."
-        Alert.alert("Sign Up Failed", errorMessage)
+        const errorMessage = (res.data as any)?.detail || "회원가입에 실패하였습니다."
+        Alert.alert("회원가입 실패", errorMessage)
         return
       }
       
       // Auto login after successful registration
       await storage.saveString("IS_LOGGED_IN", "true")
-      Alert.alert("Success", "Your account has been created!", [
+      Alert.alert("회원가입 완료", "맛집 여정을 시작해보세요!", [
         { 
-          text: "OK", 
+          text: "확인", 
           onPress: () => {
             // New users always go to onboarding
             navigation.replace("Onboarding")
@@ -94,7 +101,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
         }
       ])
     } catch (e) {
-      Alert.alert("Error", "An error occurred during sign up.")
+      Alert.alert("회원가입 중 오류가 발생하였습니다.")
       console.log(e)
     } finally {
       setIsLoading(false)
@@ -113,16 +120,16 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
     >
       <View style={$contentWrapper}>
         {/* Title */}
-        <Text style={$title}>Create Your Account</Text>
+        <Text style={$title}>계정 생성</Text>
         
         {/* Form */}
         <View style={$form}>
           {/* Full Name */}
           <View style={$inputWrapper}>
-            <Text style={$label}>Nickname</Text>
+            <Text style={$label}>닉네임</Text>
             <TextInput
               style={$input}
-              placeholder="Enter your full name"
+              placeholder="닉네임을 입력해 주세요"
               placeholderTextColor="#9c5749"
               value={fullName}
               onChangeText={setFullName}
@@ -133,10 +140,10 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
 
           {/* Email Address */}
           <View style={$inputWrapper}>
-            <Text style={$label}>Email Address</Text>
+            <Text style={$label}>이메일 주소</Text>
             <TextInput
               style={$input}
-              placeholder="Enter your email address"
+              placeholder="이메일을 입력해 주세요"
               placeholderTextColor="#9c5749"
               value={email}
               onChangeText={setEmail}
@@ -148,11 +155,11 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
 
           {/* Password */}
           <View style={$inputWrapper}>
-            <Text style={$label}>Password</Text>
+            <Text style={$label}>비밀번호</Text>
             <View style={$passwordContainer}>
               <TextInput
                 style={$passwordInput}
-                placeholder="Enter your password"
+                placeholder="비밀번호를 입력해 주세요"
                 placeholderTextColor="#9c5749"
                 secureTextEntry={!showPassword}
                 value={password}
@@ -172,6 +179,32 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
             </View>
           </View>
 
+          {/* Confirm Password */}
+          <View style={$inputWrapper}>
+            <Text style={$label}>비밀번호 확인</Text>
+            <View style={$passwordContainer}>
+              <TextInput
+                style={$passwordInput}
+                placeholder="비밀번호를 한 번 더 입력해 주세요"
+                placeholderTextColor="#9c5749"
+                secureTextEntry={!showConfirmPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                autoCorrect={false}
+              />
+              <TouchableOpacity 
+                style={$eyeButton}
+                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? (
+                  <Eye size={24} color="#9c5749" />
+                ) : (
+                  <EyeOff size={24} color="#9c5749" />
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+
           {/* Sign Up Button */}
           <View style={$buttonWrapper}>
             <TouchableOpacity 
@@ -179,16 +212,16 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
               onPress={tryRegister}
               disabled={isLoading}
             >
-              <Text style={$signUpButtonText}>Sign Up</Text>
+              <Text style={$signUpButtonText}>가입하기</Text>
             </TouchableOpacity>
           </View>
 
           {/* Login Prompt */}
           <View style={$loginPrompt}>
             <Text style={$loginPromptText}>
-              Already have an account?{" "}
+              이미 계정이 있으신가요?{" "}
               <Text style={$loginLink} onPress={navigateToLogin}>
-                Log in
+                로그인
               </Text>
             </Text>
           </View>
@@ -233,9 +266,8 @@ const $form: ViewStyle = {
 
 const $inputWrapper: ViewStyle = {
   width: "100%",
-  marginBottom: 12,
   paddingHorizontal: 16,
-  paddingVertical: 12,
+  paddingVertical: 8,
 }
 
 const $label: TextStyle = {
@@ -280,7 +312,7 @@ const $eyeButton: ViewStyle = {
 const $buttonWrapper: ViewStyle = {
   width: "100%",
   paddingHorizontal: 16,
-  paddingVertical: 24,
+  paddingVertical: 16,
 }
 
 const $signUpButton: ViewStyle = {
@@ -303,7 +335,6 @@ const $signUpButtonText: TextStyle = {
 }
 
 const $loginPrompt: ViewStyle = {
-  marginTop: 16,
   alignItems: "center",
   paddingHorizontal: 16,
   paddingVertical: 8,

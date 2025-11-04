@@ -100,7 +100,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
             style={$editButtonHorizontal} 
             onPress={() => setIsPreferencesModalVisible(true)}
           >
-            <Text style={$editButtonText}>Edit Preferences</Text>
+            <Text style={$editButtonText}>취향 설정</Text>
           </TouchableOpacity>
         </View>
 
@@ -114,7 +114,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               $tabText, 
               activeTab === 'photos' && $tabTextActive
             ]}>
-              Food History
+              히스토리
             </Text>
           </TouchableOpacity>
           <TouchableOpacity 
@@ -125,7 +125,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               $tabText, 
               activeTab === 'restaurants' && $tabTextActive
             ]}>
-              Liked Menus
+              찜한 메뉴
             </Text>
           </TouchableOpacity>
         </View>
@@ -135,9 +135,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           <View style={$gridContainer}>
             {allPhotos.length === 0 ? (
               <View style={$emptyState}>
-                <Text style={$emptyText}>No photos yet</Text>
+                <Text style={$emptyText}>사진이 아직 없습니다</Text>
                 <Text style={$emptySubtext}>
-                  Add photos from your camera
+                  갤러리에서 사진을 추가해보세요
                 </Text>
               </View>
             ) : (
@@ -167,9 +167,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           <View style={$gridContainer}>
             {scrappedMenus.length === 0 ? (
               <View style={$emptyState}>
-                <Text style={$emptyText}>No liked menus yet</Text>
+                <Text style={$emptyText}>찜한 메뉴가 없습니다</Text>
                 <Text style={$emptySubtext}>
-                Scrap foods from recommendations
+                  추천 메뉴에서 음식을 스크랩해보세요
                 </Text>
               </View>
             ) : (
@@ -187,7 +187,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                       />
                     ) : (
                       <View style={[$photoImage, $placeholderImage]}>
-                        <Text style={$placeholderText}>No Image</Text>
+                        <Text style={$placeholderText}>이미지 없음</Text>
                       </View>
                     )}
                     <View style={$menuOverlay}>
@@ -222,7 +222,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           }}
         >
           <Home size={24} color={colors.palette.neutral400} strokeWidth={2} />
-          <Text style={$tabButtonText}>Discover</Text>
+          <Text style={$tabButtonText}>추천</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -236,7 +236,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           }}
         >
           <User size={24} color={colors.palette.primary500} strokeWidth={2} />
-          <Text style={$tabButtonTextActive}>Profile</Text>
+          <Text style={$tabButtonTextActive}>마이페이지</Text>
         </TouchableOpacity>
       </View>
 

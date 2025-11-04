@@ -66,7 +66,15 @@
           }
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Foodigram needs your location to recommend nearby restaurants.",
+          "locationAlwaysPermission": "Foodigram needs your location to recommend nearby restaurants.",
+          "locationWhenInUsePermission": "Foodigram needs your location to recommend nearby restaurants."
+        }
+      ]
     ],
     "experiments": {
       "tsconfigPaths": true
