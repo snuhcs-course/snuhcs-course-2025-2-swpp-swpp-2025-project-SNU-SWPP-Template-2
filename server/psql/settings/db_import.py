@@ -21,7 +21,7 @@ from pathlib import Path
 # Load environment variables from .env file if it exists
 env_file = Path(__file__).parent / '.env'
 if env_file.exists():
-    with open(env_file) as f:
+    with open(env_file, encoding='utf-8') as f:
         for line in f:
             if line.strip() and not line.startswith('#'):
                 key, value = line.strip().split('=', 1)
@@ -33,7 +33,7 @@ def run_command(cmd, description, env=None):
     print(f"Command: {' '.join(cmd)}")
     
     try:
-        subprocess.run(cmd, check=True, capture_output=True, text=True, env=env)
+        subprocess.run(cmd, check=True, capture_output=True, text=True, encoding='utf-8', env=env)
         print(f"✅ {description} completed successfully")
         return True
     except subprocess.CalledProcessError as e:
@@ -129,8 +129,8 @@ def import_database(filename=None):
         ]
         # Create backup (continue even if this fails)
         try:
-            result = subprocess.run(backup_cmd, capture_output=True, text=True, env=env)
-            with open(backup_file, 'w') as f:
+            result = subprocess.run(backup_cmd, capture_output=True, text=True, encoding='utf-8', env=env)
+            with open(backup_file, 'w', encoding='utf-8') as f:
                 f.write(result.stdout)
         except Exception:
             print("⚠️  Warning: Could not create backup")
@@ -179,7 +179,7 @@ def import_database(filename=None):
             print(f"Running: Importing database")
             print(f"Command: docker exec -i {container_name} psql -U {db_params['user']} -d {db_params['database']}")
             
-            with open(sql_file, 'r') as f:
+            with open(sql_file, 'r', encoding='utf-8') as f:
                 sql_content = f.read()
             
             import_cmd = [
@@ -189,7 +189,7 @@ def import_database(filename=None):
                 '-d', db_params['database']
             ]
             
-            result = subprocess.run(import_cmd, input=sql_content, text=True, check=True, capture_output=True, env=env)
+            result = subprocess.run(import_cmd, input=sql_content, text=True, encoding='utf-8', check=True, capture_output=True, env=env)
             print(f"✅ Importing database completed successfully")
         except subprocess.CalledProcessError as e:
             print(f"❌ Importing database failed:")
