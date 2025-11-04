@@ -42,7 +42,16 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         })
 
         if (recommendations && recommendations.success && recommendations.results) {
-          setRecommendedMenus(recommendations.results)
+          // 매장(place_id)가 중복되는 경우 가장 먼저 나오는 것만 보여주고 나머지는 필터링
+          const uniquePlaceMenus = []
+          const seenPlaceIds = new Set()
+          for (const menu of recommendations.results) {
+            if (menu.image_urls && menu.image_urls.length > 0 && !seenPlaceIds.has(menu.place_name)) {
+              uniquePlaceMenus.push(menu)
+              seenPlaceIds.add(menu.place_name)
+            }
+          }
+          setRecommendedMenus(uniquePlaceMenus)
         }
       } catch (error) {
         console.error("Failed to fetch recommended menus:", error)
@@ -203,6 +212,15 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
               {/* Top Header */}
               <View style={$topHeader}>
+                
+              </View>
+
+              {/* Bottom Info */}
+              <View style={$bottomInfo}>
+                <View style={$restaurantNameContainer}>
+                <Text style={$restaurantName} numberOfLines={2}>
+                  {currentMenu.place_name}
+                </Text>
                 <TouchableOpacity
                   style={$headerButton}
                   onPress={() => toggleBookmark(currentMenu)}
@@ -213,13 +231,9 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                     fill={menuScrapStore.isScrapped(currentMenu.id) ? "#fff" : "transparent"}
                   />
                 </TouchableOpacity>
-              </View>
+                </View>
 
-              {/* Bottom Info */}
-              <View style={$bottomInfo}>
-                <Text style={$restaurantName} numberOfLines={2}>
-                  {currentMenu.place_name}
-                </Text>
+                
                 <Text style={$restaurantDetails} numberOfLines={1}>
                   {currentMenu.category} • {currentMenu.location}
                 </Text>
@@ -235,7 +249,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                   </Text>
                   {currentMenu.reason && (
                     <Text style={$menuReasonLarge} numberOfLines={2}>
-                      {currentMenu.reason}
+                      {currentMenu.category} 카테고리
                     </Text>
                   )}
                 </View>
@@ -381,6 +395,13 @@ const $bottomInfo: ViewStyle = {
   paddingHorizontal: spacing.lg,
   paddingBottom: spacing.sm,
   zIndex: 10,
+}
+
+const $restaurantNameContainer: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  width: "100%",
 }
 
 const $restaurantName: TextStyle = {
