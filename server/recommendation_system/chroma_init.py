@@ -360,7 +360,11 @@ class EmbeddingService:
         return self.embed_texts([text])[0]
 
 # ChromaDB 기반 VectorIndexBuilder를 임포트
-from .chroma_index import ChromaVectorIndexBuilder, ChromaRecommendationEngine
+# 직접 실행과 모듈 import 모두 지원
+try:
+    from .chroma_index import ChromaVectorIndexBuilder, ChromaRecommendationEngine
+except ImportError:
+    from chroma_index import ChromaVectorIndexBuilder, ChromaRecommendationEngine
 
 # 기존 VectorIndexBuilder는 ChromaVectorIndexBuilder의 별칭으로 사용
 VectorIndexBuilder = ChromaVectorIndexBuilder
