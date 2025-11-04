@@ -296,6 +296,7 @@ const $profileSectionHorizontal: ViewStyle = {
   alignItems: "center",
   justifyContent: "space-between",
   paddingVertical: spacing.lg,
+  paddingTop: spacing.xxxl, 
   paddingHorizontal: spacing.lg,
   marginBottom: spacing.xs,
 }
@@ -314,39 +315,6 @@ const $editButtonHorizontal: ViewStyle = {
   alignItems: "center",
   justifyContent: "center",
   marginLeft: spacing.md,
-}
-
-// ------- 기존 스타일 계속 -------
-const $profileImageContainer: ViewStyle = {
-  width: 128,
-  height: 128,
-  borderRadius: 64,
-  overflow: "hidden",
-  marginBottom: spacing.md,
-}
-
-const $profileImage: ImageStyle = {
-  width: "100%",
-  height: "100%",
-  backgroundColor: colors.palette.neutral300, // 회색 배경
-}
-
-const $userName: TextStyle = {
-  fontSize: 22,
-  fontWeight: "bold",
-  color: colors.text,
-  marginTop: spacing.xs,
-  marginBottom: spacing.md,
-}
-
-const $editButton: ViewStyle = {
-  backgroundColor: "#f66c51",
-  paddingHorizontal: 20,
-  borderRadius: 12,
-  height: 48,
-  minWidth: 200,
-  alignItems: "center",
-  justifyContent: "center",
 }
 
 const $editButtonText: TextStyle = {
