@@ -3,7 +3,7 @@ import { api } from "app/services/api"
 import { getImage as getImageName } from "app/utils/imagenameFromAsseturi"
 import * as storage from "app/utils/storage"
 import { Asset } from "expo-media-library"
-import { Home, Plus, Settings, User } from "lucide-react-native"
+import { Home, Plus, User } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState } from "react"
 import {
@@ -11,7 +11,6 @@ import {
   Image,
   ImageStyle,
   ScrollView,
-  StatusBar,
   TextStyle,
   TouchableOpacity,
   View,
@@ -22,15 +21,14 @@ import { useStores } from "../models"
 import { AppStackScreenProps } from "../navigators"
 import { colors, spacing } from "../theme"
 
-
-interface ProfileScreenProps extends AppStackScreenProps<"Profile"> { }
+interface ProfileScreenProps extends AppStackScreenProps<"Profile"> {}
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function ProfileScreen({ navigation }) {
   const { foodHistoryStore, menuScrapStore } = useStores()
   const { scanAlbums } = useAlbumScanner();
   const screenWidth = Dimensions.get('window').width
   const imageSize = (screenWidth - spacing.lg * 2 - spacing.sm) / 2 // 2 columns with padding
-  const [userName, setUserName] = useState("John Doe")
+  const [userName, setUserName] = useState("")
   const [activeTab, setActiveTab] = useState<'photos' | 'restaurants'>('photos')
   const [selectedRestaurantId, setSelectedRestaurantId] = useState<number | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
@@ -58,9 +56,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   }, [])
 
   async function getUserPhotos() {
-    let photo_list = await api.getUserPhotos();
+    const photo_list = await api.getUserPhotos();
 
-    let currentImages = photo_list
+    const currentImages = photo_list
       .filter(photo => photo.local_uri)
       .map(photo => ({
         id: photo.local_uri,
@@ -95,7 +93,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   // Combine user images and scrapped images
   const allPhotos = [...userImages, ...scrappedImages]
 
-  const handleSettingsPress = async () => {
+  const logout = async () => {
     try {
       await api.logout()
     } catch (e) {
@@ -107,37 +105,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
   return (
     <View style={$container}>
-      <StatusBar barStyle="dark-content" />
-
-      {/* Header */}
-      <View style={$header}>
-        <View style={$headerButton} />
-        <Text style={$headerTitle}>Profile</Text>
-        <TouchableOpacity
-          style={$headerButton}
-          onPress={() => handleSettingsPress()}
-        >
-          <Settings size={24} color={colors.text} />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView style={$scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Section */}
-        <View style={$profileSection}>
-          <View style={$profileImageContainer}>
-            <Image
-              style={$profileImage}
-              resizeMode="cover"
-            />
-          </View>
-          <Text style={$userName}>{user.name}</Text>
-
-          <TouchableOpacity
+        <View style={$profileSectionHorizontal}>
+          <TouchableOpacity onPress={() => logout()}>
+            <Text style={$userNameHorizontal}>{user.name}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
             testID="settings-button"
-            style={$editButton}
+            style={$editButtonHorizontal} 
             onPress={() => setIsPreferencesModalVisible(true)}
           >
-            <Text style={$editButtonText}>Edit Profile</Text>
+            <Text style={$editButtonText}>취향 설정</Text>
           </TouchableOpacity>
         </View>
 
@@ -151,7 +130,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               $tabText,
               activeTab === 'photos' && $tabTextActive
             ]}>
-              My Photos
+              히스토리
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -162,7 +141,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               $tabText,
               activeTab === 'restaurants' && $tabTextActive
             ]}>
-              Liked Restaurants
+              찜한 메뉴
             </Text>
           </TouchableOpacity>
         </View>
@@ -172,9 +151,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           <View style={$gridContainer}>
             {allPhotos.length === 0 ? (
               <View style={$emptyState}>
-                <Text style={$emptyText}>No photos yet</Text>
+                <Text style={$emptyText}>사진이 아직 없습니다</Text>
                 <Text style={$emptySubtext}>
-                  Add photos from your camera or scrap foods from recommendations!
+                  갤러리에서 사진을 추가해보세요
                 </Text>
               </View>
             ) : (
@@ -204,9 +183,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           <View style={$gridContainer}>
             {scrappedMenus.length === 0 ? (
               <View style={$emptyState}>
-                <Text style={$emptyText}>No liked menus yet</Text>
+                <Text style={$emptyText}>찜한 메뉴가 없습니다</Text>
                 <Text style={$emptySubtext}>
-                  Start exploring and save your favorite menus!
+                  추천 메뉴에서 음식을 스크랩해보세요
                 </Text>
               </View>
             ) : (
@@ -224,7 +203,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                       />
                     ) : (
                       <View style={[$photoImage, $placeholderImage]}>
-                        <Text style={$placeholderText}>No Image</Text>
+                        <Text style={$placeholderText}>이미지 없음</Text>
                       </View>
                     )}
                     <View style={$menuOverlay}>
@@ -259,11 +238,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           }}
         >
           <Home size={24} color={colors.palette.neutral400} strokeWidth={2} />
-          <Text style={$tabButtonText}>Discover</Text>
+          <Text style={$tabButtonText}>추천</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[$tabButton, $tabButtonActive]}
+          style={$tabButton}
           testID="UserTab"
           onPress={() => {
             if (__DEV__) {
@@ -273,7 +252,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           }}
         >
           <User size={24} color={colors.palette.primary500} strokeWidth={2} />
-          <Text style={$tabButtonTextActive}>Profile</Text>
+          <Text style={$tabButtonTextActive}>마이페이지</Text>
         </TouchableOpacity>
       </View>
 
@@ -321,74 +300,37 @@ const $container: ViewStyle = {
   backgroundColor: colors.background,
 }
 
-const $header: ViewStyle = {
-  flexDirection: "row",
-  alignItems: "center",
-  justifyContent: "space-between",
-  paddingHorizontal: spacing.md,
-  paddingTop: spacing.lg,
-  paddingBottom: spacing.sm,
-  backgroundColor: colors.background,
-  marginTop: spacing.lg,
-}
-
-const $headerButton: ViewStyle = {
-  width: 48,
-  height: 48,
-  alignItems: "center",
-  justifyContent: "center",
-}
-
-const $headerTitle: TextStyle = {
-  fontSize: 18,
-  fontWeight: "bold",
-  color: colors.text,
-  flex: 1,
-  textAlign: "center",
-}
-
 const $scrollView: ViewStyle = {
   flex: 1,
   backgroundColor: colors.background,
   marginBottom: 80, // Space for bottom tabs
 }
 
-const $profileSection: ViewStyle = {
+// --- 새로 추가된 horizontal profile section 스타일 ---
+const $profileSectionHorizontal: ViewStyle = {
+  flexDirection: "row",
   alignItems: "center",
+  justifyContent: "space-between",
   paddingVertical: spacing.lg,
+  paddingTop: spacing.xxxl, 
   paddingHorizontal: spacing.lg,
+  marginBottom: spacing.xs,
 }
 
-const $profileImageContainer: ViewStyle = {
-  width: 128,
-  height: 128,
-  borderRadius: 64,
-  overflow: "hidden",
-  marginBottom: spacing.md,
-}
-
-const $profileImage: ImageStyle = {
-  width: "100%",
-  height: "100%",
-  backgroundColor: colors.palette.neutral300, // 회색 배경
-}
-
-const $userName: TextStyle = {
+const $userNameHorizontal: TextStyle = {
   fontSize: 22,
   fontWeight: "bold",
   color: colors.text,
-  marginTop: spacing.xs,
-  marginBottom: spacing.md,
 }
 
-const $editButton: ViewStyle = {
+const $editButtonHorizontal: ViewStyle = {
   backgroundColor: "#f66c51",
   paddingHorizontal: 20,
   borderRadius: 12,
-  height: 48,
-  minWidth: 200,
+  height: 40,
   alignItems: "center",
   justifyContent: "center",
+  marginLeft: spacing.md,
 }
 
 const $editButtonText: TextStyle = {
@@ -530,10 +472,6 @@ const $tabButton: ViewStyle = {
   justifyContent: "center",
   paddingVertical: spacing.sm,
   gap: 4,
-}
-
-const $tabButtonActive: ViewStyle = {
-  backgroundColor: colors.palette.primary500,
 }
 
 const $tabButtonText: TextStyle = {

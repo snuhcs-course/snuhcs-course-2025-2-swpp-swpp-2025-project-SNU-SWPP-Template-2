@@ -1,0 +1,1052 @@
+{
+  "timestamp": "20251026_125028",
+  "user_profile": {
+    "location_info": "Seoul National University Venture Town",
+    "location": [
+      126.93383,
+      37.472087
+    ],
+    "cuisine_preferences": [
+      "korean"
+    ],
+    "max_distance_km": 1.0
+  },
+  "recommendations": {
+    "user_location": [
+      126.93383,
+      37.472087
+    ],
+    "search_radius_km": 1.0,
+    "total_restaurants": 30,
+    "total_menus_found": 202,
+    "recommendations": {
+      "Stews & Soups": {
+        "reason": "Popular stews & soups items in your area",
+        "menus": [
+          {
+            "name": "생고기김치찌개",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 4500
+          },
+          {
+            "name": "순두부찌개",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 4500
+          },
+          {
+            "name": "콩나무해장국",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 4500
+          },
+          {
+            "name": "참치김치찌개",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5000
+          },
+          {
+            "name": "우거지해장국",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5000
+          },
+          {
+            "name": "된장찌개",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5000
+          },
+          {
+            "name": "햄김치찌개",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5500
+          },
+          {
+            "name": "황태해장국",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5500
+          },
+          {
+            "name": "시골청국장",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5500
+          },
+          {
+            "name": "선지해장국",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5500
+          },
+          {
+            "name": "김치전골",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 6000
+          },
+          {
+            "name": "동태탕",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 6000
+          },
+          {
+            "name": "햄치즈전골",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 7000
+          },
+          {
+            "name": "쭈꾸미포장",
+            "restaurant": "명가쭈꾸미",
+            "price": 9000
+          },
+          {
+            "name": "얼큰한우국밥",
+            "restaurant": "전설애국밥 신림점",
+            "price": 9000
+          },
+          {
+            "name": "떡만두국",
+            "restaurant": "안성손만두",
+            "price": 9000
+          },
+          {
+            "name": "생고기김치찌개",
+            "restaurant": "사계절백반",
+            "price": 9000
+          },
+          {
+            "name": "참치김치찌개",
+            "restaurant": "사계절백반",
+            "price": 9000
+          },
+          {
+            "name": "된장찌개",
+            "restaurant": "사계절백반",
+            "price": 9000
+          },
+          {
+            "name": "순두부찌개",
+            "restaurant": "사계절백반",
+            "price": 9000
+          },
+          {
+            "name": "청국장찌개",
+            "restaurant": "사계절백반",
+            "price": 9000
+          },
+          {
+            "name": "정남순대국",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 9000
+          },
+          {
+            "name": "선지술국",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 10000
+          },
+          {
+            "name": "얼큰내장순대국",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 10000
+          },
+          {
+            "name": "시래기순대국",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 10000
+          },
+          {
+            "name": "한우설렁탕",
+            "restaurant": "전설애국밥 신림점",
+            "price": 11000
+          },
+          {
+            "name": "해물된장찌개",
+            "restaurant": "사계절백반",
+            "price": 11000
+          },
+          {
+            "name": "들깨순두부",
+            "restaurant": "사계절백반",
+            "price": 11000
+          },
+          {
+            "name": "해물순두부찌개",
+            "restaurant": "사계절백반",
+            "price": 11000
+          },
+          {
+            "name": "공기밥얼큰추어탕",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 12000
+          },
+          {
+            "name": "갈비탕",
+            "restaurant": "전설애국밥 신림점",
+            "price": 14000
+          },
+          {
+            "name": "정남순대국정식",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 14000
+          },
+          {
+            "name": "한우족탕",
+            "restaurant": "전설애국밥 신림점",
+            "price": 20000
+          },
+          {
+            "name": "김치전골",
+            "restaurant": "우리콩손두부",
+            "price": 25000
+          },
+          {
+            "name": "순두부전골-중",
+            "restaurant": "우리콩손두부",
+            "price": 30000
+          },
+          {
+            "name": "순대전골",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 32000
+          },
+          {
+            "name": "국내산메기매운탕 2인분",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 33000
+          },
+          {
+            "name": "순두부전골-대",
+            "restaurant": "우리콩손두부",
+            "price": 40000
+          }
+        ]
+      },
+      "Rice Dishes": {
+        "reason": "Popular rice dishes items in your area",
+        "menus": [
+          {
+            "name": "본나물비빔밥",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 10000
+          },
+          {
+            "name": "제육백반",
+            "restaurant": "사계절백반",
+            "price": 10000
+          },
+          {
+            "name": "돼지불백",
+            "restaurant": "사계절백반",
+            "price": 10000
+          },
+          {
+            "name": "우렁쌈밥",
+            "restaurant": "정원쌈밥보리밥",
+            "price": 10000
+          },
+          {
+            "name": "공기밥추어탕",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 11000
+          },
+          {
+            "name": "돈불백열무비빔밥",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 11500
+          },
+          {
+            "name": "가마솥밥 추어탕",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 12000
+          },
+          {
+            "name": "참깨계란새우쮺",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 12000
+          },
+          {
+            "name": "소불고기비빔밥",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 12000
+          },
+          {
+            "name": "매콤낙지비빔밥",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 12000
+          },
+          {
+            "name": "공기밥통추어탕",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 12000
+          },
+          {
+            "name": "고추장육회비빔밥",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 13000
+          },
+          {
+            "name": "로제해물쮺",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 13000
+          },
+          {
+            "name": "삼겹살구이백반",
+            "restaurant": "사계절백반",
+            "price": 13000
+          },
+          {
+            "name": "가마솥밥 얼큰추어탕",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 13000
+          },
+          {
+            "name": "가마솥밥 통추어탕",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 13000
+          },
+          {
+            "name": "우된장 정식(1인or2인)",
+            "restaurant": "우된장 신림점",
+            "price": 15000
+          },
+          {
+            "name": "찌개정식 우삼겹 200g",
+            "restaurant": "우된장 신림점",
+            "price": 16500
+          },
+          {
+            "name": "소불백쌈밥",
+            "restaurant": "소문난쌈밥",
+            "price": 17000
+          },
+          {
+            "name": "우삼겹 정식(3인or4인)",
+            "restaurant": "우된장 신림점",
+            "price": 27500
+          }
+        ]
+      },
+      "Grilled Meats": {
+        "reason": "Popular grilled meats items in your area",
+        "menus": [
+          {
+            "name": "30년 스테디셀러 <쭈꾸미주물럭>",
+            "restaurant": "명가쭈꾸미",
+            "price": 10000
+          },
+          {
+            "name": "제육특선",
+            "restaurant": "소문난쌈밥",
+            "price": 11000
+          },
+          {
+            "name": "먹어보면 또 찾는 <우삼겹쭈꾸미>",
+            "restaurant": "명가쭈꾸미",
+            "price": 12000
+          },
+          {
+            "name": "왕갈비",
+            "restaurant": "통큰대박집",
+            "price": 12000
+          },
+          {
+            "name": "생삼겹",
+            "restaurant": "통큰대박집",
+            "price": 13000
+          },
+          {
+            "name": "삼겹살",
+            "restaurant": "우리콩손두부",
+            "price": 15000
+          },
+          {
+            "name": "생삼겹쌈밥",
+            "restaurant": "소문난쌈밥",
+            "price": 17000
+          },
+          {
+            "name": "목삼겹쌈밥",
+            "restaurant": "소문난쌈밥",
+            "price": 17000
+          },
+          {
+            "name": "둘이서 한상 삼겹살400g",
+            "restaurant": "우된장 신림점",
+            "price": 25000
+          },
+          {
+            "name": "둘이서 한상 우삼겹400g",
+            "restaurant": "우된장 신림점",
+            "price": 27000
+          },
+          {
+            "name": "진갈비살",
+            "restaurant": "통큰대박집",
+            "price": 28000
+          },
+          {
+            "name": "우설구이",
+            "restaurant": "김영자나주곰탕 본점",
+            "price": 35000
+          },
+          {
+            "name": "셋이서한상 삼겹살 600g",
+            "restaurant": "우된장 신림점",
+            "price": 36000
+          },
+          {
+            "name": "셋이서 한상 우삼겹 600g",
+            "restaurant": "우된장 신림점",
+            "price": 38000
+          },
+          {
+            "name": "오리로스 반마리",
+            "restaurant": "소문난쌈밥",
+            "price": 40000
+          },
+          {
+            "name": "오리로스 한마리",
+            "restaurant": "소문난쌈밥",
+            "price": 80000
+          }
+        ]
+      },
+      "Soups & Stews": {
+        "reason": "Popular soups & stews items in your area",
+        "menus": [
+          {
+            "name": "최상급국내산민물새우추가",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 7000
+          },
+          {
+            "name": "순대국",
+            "restaurant": "취가식당",
+            "price": 7000
+          },
+          {
+            "name": "김치전골",
+            "restaurant": "소문난쌈밥",
+            "price": 9000
+          },
+          {
+            "name": "우렁된장찌개",
+            "restaurant": "소문난쌈밥",
+            "price": 9000
+          },
+          {
+            "name": "김치찌개",
+            "restaurant": "정원쌈밥보리밥",
+            "price": 10000
+          },
+          {
+            "name": "대구탕",
+            "restaurant": "정원쌈밥보리밥",
+            "price": 12000
+          },
+          {
+            "name": "민물새우수제비매운탕 1인분 (2인이상주문가능)",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 13000
+          },
+          {
+            "name": "낙지전골",
+            "restaurant": "소문난쌈밥",
+            "price": 15000
+          },
+          {
+            "name": "불낙전골",
+            "restaurant": "소문난쌈밥",
+            "price": 15000
+          },
+          {
+            "name": "국내산메기매운탕 3인분",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 45000
+          },
+          {
+            "name": "아~시원하다! <박속낙지연포탕> 중",
+            "restaurant": "명가쭈꾸미",
+            "price": 47000
+          },
+          {
+            "name": "좋은 사람들과 함께 <산낙지철판> 중",
+            "restaurant": "명가쭈꾸미",
+            "price": 47000
+          },
+          {
+            "name": "국내산메기매운탕 4인분",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 57000
+          },
+          {
+            "name": "아~시원하다! <박속낙지연포탕> 대",
+            "restaurant": "명가쭈꾸미",
+            "price": 59000
+          },
+          {
+            "name": "좋은 사람들과 함께 <산낙지철판> 대",
+            "restaurant": "명가쭈꾸미",
+            "price": 59000
+          }
+        ]
+      },
+      "Other": {
+        "reason": "Popular other items in your area",
+        "menus": [
+          {
+            "name": "민물참게1마리추가",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 7000
+          },
+          {
+            "name": "수제비",
+            "restaurant": "고시칼국수냉면",
+            "price": 7000
+          },
+          {
+            "name": "추어튀김 소",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 9000
+          },
+          {
+            "name": "보쌈정식",
+            "restaurant": "정원쌈밥보리밥",
+            "price": 11000
+          },
+          {
+            "name": "제육볶음",
+            "restaurant": "정원쌈밥보리밥",
+            "price": 11000
+          },
+          {
+            "name": "코다리조림",
+            "restaurant": "정원쌈밥보리밥",
+            "price": 11000
+          },
+          {
+            "name": "고등어조림",
+            "restaurant": "정원쌈밥보리밥",
+            "price": 11000
+          },
+          {
+            "name": "콩비지뚝배기",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 11500
+          },
+          {
+            "name": "낙지김치죽(해장)",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 12000
+          },
+          {
+            "name": "씨라구순대",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 12000
+          },
+          {
+            "name": "추어튀김 대",
+            "restaurant": "명운추어탕메기매운탕 본점",
+            "price": 18000
+          },
+          {
+            "name": "갈비살",
+            "restaurant": "통큰대박집",
+            "price": 24000
+          },
+          {
+            "name": "소등심",
+            "restaurant": "통큰대박집",
+            "price": 35000
+          }
+        ]
+      },
+      "Noodle Dishes": {
+        "reason": "Popular noodle dishes items in your area",
+        "menus": [
+          {
+            "name": "잔치국수",
+            "restaurant": "고시칼국수냉면",
+            "price": 5000
+          },
+          {
+            "name": "잔치국수 곱빼기",
+            "restaurant": "고시칼국수냉면",
+            "price": 6000
+          },
+          {
+            "name": "비빔국수 곱빼기",
+            "restaurant": "고시칼국수냉면",
+            "price": 8000
+          },
+          {
+            "name": "냉김치말이국수 곱빼기",
+            "restaurant": "고시칼국수냉면",
+            "price": 8000
+          },
+          {
+            "name": "바지락칼국수",
+            "restaurant": "이가네바지락칼국수",
+            "price": 8000
+          },
+          {
+            "name": "팥칼국수",
+            "restaurant": "이가네바지락칼국수",
+            "price": 8000
+          },
+          {
+            "name": "냉콩국수",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "새알심+팥칼국수",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "한우사골 만두국",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "한우사골 떡만두국",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "얼큰해물수제비",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "얼큰해물 칼국수",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          }
+        ]
+      },
+      "Pork Dishes": {
+        "reason": "Popular pork dishes items in your area",
+        "menus": [
+          {
+            "name": "삼겹살",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 8000
+          },
+          {
+            "name": "돼지불백",
+            "restaurant": "사계절백반",
+            "price": 10000
+          },
+          {
+            "name": "삼겹살구이백반",
+            "restaurant": "사계절백반",
+            "price": 13000
+          },
+          {
+            "name": "생삼겹",
+            "restaurant": "통큰대박집",
+            "price": 13000
+          },
+          {
+            "name": "삼겹살",
+            "restaurant": "연탄초벌구이",
+            "price": 14000
+          },
+          {
+            "name": "정남순대국정식",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 14000
+          },
+          {
+            "name": "포장 제육만 2인단품(밥국반찬미제공)",
+            "restaurant": "사계절백반",
+            "price": 15000
+          },
+          {
+            "name": "포장 불백만 2인단품(밥국반찬미제공)",
+            "restaurant": "사계절백반",
+            "price": 15000
+          },
+          {
+            "name": "수육(소)",
+            "restaurant": "김영자나주곰탕 본점",
+            "price": 35000
+          },
+          {
+            "name": "수육(대)",
+            "restaurant": "김영자나주곰탕 본점",
+            "price": 45000
+          }
+        ]
+      },
+      "Stir-fried Dishes": {
+        "reason": "Popular stir-fried dishes items in your area",
+        "menus": [
+          {
+            "name": "우삼겹",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5000
+          },
+          {
+            "name": "제육뚝불",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5500
+          },
+          {
+            "name": "제육볶음",
+            "restaurant": "사랑방",
+            "price": 9000
+          },
+          {
+            "name": "제육볶음",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 10000
+          },
+          {
+            "name": "두부김치",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 10000
+          },
+          {
+            "name": "오징어볶음",
+            "restaurant": "사계절백반",
+            "price": 12000
+          },
+          {
+            "name": "청양매콤부추전",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 12000
+          },
+          {
+            "name": "제육볶음",
+            "restaurant": "우리콩손두부",
+            "price": 15000
+          },
+          {
+            "name": "고추장우삼겹정식(1인or2인)",
+            "restaurant": "우된장 신림점",
+            "price": 16000
+          },
+          {
+            "name": "고추장우삼겹정식(3인or4인)",
+            "restaurant": "우된장 신림점",
+            "price": 30500
+          }
+        ]
+      },
+      "Porridges": {
+        "reason": "Popular porridges items in your area",
+        "menus": [
+          {
+            "name": "7가지야채죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 9500
+          },
+          {
+            "name": "동지팥죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 10000
+          },
+          {
+            "name": "단호박죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 10500
+          },
+          {
+            "name": "쇠고기야채죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 11500
+          },
+          {
+            "name": "신짬뽕죽(해장)",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 12000
+          },
+          {
+            "name": "불낙죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 12500
+          },
+          {
+            "name": "홍게품은죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 15000
+          },
+          {
+            "name": "전복내장죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 15000
+          },
+          {
+            "name": "자연송이쇠고기죽(보양)",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 16000
+          },
+          {
+            "name": "삼계전복죽(보양)",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 17000
+          }
+        ]
+      },
+      "Miscellaneous": {
+        "reason": "Popular miscellaneous items in your area",
+        "menus": [
+          {
+            "name": "오뎅 1개",
+            "restaurant": "안성손만두",
+            "price": 1000
+          },
+          {
+            "name": "찐만두 반판",
+            "restaurant": "고시칼국수냉면",
+            "price": 4000
+          },
+          {
+            "name": "얼어죽을칡냉면",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 4500
+          },
+          {
+            "name": "칼국수",
+            "restaurant": "고시칼국수냉면",
+            "price": 5000
+          },
+          {
+            "name": "물만두",
+            "restaurant": "고시칼국수냉면",
+            "price": 5000
+          },
+          {
+            "name": "양푼비빔밥",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 5000
+          },
+          {
+            "name": "양푼김치전골",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 6000
+          },
+          {
+            "name": "찐만두 한판",
+            "restaurant": "고시칼국수냉면",
+            "price": 6000
+          },
+          {
+            "name": "칼만두",
+            "restaurant": "고시칼국수냉면",
+            "price": 6000
+          },
+          {
+            "name": "칼국수 곱빼기",
+            "restaurant": "고시칼국수냉면",
+            "price": 6000
+          },
+          {
+            "name": "양푼김치전골",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 6000
+          },
+          {
+            "name": "소불고기",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 6000
+          },
+          {
+            "name": "김치고등어",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 6000
+          },
+          {
+            "name": "고기만두",
+            "restaurant": "안성손만두",
+            "price": 6500
+          },
+          {
+            "name": "김치만두",
+            "restaurant": "안성손만두",
+            "price": 6500
+          },
+          {
+            "name": "물냉면",
+            "restaurant": "고시칼국수냉면",
+            "price": 7000
+          },
+          {
+            "name": "비빔냉면",
+            "restaurant": "고시칼국수냉면",
+            "price": 7000
+          },
+          {
+            "name": "냉 김치말이국수",
+            "restaurant": "고시칼국수냉면",
+            "price": 7000
+          },
+          {
+            "name": "비빔국수",
+            "restaurant": "고시칼국수냉면",
+            "price": 7000
+          },
+          {
+            "name": "양푼햄김치전골",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 7000
+          },
+          {
+            "name": "양푼햄김치전골",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 7000
+          },
+          {
+            "name": "차돌된장찌개",
+            "restaurant": "사랑방",
+            "price": 7000
+          },
+          {
+            "name": "김치찌개",
+            "restaurant": "사랑방",
+            "price": 7000
+          },
+          {
+            "name": "식사",
+            "restaurant": "매일식당",
+            "price": 7500
+          },
+          {
+            "name": "새우만두",
+            "restaurant": "안성손만두",
+            "price": 7500
+          },
+          {
+            "name": "군만두",
+            "restaurant": "안성손만두",
+            "price": 7500
+          },
+          {
+            "name": "만두국",
+            "restaurant": "고시칼국수냉면",
+            "price": 8000
+          },
+          {
+            "name": "떡만두국",
+            "restaurant": "고시칼국수냉면",
+            "price": 8000
+          },
+          {
+            "name": "떡국",
+            "restaurant": "고시칼국수냉면",
+            "price": 8000
+          },
+          {
+            "name": "북어국",
+            "restaurant": "고시칼국수냉면",
+            "price": 8000
+          },
+          {
+            "name": "왕만두",
+            "restaurant": "이가네바지락칼국수",
+            "price": 8000
+          },
+          {
+            "name": "삼겹살",
+            "restaurant": "배할머니네밥집 신림점",
+            "price": 8000
+          },
+          {
+            "name": "갈치조림",
+            "restaurant": "사랑방",
+            "price": 8000
+          },
+          {
+            "name": "코다리찜",
+            "restaurant": "사랑방",
+            "price": 8000
+          },
+          {
+            "name": "얼큰한우국밥",
+            "restaurant": "전설애국밥 신림점",
+            "price": 9000
+          },
+          {
+            "name": "콩국수",
+            "restaurant": "고시칼국수냉면",
+            "price": 9000
+          },
+          {
+            "name": "쭈꾸미포장",
+            "restaurant": "명가쭈꾸미",
+            "price": 9000
+          },
+          {
+            "name": "얼큰칼만두국",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "한우사골 만두국",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "한우사골 떡만두국",
+            "restaurant": "이가네바지락칼국수",
+            "price": 9000
+          },
+          {
+            "name": "나도 껴줘~ <바지락칼국수>",
+            "restaurant": "명가쭈꾸미",
+            "price": 9000
+          },
+          {
+            "name": "7가지야채죽",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 9500
+          },
+          {
+            "name": "제육백반",
+            "restaurant": "사계절백반",
+            "price": 10000
+          },
+          {
+            "name": "본나물비빔밥",
+            "restaurant": "본죽&비빔밥 신림녹두거리점",
+            "price": 10000
+          },
+          {
+            "name": "뼈해장국",
+            "restaurant": "정남옥 서울대벤처타운역점",
+            "price": 10000
+          },
+          {
+            "name": "소머리곰탕",
+            "restaurant": "취가식당",
+            "price": 10000
+          },
+          {
+            "name": "콩국수 곱빼기",
+            "restaurant": "고시칼국수냉면",
+            "price": 10000
+          },
+          {
+            "name": "새알팥죽",
+            "restaurant": "이가네바지락칼국수",
+            "price": 10000
+          },
+          {
+            "name": "새알호박죽",
+            "restaurant": "이가네바지락칼국수",
+            "price": 10000
+          },
+          {
+            "name": "새알심팥죽",
+            "restaurant": "이가네바지락칼국수",
+            "price": 10000
+          }
+        ]
+      }
+    },
+    "timing_info": {
+      "restaurant_search_time": 0.03331565856933594,
+      "menu_fetch_time": 0.013282060623168945,
+      "categorization_time": 47.10940194129944,
+      "recommendation_build_time": 0.0002868175506591797,
+      "total_time": 47.15633201599121
+    }
+  }
+}

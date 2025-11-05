@@ -27,7 +27,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
   const [recommendedMenus, setRecommendedMenus] = useState<MenuRecommendationItem[]>([])
   const [isLoadingRecommendations, setIsLoadingRecommendations] = useState(false)
   const [currentMenuIndex, setCurrentMenuIndex] = useState(0)
-  const [isImageLoading, setIsImageLoading] = useState(true)
+  const [isImageLoading, setIsImageLoading] = useState(false)
 
   // Automatically fetch recommended menus on screen load
   useEffect(() => {
@@ -42,7 +42,16 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         })
 
         if (recommendations && recommendations.success && recommendations.results) {
-          setRecommendedMenus(recommendations.results)
+          // 매장(place_id)가 중복되는 경우 가장 먼저 나오는 것만 보여주고 나머지는 필터링
+          const uniquePlaceMenus = []
+          const seenPlaceIds = new Set()
+          for (const menu of recommendations.results) {
+            if (menu.image_urls && menu.image_urls.length > 0 && !seenPlaceIds.has(menu.place_name)) {
+              uniquePlaceMenus.push(menu)
+              seenPlaceIds.add(menu.place_name)
+            }
+          }
+          setRecommendedMenus(uniquePlaceMenus)
         }
       } catch (error) {
         console.error("Failed to fetch recommended menus:", error)
@@ -112,7 +121,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
   const handleNextMenu = () => {
     if (recommendedMenus.length === 0) return
-    setIsImageLoading(true)
     setCurrentMenuIndex((prev) => (prev + 1) % recommendedMenus.length)
   }
 
@@ -120,7 +128,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     if (recommendedMenus.length === 0) return
     // Don't go back from the first item
     if (currentMenuIndex === 0) return
-    setIsImageLoading(true)
     setCurrentMenuIndex((prev) => prev - 1)
   }
 
@@ -150,7 +157,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         {isLoadingRecommendations ? (
           // Loading state
           <View style={$loadingContainer}>
-            <Text style={$loadingText}>Loading recommendations...</Text>
+            <Text style={$loadingText}>근처 맛집을 찾고 있어요...</Text>
           </View>
         ) : recommendedMenus.length > 0 && currentMenu ? (
           // Full screen menu display
@@ -203,6 +210,15 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
               {/* Top Header */}
               <View style={$topHeader}>
+                
+              </View>
+
+              {/* Bottom Info */}
+              <View style={$bottomInfo}>
+                <View style={$restaurantNameContainer}>
+                <Text style={$restaurantName} numberOfLines={2}>
+                  {currentMenu.place_name}
+                </Text>
                 <TouchableOpacity
                   style={$headerButton}
                   onPress={() => toggleBookmark(currentMenu)}
@@ -213,13 +229,9 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                     fill={menuScrapStore.isScrapped(currentMenu.id) ? "#fff" : "transparent"}
                   />
                 </TouchableOpacity>
-              </View>
+                </View>
 
-              {/* Bottom Info */}
-              <View style={$bottomInfo}>
-                <Text style={$restaurantName} numberOfLines={2}>
-                  {currentMenu.place_name}
-                </Text>
+                
                 <Text style={$restaurantDetails} numberOfLines={1}>
                   {currentMenu.category} • {currentMenu.location}
                 </Text>
@@ -231,11 +243,11 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                     ₩{currentMenu.price?.toLocaleString()}
                   </Text>
                   <Text style={$menuRatingLarge} numberOfLines={1}>
-                    ⭐ {currentMenu.rating} ({currentMenu.review_count} reviews)
+                    ⭐ {currentMenu.rating} (리뷰 {currentMenu.review_count}개)
                   </Text>
                   {currentMenu.reason && (
                     <Text style={$menuReasonLarge} numberOfLines={2}>
-                      {currentMenu.reason}
+                      {currentMenu.category} 카테고리
                     </Text>
                   )}
                 </View>
@@ -257,8 +269,8 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         ) : (
           // Error state
           <View style={$emptyState}>
-            <Text style={$emptyText}>Unable to load recommendations</Text>
-            <Text style={$emptySubtext}>Please try again later</Text>
+            <Text style={$emptyText}>음식점을 불러오지 못했어요</Text>
+            <Text style={$emptySubtext}>잠시 후 다시 시도해 주세요</Text>
           </View>
         )}
       </View>
@@ -275,7 +287,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           }}
         >
           <Home size={24} color={colors.palette.primary500} strokeWidth={2} />
-          <Text style={$tabButtonTextActive}>Discover</Text>
+          <Text style={$tabButtonTextActive}>추천</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -288,7 +300,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           }}
         >
           <User size={24} color={colors.palette.neutral400} strokeWidth={2} />
-          <Text style={$tabButtonText}>Profile</Text>
+          <Text style={$tabButtonText}>마이페이지</Text>
         </TouchableOpacity>
       </View>
 
@@ -383,6 +395,13 @@ const $bottomInfo: ViewStyle = {
   zIndex: 10,
 }
 
+const $restaurantNameContainer: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  width: "100%",
+}
+
 const $restaurantName: TextStyle = {
   fontSize: 28,
   fontWeight: "bold",
@@ -452,7 +471,7 @@ const $loadingContainer: ViewStyle = {
 
 const $loadingText: TextStyle = {
   fontSize: 16,
-  color: colors.text,
+  color: colors.palette.neutral400,
 }
 
 const $imageLoadingContainer: ViewStyle = {

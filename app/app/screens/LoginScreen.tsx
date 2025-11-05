@@ -18,42 +18,42 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
 
   async function tryLogin() {
     if (!username.trim() || !password.trim()) {
-      Alert.alert("Error", "Please enter username and password.")
+      Alert.alert("아이디와 비밀번호를 입력해주세요.")
       return
     }
 
     setIsLoading(true)
     try {
-      // Ensure CSRF cookie is set
+      // CSRF 쿠키 설정
       await api.getCsrf()
       const res = await api.login(username, password)
       if (!res.ok) {
-        const errorMessage = (res.data as any)?.detail || "Login failed."
-        Alert.alert("Login Failed", errorMessage)
+        const errorMessage = (res.data as any)?.detail || "로그인에 실패했습니다."
+        Alert.alert("로그인 실패", errorMessage)
         return
       }
 
-      // log into aws amplify
+      // aws amplify 로그인
       await handleSignIn(username, password);
 
       await storage.saveString("IS_LOGGED_IN", "true")
 
-      // Check if user has preferences set
+      // 선호도(설정) 정보 확인
       try {
         const preferencesResponse = await api.getPreferences()
         if (preferencesResponse.ok && preferencesResponse.data) {
-          // User has preferences, go directly to main app
+          // 선호도가 있다면 메인 앱으로 이동
           navigation.replace("Foodigram")
         } else {
-          // User has no preferences, show onboarding
+          // 선호도가 없다면 온보딩 화면으로
           navigation.replace("Onboarding")
         }
       } catch (error) {
-        // If error checking preferences, show onboarding to be safe
+        // 선호도 확인 중 오류 시 온보딩으로 이동
         navigation.replace("Onboarding")
       }
     } catch (e) {
-      Alert.alert("Error", "An error occurred during login.")
+      Alert.alert("로그인 중 문제가 발생했습니다.")
       console.log(e)
     } finally {
       setIsLoading(false)
@@ -69,27 +69,29 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
       <View style={$contentWrapper}>
         <View style={$formNew}>
           <View style={$inputWrapper}>
-            <Text style={$label}>Username</Text>
+            <Text style={$label}>아이디</Text>
             <TextInput
               style={$input}
-              placeholder="Enter your username"
+              placeholder=""
               placeholderTextColor="#9c5749"
               value={username}
               onChangeText={setUsername}
               autoCapitalize="none"
+              autoCorrect={false}
             />
           </View>
 
           <View style={$inputWrapper}>
-            <Text style={$label}>Password</Text>
+            <Text style={$label}>비밀번호</Text>
             <View style={$passwordContainer}>
               <TextInput
                 style={$passwordInput}
-                placeholder="Enter your password"
+                placeholder=""
                 placeholderTextColor="#9c5749"
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
+                autoCorrect={false}
               />
               <TouchableOpacity 
                 style={$eyeButton}
@@ -105,7 +107,7 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
           </View>
 
           <TouchableOpacity style={$forgotPassword}>
-            <Text style={$forgotPasswordText}>Forgot Password?</Text>
+            <Text style={$forgotPasswordText}>비밀번호를 잊으셨나요?</Text>
           </TouchableOpacity>
 
           <TouchableOpacity 
@@ -113,14 +115,14 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
             onPress={tryLogin}
             disabled={isLoading}
           >
-            <Text style={$loginButtonText}>Log In</Text>
+            <Text style={$loginButtonText}>로그인</Text>
           </TouchableOpacity>
 
           <View style={$signUpPrompt}>
             <Text style={$signUpPromptText}>
-              Don't have an account?{" "}
+              아직 계정이 없으신가요?{" "}
               <Text style={$signUpLink} onPress={navigateToSignUp}>
-                Sign Up
+                회원가입
               </Text>
             </Text>
           </View>
