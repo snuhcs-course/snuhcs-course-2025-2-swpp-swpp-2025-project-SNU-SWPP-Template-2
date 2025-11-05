@@ -1,83 +1,147 @@
-import React, { useState } from "react"
+import React, { useState, useRef, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText } from "react-native"
+import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText, Animated } from "react-native"
 import { Text } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { api } from "app/services/api"
 import { Ionicons } from "@expo/vector-icons"
+import * as Location from "expo-location"
+import { match } from "ts-pattern"
 
 interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> { }
 
 interface UserPreferences {
-  spicy_level: number
-  sweet_level: number
-  salty_level: number
-  exploration_preference: number
+  spicy_level: number | null
+  sweet_level: number | null
+  salty_level: number | null
+  exploration_preference: number | null
   allergies: string[]
   disliked_ingredients: string[]
   favorite_cuisines: string[]
 }
 
 const ALLERGIES = [
-  { id: "eggs", label: "Eggs", icon: "egg-outline" as const },
-  { id: "soy", label: "Soy", icon: "leaf-outline" as const },
-  { id: "sesame", label: "Sesame", icon: "flower-outline" as const },
-  { id: "fish", label: "Fish", icon: "fish-outline" as const },
-  { id: "shellfish", label: "Shellfish", icon: "fish-outline" as const },
-  { id: "wheat", label: "Wheat", icon: "nutrition-outline" as const },
-  { id: "milk", label: "Milk", icon: "water-outline" as const },
-  { id: "peanuts", label: "Peanuts", icon: "nutrition-outline" as const },
-  { id: "tree nuts", label: "Tree Nuts", icon: "nutrition-outline" as const },
+  { id: "eggs", label: "달걀", icon: "egg-outline" as const },
+  { id: "soy", label: "대두", icon: "leaf-outline" as const },
+  { id: "sesame", label: "참깨", icon: "flower-outline" as const },
+  { id: "fish", label: "생선", icon: "fish-outline" as const },
+  { id: "shellfish", label: "조개류", icon: "fish-outline" as const },
+  { id: "wheat", label: "밀", icon: "nutrition-outline" as const },
+  { id: "milk", label: "우유", icon: "water-outline" as const },
+  { id: "peanuts", label: "땅콩", icon: "nutrition-outline" as const },
+  { id: "tree nuts", label: "견과류", icon: "nutrition-outline" as const },
 ]
 
 const INGREDIENTS = [
-  { id: "onion", label: "Onion", icon: "nutrition-outline" as const },
-  { id: "garlic", label: "Garlic", icon: "nutrition-outline" as const },
-  { id: "ginger", label: "Ginger", icon: "leaf-outline" as const },
-  { id: "cilantro", label: "Cilantro", icon: "leaf-outline" as const },
-  { id: "mushroom", label: "Mushroom", icon: "nutrition-outline" as const },
-  { id: "tomato", label: "Tomato", icon: "nutrition-outline" as const },
-  { id: "cheese", label: "Cheese", icon: "pizza-outline" as const },
-  { id: "meat", label: "Meat", icon: "restaurant-outline" as const },
-  { id: "seafood", label: "Seafood", icon: "fish-outline" as const },
+  { id: "onion", label: "양파", icon: "nutrition-outline" as const },
+  { id: "garlic", label: "마늘", icon: "nutrition-outline" as const },
+  { id: "ginger", label: "생강", icon: "leaf-outline" as const },
+  { id: "cilantro", label: "고수", icon: "leaf-outline" as const },
+  { id: "mushroom", label: "버섯", icon: "nutrition-outline" as const },
+  { id: "tomato", label: "토마토", icon: "nutrition-outline" as const },
+  { id: "cheese", label: "치즈", icon: "pizza-outline" as const },
+  { id: "meat", label: "고기", icon: "restaurant-outline" as const },
+  { id: "seafood", label: "해산물", icon: "fish-outline" as const },
 ]
 
 const CUISINES = [
-  { id: "italian", label: "Italian", icon: "pizza-outline" as const },
-  { id: "mexican", label: "Mexican", icon: "fast-food-outline" as const },
-  { id: "chinese", label: "Chinese", icon: "restaurant-outline" as const },
-  { id: "japanese", label: "Japanese", icon: "fish-outline" as const },
-  { id: "indian", label: "Indian", icon: "flame-outline" as const },
-  { id: "american", label: "American", icon: "fast-food-outline" as const },
-  { id: "thai", label: "Thai", icon: "leaf-outline" as const },
-  { id: "mediterranean", label: "Mediterranean", icon: "restaurant-outline" as const },
-  { id: "french", label: "French", icon: "wine-outline" as const },
-  { id: "vietnamese", label: "Vietnamese", icon: "restaurant-outline" as const },
-  { id: "spanish", label: "Spanish", icon: "wine-outline" as const },
-  { id: "korean", label: "Korean", icon: "restaurant-outline" as const },
+  { id: "italian", label: "이탈리안", icon: "pizza-outline" as const },
+  { id: "mexican", label: "멕시칸", icon: "fast-food-outline" as const },
+  { id: "chinese", label: "중식", icon: "restaurant-outline" as const },
+  { id: "japanese", label: "일식", icon: "fish-outline" as const },
+  { id: "indian", label: "인도", icon: "flame-outline" as const },
+  { id: "american", label: "아메리칸", icon: "fast-food-outline" as const },
+  { id: "thai", label: "태국", icon: "leaf-outline" as const },
+  { id: "mediterranean", label: "지중해", icon: "restaurant-outline" as const },
+  { id: "french", label: "프렌치", icon: "wine-outline" as const },
+  { id: "vietnamese", label: "베트남", icon: "restaurant-outline" as const },
+  { id: "spanish", label: "스페인", icon: "wine-outline" as const },
+  { id: "korean", label: "한식", icon: "restaurant-outline" as const },
+]
+
+// 새로운 입맛 스텝 정의
+type TasteStep =
+  | "location"
+  | "sweet"
+  | "spicy"
+  | "salty"
+  | "exploration"
+  | "allergies"
+  | "disliked"
+  | "cuisine"
+
+const TASTE_STEPS: TasteStep[] = [
+  "location",
+  "sweet",
+  "spicy",
+  "salty",
+  "exploration",
+  "allergies",
+  "disliked",
+  "cuisine",
 ]
 
 export const OnboardingScreen = observer(function OnboardingScreen({ navigation }: OnboardingScreenProps) {
-  const [currentStep, setCurrentStep] = useState(0)
+  const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [preferences, setPreferences] = useState<UserPreferences>({
-    spicy_level: 2,
-    sweet_level: 2,
-    salty_level: 2,
-    exploration_preference: 2,
+    spicy_level: null,
+    sweet_level: null,
+    salty_level: null,
+    exploration_preference: null,
     allergies: [],
     disliked_ingredients: [],
     favorite_cuisines: []
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [locationPermissionGranted, setLocationPermissionGranted] = useState(false)
 
-  const totalSteps = 4
+  const currentStep = TASTE_STEPS[currentStepIdx]
+  const totalSteps = TASTE_STEPS.length
+
+  // 프로그레스바 애니메이션
+  const progressAnim = useRef(new Animated.Value(0)).current
+
+  useEffect(() => {
+    const targetProgress = ((currentStepIdx + 1) / totalSteps) * 100
+    Animated.timing(progressAnim, {
+      toValue: targetProgress,
+      duration: 300,
+      useNativeDriver: false,
+    }).start()
+  }, [currentStepIdx, totalSteps])
+
+  const handleLocationPermission = async () => {
+    const moveToNextStep = () => {
+      if (currentStepIdx < totalSteps - 1) {
+        setCurrentStepIdx(currentStepIdx + 1)
+      }
+    }
+
+    const { status } = await Location.requestForegroundPermissionsAsync()
+    if (status === 'granted') {
+      setLocationPermissionGranted(true)
+      // Try to get current location
+      try {
+        await Location.getCurrentPositionAsync({})
+      } catch (error) {
+        console.log("Location error:", error)
+      }
+      moveToNextStep()
+    }
+  }
 
   const handleNext = () => {
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep(currentStep + 1)
+    if (currentStepIdx < totalSteps - 1) {
+      setCurrentStepIdx(currentStepIdx + 1)
     } else {
       handleComplete()
+    }
+  }
+
+  const handleBack = () => {
+    if (currentStepIdx > 0) {
+      setCurrentStepIdx(currentStepIdx - 1)
     }
   }
 
@@ -85,21 +149,27 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     navigation.replace("Foodigram")
   }
 
-
   const handleComplete = async () => {
     setIsLoading(true)
+
+    if (preferences.spicy_level === null || preferences.sweet_level === null || preferences.salty_level === null || preferences.exploration_preference === null) {
+      // TODO: assert error
+      setIsLoading(false)
+      return
+    }
+
     try {
-      // Convert 0-4 scale to 0-10 scale for API
+      // Convert to 0-10 scale for API as appropriate
       const apiPreferences = {
         ...preferences,
         spicy_level: Math.round(preferences.spicy_level * 2.5),
         sweet_level: Math.round(preferences.sweet_level * 2.5),
-        salty_level: Math.round(preferences.salty_level * 2.5),
-        exploration_preference: Math.round(preferences.exploration_preference * 2.5),
+        salty_level: Math.round(preferences.salty_level * 5), // if we map 0~2 to 0/5/10
+        exploration_preference: preferences.exploration_preference === 0 ? 10 : 0
       }
       const response = await api.savePreferences(apiPreferences)
       if (response.ok) {
-        Alert.alert("Success", "Your preferences have been saved!", [
+        Alert.alert("취향 설정 완료", "맛집 추천 준비가 완료되었어요!", [
           { text: "OK", onPress: () => navigation.replace("Foodigram") }
         ])
       } else {
@@ -126,76 +196,75 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     }))
   }
 
-  const renderProgressBar = () => (
-    <View style={$progressContainer}>
-      <View style={$progressBar}>
-        <View style={[$progressFill, { width: `${((currentStep + 1) / totalSteps) * 100}%` }]} />
-      </View>
-    </View>
-  )
+  // Taste choice button rendering
+  interface TasteOption {
+    label: string
+    value: number
+  }
 
-  const renderSlider = (
-    label: string,
-    value: number,
-    minLabel: string,
-    maxLabel: string,
-    key: 'sweet_level' | 'salty_level' | 'spicy_level' | 'exploration_preference'
+  // Q/A 옵션 세트
+  const sweetOptions: TasteOption[] = [
+    { label: "매우 좋아해요", value: 4 },
+    { label: "좋아해요", value: 3 },
+    { label: "평범해요", value: 2 },
+    { label: "싫어해요", value: 1 },
+    { label: "절대 안 먹어요", value: 0 },
+  ]
+  const spicyOptions: TasteOption[] = [
+    { label: "매우 좋아해요", value: 4 },
+    { label: "좋아해요", value: 3 },
+    { label: "평범해요", value: 2 },
+    { label: "싫어해요", value: 1 },
+    { label: "절대 안 먹어요", value: 0 },
+  ]
+  const saltyOptions: TasteOption[] = [
+    { label: "짜게 먹어요", value: 2 },
+    { label: "평범해요", value: 1 },
+    { label: "싱겁게 먹어요", value: 0 },
+  ]
+  const explorationOptions: TasteOption[] = [
+    { label: "좋아해요", value: 0 },           // 0: adventurous, will map to 10 for API
+    { label: "먹던 거만 먹어요", value: 1 },   // 1: not adventurous, will map to 0 for API
+  ]
+
+  const renderTasteStep = (
+    question: string,
+    key: keyof UserPreferences,
+    options: TasteOption[],
+    value: number | null
   ) => (
-    <View style={$sliderContainer}>
-      <Text style={$sliderLabel}>{label}</Text>
-      <View style={$sliderTrackWrapper}>
-        <View style={$sliderTrack}>
-          <View style={[$sliderFill, { width: `${(value / 4) * 100}%` }]} />
-        </View>
-        <View style={$sliderDotsContainer}>
-          {[0, 1, 2, 3, 4].map((dotValue) => (
-            <TouchableOpacity
-              key={dotValue}
-              style={$sliderDotTouchable}
-              onPress={() => updatePreference(key, dotValue)}
-            >
-              <View style={[
-                $sliderDot,
-                dotValue === value && $sliderDotActive
-              ]} />
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-      <View style={$sliderLabels}>
-        <Text style={$sliderLabelText}>{minLabel}</Text>
-        <Text style={$sliderLabelText}>{maxLabel}</Text>
-      </View>
-    </View>
-  )
-
-  const renderTastePreferences = () => (
     <View style={$stepContainer}>
-      <Text style={$stepTitle}>Tell Us Your Taste</Text>
-      <Text style={$stepSubtitle}>
-        Adjust the sliders to tell us how you like your food. This helps us find the perfect flavor profile for you.
-      </Text>
-      
-      <View style={$slidersWrapper}>
-        {renderSlider('Sweet', preferences.sweet_level, 'Not Sweet', 'Very Sweet', 'sweet_level')}
-        {renderSlider('Salty', preferences.salty_level, 'Not Salty', 'Very Salty', 'salty_level')}
-        {renderSlider('Spicy', preferences.spicy_level, 'Not Spicy', 'Very Spicy', 'spicy_level')}
-        {renderSlider(
-          'Food Exploration',
-          preferences.exploration_preference,
-          'Familiar',
-          'Adventurous',
-          'exploration_preference'
-        )}
+      <Text style={$tasteStepTitle}>{question}</Text>
+      <View style={$tasteOptionsContainer}>
+        {options.map(opt => (
+          <TouchableOpacity
+            key={opt.value}
+            style={[
+              $tasteOptionButton,
+              value === opt.value && $tasteOptionButtonActive,
+            ]}
+            onPress={() => updatePreference(key, opt.value)}
+            activeOpacity={0.8}
+          >
+            <Text
+              style={[
+                $tasteOptionText,
+                value === opt.value && $tasteOptionTextActive,
+              ]}
+            >
+              {opt.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
     </View>
   )
 
+  // 기존 onboarding 스텝들 유지하되 taste 단계는 각각 별도 화면으로 대체
   const renderAllergies = () => (
     <View style={$stepContainer}>
-      <Text style={$stepTitle}>Any allergies?</Text>
-      <Text style={$stepSubtitle}>Select all that apply</Text>
-      
+      <Text style={$stepTitle}>알러지가 있나요?</Text>
+      <Text style={$stepSubtitle}>선택해주신 재료들은 추천에서 제외돼요</Text>
       <View style={$cardGrid}>
         {ALLERGIES.map((allergy) => (
           <TouchableOpacity
@@ -228,9 +297,8 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
 
   const renderDislikedIngredients = () => (
     <View style={$stepContainer}>
-      <Text style={$stepTitle}>Ingredients you dislike?</Text>
-      <Text style={$stepSubtitle}>We'll avoid recommending these</Text>
-      
+      <Text style={$stepTitle}>싫어하는 재료가 있나요?</Text>
+      <Text style={$stepSubtitle}>선택해주신 재료들은 추천에서 제외돼요</Text>
       <View style={$cardGrid}>
         {INGREDIENTS.map((ingredient) => (
           <TouchableOpacity
@@ -263,9 +331,8 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
 
   const renderFavoriteCuisines = () => (
     <View style={$stepContainer}>
-      <Text style={$stepTitle}>What cuisines do you love?</Text>
-      <Text style={$stepSubtitle}>Select your favorite cuisines</Text>
-      
+      <Text style={$stepTitle}>좋아하는 음식 종류가 있나요?</Text>
+      <Text style={$stepSubtitle}>선택해주신 음식 종류들을 위주로 추천해드려요</Text>
       <View style={$cardGrid}>
         {CUISINES.map((cuisine) => (
           <TouchableOpacity
@@ -296,37 +363,135 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     </View>
   )
 
+  const renderLocationPermission = () => (
+    <View style={$stepContainer}>
+      <View style={$locationIconContainer}>
+        <Ionicons 
+          name="location" 
+          size={80} 
+          color={locationPermissionGranted ? colors.palette.primary500 : colors.palette.neutral400}
+        />
+      </View>
+      <Text style={$stepTitle}>위치 서비스 활성화</Text>
+      <Text style={$stepSubtitle}>
+        {'근처의 맛집을 추천하기 위해 위치 정보가 필요해요.'}
+      </Text>
+      <View style={$locationBenefitsContainer}>
+        <View style={$benefitItem}>
+          <Ionicons name="restaurant" size={24} color={colors.palette.primary500} />
+          <Text style={$benefitText}>주변 레스토랑</Text>
+        </View>
+        <View style={$benefitItem}>
+          <Ionicons name="map" size={24} color={colors.palette.primary500} />
+          <Text style={$benefitText}>맞춤형 추천</Text>
+        </View>
+        <View style={$benefitItem}>
+          <Ionicons name="navigate" size={24} color={colors.palette.primary500} />
+          <Text style={$benefitText}>새로운 맛집 경험</Text>
+        </View>
+      </View>
+    </View>
+  )
+
   const renderCurrentStep = () => {
     switch (currentStep) {
-      case 0: return renderTastePreferences()
-      case 1: return renderAllergies()
-      case 2: return renderDislikedIngredients()
-      case 3: return renderFavoriteCuisines()
-      default: return renderTastePreferences()
+      case "location":
+        return renderLocationPermission()
+      case "sweet":
+        return renderTasteStep("단 걸 좋아하시나요?", "sweet_level", sweetOptions, preferences.sweet_level)
+      case "spicy":
+        return renderTasteStep("매운 걸 좋아하시나요?", "spicy_level", spicyOptions, preferences.spicy_level)
+      case "salty":
+        return renderTasteStep("짜게 드시는 편인가요?", "salty_level", saltyOptions, preferences.salty_level)
+      case "exploration":
+        return renderTasteStep("새로운 음식을 좋아하시나요?", "exploration_preference", explorationOptions, preferences.exploration_preference)
+      case "allergies":
+        return renderAllergies()
+      case "disliked":
+        return renderDislikedIngredients()
+      case "cuisine":
+        return renderFavoriteCuisines()
+      default:
+        return null
     }
   }
 
+  const progressWidth = progressAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  })
+
   return (
     <View style={$container}>
-      {renderProgressBar()}
-
-      <ScrollView style={$content} showsVerticalScrollIndicator={false}>
+      <View style={$progressContainer}>
+        <View style={$progressBar}>
+          <Animated.View style={[$progressFill, { width: progressWidth }]} />
+        </View>
+      </View>
+      <ScrollView contentContainerStyle={$contentContainer} style={$content} showsVerticalScrollIndicator={false}>
         {renderCurrentStep()}
       </ScrollView>
-
       <View style={$buttonContainer}>
-        <TouchableOpacity
-          style={$continueButton}
-          onPress={handleNext}
-          disabled={isLoading}
-        >
-          <RNText style={$continueButtonText}>
-            {currentStep === totalSteps - 1 ? "Complete" : "Continue"}
-          </RNText>
+        {match(currentStep).with("location", () => (
+          <>
+          <TouchableOpacity style={$continueButton} onPress={handleLocationPermission} disabled={isLoading}>
+            <RNText style={$continueButtonText}>위치 접근 허용</RNText>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleSkip} style={$skipButton}>
+          <RNText style={$skipText}>건너뛰기</RNText>
         </TouchableOpacity>
-        <TouchableOpacity onPress={handleSkip} style={$skipButton}>
-          <RNText style={$skipText}>Skip</RNText>
-        </TouchableOpacity>
+        </>
+        )).with("allergies", 'disliked', () => (
+          <>
+            <TouchableOpacity style={$continueButton} onPress={handleNext} disabled={isLoading}>
+              <RNText style={$continueButtonText}>다음</RNText>
+            </TouchableOpacity>
+            <TouchableOpacity style={$skipButton} onPress={handleBack} disabled={isLoading}>
+              <RNText style={$skipText}>뒤로</RNText>
+            </TouchableOpacity>
+          </>
+        )).with('sweet', 'spicy', 'salty', 'exploration', () => {
+          const isDisabled = (() => {
+            switch (currentStep) {
+              case 'sweet':
+                return preferences.sweet_level === null
+              case 'spicy':
+                return preferences.spicy_level === null
+              case 'salty':
+                return preferences.salty_level === null
+              case 'exploration':
+                return preferences.exploration_preference === null
+              default:
+                return false
+            }
+          })()
+          
+          return (
+            <>  
+              <TouchableOpacity 
+                style={[
+                  $continueButton,
+                  (isDisabled || isLoading) && $continueButtonDisabled
+                ]} 
+                onPress={handleNext} 
+                disabled={isDisabled || isLoading}
+              >
+                <RNText style={[
+                  $continueButtonText,
+                  (isDisabled || isLoading) && $continueButtonTextDisabled
+                ]}>
+                  다음
+                </RNText>
+              </TouchableOpacity>
+            </>
+          )
+        }).with("cuisine", () => (
+          <TouchableOpacity style={$continueButton} onPress={handleComplete} disabled={isLoading}>
+            <RNText style={$continueButtonText}>완료</RNText>
+          </TouchableOpacity>
+        )).otherwise(() => (
+          <></>
+        ))}
       </View>
     </View>
   )
@@ -344,13 +509,6 @@ const $progressContainer: ViewStyle = {
   gap: spacing.xs,
 }
 
-const $progressText: TextStyle = {
-  fontSize: 14,
-  fontWeight: "500",
-  color: colors.text,
-  marginBottom: spacing.xs,
-}
-
 const $progressBar: ViewStyle = {
   height: 8,
   backgroundColor: colors.palette.neutral200,
@@ -364,6 +522,10 @@ const $progressFill: ViewStyle = {
   borderRadius: 9999,
 }
 
+const $contentContainer: ViewStyle = {
+  paddingBottom: spacing.lg,
+}
+
 const $content: ViewStyle = {
   flex: 1,
   padding: spacing.lg,
@@ -371,6 +533,47 @@ const $content: ViewStyle = {
 
 const $stepContainer: ViewStyle = {
   flex: 1,
+  minHeight: 300,
+}
+
+const $tasteStepTitle: TextStyle = {
+  fontSize: 28,
+  fontWeight: "bold",
+  color: colors.text,
+  marginBottom: spacing.xl,
+  marginTop: spacing.xl,
+  textAlign: "left",
+  lineHeight: 38,
+}
+
+const $tasteOptionsContainer: ViewStyle = {
+  flexDirection: "column",
+  gap: spacing.xs,
+}
+
+const $tasteOptionButton: ViewStyle = {
+  paddingVertical: spacing.lg,
+  paddingHorizontal: spacing.md,
+  backgroundColor: colors.palette.neutral100,
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: colors.palette.neutral200,
+}
+
+const $tasteOptionButtonActive: ViewStyle = {
+  backgroundColor: colors.palette.primary500,
+  borderColor: colors.palette.primary500,
+}
+
+const $tasteOptionText: TextStyle = {
+  fontSize: 18,
+  color: colors.text,
+  fontWeight: "600",
+  textAlign: "center"
+}
+
+const $tasteOptionTextActive: TextStyle = {
+  color: "#fff",
 }
 
 const $stepTitle: TextStyle = {
@@ -388,114 +591,6 @@ const $stepSubtitle: TextStyle = {
   marginBottom: spacing.xl,
   textAlign: "left",
   lineHeight: 24,
-}
-
-const $slidersWrapper: ViewStyle = {
-  paddingVertical: spacing.lg,
-  gap: spacing.xxl,
-}
-
-const $syncDescription: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.neutral500,
-  fontStyle: "italic",
-  flex: 1,
-  marginRight: spacing.sm
-}
-
-const $sliderContainer: ViewStyle = {
-  gap: spacing.sm,
-}
-
-const $sliderLabel: TextStyle = {
-  fontSize: 18,
-  fontWeight: "bold",
-  color: colors.text,
-  marginBottom: spacing.xs,
-}
-
-const $sliderTrackWrapper: ViewStyle = {
-  height: 40,
-  justifyContent: "center",
-}
-
-const $sliderDescription: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.neutral600,
-  marginBottom: spacing.xs,
-}
-
-const $explorationLabels: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  marginBottom: spacing.xs,
-}
-
-const $explorationLabelText: TextStyle = {
-  fontSize: 12,
-  color: colors.palette.neutral500,
-  fontStyle: "italic",
-}
-
-const $sliderTrack: ViewStyle = {
-  position: "absolute",
-  width: "100%",
-  height: 8,
-  backgroundColor: colors.palette.neutral300,
-  borderRadius: 4,
-}
-
-const $sliderFill: ViewStyle = {
-  height: "100%",
-  backgroundColor: colors.palette.primary500,
-  borderRadius: 4,
-}
-
-const $sliderDotsContainer: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-}
-
-const $sliderDotTouchable: ViewStyle = {
-  flex: 1,
-  alignItems: "center",
-  justifyContent: "center",
-  paddingVertical: spacing.sm,
-}
-
-const $sliderDot: ViewStyle = {
-  width: 12,
-  height: 12,
-  borderRadius: 6,
-  backgroundColor: colors.palette.neutral300,
-  borderWidth: 2,
-  borderColor: colors.background,
-}
-
-const $sliderDotActive: ViewStyle = {
-  width: 24,
-  height: 24,
-  borderRadius: 12,
-  backgroundColor: colors.palette.primary500,
-  borderWidth: 4,
-  borderColor: colors.background,
-  shadowColor: colors.palette.neutral400,
-  shadowOffset: { width: 0, height: 0 },
-  shadowOpacity: 0.3,
-  shadowRadius: 2,
-  elevation: 2,
-}
-
-const $sliderLabels: ViewStyle = {
-  flexDirection: "row",
-  justifyContent: "space-between",
-  paddingHorizontal: spacing.xs,
-}
-
-const $sliderLabelText: TextStyle = {
-  fontSize: 12,
-  color: colors.palette.neutral600,
 }
 
 const $cardGrid: ViewStyle = {
@@ -540,10 +635,11 @@ const $cardTextSelected: TextStyle = {
 
 const $buttonContainer: ViewStyle = {
   padding: spacing.lg,
+  paddingTop: spacing.sm,
   borderTopWidth: 1,
   borderTopColor: colors.palette.neutral200,
   backgroundColor: colors.background,
-  gap: 12,
+  gap: 8,
 }
 
 const $continueButton: ViewStyle = {
@@ -562,6 +658,15 @@ const $continueButtonText: TextStyle = {
   fontWeight: "bold",
 }
 
+const $continueButtonDisabled: ViewStyle = {
+  backgroundColor: colors.palette.neutral300,
+  opacity: 0.6,
+}
+
+const $continueButtonTextDisabled: TextStyle = {
+  color: colors.palette.neutral600,
+}
+
 const $skipButton: ViewStyle = {
   backgroundColor: "rgba(255, 255, 255, 0.2)",
   borderRadius: 12,
@@ -576,4 +681,29 @@ const $skipText: TextStyle = {
   color: colors.text,
   fontSize: 16,
   fontWeight: "bold",
+}
+
+const $locationIconContainer: ViewStyle = {
+  alignItems: "center",
+  justifyContent: "center",
+  marginBottom: spacing.xl,
+  marginTop: spacing.xl,
+}
+
+const $locationBenefitsContainer: ViewStyle = {
+  gap: spacing.md,
+  marginTop: spacing.xl,
+}
+
+const $benefitItem: ViewStyle = {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: spacing.md,
+  paddingVertical: spacing.sm,
+}
+
+const $benefitText: TextStyle = {
+  fontSize: 16,
+  color: colors.text,
+  flex: 1,
 }
