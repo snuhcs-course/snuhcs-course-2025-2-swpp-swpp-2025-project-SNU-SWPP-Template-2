@@ -75,22 +75,14 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('post', models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name='post_likes',
-                    to='social.post'
-                )),
-                ('user', models.ForeignKey(
-                    on_delete=django.db.models.deletion.CASCADE,
-                    related_name='user_post_likes',
-                    to=settings.AUTH_USER_MODEL
-                )),
+                ('post', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='post_likes', to='social.post')),
+                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'db_table': 'social_post_like',
                 'verbose_name': 'Post Like',
                 'verbose_name_plural': 'Post Likes',
-                'unique_together': {('user', 'post')},
+                'unique_together': {('post', 'user')},
             },
         ),
         
@@ -161,11 +153,5 @@ class Migration(migrations.Migration):
         migrations.AddIndex(
             model_name='post',
             index=models.Index(fields=['is_public'], name='social_post_is_publ_afc947_idx'),
-        ),
-        
-        # Ensure unique_together for PostLike
-        migrations.AlterUniqueTogether(
-            name='postlike',
-            unique_together={('post', 'user')},
         ),
     ]
