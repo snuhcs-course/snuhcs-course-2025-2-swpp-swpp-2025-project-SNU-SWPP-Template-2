@@ -2,21 +2,19 @@
 Views for the barter app.
 """
 
-from django.utils import timezone
-from rest_framework import permissions, status
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-
-from django.contrib.auth import get_user_model
-
 from barter.models import BarterRequest
 from barter.serializers import (
     BarterAcceptSerializer,
     BarterRejectSerializer,
     BarterRequestSerializer,
 )
-from books.models import Book
+from books.models import BookCopy
+from django.contrib.auth import get_user_model
+from django.utils import timezone
 from notify.models import Notification
+from rest_framework import permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.response import Response
 
 User = get_user_model()
 
@@ -27,7 +25,7 @@ def create_barter_request(request):
     """
     Create a barter request from requester to a specific user for a book.
     This is used when user finds nearby owners via search/wishlist flow.
-    
+
     POST /barter/requests/create/
     Body:
       - recipient_id: int (user ID)
@@ -55,8 +53,10 @@ def create_barter_request(request):
         )
 
     try:
-        requested_book = Book.objects.get(pk=requested_book_id)
-    except Book.DoesNotExist:
+        requested_book = BookCopy.objects.select_related(
+            "owner", "publication"
+        ).get(pk=requested_book_id)
+    except BookCopy.DoesNotExist:
         return Response(
             {"error": "Requested book not found"},
             status=status.HTTP_404_NOT_FOUND,
@@ -66,13 +66,21 @@ def create_barter_request(request):
     msg = request.data.get("message")
     if not msg:
         requester = request.user
-        parts = [f"Hi {recipient.username}, I'd like to barter for '{requested_book.title}'."]
-        if hasattr(requester, "taste") and requester.taste and requester.taste.trade_place_name:
+        parts = [
+            f"Hi {recipient.username}, I'd like to barter for '{requested_book.title}'."
+        ]
+        if (
+            hasattr(requester, "taste")
+            and requester.taste
+            and requester.taste.trade_place_name
+        ):
             parts.append(
                 f"Preferred place: {requester.taste.trade_place_name} ({requester.taste.trade_address or 'N/A'})"
             )
         if requester.latitude and requester.longitude:
-            parts.append(f"My location: lat {requester.latitude}, lng {requester.longitude}")
+            parts.append(
+                f"My location: lat {requester.latitude}, lng {requester.longitude}"
+            )
         msg = "\n".join(parts)
 
     # Create barter request
@@ -80,8 +88,12 @@ def create_barter_request(request):
         requester=request.user,
         recipient=recipient,
         message=msg,
-        preferred_meeting_type=request.data.get("preferred_meeting_type", "in_person"),
-        proposed_meeting_location=request.data.get("proposed_meeting_location", ""),
+        preferred_meeting_type=request.data.get(
+            "preferred_meeting_type", "in_person"
+        ),
+        proposed_meeting_location=request.data.get(
+            "proposed_meeting_location", ""
+        ),
         proposed_meeting_time=request.data.get("proposed_meeting_time"),
     )
     barter.requested_books.add(requested_book)
@@ -97,7 +109,9 @@ def create_barter_request(request):
     )
 
     serializer = BarterRequestSerializer(barter, context={"request": request})
-    return Response({"barter": serializer.data}, status=status.HTTP_201_CREATED)
+    return Response(
+        {"barter": serializer.data}, status=status.HTTP_201_CREATED
+    )
 
 
 @api_view(["POST"])
@@ -105,7 +119,7 @@ def create_barter_request(request):
 def accept_barter_request(request, request_id):
     """
     Accept a barter request.
-    
+
     POST /barter/requests/<uuid:request_id>/accept/
     Optional body:
       - response_message: str
@@ -146,7 +160,7 @@ def accept_barter_request(request, request_id):
         "response_message", ""
     )
     barter_request.response_date = timezone.now()
-    
+
     # Optionally update meeting details from recipient
     if "proposed_meeting_time" in serializer.validated_data:
         barter_request.proposed_meeting_time = serializer.validated_data[
@@ -156,7 +170,7 @@ def accept_barter_request(request, request_id):
         barter_request.proposed_meeting_location = serializer.validated_data[
             "proposed_meeting_location"
         ]
-    
+
     barter_request.save()
 
     # Notify requester
@@ -172,7 +186,9 @@ def accept_barter_request(request, request_id):
     result_serializer = BarterRequestSerializer(
         barter_request, context={"request": request}
     )
-    return Response({"barter": result_serializer.data}, status=status.HTTP_200_OK)
+    return Response(
+        {"barter": result_serializer.data}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["POST"])
@@ -180,7 +196,7 @@ def accept_barter_request(request, request_id):
 def reject_barter_request(request, request_id):
     """
     Reject a barter request.
-    
+
     POST /barter/requests/<uuid:request_id>/reject/
     Optional body:
       - response_message: str
@@ -234,4 +250,6 @@ def reject_barter_request(request, request_id):
     result_serializer = BarterRequestSerializer(
         barter_request, context={"request": request}
     )
-    return Response({"barter": result_serializer.data}, status=status.HTTP_200_OK)
+    return Response(
+        {"barter": result_serializer.data}, status=status.HTTP_200_OK
+    )

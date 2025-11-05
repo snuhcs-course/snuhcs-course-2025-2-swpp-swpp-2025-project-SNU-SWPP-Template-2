@@ -3,6 +3,8 @@ Serializers for the accounts app.
 Handles user authentication, registration, and profile management.
 """
 
+from books.models import BookReview, BookWishlist
+from books.serializers import BookSummarySerializer, ReviewSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -20,8 +22,6 @@ from .models import (
     UserPreferences,
     UserTaste,
 )
-from books.models import BookWishlist, BookReview
-from books.serializers import BookSummarySerializer, ReviewSerializer
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -460,7 +460,9 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
     def get_wishlist(self, obj):
         qs = BookWishlist.objects.filter(user=obj).select_related("book")
         books = [item.book for item in qs]
-        return BookSummarySerializer(books, many=True, context=self.context).data
+        return BookSummarySerializer(
+            books, many=True, context=self.context
+        ).data
 
     def get_taste(self, obj):
         """Return the user's full taste profile."""
@@ -482,10 +484,12 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             return None
 
         me = request.user
-        if not (me.latitude and me.longitude and obj.latitude and obj.longitude):
+        if not (
+            me.latitude and me.longitude and obj.latitude and obj.longitude
+        ):
             return None
 
-        from math import radians, sin, cos, sqrt, atan2
+        from math import atan2, cos, radians, sin, sqrt
 
         try:
             lat1 = float(me.latitude)

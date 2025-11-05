@@ -38,12 +38,12 @@ class BarterRequest(models.Model):
 
     # Books Involved
     offered_books = models.ManyToManyField(
-        "books.Book",
+        "books.BookCopy",
         related_name="offered_in_barters",
         help_text="Books offered by the requester",
     )
     requested_books = models.ManyToManyField(
-        "books.Book",
+        "books.BookCopy",
         related_name="requested_in_barters",
         help_text="Books requested from the recipient",
     )
@@ -121,10 +121,10 @@ class BarterCounter(models.Model):
 
     # Counter Offer Details
     offered_books = models.ManyToManyField(
-        "books.Book", related_name="counter_offered_books", blank=True
+        "books.BookCopy", related_name="counter_offered_books", blank=True
     )
     requested_books = models.ManyToManyField(
-        "books.Book", related_name="counter_requested_books", blank=True
+        "books.BookCopy", related_name="counter_requested_books", blank=True
     )
 
     message = models.TextField(help_text="Explanation of the counter offer")

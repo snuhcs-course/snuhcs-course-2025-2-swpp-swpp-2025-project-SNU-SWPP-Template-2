@@ -2,17 +2,16 @@
 Views for the social app.
 """
 
+from accounts.serializers import UserBarterInfoSerializer
+from barter.models import BarterRequest
+from books.serializers import BookSummarySerializer
+from notify.models import Notification
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
 from social.models import Comment, Post, PostLike
 from social.serializers import PostCreateSerializer, PostSerializer
-from accounts.serializers import UserBarterInfoSerializer
-from books.serializers import BookSummarySerializer
-from notify.models import Notification
-from barter.models import BarterRequest
 
 
 @api_view(["GET"])
@@ -54,6 +53,7 @@ def home_feed(request):
 
     return Response({"results": serializer.data}, status=status.HTTP_200_OK)
 
+
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_post(request):
@@ -69,12 +69,16 @@ def create_post(request):
         - image: file (optional)
         - is_public: boolean (optional, default True)
     """
-    serializer = PostCreateSerializer(data=request.data, context={"request": request})
+    serializer = PostCreateSerializer(
+        data=request.data, context={"request": request}
+    )
 
     if serializer.is_valid():
         serializer.save()
-        return Response({"post": serializer.data}, status=status.HTTP_201_CREATED)
-    
+        return Response(
+            {"post": serializer.data}, status=status.HTTP_201_CREATED
+        )
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -175,14 +179,21 @@ def comment_post(request, post_id):
     """
     content = request.data.get("content", "").strip()
     if not content:
-        return Response({"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "Content is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
     try:
         post = Post.objects.get(pk=post_id)
     except Post.DoesNotExist:
-        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
-    comment = Comment.objects.create(post=post, author=request.user, content=content)
+    comment = Comment.objects.create(
+        post=post, author=request.user, content=content
+    )
 
     # Notify post author (if not self)
     if post.author_id != request.user.id:
@@ -216,9 +227,13 @@ def barter_post(request, post_id):
     to prefill reasonable defaults in the request message.
     """
     try:
-        post = Post.objects.select_related("author", "related_book").get(pk=post_id)
+        post = Post.objects.select_related("author", "related_book").get(
+            pk=post_id
+        )
     except Post.DoesNotExist:
-        return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     recipient = post.author
     requester = request.user
@@ -243,8 +258,12 @@ def barter_post(request, post_id):
         requester=requester,
         recipient=recipient,
         message=msg,
-        preferred_meeting_type=request.data.get("preferred_meeting_type", "in_person"),
-        proposed_meeting_location=request.data.get("proposed_meeting_location", ""),
+        preferred_meeting_type=request.data.get(
+            "preferred_meeting_type", "in_person"
+        ),
+        proposed_meeting_location=request.data.get(
+            "proposed_meeting_location", ""
+        ),
         proposed_meeting_time=request.data.get("proposed_meeting_time"),
     )
 
@@ -263,9 +282,13 @@ def barter_post(request, post_id):
     )
 
     # Build requester info payload and requested book summary
-    requester_info = UserBarterInfoSerializer(requester, context={"request": request}).data
+    requester_info = UserBarterInfoSerializer(
+        requester, context={"request": request}
+    ).data
     requested_book = (
-        BookSummarySerializer(post.related_book, context={"request": request}).data
+        BookSummarySerializer(
+            post.related_book, context={"request": request}
+        ).data
         if post.related_book
         else None
     )

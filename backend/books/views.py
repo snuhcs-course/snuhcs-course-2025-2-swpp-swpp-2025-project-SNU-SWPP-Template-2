@@ -5,13 +5,13 @@ Handles book review API endpoints.
 
 from django.contrib.auth import get_user_model
 from drf_spectacular.utils import OpenApiResponse, extend_schema
+from notify.models import Notification
 from rest_framework import generics, permissions, status
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .models import Book, BookReview, BookWishlist, ReviewHelpfulVote
-from notify.models import Notification
-from rest_framework.decorators import api_view, permission_classes
+from .models import BookCopy, BookReview, BookWishlist, ReviewHelpfulVote
 from .serializers import (
     CreateReviewSerializer,
     ReviewLikeResponseSerializer,
@@ -160,11 +160,17 @@ def toggle_wishlist(request, book_id):
     Returns { "wishlisted": true|false }
     """
     try:
-        book = Book.objects.get(pk=book_id)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+        book = BookCopy.objects.select_related("publication", "owner").get(
+            pk=book_id
+        )
+    except BookCopy.DoesNotExist:
+        return Response(
+            {"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
-    existing = BookWishlist.objects.filter(user=request.user, book=book).first()
+    existing = BookWishlist.objects.filter(
+        user=request.user, book=book
+    ).first()
     if existing:
         existing.delete()
         wishlisted = False
@@ -196,9 +202,11 @@ def toggle_book_for_barter(request, book_id):
     Returns { "is_for_barter": true|false }
     """
     try:
-        book = Book.objects.get(pk=book_id)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+        book = BookCopy.objects.select_related("owner").get(pk=book_id)
+    except BookCopy.DoesNotExist:
+        return Response(
+            {"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     # Only owner can toggle
     if book.owner_id != request.user.id:
@@ -210,7 +218,9 @@ def toggle_book_for_barter(request, book_id):
     book.is_for_barter = not book.is_for_barter
     book.save(update_fields=["is_for_barter"])
 
-    return Response({"is_for_barter": book.is_for_barter}, status=status.HTTP_200_OK)
+    return Response(
+        {"is_for_barter": book.is_for_barter}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(["GET"])
@@ -224,13 +234,18 @@ def nearby_owners(request, book_id):
 
     Returns list of users with distance and barter-relevant info.
     """
-    from math import radians, cos, sin, asin, sqrt
+    from math import asin, cos, radians, sin, sqrt
+
     from accounts.serializers import UserBarterInfoSerializer
 
     try:
-        book = Book.objects.get(pk=book_id)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+        book = BookCopy.objects.select_related("owner", "publication").get(
+            pk=book_id
+        )
+    except BookCopy.DoesNotExist:
+        return Response(
+            {"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     radius_km = float(request.query_params.get("radius", 20))
 
@@ -247,13 +262,13 @@ def nearby_owners(request, book_id):
     # Find all owners of this book who have is_for_barter=True
     # and are not the requester
     potential_owners = (
-        Book.objects.filter(
-            title=book.title,  # Match by title (or you can use ISBN for exact match)
+        BookCopy.objects.filter(
+            publication=book.publication,
             is_for_barter=True,
         )
         .exclude(owner=request.user)
         .select_related("owner")
-        .prefetch_related("owner__books", "owner__wishlist")
+        .prefetch_related("owner__book_copies", "owner__wishlist")
     )
 
     # Calculate distance and filter

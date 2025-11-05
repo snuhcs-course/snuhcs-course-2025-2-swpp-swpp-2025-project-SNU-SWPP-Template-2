@@ -2,10 +2,9 @@
 Serializers for the social app.
 """
 
-from rest_framework import serializers
-
-from social.models import Post
 from books.models import BookWishlist
+from rest_framework import serializers
+from social.models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -31,7 +30,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     # Engagement stats
     likeCount = serializers.IntegerField(source="like_count", read_only=True)
-    commentCount = serializers.IntegerField(source="comment_count", read_only=True)
+    commentCount = serializers.IntegerField(
+        source="comment_count", read_only=True
+    )
 
     # User-specific interaction states
     isLiked = serializers.SerializerMethodField()
@@ -72,6 +73,7 @@ class PostSerializer(serializers.ModelSerializer):
             "createdAt",
             "bookId",
         ]
+
     def get_bookId(self, obj):
         """Return the related book's id if exists, else None."""
         if obj.related_book:
@@ -139,7 +141,9 @@ class PostSerializer(serializers.ModelSerializer):
             return False
         # Prefer model property to encapsulate availability logic
         try:
-            return bool(getattr(obj.related_book, "is_available_for_barter", False))
+            return bool(
+                getattr(obj.related_book, "is_available_for_barter", False)
+            )
         except Exception:
             # Fallback to basic field if property is unavailable
             return bool(getattr(obj.related_book, "is_for_barter", False))

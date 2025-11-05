@@ -6,7 +6,7 @@ Handles book reviews and related data serialization.
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import Book, BookReview
+from .models import BookCopy, BookReview
 
 User = get_user_model()
 
@@ -75,7 +75,7 @@ class BookSummarySerializer(serializers.ModelSerializer):
     authorNames = serializers.CharField(source="author_names", read_only=True)
 
     class Meta:
-        model = Book
+        model = BookCopy
         fields = [
             "id",
             "title",
