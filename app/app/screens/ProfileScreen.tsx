@@ -34,26 +34,42 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [isPreferencesModalVisible, setIsPreferencesModalVisible] = useState(false)
 
-  const [userImages, setUserImages] = useState<Array<{id: string, type: string, image: any, name: string}>>([
+  const [userImages, setUserImages] = useState<Array<{ id: string, type: string, image: any, name: string }>>([
     // { id: 'user1', type: 'user', image: require("../../assets/images/restaurant1.jpg"), name: 'My Food Photo 1' },
     // { id: 'user2', type: 'user', image: require("../../assets/images/restaurant2.jpg"), name: 'My Food Photo 2' },
   ]);
 
   useEffect(() => {
     let mounted = true
-    ;(async () => {
-      try {
-        const res = await api.me()
-        const d: any = res.data
-        if (mounted && res.ok && d && d.username) setUserName(d.username)
-      } catch (e) {
-        // ignore
-      }
-    })()
+      ; (async () => {
+        try {
+          const res = await api.me()
+          const d: any = res.data
+          if (mounted && res.ok && d && d.username) setUserName(d.username)
+        } catch (e) {
+          // ignore
+        }
+      })()
     return () => {
       mounted = false
     }
   }, [])
+
+  async function getUserPhotos() {
+    const photo_list = await api.getUserPhotos();
+
+    const currentImages = photo_list
+      .filter(photo => photo.local_uri)
+      .map(photo => ({
+        id: photo.local_uri,
+        type: 'user',
+        image: { uri: photo.local_uri },
+        name: "User food photo"
+      }));
+
+    setUserImages(prevImages => [...prevImages, ...currentImages]);
+  }
+  useEffect(() => { getUserPhotos(); }, []);
 
   // Mock data for profile
   const user = {
@@ -65,7 +81,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
   // Get scrapped items from store
   const scrappedFoods = foodHistoryStore.scrappedItemsList
-  
+
   // Convert scrapped foods to consistent format
   const scrappedImages = scrappedFoods.map(food => ({
     id: food.id.toString(),
@@ -73,13 +89,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
     image: { uri: food.image },
     name: food.name
   }))
-  
+
   // Combine user images and scrapped images
   const allPhotos = [...userImages, ...scrappedImages]
 
   const logout = async () => {
     try {
-        await api.logout()
+      await api.logout()
     } catch (e) {
       // ignore network errors and continue logout locally
     }
@@ -106,23 +122,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
         {/* Tab Navigation */}
         <View style={$tabContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[$tab, activeTab === 'photos' && $tabActive]}
             onPress={() => setActiveTab('photos')}
           >
             <Text style={[
-              $tabText, 
+              $tabText,
               activeTab === 'photos' && $tabTextActive
             ]}>
               히스토리
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[$tab, activeTab === 'restaurants' && $tabActive]}
             onPress={() => setActiveTab('restaurants')}
           >
             <Text style={[
-              $tabText, 
+              $tabText,
               activeTab === 'restaurants' && $tabTextActive
             ]}>
               찜한 메뉴
@@ -143,8 +159,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
             ) : (
               <View style={$photoGrid}>
                 {allPhotos.map((item) => (
-                  <TouchableOpacity 
-                    key={item.id} 
+                  <TouchableOpacity
+                    key={item.id}
                     style={[$photoCard, { width: imageSize, height: imageSize }]}
                     onPress={() => {
                       if (item.type === 'scrapped') {
@@ -153,8 +169,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                       }
                     }}
                   >
-                    <Image 
-                      source={item.image} 
+                    <Image
+                      source={item.image}
                       style={$photoImage}
                       resizeMode="cover"
                     />
@@ -175,13 +191,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
             ) : (
               <View style={$photoGrid}>
                 {scrappedMenus.map((menu) => (
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     key={menu.id}
                     style={[$photoCard, { width: imageSize, height: imageSize }]}
                   >
                     {menu.image_url ? (
-                      <Image 
-                        source={{ uri: menu.image_url }} 
+                      <Image
+                        source={{ uri: menu.image_url }}
                         style={$photoImage}
                         resizeMode="cover"
                       />
@@ -242,7 +258,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
       {/* Floating Add Button - Only show on My Photos tab */}
       {activeTab === 'photos' && (
-        <TouchableOpacity 
+        <TouchableOpacity
           testID="refresh-button"
           style={$floatingButton}
           onPress={() => {
