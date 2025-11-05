@@ -10,6 +10,7 @@ from .views import (
     UserReviewListCreateView,
     nearby_owners,
     toggle_book_for_barter,
+    toggle_wishlist,
     user_books_list,
     user_wishlist_list,
 )
@@ -29,6 +30,12 @@ urlpatterns = [
     path("books/", user_books_list, name="user-books-list"),
     # User's wishlist
     path("wishlist/", user_wishlist_list, name="user-wishlist-list"),
+    # Add/remove book from wishlist
+    path(
+        "books/<uuid:book_id>/wishlist/",
+        toggle_wishlist,
+        name="toggle-wishlist",
+    ),
     # Toggle barter availability for owned book
     path(
         "books/<uuid:book_id>/toggle-barter/",

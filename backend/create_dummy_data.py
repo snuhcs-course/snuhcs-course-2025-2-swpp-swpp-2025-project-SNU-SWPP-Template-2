@@ -694,9 +694,12 @@ def create_barter_requests(users, books):
             created_at=random_date_in_past(30),
         )
         
-        # Add offered and requested books
-        barter.offered_books.set(random.sample(requester_books, min(1, len(requester_books))))
-        barter.requested_books.set(random.sample(recipient_books, min(1, len(recipient_books))))
+        # Set offered and requested book (1:1)
+        if requester_books:
+            barter.offered_book = random.choice(requester_books)
+        if recipient_books:
+            barter.requested_book = random.choice(recipient_books)
+        barter.save(update_fields=["offered_book", "requested_book"]) 
         
         barter_requests.append(barter)
     

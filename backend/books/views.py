@@ -201,6 +201,52 @@ def user_wishlist_list(request):
     return Response(results, status=status.HTTP_200_OK)
 
 
+@api_view(["POST", "DELETE"])
+@permission_classes([permissions.IsAuthenticated])
+def toggle_wishlist(request, book_id):
+    """
+    Add or remove a book from user's wishlist.
+    
+    POST /library/books/{book_id}/wishlist/ - Add to wishlist
+    DELETE /library/books/{book_id}/wishlist/ - Remove from wishlist
+    
+    Returns status 200 on success
+    """
+    try:
+        book = Book.objects.get(pk=book_id)
+    except Book.DoesNotExist:
+        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+    
+    if request.method == "POST":
+        # Add to wishlist
+        wishlist_item, created = BookWishlist.objects.get_or_create(
+            user=request.user,
+            book=book
+        )
+        if created:
+            # Notify the book owner when their book is wishlisted
+            if getattr(book, "owner", None):
+                Notification.objects.create(
+                    recipient=book.owner,
+                    sender=request.user,
+                    notification_type="book_wishlisted",
+                    title=f"{request.user.username} wishlisted your book",
+                    message=f"{request.user.username} added '{book.title}' to their wishlist",
+                )
+        return Response({"message": "Added to wishlist"}, status=status.HTTP_200_OK)
+    
+    elif request.method == "DELETE":
+        # Remove from wishlist
+        deleted_count, _ = BookWishlist.objects.filter(
+            user=request.user,
+            book=book
+        ).delete()
+        if deleted_count > 0:
+            return Response({"message": "Removed from wishlist"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Not in wishlist"}, status=status.HTTP_200_OK)
+
+
 @api_view(["PATCH"])
 @permission_classes([permissions.IsAuthenticated])
 def toggle_book_for_barter(request, book_id):

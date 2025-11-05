@@ -25,10 +25,10 @@ def test_notifications_on_user_actions():
 
     client.force_authenticate(actor)
 
-    # wishlist self-notification
+    # wishlist should notify the book owner
     res = client.post(f"/library/books/{book.id}/wishlist/")
     assert res.status_code == 200
-    assert Notification.objects.filter(recipient=actor, notification_type="book_wishlisted").exists()
+    assert Notification.objects.filter(recipient=author, notification_type="book_wishlisted").exists()
 
     # like
     client.post(f"/posts/{post.id}/like/")
@@ -38,6 +38,8 @@ def test_notifications_on_user_actions():
     client.post(f"/posts/{post.id}/comments/", {"content": "hi"}, format="json")
     assert Notification.objects.filter(recipient=author, notification_type="comment_received").exists()
 
-    # barter
-    client.post(f"/posts/{post.id}/barter/", {})
+    # barter - actor must offer a book they own
+    actor_book = Book.objects.create(title="ActorBook", owner=actor, publisher=publisher, is_for_barter=True)
+    actor_book.authors.add(auth)
+    client.post(f"/posts/{post.id}/barter/", {"offered_book_id": str(actor_book.id)}, format="json")
     assert Notification.objects.filter(recipient=author, notification_type="barter_request").exists()

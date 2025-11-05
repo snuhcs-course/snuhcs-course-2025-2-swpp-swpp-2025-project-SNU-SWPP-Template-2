@@ -101,7 +101,7 @@ def create_barter_request(request):
             parts.append(f"My location: lat {requester.latitude}, lng {requester.longitude}")
         msg = "\n".join(parts)
 
-    # Create barter request with 1:1 exchange
+    # Create barter request with 1:1 exchange (single books)
     barter = BarterRequest.objects.create(
         requester=request.user,
         recipient=recipient,
