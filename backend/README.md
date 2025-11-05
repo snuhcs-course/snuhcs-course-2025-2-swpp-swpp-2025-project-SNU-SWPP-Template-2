@@ -10,6 +10,8 @@ A comprehensive Django-based backend for a social networking platform focused on
 - **Reading Status Tracking**: Track reading progress, start/finish dates
 - **Book Collections**: User-created collections and wishlists
 - **Book Recommendations**: Personalized book recommendations between users
+- **External Book Metadata**: Kakao Books API integration keeps local records up to
+  date with titles, authors, categories, descriptions, and cover thumbnails
 
 ### 👥 Social Features
 - **User Profiles**: Rich user profiles with preferences and social connections
@@ -132,6 +134,30 @@ python manage.py createsuperuser
 ```bash
 python manage.py runserver
 ```
+
+### External Book Metadata Pipeline
+
+The backend keeps book entries fresh by syncing them with the
+[Kakao Books Search API](https://developers.kakao.com/docs/latest/ko/daum-search/dev-guide#search-book).
+
+1.  Export your Kakao REST API key (or add it to `.env`):
+    ```bash
+    KAKAO_REST_API_KEY=<your Kakao REST API key>
+    ```
+2.  Seed the catalogue from scratch (or add new titles) by running:
+    ```bash
+    python manage.py import_books_from_kakao "해리 포터" --owner-email=admin@example.com --size=5
+    ```
+    Replace the query and owner information as needed. Multiple queries can be
+    supplied, and `--overwrite` forces updates on existing matches.
+3.  Fill in missing metadata for existing records:
+    ```bash
+    python manage.py sync_book_metadata
+    ```
+    - Use `--overwrite` to replace existing metadata.
+    - Use `--limit=<n>` to process a subset of books.
+    - Use `--book-id=<id>` to target specific records (repeatable).
+    - Use `--all` to process every book even if metadata is already present.
 
 #### Option 2: Using pip (Traditional)
 
