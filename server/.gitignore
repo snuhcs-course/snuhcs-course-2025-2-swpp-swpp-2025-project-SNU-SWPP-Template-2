@@ -229,3 +229,6 @@ node_modules/
 
 # TernJS port file
 .tern-port
+
+# chroma db
+chroma_db/
