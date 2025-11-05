@@ -38,6 +38,7 @@ python-dotenv>=1.0.0
 django-filter>=23.0
 django-crispy-forms>=2.1
 crispy-bootstrap5>=2024.2
+requests>=2.31.0
 
 # Background Tasks
 celery>=5.3.0
