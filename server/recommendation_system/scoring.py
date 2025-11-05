@@ -46,11 +46,19 @@ class HybridScorer:
     def calculate_popularity_score(self, rating: float, review_count: int) -> float:
         """인기도 점수 계산"""
         try:
-            # log(1+reviewCount) * avgRating 공식 사용
-            if review_count <= 0:
+            # None 체크 및 타입 변환
+            if rating is None or review_count is None:
                 return 0.0
             
-            popularity_score = math.log(1 + review_count) * rating
+            # Decimal 타입을 float로 변환
+            rating_float = float(rating) if rating is not None else 0.0
+            review_count_int = int(review_count) if review_count is not None else 0
+            
+            # log(1+reviewCount) * avgRating 공식 사용
+            if review_count_int <= 0:
+                return 0.0
+            
+            popularity_score = math.log(1 + review_count_int) * rating_float
             # 정규화 (0-1 범위로)
             normalized_score = min(popularity_score / 50.0, 1.0)
             return normalized_score
