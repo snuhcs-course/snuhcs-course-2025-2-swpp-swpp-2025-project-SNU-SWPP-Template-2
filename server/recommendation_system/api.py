@@ -6,6 +6,8 @@
 
 import json
 import logging
+import random
+from collections import defaultdict
 from typing import Dict, List, Optional, Tuple, Any
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -394,9 +396,57 @@ def recommend_menu(request):
             score = scorer.calculate_hybrid_score(similarity_score, item_data, search_context)
             scored_results.append((menu, score))
         
-        # MMR 리랭킹 적용 (exploration_preference 사용)
-        reranker = MMRReranker(exploration_preference=exploration_preference)
-        final_results = reranker.rerank_with_mmr(scored_results, max_results)
+        # ===== 음식점별 다양성 보장 로직 =====
+        # 1. 스코어 순으로 정렬
+        scored_results.sort(key=lambda x: x[1], reverse=True)
+        
+        # 2. 음식점별로 그룹화 (restaurant_id 기준)
+        restaurant_groups = defaultdict(list)
+        for menu, score in scored_results:
+            # restaurant_id가 있으면 그것을 사용, 없으면 restaurant_name 사용
+            rest_id = menu.get('restaurant_id') or menu.get('restaurant_name', 'unknown')
+            restaurant_groups[rest_id].append((menu, score))
+        
+        logger.info(f"검색된 메뉴를 {len(restaurant_groups)}개 음식점으로 그룹화")
+        
+        # 3. 각 음식점에서 하나씩 선택 (라운드 로빈 방식)
+        final_results = []
+        restaurant_ids = list(restaurant_groups.keys())
+        
+        # 음식점 순서를 랜덤화 (매번 다른 순서로)
+        random.shuffle(restaurant_ids)
+        
+        round_idx = 0
+        while len(final_results) < max_results and restaurant_ids:
+            selected_in_this_round = False
+            
+            for rest_id in restaurant_ids[:]:  # 복사본으로 순회
+                if rest_id not in restaurant_groups or not restaurant_groups[rest_id]:
+                    # 이 음식점의 메뉴를 모두 소진함
+                    restaurant_ids.remove(rest_id)
+                    continue
+                
+                # 이 음식점에서 아직 선택 안 한 메뉴 중 랜덤으로 하나 선택
+                # (단, 스코어가 높은 것 우선 - 상위 3개 중에서 랜덤)
+                available_menus = restaurant_groups[rest_id]
+                if available_menus:
+                    # 상위 3개 중에서 랜덤 선택 (다양성 + 품질 균형)
+                    top_k = min(3, len(available_menus))
+                    selected_menu = random.choice(available_menus[:top_k])
+                    final_results.append(selected_menu)
+                    restaurant_groups[rest_id].remove(selected_menu)
+                    selected_in_this_round = True
+                
+                if len(final_results) >= max_results:
+                    break
+            
+            # 이번 라운드에서 아무것도 선택 안 했으면 중단
+            if not selected_in_this_round:
+                break
+            
+            round_idx += 1
+        
+        logger.info(f"음식점 다양성 보장: {round_idx}라운드 진행, 최종 {len(final_results)}개 메뉴 선택")
         
         # 결과 포맷팅
         formatted_results = []
