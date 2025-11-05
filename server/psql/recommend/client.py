@@ -425,7 +425,7 @@ class RestaurantRecommender:
             
             # Distance filter
             if search_distance:
-                where_conditions.append("ST_DWithin(geom::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography, %s)")
+                where_conditions.append("ST_DWithin(geom::geometry::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography, %s)")
                 where_params.extend([longitude, latitude, search_distance * 1000])  # Convert km to meters
             
             # Category filter - use category_normalized column for better matching
@@ -441,7 +441,9 @@ class RestaurantRecommender:
             
             query = f"""
             SELECT *,
-                   ST_Distance(geom::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography) as distance_meters
+                   ST_X(geom::geometry) as x,
+                   ST_Y(geom::geometry) as y,
+                   ST_Distance(geom::geometry::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography) as distance_meters
             FROM db_restaurants
             WHERE {where_clause}
             ORDER BY distance_meters
@@ -450,6 +452,13 @@ class RestaurantRecommender:
             
             # Time the database query execution
             query_start_time = time.time()
+            
+            # Log the query for debugging
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.info(f"Executing query: {query}")
+            logger.info(f"Query params: {query_params}")
+            
             cursor.execute(query, query_params)
             restaurants = cursor.fetchall()
             query_end_time = time.time()
@@ -457,6 +466,8 @@ class RestaurantRecommender:
             query_time = query_end_time - query_start_time
             if self.verbose:
                 print(f"   🔍 Restaurant database query: {query_time:.3f}s")
+            
+            logger.info(f"Query returned {len(restaurants)} restaurants")
             
             return [dict(restaurant) for restaurant in restaurants]
     
@@ -468,7 +479,14 @@ class RestaurantRecommender:
         with self.conn.cursor(cursor_factory=RealDictCursor) as cursor:
             placeholders = ','.join(['%s::uuid'] * len(restaurant_ids))
             query = f"""
-            SELECT m.*, r.name as restaurant_name
+            SELECT m.*, 
+                   r.name as restaurant_name,
+                   r.category,
+                   r.category_normalized,
+                   r.avg_rating as rating,
+                   r.review_count,
+                   ST_X(r.geom::geometry) as x,
+                   ST_Y(r.geom::geometry) as y
             FROM db_menus m
             JOIN db_restaurants r ON r.id = m.restaurant_id
             WHERE m.restaurant_id = ANY(ARRAY[{placeholders}])

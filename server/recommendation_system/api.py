@@ -19,274 +19,166 @@ from rest_framework import status
 
 from .user_profile import UserProfileService, create_sample_user_profile
 from .scoring import SearchContext, HybridScorer, MMRReranker, RecommendationReranker
-from . import EmbeddingService, VectorIndexBuilder, RecommendationEngine
+# ChromaDB 관련 import (더 이상 사용 안함 - client.py로 대체)
+# from . import EmbeddingService, VectorIndexBuilder, RecommendationEngine
 from users.models import UserPreference
 
 logger = logging.getLogger(__name__)
 
-class RecommendationAPIView(View):
-    """추천 API 뷰"""
+# client.py 통합 (PostgreSQL + PostGIS 기반 추천)
+import sys
+import os
+sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'psql', 'recommend'))
+try:
+    from psql.recommend.client import RestaurantRecommender, UserProfile as ClientUserProfile
+except ImportError:
+    logger.warning("client.py import 실패. 상대 경로로 재시도")
+    try:
+        import importlib.util
+        client_path = os.path.join(os.path.dirname(__file__), '..', 'psql', 'recommend', 'client.py')
+        spec = importlib.util.spec_from_file_location("client", client_path)
+        client_module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(client_module)
+        RestaurantRecommender = client_module.RestaurantRecommender
+        ClientUserProfile = client_module.UserProfile
+    except Exception as e:
+        logger.error(f"client.py import 실패: {e}")
+        RestaurantRecommender = None
+        ClientUserProfile = None
+
+def calculate_menu_similarity(menu: Dict, onboarding_data: Dict, embedding_service = None) -> float:
+    """
+    메뉴와 사용자 선호도 간의 유사도 계산
     
-    def __init__(self):
-        super().__init__()
-        self.embedding_service = None
-        self.vector_index_builder = None
-        self.recommendation_engine = None
-        self.user_profile_service = UserProfileService()
-        self.reranker = RecommendationReranker()
-        self._initialize_services()
+    Args:
+        menu: 메뉴 데이터
+        onboarding_data: 사용자 온보딩 데이터
+        embedding_service: 임베딩 서비스 (옵션, 없으면 키워드 매칭 사용)
     
-    def _initialize_services(self):
-        """서비스 초기화"""
-        try:
-            # 임베딩 서비스 초기화
-            self.embedding_service = EmbeddingService()
+    Returns:
+        유사도 점수 (0.0 ~ 1.0)
+    """
+    try:
+        score = 0.0
+        weight_sum = 0.0
+        
+        # 1. 카테고리 매칭 (가중치: 0.4)
+        preferred_categories = onboarding_data.get('preferred_categories', [])
+        if preferred_categories:
+            menu_category = menu.get('category', '')
+            # category_normalized 사용
+            menu_category_normalized = menu.get('category_normalized', menu_category)
+            if menu_category_normalized in preferred_categories:
+                score += 0.4
+            weight_sum += 0.4
+        
+        # 2. 키워드 매칭 (가중치: 0.3)
+        menu_keywords = menu.get('keywords', [])
+        if menu_keywords and isinstance(menu_keywords, list):
+            # 사용자 선호 키워드와 비교
+            liked_keywords = set()
+            if 'liked_menus' in onboarding_data:
+                liked_keywords.update(onboarding_data['liked_menus'])
+            if 'clicked_keywords' in onboarding_data:
+                liked_keywords.update(onboarding_data['clicked_keywords'])
             
-            # 벡터 인덱스 빌더 초기화
-            self.vector_index_builder = VectorIndexBuilder(self.embedding_service)
-            
-            # ChromaDB는 자동으로 인덱스 로드됨 (영구 저장소 사용)
-            
-            # 추천 엔진 초기화
-            self.recommendation_engine = RecommendationEngine(self.vector_index_builder)
-            
-            logger.info("추천 서비스 초기화 완료")
-            
-        except Exception as e:
-            logger.error(f"추천 서비스 초기화 실패: {e}")
-            raise
+            if liked_keywords:
+                menu_keywords_set = set(menu_keywords)
+                overlap = len(menu_keywords_set.intersection(liked_keywords))
+                if len(menu_keywords_set) > 0:
+                    keyword_score = overlap / len(menu_keywords_set)
+                    score += 0.3 * keyword_score
+            weight_sum += 0.3
+        
+        # 3. 가격 적합도 (가중치: 0.2)
+        budget_range = onboarding_data.get('budget_range', [0, 0])
+        menu_price = menu.get('price', 0)
+        if budget_range[0] > 0 or budget_range[1] > 0:
+            if budget_range[0] <= menu_price <= budget_range[1]:
+                score += 0.2
+            elif menu_price < budget_range[0]:
+                # 예산보다 저렴하면 부분 점수
+                score += 0.1
+            weight_sum += 0.2
+        
+        # 4. 임베딩 유사도 (옵션, 가중치: 0.1)
+        if embedding_service and menu.get('embedding_vector'):
+            # 사용자 프로필 텍스트와 메뉴 임베딩 비교
+            # 향후 구현 가능
+            weight_sum += 0.1
+        
+        # 정규화
+        if weight_sum > 0:
+            return score / weight_sum
+        else:
+            return 0.5  # 기본값
     
-    @method_decorator(csrf_exempt)
-    def dispatch(self, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+    except Exception as e:
+        logger.error(f"유사도 계산 오류: {e}")
+        return 0.5  # 기본값
+
+# ===== 구버전 ChromaDB 기반 API (더 이상 사용 안함) =====
+# client.py (PostgreSQL + PostGIS)로 대체됨
+# class RecommendationAPIView(View):
+#     """추천 API 뷰 - DEPRECATED"""
+#     
+#     def __init__(self):
+#         super().__init__()
+#         self.embedding_service = None
+#         self.vector_index_builder = None
+#         self.recommendation_engine = None
+#         self.user_profile_service = UserProfileService()
+#         self.reranker = RecommendationReranker()
+#         self._initialize_services()
+#     
+#     def _initialize_services(self):
+#         """서비스 초기화"""
+#         try:
+#             # 임베딩 서비스 초기화
+#             self.embedding_service = EmbeddingService()
+#             
+#             # 벡터 인덱스 빌더 초기화
+#             self.vector_index_builder = VectorIndexBuilder(self.embedding_service)
+#             
+#             # ChromaDB는 자동으로 인덱스 로드됨 (영구 저장소 사용)
+#             
+#             # 추천 엔진 초기화
+#             self.recommendation_engine = RecommendationEngine(self.vector_index_builder)
+#             
+#             logger.info("추천 서비스 초기화 완료")
+#             
+#         except Exception as e:
+#             logger.error(f"추천 서비스 초기화 실패: {e}")
+#             raise
     
-    def post(self, request):
-        """추천 요청 처리"""
-        try:
-            # 요청 데이터 파싱
-            data = json.loads(request.body)
-            
-            # 필수 필드 검증
-            required_fields = ['user_id', 'user_location', 'query_type']
-            for field in required_fields:
-                if field not in data:
-                    return JsonResponse({
-                        'error': f'필수 필드 누락: {field}'
-                    }, status=400)
-            
-            # 사용자 프로필 생성
-            user_profile_text = self._create_user_profile(data)
-            
-            # 검색 컨텍스트 생성
-            search_context = self._create_search_context(data)
-            
-            # 추천 타입에 따른 검색
-            query_type = data.get('query_type', 'menu')
-            query_text = data.get('query_text', '')
-            max_results = data.get('max_results', 20)
-            
-            if query_type == 'menu':
-                results = self._search_menu_recommendations(
-                    user_profile_text, search_context, query_text, max_results
-                )
-            elif query_type == 'place':
-                results = self._search_place_recommendations(
-                    user_profile_text, search_context, query_text, max_results
-                )
-            else:
-                return JsonResponse({
-                    'error': '잘못된 query_type. menu 또는 place를 사용하세요.'
-                }, status=400)
-            
-            # 응답 생성
-            response_data = {
-                'success': True,
-                'query_type': query_type,
-                'total_results': len(results),
-                'results': results
-            }
-            
-            return JsonResponse(response_data)
-            
-        except json.JSONDecodeError:
-            return JsonResponse({
-                'error': '잘못된 JSON 형식'
-            }, status=400)
-        except Exception as e:
-            logger.error(f"추천 요청 처리 실패: {e}")
-            return JsonResponse({
-                'error': '서버 내부 오류'
-            }, status=500)
-    
-    def _create_user_profile(self, data: Dict) -> str:
-        """사용자 프로필 생성"""
-        try:
-            user_id = data['user_id']
-            
-            # 온보딩 데이터
-            onboarding_data = data.get('onboarding_data', {})
-            
-            # 갤러리 분석 데이터
-            gallery_analysis = data.get('gallery_analysis')
-            
-            # 행태 데이터
-            behavior_data = data.get('behavior_data')
-            
-            # 프로필 생성
-            profile_text = self.user_profile_service.create_user_profile(
-                user_id, onboarding_data, gallery_analysis, behavior_data
-            )
-            
-            return profile_text
-            
-        except Exception as e:
-            logger.error(f"사용자 프로필 생성 실패: {e}")
-            # 기본 프로필 사용
-            return create_sample_user_profile()
-    
-    def _create_search_context(self, data: Dict) -> SearchContext:
-        """검색 컨텍스트 생성"""
-        try:
-            user_location = data['user_location']
-            onboarding_data = data.get('onboarding_data', {})
-            
-            return SearchContext(
-                user_location=tuple(user_location),
-                budget_range=tuple(onboarding_data.get('budget_range', [0, 0])),
-                max_distance=onboarding_data.get('distance_preference', 2.0),
-                allergies=onboarding_data.get('allergies', []),
-                dislikes=onboarding_data.get('dislikes', []),
-                preferred_categories=onboarding_data.get('preferred_categories', []),
-                time_of_day=data.get('time_of_day', '점심'),
-                day_of_week=data.get('day_of_week', '평일')
-            )
-            
-        except Exception as e:
-            logger.error(f"검색 컨텍스트 생성 실패: {e}")
-            # 기본 컨텍스트 사용
-            return SearchContext(
-                user_location=(126.9619864, 37.477136),
-                budget_range=(5000, 15000),
-                max_distance=2.0,
-                allergies=[],
-                dislikes=[],
-                preferred_categories=[],
-                time_of_day='점심',
-                day_of_week='평일'
-            )
-    
-    def _search_menu_recommendations(self, user_profile_text: str, 
-                                   search_context: SearchContext, 
-                                   query_text: str, max_results: int) -> List[Dict]:
-        """메뉴 추천 검색"""
-        try:
-            # 사용자 프로필 객체 생성
-            from .user_profile import UserProfile
-            user_profile = UserProfile(
-                user_id="temp",
-                taste_preferences={},
-                allergies=search_context.allergies,
-                dislikes=search_context.dislikes,
-                preferred_categories=search_context.preferred_categories,
-                gallery_keywords=[],
-                behavior_keywords=[],
-                budget_range=search_context.budget_range,
-                distance_preference=search_context.max_distance,
-                profile_text=user_profile_text
-            )
-            
-            # 메뉴 검색
-            search_results = self.recommendation_engine.search_menu(
-                user_profile, query_text, k=max_results * 2
-            )
-            
-            # 리랭크 적용
-            reranked_results = self.reranker.rerank_recommendations(
-                search_results, search_context, max_results
-            )
-            
-            # 결과 변환
-            results = []
-            for item, score, reason in reranked_results:
-                result = {
-                    'id': item.id,
-                    'menu_name': item.menu_name,
-                    'place_name': item.place_name,
-                    'price': item.price,
-                    'category': item.category,
-                    'location': item.location,
-                    'rating': item.rating,
-                    'review_count': item.review_count,
-                    'keywords': item.keywords,
-                    'voted_keywords': item.voted_keywords,
-                    'has_image': item.has_image,
-                    'coordinates': item.coordinates,
-                    'score': score,
-                    'reason': reason
-                }
-                results.append(result)
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"메뉴 추천 검색 실패: {e}")
-            return []
-    
-    def _search_place_recommendations(self, user_profile_text: str, 
-                                    search_context: SearchContext, 
-                                    query_text: str, max_results: int) -> List[Dict]:
-        """가게 추천 검색"""
-        try:
-            # 사용자 프로필 객체 생성
-            from .user_profile import UserProfile
-            user_profile = UserProfile(
-                user_id="temp",
-                taste_preferences={},
-                allergies=search_context.allergies,
-                dislikes=search_context.dislikes,
-                preferred_categories=search_context.preferred_categories,
-                gallery_keywords=[],
-                behavior_keywords=[],
-                budget_range=search_context.budget_range,
-                distance_preference=search_context.max_distance,
-                profile_text=user_profile_text
-            )
-            
-            # 가게 검색
-            search_results = self.recommendation_engine.search_place(
-                user_profile, query_text, k=max_results * 2
-            )
-            
-            # 리랭크 적용
-            reranked_results = self.reranker.rerank_recommendations(
-                search_results, search_context, max_results
-            )
-            
-            # 결과 변환
-            results = []
-            for item, score, reason in reranked_results:
-                result = {
-                    'id': item.id,
-                    'name': item.name,
-                    'category': item.category,
-                    'location': item.location,
-                    'rating': item.rating,
-                    'review_count': item.review_count,
-                    'avg_price': item.avg_price,
-                    'keywords': item.keywords,
-                    'voted_keywords': item.voted_keywords,
-                    'features': item.features,
-                    'coordinates': item.coordinates,
-                    'score': score,
-                    'reason': reason
-                }
-                results.append(result)
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"가게 추천 검색 실패: {e}")
-            return []
+#     @method_decorator(csrf_exempt)
+#     def dispatch(self, *args, **kwargs):
+#         return super().dispatch(*args, **kwargs)
+#     
+#     def post(self, request):
+#         """추천 요청 처리 - DEPRECATED"""
+#         # ... (주석 처리됨)
+#     
+#     def _create_user_profile(self, data: Dict) -> str:
+#         """사용자 프로필 생성 - DEPRECATED"""
+#         # ... (주석 처리됨)
+#     
+#     def _create_search_context(self, data: Dict) -> SearchContext:
+#         """검색 컨텍스트 생성 - DEPRECATED"""
+#         # ... (주석 처리됨)
+#     
+#     def _search_menu_recommendations(self, user_profile_text: str, 
+#                                    search_context: SearchContext, 
+#                                    query_text: str, max_results: int) -> List[Dict]:
+#         """메뉴 추천 검색 - DEPRECATED"""
+#         # ... (주석 처리됨)
+#     
+#     def _search_place_recommendations(self, user_profile_text: str, 
+#                                     search_context: SearchContext, 
+#                                     query_text: str, max_results: int) -> List[Dict]:
+#         """가게 추천 검색 - DEPRECATED"""
+#         # ... (주석 처리됨)
+# ===== 구버전 API 끝 =====
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -295,11 +187,14 @@ def recommend_menu(request):
     try:
         # 요청 데이터 파싱
         data = request.data
+        logger.info(f"=== 메뉴 추천 요청 시작 ===")
+        logger.info(f"요청 데이터: {data}")
         
         # 필수 필드 검증 (user_id 제거)
         required_fields = ['user_location']
         for field in required_fields:
             if field not in data:
+                logger.error(f"필수 필드 누락: {field}")
                 return Response({
                     'error': f'필수 필드 누락: {field}'
                 }, status=status.HTTP_400_BAD_REQUEST)
@@ -374,33 +269,130 @@ def recommend_menu(request):
         query_text = data.get('query_text', '')
         max_results = data.get('max_results', 20)
         
-        # 실제 추천 실행
-        embedding_service = EmbeddingService()
-        vector_builder = VectorIndexBuilder(embedding_service, './chroma_db')
-        recommendation_engine = RecommendationEngine(vector_builder)
+        # ===== client.py 기반 검색 (PostgreSQL + PostGIS) =====
+        if RestaurantRecommender is None:
+            return Response({
+                'error': 'RestaurantRecommender를 사용할 수 없습니다.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        # 메뉴 검색 실행
-        menu_results = recommendation_engine.search_menu(
-            user_profile_text, 
-            query_text, 
-            k=max_results * 2  # MMR을 위해 더 많이 검색
-        )
+        try:
+            # RestaurantRecommender 초기화
+            recommender = RestaurantRecommender(verbose=False)
+            
+            # client.py용 UserProfile 생성
+            client_profile = ClientUserProfile(
+                location=(search_context.user_location[0], search_context.user_location[1]),
+                cuisine_preferences=search_context.preferred_categories,
+                max_distance_km=search_context.max_distance
+            )
+            
+            # PostGIS 공간 쿼리로 근처 레스토랑 검색
+            logger.info(f"근처 레스토랑 검색 중... (위치: {client_profile.location}, 반경: {search_context.max_distance}km)")
+            restaurants = recommender.find_nearby_restaurants(
+                client_profile,
+                max_distance_km=search_context.max_distance,
+                categories=search_context.preferred_categories,
+                max_restaurants=100  # 충분한 후보 확보
+            )
+            logger.info(f"검색된 레스토랑 수: {len(restaurants) if restaurants else 0}")
+            
+            if not restaurants:
+                logger.warning("주변에 레스토랑이 없습니다.")
+                return Response({
+                    'success': True,
+                    'query_type': 'menu',
+                    'total_results': 0,
+                    'results': [],
+                    'message': '주변에 레스토랑이 없습니다.'
+                })
+            
+            # 메뉴 수집
+            restaurant_ids = [r['id'] for r in restaurants]
+            logger.info(f"레스토랑 ID 목록: {restaurant_ids[:10]}... (총 {len(restaurant_ids)}개)")
+            logger.info("레스토랑 메뉴 가져오는 중...")
+            restaurant_menus = recommender.get_restaurant_menus(restaurant_ids)
+            logger.info(f"메뉴를 가져온 레스토랑 수: {len(restaurant_menus)}")
+            
+            # 모든 메뉴를 flat list로 변환
+            all_menus = []
+            # 레스토랑 ID로 distance_meters를 빠르게 조회하기 위한 dict 생성
+            restaurant_distances = {str(r['id']): r.get('distance_meters', 0) for r in restaurants}
+            
+            for rest_id, menus in restaurant_menus.items():
+                for menu in menus:
+                    # 메뉴에 이미 레스토랑 정보가 포함되어 있음 (client.py의 JOIN 쿼리)
+                    # distance_meters만 추가
+                    menu['distance_meters'] = restaurant_distances.get(str(rest_id), 0)
+                    all_menus.append(menu)
+            
+            logger.info(f"검색된 메뉴 수: {len(all_menus)}")
+            
+            # query_text가 있으면 필터링
+            if query_text:
+                filtered_menus = []
+                query_lower = query_text.lower()
+                for menu in all_menus:
+                    menu_name = menu.get('name', '').lower()
+                    restaurant_name = menu.get('restaurant_name', '').lower()
+                    keywords = ' '.join(menu.get('keywords', [])).lower() if menu.get('keywords') else ''
+                    
+                    if query_lower in menu_name or query_lower in restaurant_name or query_lower in keywords:
+                        filtered_menus.append(menu)
+                
+                if filtered_menus:
+                    all_menus = filtered_menus
+                    logger.info(f"쿼리 필터링 후 메뉴 수: {len(all_menus)}")
+            
+            # 메뉴가 없으면 빈 결과 반환
+            if not all_menus:
+                recommender.close()
+                return Response({
+                    'success': True,
+                    'query_type': 'menu',
+                    'total_results': 0,
+                    'results': [],
+                    'message': '조건에 맞는 메뉴가 없습니다.'
+                })
+            
+        except Exception as e:
+            logger.error(f"client.py 검색 오류: {e}")
+            return Response({
+                'error': f'검색 오류: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        # 하이브리드 스코어링 적용
+        # ===== 하이브리드 스코어링 적용 (기존 유지) =====
         scorer = HybridScorer()
         scored_results = []
-        for menu_doc, similarity_score in menu_results:
-            # 메뉴 데이터 준비
+        
+        for menu in all_menus:
+            # 유사도 계산
+            similarity_score = calculate_menu_similarity(menu, onboarding_data)
+            
+            # 메뉴 데이터를 HybridScorer 형식으로 변환
+            # Decimal과 None을 안전하게 처리
+            rating_raw = menu.get('rating')
+            rating = float(rating_raw) if rating_raw is not None else 0.0
+            
+            review_count_raw = menu.get('review_count')
+            review_count = int(review_count_raw) if review_count_raw is not None else 0
+            
+            x_raw = menu.get('x')
+            y_raw = menu.get('y')
+            x = float(x_raw) if x_raw is not None else 0.0
+            y = float(y_raw) if y_raw is not None else 0.0
+            
             item_data = {
-                'rating': menu_doc['rating'],
-                'review_count': menu_doc['review_count'],
-                'price': menu_doc['price'],
-                'coordinates': menu_doc['coordinates'],
-                'keywords': menu_doc['keywords'],
-                'has_image': menu_doc['has_image']
+                'rating': rating,
+                'review_count': review_count,
+                'price': menu.get('price', 0),
+                'coordinates': (x, y),
+                'keywords': menu.get('keywords', []) if menu.get('keywords') else [],
+                'has_image': bool(menu.get('images'))
             }
+            
+            # 하이브리드 점수 계산
             score = scorer.calculate_hybrid_score(similarity_score, item_data, search_context)
-            scored_results.append((menu_doc, score))
+            scored_results.append((menu, score))
         
         # MMR 리랭킹 적용 (exploration_preference 사용)
         reranker = MMRReranker(exploration_preference=exploration_preference)
@@ -408,25 +400,49 @@ def recommend_menu(request):
         
         # 결과 포맷팅
         formatted_results = []
-        for menu_doc, score in final_results:
+        for menu, score in final_results:
+            # client.py에서 온 메뉴 데이터 형식에 맞춰 변환
+            # Decimal 타입을 float로 변환하고 None 처리
+            rating_raw = menu.get('rating')
+            rating = float(rating_raw) if rating_raw is not None else 0.0
+            
+            review_count_raw = menu.get('review_count')
+            review_count = int(review_count_raw) if review_count_raw is not None else 0
+            
+            category = menu.get('category', '')
+            
+            # x, y 좌표도 안전하게 변환
+            x_raw = menu.get('x')
+            y_raw = menu.get('y')
+            x = float(x_raw) if x_raw is not None else 0.0
+            y = float(y_raw) if y_raw is not None else 0.0
+            
             formatted_results.append({
-                'id': menu_doc['id'],
-                'menu_name': menu_doc['menu_name'],
-                'place_name': menu_doc['place_name'],
-                'price': menu_doc['price'],
-                'category': menu_doc['category'],
-                'location': menu_doc['location'],
-                'rating': menu_doc['rating'],
-                'review_count': menu_doc['review_count'],
-                'keywords': menu_doc['keywords'],
-                'voted_keywords': menu_doc['voted_keywords'],
-                'has_image': menu_doc['has_image'],
-                'image_urls': menu_doc['image_urls'],  # 이미지 URL 추가
-                'coordinates': menu_doc['coordinates'],
+                'id': menu.get('id'),
+                'menu_name': menu.get('name', ''),
+                'place_name': menu.get('restaurant_name', ''),
+                'price': menu.get('price', 0),
+                'category': category,
+                'location': menu.get('location', ''),
+                'rating': rating,
+                'review_count': review_count,
+                'keywords': menu.get('keywords', []) if menu.get('keywords') else [],
+                'voted_keywords': menu.get('voted_keywords', []) if menu.get('voted_keywords') else [],
+                'has_image': bool(menu.get('images')),
+                'image_urls': menu.get('images', []) if menu.get('images') else [],
+                'coordinates': (x, y),
+                'distance_meters': menu.get('distance_meters', 0),
                 'score': score,
-                'reason': f"'{menu_doc['category']}' 카테고리, 평점 {menu_doc['rating']:.1f} (리뷰 {menu_doc['review_count']:,}건)"
+                'reason': f"'{category}' 카테고리, 평점 {rating:.1f} (리뷰 {review_count:,}건)" if review_count > 0 else f"'{category}' 카테고리"
             })
         
+        # RestaurantRecommender 연결 종료
+        try:
+            recommender.close()
+        except:
+            pass
+        
+        logger.info(f"=== 메뉴 추천 완료: {len(formatted_results)}개 결과 반환 ===")
         return Response({
             'success': True,
             'query_type': 'menu',
@@ -435,7 +451,7 @@ def recommend_menu(request):
         })
         
     except Exception as e:
-        logger.error(f"메뉴 추천 API 오류: {e}")
+        logger.error(f"메뉴 추천 API 오류: {e}", exc_info=True)
         return Response({
             'error': '서버 내부 오류'
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -486,33 +502,108 @@ def recommend_place(request):
         query_text = data.get('query_text', '')
         max_results = data.get('max_results', 20)
         
-        # 실제 추천 실행
-        embedding_service = EmbeddingService()
-        vector_builder = VectorIndexBuilder(embedding_service, './chroma_db')
-        recommendation_engine = RecommendationEngine(vector_builder)
+        # ===== client.py 기반 검색 (PostgreSQL + PostGIS) =====
+        if RestaurantRecommender is None:
+            return Response({
+                'error': 'RestaurantRecommender를 사용할 수 없습니다.'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        # 가게 검색 실행
-        place_results = recommendation_engine.search_place(
-            user_profile_text,
-            query_text,
-            k=max_results * 2  # MMR을 위해 더 많이 검색
-        )
+        try:
+            # RestaurantRecommender 초기화
+            recommender = RestaurantRecommender(verbose=False)
+            
+            # client.py용 UserProfile 생성
+            client_profile = ClientUserProfile(
+                location=(search_context.user_location[0], search_context.user_location[1]),
+                cuisine_preferences=search_context.preferred_categories,
+                max_distance_km=search_context.max_distance
+            )
+            
+            # PostGIS 공간 쿼리로 근처 레스토랑 검색
+            restaurants = recommender.find_nearby_restaurants(
+                client_profile,
+                max_distance_km=search_context.max_distance,
+                categories=search_context.preferred_categories,
+                max_restaurants=100  # 충분한 후보 확보
+            )
+            
+            if not restaurants:
+                return Response({
+                    'success': True,
+                    'query_type': 'place',
+                    'total_results': 0,
+                    'results': [],
+                    'message': '주변에 레스토랑이 없습니다.'
+                })
+            
+            logger.info(f"검색된 레스토랑 수: {len(restaurants)}")
+            
+            # query_text가 있으면 필터링
+            if query_text:
+                filtered_restaurants = []
+                query_lower = query_text.lower()
+                for restaurant in restaurants:
+                    name = restaurant.get('name', '').lower()
+                    category = restaurant.get('category', '').lower()
+                    keywords = ' '.join(restaurant.get('keywords', [])).lower() if restaurant.get('keywords') else ''
+                    
+                    if query_lower in name or query_lower in category or query_lower in keywords:
+                        filtered_restaurants.append(restaurant)
+                
+                if filtered_restaurants:
+                    restaurants = filtered_restaurants
+                    logger.info(f"쿼리 필터링 후 레스토랑 수: {len(restaurants)}")
+            
+            # 레스토랑이 없으면 빈 결과 반환
+            if not restaurants:
+                recommender.close()
+                return Response({
+                    'success': True,
+                    'query_type': 'place',
+                    'total_results': 0,
+                    'results': [],
+                    'message': '조건에 맞는 레스토랑이 없습니다.'
+                })
+            
+        except Exception as e:
+            logger.error(f"client.py 검색 오류: {e}")
+            return Response({
+                'error': f'검색 오류: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        # 하이브리드 스코어링 적용
+        # ===== 하이브리드 스코어링 적용 (기존 유지) =====
         scorer = HybridScorer()
         scored_results = []
-        for place_doc, similarity_score in place_results:
-            # 가게 데이터 준비
+        
+        for restaurant in restaurants:
+            # 유사도 계산 (가게의 경우 카테고리와 키워드 기반)
+            similarity_score = calculate_menu_similarity(restaurant, onboarding_data)
+            
+            # 가게 데이터를 HybridScorer 형식으로 변환
+            # Decimal과 None을 안전하게 처리
+            rating_raw = restaurant.get('rating') or restaurant.get('avg_rating')
+            rating = float(rating_raw) if rating_raw is not None else 0.0
+            
+            review_count_raw = restaurant.get('review_count')
+            review_count = int(review_count_raw) if review_count_raw is not None else 0
+            
+            x_raw = restaurant.get('x')
+            y_raw = restaurant.get('y')
+            x = float(x_raw) if x_raw is not None else 0.0
+            y = float(y_raw) if y_raw is not None else 0.0
+            
             item_data = {
-                'rating': place_doc['rating'],
-                'review_count': place_doc['review_count'],
-                'price': place_doc['avg_price'],
-                'coordinates': place_doc['coordinates'],
-                'keywords': place_doc['keywords'],
+                'rating': rating,
+                'review_count': review_count,
+                'price': restaurant.get('avg_price', 0),
+                'coordinates': (x, y),
+                'keywords': restaurant.get('keywords', []) if restaurant.get('keywords') else [],
                 'has_image': True  # 가게는 기본적으로 이미지가 있다고 가정
             }
+            
+            # 하이브리드 점수 계산
             score = scorer.calculate_hybrid_score(similarity_score, item_data, search_context)
-            scored_results.append((place_doc, score))
+            scored_results.append((restaurant, score))
         
         # MMR 리랭킹 적용 (exploration_preference 사용)
         reranker = MMRReranker(exploration_preference=exploration_preference)
@@ -520,22 +611,45 @@ def recommend_place(request):
         
         # 결과 포맷팅
         formatted_results = []
-        for place_doc, score in final_results:
+        for restaurant, score in final_results:
+            # client.py에서 온 레스토랑 데이터 형식에 맞춰 변환
+            # Decimal 타입을 float로 변환하고 None 처리
+            rating_raw = restaurant.get('rating') or restaurant.get('avg_rating')
+            rating = float(rating_raw) if rating_raw is not None else 0.0
+            
+            review_count_raw = restaurant.get('review_count')
+            review_count = int(review_count_raw) if review_count_raw is not None else 0
+            
+            category = restaurant.get('category', '')
+            
+            # x, y 좌표도 안전하게 변환
+            x_raw = restaurant.get('x')
+            y_raw = restaurant.get('y')
+            x = float(x_raw) if x_raw is not None else 0.0
+            y = float(y_raw) if y_raw is not None else 0.0
+            
             formatted_results.append({
-                'id': place_doc['id'],
-                'name': place_doc['name'],
-                'category': place_doc['category'],
-                'location': place_doc['location'],
-                'rating': place_doc['rating'],
-                'review_count': place_doc['review_count'],
-                'avg_price': place_doc['avg_price'],
-                'keywords': place_doc['keywords'],
-                'voted_keywords': place_doc['voted_keywords'],
-                'features': place_doc['features'],
-                'coordinates': place_doc['coordinates'],
+                'id': restaurant.get('id'),
+                'name': restaurant.get('name', ''),
+                'category': category,
+                'location': restaurant.get('location', ''),
+                'rating': rating,
+                'review_count': review_count,
+                'avg_price': restaurant.get('avg_price', 0),
+                'keywords': restaurant.get('keywords', []) if restaurant.get('keywords') else [],
+                'voted_keywords': restaurant.get('voted_keywords', []) if restaurant.get('voted_keywords') else [],
+                'features': restaurant.get('features', []) if restaurant.get('features') else [],
+                'coordinates': (x, y),
+                'distance_meters': restaurant.get('distance_meters', 0),
                 'score': score,
-                'reason': f"'{place_doc['category']}' 카테고리, 평점 {place_doc['rating']:.1f} (리뷰 {place_doc['review_count']:,}건)"
+                'reason': f"'{category}' 카테고리, 평점 {rating:.1f} (리뷰 {review_count:,}건)" if review_count > 0 else f"'{category}' 카테고리"
             })
+        
+        # RestaurantRecommender 연결 종료
+        try:
+            recommender.close()
+        except:
+            pass
         
         return Response({
             'success': True,
