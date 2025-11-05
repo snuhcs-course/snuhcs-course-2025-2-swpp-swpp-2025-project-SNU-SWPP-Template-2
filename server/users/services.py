@@ -1,9 +1,8 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
-
-from .image_utils import get_food_image_category
 from .models import User, Profile, Follow, UserGalleryImage
-
+from .image_utils import _read_image_from_s3, get_clip_embedding_from_bytes, get_food_image_category, normalize_to_onboarding_category
+from recommendation_system.chroma_index import ChromaVectorIndexBuilder
 
 @transaction.atomic
 def create_user_with_profile(*, username: str, email: str, password: str, bio: str = "", preferences: dict | None = None) -> User:
@@ -56,11 +55,27 @@ def list_follow_suggestions(*, user: User, limit: int = 10):
         .order_by("-date_joined")[:limit]
     )
 
-@transaction.atomic
-def upload_user_photo(*, user: User, photo_url: str) -> str:
-    photo = UserGalleryImage.objects.create(user=user, image_url=photo_url)
-    photo.category_tag = get_food_image_category(photo_url)[0]
-    return photo
 
-def list_user_photos(*, user: User):
-    return UserGalleryImage.objects.filter(user=user).order_by("-created_at")
+def upload_user_photo(*, user: User, photo_url: str):
+    photo = UserGalleryImage.objects.create(user=user, image_url=photo_url)
+
+    img_bytes = _read_image_from_s3(photo_url)
+    emb = get_clip_embedding_from_bytes(img_bytes)
+
+    vib = ChromaVectorIndexBuilder(embedding_service=None, persist_directory="./chroma_db")
+    # 카테고리 예측은 실패해도 무시(임베딩 저장은 계속 수행)
+    try:
+        raw_category, _ = get_food_image_category(photo_url)
+    except Exception:
+        raw_category = None
+    category_id, category_label = normalize_to_onboarding_category(raw_category or "")
+
+    vib.add_user_image_embedding(
+        user_id=user.id,
+        image_id=str(photo.id),
+        embedding=emb,
+        image_url=photo_url,
+        category=category_label,
+        category_id=category_id,
+    )
+    return photo

@@ -21,8 +21,8 @@ from rest_framework import status
 
 from .user_profile import UserProfileService, create_sample_user_profile
 from .scoring import SearchContext, HybridScorer, MMRReranker, RecommendationReranker
-# ChromaDB 관련 import (더 이상 사용 안함 - client.py로 대체)
-# from . import EmbeddingService, VectorIndexBuilder, RecommendationEngine
+# Chroma 기반 유틸 사용(사용자 갤러리 다양성 → exploration_preference 보정)
+from . import VectorIndexBuilder  # alias to ChromaVectorIndexBuilder
 from users.models import UserPreference
 
 logger = logging.getLogger(__name__)
@@ -247,7 +247,16 @@ def recommend_menu(request):
                 'budget_range': data.get('budget_range', [0, 0]),
                 'distance_preference': data.get('distance_preference', 2.0)
             }
-        
+        # 갤러리 카테고리 다양성 기반 exploration_preference 보정
+        try:
+            vib = VectorIndexBuilder(None, './chroma_db')
+            ep_from_gallery = vib.get_user_category_exploration_preference(request.user.id, min_images=10)
+            if ep_from_gallery is not None:
+                exploration_preference = ep_from_gallery
+                logger.info(f"갤러리 기반 exploration_preference 적용: {exploration_preference}")
+        except Exception as e:
+            logger.warning(f"갤러리 기반 exploration_preference 계산 실패: {e}")
+
         gallery_analysis = data.get('gallery_analysis')
         behavior_data = data.get('behavior_data')
         
