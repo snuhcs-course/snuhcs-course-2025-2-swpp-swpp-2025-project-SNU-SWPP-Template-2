@@ -320,11 +320,27 @@ class EmbeddingService:
             return
         
         try:
-            self.model = SentenceTransformer(self.model_name)
-            self.logger.info(f"임베딩 모델 로드 완료: {self.model_name}")
+            import torch
+            device = 'cuda' if torch.cuda.is_available() else 'cpu'
+            # device_map과 trust_remote_code 파라미터를 사용하여 meta tensor 오류 방지
+            self.model = SentenceTransformer(
+                self.model_name, 
+                device=device,
+                model_kwargs={'device_map': None, 'torch_dtype': torch.float32}
+            )
+            self.logger.info(f"임베딩 모델 로드 완료: {self.model_name} (device: {device})")
         except Exception as e:
             self.logger.error(f"모델 로드 실패: {e}")
-            raise
+            # 대체 방법: device 파라미터 없이 로드 후 수동으로 이동
+            try:
+                self.logger.info("대체 방법으로 모델 로드 시도 중...")
+                self.model = SentenceTransformer(self.model_name)
+                if device == 'cuda' and torch.cuda.is_available():
+                    self.model = self.model.to(device)
+                self.logger.info(f"임베딩 모델 로드 완료 (대체 방법): {self.model_name} (device: {device})")
+            except Exception as e2:
+                self.logger.error(f"대체 방법으로도 모델 로드 실패: {e2}")
+                raise
     
     def embed_texts(self, texts: List[str]) -> np.ndarray:
         """텍스트 임베딩"""
@@ -344,7 +360,11 @@ class EmbeddingService:
         return self.embed_texts([text])[0]
 
 # ChromaDB 기반 VectorIndexBuilder를 임포트
-from .chroma_index import ChromaVectorIndexBuilder, ChromaRecommendationEngine
+# 직접 실행과 모듈 import 모두 지원
+try:
+    from .chroma_index import ChromaVectorIndexBuilder, ChromaRecommendationEngine
+except ImportError:
+    from chroma_index import ChromaVectorIndexBuilder, ChromaRecommendationEngine
 
 # 기존 VectorIndexBuilder는 ChromaVectorIndexBuilder의 별칭으로 사용
 VectorIndexBuilder = ChromaVectorIndexBuilder
@@ -410,7 +430,7 @@ def main():
     logging.basicConfig(level=logging.INFO)
     
     # 데이터 로드
-    json_file_path = "restaurant/management/commands/관악구_음식점_상세_전체.json"
+    json_file_path = "restaurant/management/commands/관악구_음식점_상세_전체.json"
     restaurant_data = load_restaurant_data(json_file_path)
     
     # 데이터 처리

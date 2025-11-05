@@ -17,9 +17,11 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import path, include
+from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("api/v1/health/", views.health_check, name="health_check"),
     path("api/v1/", include("users.urls")),
     path("api/v1/", include("restaurant.urls")),
     path("api/v1/recommendation/", include("recommendation_system.urls")),
