@@ -424,8 +424,9 @@ class RestaurantRecommender:
             where_params = []
             
             # Distance filter
+            # geom is stored as text (WKB hex string), need to decode and convert to geometry
             if search_distance:
-                where_conditions.append("ST_DWithin(geom::geometry::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography, %s)")
+                where_conditions.append("ST_DWithin(decode(geom, 'hex')::geometry::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography, %s)")
                 where_params.extend([longitude, latitude, search_distance * 1000])  # Convert km to meters
             
             # Category filter - use category_normalized column for better matching
@@ -441,9 +442,9 @@ class RestaurantRecommender:
             
             query = f"""
             SELECT *,
-                   ST_X(geom::geometry) as x,
-                   ST_Y(geom::geometry) as y,
-                   ST_Distance(geom::geometry::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography) as distance_meters
+                   ST_X(decode(geom, 'hex')::geometry) as x,
+                   ST_Y(decode(geom, 'hex')::geometry) as y,
+                   ST_Distance(decode(geom, 'hex')::geometry::geography, ST_SetSRID(ST_Point(%s, %s), 4326)::geography) as distance_meters
             FROM db_restaurants
             WHERE {where_clause}
             ORDER BY distance_meters
@@ -459,8 +460,14 @@ class RestaurantRecommender:
             logger.info(f"Executing query: {query}")
             logger.info(f"Query params: {query_params}")
             
-            cursor.execute(query, query_params)
-            restaurants = cursor.fetchall()
+            try:
+                cursor.execute(query, query_params)
+                restaurants = cursor.fetchall()
+            except Exception as e:
+                # Rollback transaction on error to avoid "current transaction is aborted" error
+                self.conn.rollback()
+                logger.error(f"Database query error: {e}")
+                raise
             query_end_time = time.time()
             
             query_time = query_end_time - query_start_time
@@ -485,16 +492,24 @@ class RestaurantRecommender:
                    r.category_normalized,
                    r.avg_rating as rating,
                    r.review_count,
-                   ST_X(r.geom::geometry) as x,
-                   ST_Y(r.geom::geometry) as y
+                   ST_X(decode(r.geom, 'hex')::geometry) as x,
+                   ST_Y(decode(r.geom, 'hex')::geometry) as y
             FROM db_menus m
             JOIN db_restaurants r ON r.id = m.restaurant_id
             WHERE m.restaurant_id = ANY(ARRAY[{placeholders}])
             ORDER BY m.restaurant_id, m.index_in_rest;
             """
             
-            cursor.execute(query, restaurant_ids)
-            menus = cursor.fetchall()
+            try:
+                cursor.execute(query, restaurant_ids)
+                menus = cursor.fetchall()
+            except Exception as e:
+                # Rollback transaction on error to avoid "current transaction is aborted" error
+                self.conn.rollback()
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Database query error: {e}")
+                raise
             
             # Group by restaurant
             restaurant_menus = {}
