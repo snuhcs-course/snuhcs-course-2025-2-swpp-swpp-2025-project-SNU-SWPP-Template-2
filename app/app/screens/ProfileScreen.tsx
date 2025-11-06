@@ -290,6 +290,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       <PreferencesModal
         visible={isPreferencesModalVisible}
         onClose={() => setIsPreferencesModalVisible(false)}
+        onLogout={logout}
       />
     </View>
   )
