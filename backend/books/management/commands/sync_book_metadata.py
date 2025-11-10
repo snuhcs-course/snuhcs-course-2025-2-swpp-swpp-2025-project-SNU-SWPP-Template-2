@@ -11,6 +11,7 @@ from books.services.book_metadata_sync import BookMetadataSynchronizer
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.base import BaseCommand, CommandError
 from django.db.models import Q
+from django.db.models.functions import Length
 
 
 class Command(BaseCommand):
@@ -42,12 +43,21 @@ class Command(BaseCommand):
             dest="book_ids",
             help="Only synchronise the specified publication IDs. Can be passed multiple times.",
         )
+        parser.add_argument(
+            "--truncated-only",
+            action="store_true",
+            help=(
+                "Only process publications whose descriptions appear truncated "
+                "(short previews or ellipsis markers)."
+            ),
+        )
 
     def handle(self, *args, **options):
         overwrite = options["overwrite"]
         limit = options["limit"]
         all_books = options["all"]
         book_ids: Optional[Iterable[str]] = options.get("book_ids")
+        truncated_only = options["truncated_only"]
 
         if limit is not None and limit <= 0:
             raise CommandError("The --limit value must be a positive integer.")
@@ -56,7 +66,18 @@ class Command(BaseCommand):
 
         if book_ids:
             queryset = queryset.filter(id__in=book_ids)
-        elif not all_books:
+        if truncated_only:
+            length_threshold = BookMetadataSynchronizer.DESCRIPTION_MIN_LENGTH
+            queryset = queryset.annotate(description_length=Length("description"))
+            queryset = queryset.filter(
+                Q(description__isnull=True)
+                | Q(description__exact="")
+                | Q(description_length__lt=length_threshold)
+                | Q(description__icontains="...")
+                | Q(description__icontains="…")
+                | Q(description__contains="\u0001")
+            )
+        elif not all_books and not book_ids:
             queryset = queryset.filter(
                 Q(description__isnull=True)
                 | Q(description__exact="")

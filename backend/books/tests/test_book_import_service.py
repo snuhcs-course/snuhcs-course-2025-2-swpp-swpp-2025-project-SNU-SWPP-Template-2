@@ -18,6 +18,7 @@ from books.services.kakao_book_pipeline import (
     ExternalBookAPIError,
 )
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ImproperlyConfigured
 from django.test import TestCase, override_settings
 
 User = get_user_model()
@@ -44,27 +45,45 @@ class BookImportServiceTestCase(TestCase):
             password="pass1234",
         )
 
-    def _build_service(self, pipeline):
-
+    def _build_service(self, pipeline, *, create_copies=True):
         synchronizer = MagicMock()
         synchronizer.apply_metadata.return_value = True
 
         service = BookImportService(
             pipeline=pipeline,
             synchronizer=synchronizer,
+            create_copies=create_copies,
         )
         return service, synchronizer
+
+    def _build_metadata(self, **overrides):
+        data = {
+            "title": "Default Title",
+            "authors": ["Author"],
+            "translators": [],
+            "categories": ["Category"],
+            "description": "Description",
+            "thumbnail_url": "http://example.com/thumb.jpg",
+            "isbn": "9780000000000",
+            "publisher": "Publisher",
+            "url": "http://example.com/book",
+            "publication_date": "2024-01-01",
+            "price": 10000,
+            "sale_price": 9000,
+            "status": "normal",
+        }
+        data.update(overrides)
+        return ExternalBook(**data)
 
     def test_import_creates_new_book(self):
         """
         Import should create a book when no existing record matches.
         """
-        metadata = ExternalBook(
+        metadata = self._build_metadata(
             title="Import Book",
             authors=["Jane Author"],
             categories=["New"],
             description="Imported description",
-            thumbnail_url="http://example.com/cover.jpg",
             isbn="9780000000000",
             publisher="Import Publisher",
         )
@@ -98,7 +117,7 @@ class BookImportServiceTestCase(TestCase):
         )
         BookCopy.objects.create(publication=publication, owner=self.owner)
 
-        metadata = ExternalBook(
+        metadata = self._build_metadata(
             title="Existing Book",
             authors=["Jane Author"],
             categories=["Updated"],
@@ -137,7 +156,7 @@ class BookImportServiceTestCase(TestCase):
         )
         BookCopy.objects.create(publication=publication, owner=self.owner)
 
-        metadata = ExternalBook(
+        metadata = self._build_metadata(
             title="Existing Book",
             authors=["Jane Author"],
             categories=["Updated"],
@@ -176,3 +195,37 @@ class BookImportServiceTestCase(TestCase):
 
         with self.assertRaises(ExternalBookAPIError):
             service.import_from_query("Error query", owner=self.owner)
+
+    def test_owner_required_when_creating_copies(self):
+        """
+        Service should raise when copy creation is enabled but owner is missing.
+        """
+        pipeline = MagicMock()
+        pipeline.fetch.return_value = []
+        service, _ = self._build_service(pipeline, create_copies=True)
+
+        with self.assertRaises(ImproperlyConfigured):
+            service.import_from_query("query", owner=None)
+
+    def test_can_skip_copy_creation(self):
+        """
+        When create_copies=False, publications are created without book copies.
+        """
+        metadata = self._build_metadata(
+            title="Copyless Book",
+            authors=["Author"],
+            categories=["Cat"],
+            description="Desc",
+            thumbnail_url=None,
+            isbn="9782222222222",
+            publisher="Pub",
+        )
+        pipeline = MagicMock()
+        pipeline.fetch.return_value = [metadata]
+        service, _ = self._build_service(pipeline, create_copies=False)
+
+        summary = service.import_from_query("Copyless Book", owner=None)
+
+        self.assertEqual(summary.created, 1)
+        self.assertFalse(BookCopy.objects.exists())
+        self.assertTrue(BookPublication.objects.filter(title="Copyless Book").exists())

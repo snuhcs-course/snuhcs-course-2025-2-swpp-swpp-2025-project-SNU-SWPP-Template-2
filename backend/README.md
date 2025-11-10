@@ -190,7 +190,13 @@ The backend keeps book entries fresh by syncing them with the
     python manage.py import_books_from_kakao "해리 포터" --owner-email=admin@example.com --size=5
     ```
     Replace the query and owner information as needed. Multiple queries can be
-    supplied, and `--overwrite` forces updates on existing matches.
+    supplied, and `--overwrite` forces updates on existing matches.  
+    To import a curated list of popular Korean titles in one go, run:
+    ```bash
+    python manage.py bootstrap_korean_books --skip-copies --size=20 --overwrite
+    ```
+    Omit `--skip-copies` (and provide `--owner-email` or `--owner-id`) if you also
+    want to create `BookCopy` entries for a particular owner.
 3.  Fill in missing metadata for existing records:
     ```bash
     python manage.py sync_book_metadata
@@ -199,7 +205,11 @@ The backend keeps book entries fresh by syncing them with the
     - Use `--limit=<n>` to process a subset of books.
     - Use `--book-id=<id>` to target specific records (repeatable).
     - Use `--all` to process every book even if metadata is already present.
-
+    - When Kakao only returns a truncated synopsis, the synchroniser now follows
+      the `external_url` and scrapes the full description from the detail page
+      (`#tabContent > div:nth-child(1) > div:nth-child(3) > p`).
+    - If you only need to reprocess short/ellipsis descriptions, pass
+      `--truncated-only` to restrict the queryset to likely trimmed entries.
 
 #### Option 2: Using pip (Traditional)
 

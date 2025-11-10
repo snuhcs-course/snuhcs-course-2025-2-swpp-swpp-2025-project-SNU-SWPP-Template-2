@@ -9,7 +9,10 @@ import tempfile
 from unittest.mock import MagicMock, patch
 
 from books.models import BookCopy, BookPublication
-from books.services.book_metadata_sync import BookMetadataSynchronizer
+from books.services.book_metadata_sync import (
+    BookMetadataSynchronizer,
+    _SimpleHTMLParser,
+)
 from books.services.kakao_book_pipeline import (
     ExternalBook,
     ExternalBookAPIError,
@@ -18,6 +21,12 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings
 
 User = get_user_model()
+
+SAMPLE_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\nIDATx\x9cc``\x00\x00\x00"
+    b"\x02\x00\x01\xe2!\xbc3\x00\x00\x00\x00IEND\xaeB`\x82"
+)
 
 
 class BookMetadataSynchronizerTestCase(TestCase):
@@ -54,8 +63,28 @@ class BookMetadataSynchronizerTestCase(TestCase):
             pipeline=pipeline,
             session=MagicMock(),
         )
-        synchronizer._download_image = MagicMock(return_value=b"\x47\x49")
+        synchronizer._download_image = MagicMock(return_value=SAMPLE_PNG)
+        synchronizer._fetch_external_description = MagicMock(return_value=None)
         return synchronizer
+
+    def _build_metadata(self, **overrides):
+        data = {
+            "title": "The Testing Book",
+            "authors": ["Jane Author"],
+            "translators": [],
+            "categories": ["Testing"],
+            "description": "Short preview",
+            "thumbnail_url": "http://example.com/cover.jpg",
+            "isbn": "9781234567890",
+            "publisher": "Quality Press",
+            "url": "http://example.com/book",
+            "publication_date": "2024-01-01T00:00:00",
+            "price": 10000,
+            "sale_price": 9000,
+            "status": "정상",
+        }
+        data.update(overrides)
+        return ExternalBook(**data)
 
     @patch(
         "books.services.book_metadata_sync.slugify",
@@ -65,14 +94,9 @@ class BookMetadataSynchronizerTestCase(TestCase):
         """
         The synchroniser should fill in description, authors, genres, ISBN and cover.
         """
-        candidate = ExternalBook(
-            title="The Testing Book",
-            authors=["Jane Author"],
+        candidate = self._build_metadata(
             categories=["Testing", "Technology"],
             description="A definitive guide to testing pipelines.",
-            thumbnail_url="http://example.com/cover.jpg",
-            isbn="9781234567890",
-            publisher="Quality Press",
         )
 
         pipeline = MagicMock()
@@ -132,13 +156,9 @@ class BookMetadataSynchronizerTestCase(TestCase):
             owner=self.owner,
         )
 
-        first_candidate = ExternalBook(
-            title="The Testing Book",
-            authors=["Jane Author"],
-            categories=["Testing"],
+        first_candidate = self._build_metadata(
             description="desc",
             thumbnail_url=None,
-            isbn="9781234567890",
             publisher=None,
         )
 
@@ -157,3 +177,71 @@ class BookMetadataSynchronizerTestCase(TestCase):
         self.assertEqual(summary.processed, 2)
         self.assertEqual(summary.updated, 1)
         self.assertEqual(summary.failures, 1)
+
+    def test_full_description_overrides_snippet(self):
+        candidate = self._build_metadata(description="Short preview...")
+
+        pipeline = MagicMock()
+        pipeline.fetch.return_value = [candidate]
+
+        synchronizer = self._build_synchronizer(pipeline)
+        synchronizer._fetch_external_description.return_value = (
+            "Long form description from detail page."
+        )
+
+        changed = synchronizer.sync_book(self.publication)
+        self.assertTrue(changed)
+        self.publication.refresh_from_db()
+        self.assertEqual(
+            self.publication.description,
+            "Long form description from detail page.",
+        )
+
+    def test_extract_description_from_dom_parser(self):
+        synchronizer = BookMetadataSynchronizer(
+            pipeline=MagicMock(),
+            session=MagicMock(),
+        )
+        html = """
+        <div id="tabContent">
+            <div>
+                <div></div>
+                <div></div>
+                <div>
+                    <p>Full body text</p>
+                </div>
+            </div>
+        </div>
+        """
+        parser = _SimpleHTMLParser()
+        parser.feed(html)
+        parser.close()
+
+        extracted = synchronizer._extract_description_from_dom(parser.root)
+        self.assertEqual(extracted, "Full body text")
+
+    def test_isbn_conflict_is_skipped(self):
+        other_publication = BookPublication.objects.create(
+            title="Existing ISBN",
+            isbn_13="9787522518954",
+        )
+
+        target_publication = BookPublication.objects.create(
+            title="Needs ISBN",
+        )
+
+        candidate = self._build_metadata(
+            isbn="9787522518954",
+            thumbnail_url=None,
+        )
+
+        pipeline = MagicMock()
+        pipeline.fetch.return_value = [candidate]
+
+        synchronizer = self._build_synchronizer(pipeline)
+        changed = synchronizer.sync_book(target_publication, overwrite=True)
+
+        target_publication.refresh_from_db()
+        self.assertTrue(changed)  # other metadata (description) still applied
+        self.assertIsNone(target_publication.isbn_13)
+        self.assertEqual(other_publication.isbn_13, "9787522518954")

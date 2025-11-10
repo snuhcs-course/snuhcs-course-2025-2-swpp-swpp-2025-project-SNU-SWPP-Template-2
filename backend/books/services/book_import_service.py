@@ -10,6 +10,7 @@ from typing import Optional, Sequence, Tuple
 
 from books.models import BookCopy, BookPublication
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ImproperlyConfigured
 from django.db import transaction
 
 from .book_metadata_sync import BookMetadataSynchronizer
@@ -44,16 +45,19 @@ class BookImportService:
         self,
         pipeline: Optional[KakaoBookPipeline] = None,
         synchronizer: Optional[BookMetadataSynchronizer] = None,
+        *,
+        create_copies: bool = True,
     ) -> None:
         self.pipeline = pipeline or KakaoBookPipeline()
         self.synchronizer = synchronizer or BookMetadataSynchronizer(
             pipeline=self.pipeline
         )
+        self.create_copies = create_copies
 
     def import_from_query(
         self,
         query: str,
-        owner: User,
+        owner: Optional[User],
         *,
         size: int = KakaoBookPipeline.DEFAULT_SIZE,
         overwrite: bool = False,
@@ -63,6 +67,11 @@ class BookImportService:
         """
         if not query.strip():
             return ImportSummary(0, 0, 0, 0, 0)
+
+        if self.create_copies and owner is None:
+            raise ImproperlyConfigured(
+                "BookImportService requires an owner when create_copies=True."
+            )
 
         try:
             documents = self.pipeline.fetch(query, size=size)
@@ -112,7 +121,7 @@ class BookImportService:
         self,
         metadata: ExternalBook,
         *,
-        owner: User,
+        owner: Optional[User],
         overwrite: bool,
     ) -> str:
         publication, created_publication = self._ensure_publication(metadata)
@@ -123,16 +132,19 @@ class BookImportService:
             overwrite=True if created_publication else overwrite,
         )
 
-        book_copy, created_copy = BookCopy.objects.get_or_create(
-            publication=publication,
-            owner=owner,
-            defaults={
-                "is_for_barter": True,
-                "availability": BookCopy.AVAILABILITY_CHOICES[0][0],
-            },
-        )
+        if self.create_copies:
+            book_copy, created_copy = BookCopy.objects.get_or_create(
+                publication=publication,
+                owner=owner,
+                defaults={
+                    "is_for_barter": True,
+                    "availability": BookCopy.AVAILABILITY_CHOICES[0][0],
+                },
+            )
 
-        if created_copy:
+            if created_copy:
+                return "created"
+        elif created_publication:
             return "created"
 
         if changed_metadata:
@@ -178,15 +190,16 @@ class BookImportService:
 
 def import_books(
     queries: Sequence[str],
-    owner: User,
+    owner: Optional[User],
     *,
     size: int = KakaoBookPipeline.DEFAULT_SIZE,
     overwrite: bool = False,
+    create_copies: bool = True,
 ) -> ImportSummary:
     """
     Convenience wrapper for importing multiple queries.
     """
-    service = BookImportService()
+    service = BookImportService(create_copies=create_copies)
 
     aggregated = ImportSummary(0, 0, 0, 0, 0)
     for query in queries:

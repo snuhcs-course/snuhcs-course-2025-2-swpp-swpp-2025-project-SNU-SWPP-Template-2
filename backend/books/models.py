@@ -126,6 +126,7 @@ class BookPublication(models.Model):
     )
 
     external_url = models.URLField(
+        max_length=1024,
         blank=True,
         help_text="URL to the book detail page on external API (e.g., Kakao)",
     )

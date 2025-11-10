@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 import os
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Callable, Iterable, Optional
 from urllib.parse import urlsplit
 
 import requests
@@ -16,6 +16,7 @@ from django.core.files.base import ContentFile
 from django.db import transaction
 from django.db.models import QuerySet
 from django.utils.text import slugify
+from html.parser import HTMLParser
 
 from .kakao_book_pipeline import (
     ExternalBook,
@@ -41,6 +42,8 @@ class BookMetadataSynchronizer:
     """Enrich internal publication metadata using Kakao book data."""
 
     IMAGE_TIMEOUT = 10
+    DESCRIPTION_MIN_LENGTH = 110
+    DESCRIPTION_TRUNCATION_MARKERS = ("...", "…", "\u0001")
 
     def __init__(
         self,
@@ -162,9 +165,19 @@ class BookMetadataSynchronizer:
         fields_updated = set()
         changed = False
 
-        # Sync description (contents from Kakao API)
-        if metadata.description and (overwrite or not publication.description):
-            publication.description = metadata.description
+        # Sync description (contents from Kakao API, optionally crawling full text)
+        description_source = metadata.description
+        if metadata.url and self._should_fetch_full_description(description_source):
+            full_description = self._fetch_external_description(metadata.url)
+            if full_description:
+                description_source = full_description
+
+        if description_source and (
+            overwrite
+            or not publication.description
+            or description_source != metadata.description
+        ):
+            publication.description = description_source
             fields_updated.add("description")
 
         # Sync external URL
@@ -328,15 +341,45 @@ class BookMetadataSynchronizer:
 
         if isbn13 and (overwrite or not publication.isbn_13):
             if publication.isbn_13 != isbn13:
-                publication.isbn_13 = isbn13
-                fields.add("isbn_13")
+                if self._isbn_in_use("isbn_13", isbn13, publication):
+                    logger.warning(
+                        "Skipping ISBN-13 %s for publication %s because another record already uses it.",
+                        isbn13,
+                        publication.pk,
+                    )
+                else:
+                    publication.isbn_13 = isbn13
+                    fields.add("isbn_13")
 
         if isbn10 and (overwrite or not publication.isbn_10):
             if publication.isbn_10 != isbn10:
-                publication.isbn_10 = isbn10
-                fields.add("isbn_10")
+                if self._isbn_in_use("isbn_10", isbn10, publication):
+                    logger.warning(
+                        "Skipping ISBN-10 %s for publication %s because another record already uses it.",
+                        isbn10,
+                        publication.pk,
+                    )
+                else:
+                    publication.isbn_10 = isbn10
+                    fields.add("isbn_10")
 
         return fields
+
+    @staticmethod
+    def _isbn_in_use(
+        field_name: str,
+        value: str,
+        publication: BookPublication,
+    ) -> bool:
+        if not value:
+            return False
+
+        filter_kwargs = {field_name: value}
+        return (
+            BookPublication.objects.filter(**filter_kwargs)
+            .exclude(pk=publication.pk)
+            .exists()
+        )
 
     def _sync_genres(
         self,
@@ -384,7 +427,17 @@ class BookMetadataSynchronizer:
 
         path = urlsplit(thumbnail_url).path
         extension = os.path.splitext(path)[1] or ".jpg"
-        filename = f"{slugify(publication.title) or 'book'}{extension}"
+        slug = slugify(publication.title) or "book"
+        field = publication._meta.get_field("cover_image")
+        max_length = getattr(field, "max_length", 100) or 100
+        prefix = (
+            field.upload_to.rstrip("/") + "/"
+            if isinstance(field.upload_to, str)
+            else "book_covers/"
+        )
+        max_slug_length = max(1, max_length - len(prefix) - len(extension))
+        safe_slug = slug[:max_slug_length]
+        filename = f"{safe_slug}{extension}"
         publication.cover_image.save(filename, ContentFile(content), save=True)
 
         return True
@@ -399,6 +452,105 @@ class BookMetadataSynchronizer:
                 "Failed to download cover image from %s", url, exc_info=True
             )
             return None
+
+    def _should_fetch_full_description(self, snippet: Optional[str]) -> bool:
+        if not snippet:
+            return True
+
+        stripped = snippet.strip()
+        if any(marker in stripped for marker in self.DESCRIPTION_TRUNCATION_MARKERS):
+            return True
+
+        return len(stripped) < self.DESCRIPTION_MIN_LENGTH
+
+    def _fetch_external_description(self, url: str) -> Optional[str]:
+        try:
+            response = self.session.get(url, timeout=self.IMAGE_TIMEOUT)
+            response.raise_for_status()
+        except requests.RequestException:
+            logger.debug(
+                "Failed to fetch extended description from %s",
+                url,
+                exc_info=True,
+            )
+            return None
+
+        parser = _SimpleHTMLParser()
+        parser.feed(response.text)
+        parser.close()
+        return self._extract_description_from_dom(parser.root)
+
+    def _extract_description_from_dom(
+        self, root: "_HTMLNode"
+    ) -> Optional[str]:
+        tab_content = self._find_node(
+            root,
+            lambda node: node.tag == "div" and node.attrs.get("id") == "tabContent",
+        )
+
+        def resolve_path(container: Optional["_HTMLNode"]) -> Optional[str]:
+            if container is None:
+                return None
+            first_section = self._nth_child(container, "div", 1)
+            if not first_section:
+                return None
+            third_column = self._nth_child(first_section, "div", 3)
+            if not third_column:
+                return None
+            paragraph = self._nth_child(third_column, "p", 1)
+            if not paragraph:
+                return None
+            text = paragraph.get_text().strip()
+            return text or None
+
+        text = resolve_path(tab_content)
+        if text:
+            return text
+
+        # Fall back to the first paragraph whose class contains "desc"
+        def has_desc_class(node: "_HTMLNode") -> bool:
+            cls = node.attrs.get("class") or ""
+            return "desc" in cls
+
+        for scope in filter(None, [tab_content, root]):
+            node = self._find_node(
+                scope,
+                lambda n: n.tag == "p" and has_desc_class(n),
+            )
+            if node:
+                text = node.get_text().strip()
+                if text:
+                    return text
+
+        return None
+
+    def _find_node(
+        self,
+        node: "_HTMLNode",
+        predicate: Callable[["_HTMLNode"], bool],
+    ) -> Optional["_HTMLNode"]:
+        if predicate(node):
+            return node
+
+        for child in node.children:
+            found = self._find_node(child, predicate)
+            if found:
+                return found
+        return None
+
+    @staticmethod
+    def _nth_child(
+        node: "_HTMLNode",
+        tag: str,
+        index: int,
+    ) -> Optional["_HTMLNode"]:
+        count = 0
+        for child in node.children:
+            if child.tag == tag:
+                count += 1
+                if count == index:
+                    return child
+        return None
 
     @staticmethod
     def _parse_publication_date(datetime_str: str) -> Optional[object]:
@@ -418,6 +570,52 @@ class BookMetadataSynchronizer:
         except (ValueError, AttributeError):
             logger.debug("Failed to parse publication date: %s", datetime_str)
             return None
+
+
+class _HTMLNode:
+    __slots__ = ("tag", "attrs", "children", "text")
+
+    def __init__(self, tag: str, attrs: dict[str, str]):
+        self.tag = tag
+        self.attrs = attrs
+        self.children: list["_HTMLNode"] = []
+        self.text: list[str] = []
+
+    def get_text(self) -> str:
+        parts: list[str] = []
+        parts.extend(self.text)
+        for child in self.children:
+            child_text = child.get_text()
+            if child_text:
+                parts.append(child_text)
+        return "".join(parts)
+
+
+class _SimpleHTMLParser(HTMLParser):
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.root = _HTMLNode("document", {})
+        self.stack = [self.root]
+
+    def handle_starttag(self, tag, attrs):
+        node = _HTMLNode(tag, dict(attrs))
+        self.stack[-1].children.append(node)
+        self.stack.append(node)
+
+    def handle_startendtag(self, tag, attrs):
+        node = _HTMLNode(tag, dict(attrs))
+        self.stack[-1].children.append(node)
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.stack) - 1, 0, -1):
+            if self.stack[index].tag == tag:
+                del self.stack[index:]
+                break
+
+    def handle_data(self, data):
+        if not data:
+            return
+        self.stack[-1].text.append(data)
 
 
 def sync_book_metadata(
