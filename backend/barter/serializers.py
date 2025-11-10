@@ -13,12 +13,13 @@ from .models import BarterRequest
 class BarterRequestSerializer(serializers.ModelSerializer):
     """
     Serializer for BarterRequest with requester/recipient info.
+    1:1 exchange - single offered_book and single requested_book.
     """
 
     requester = UserBarterInfoSerializer(read_only=True)
     recipient = UserBarterInfoSerializer(read_only=True)
-    offered_books = BookSummarySerializer(many=True, read_only=True)
-    requested_books = BookSummarySerializer(many=True, read_only=True)
+    offered_book = BookSummarySerializer(read_only=True)
+    requested_book = BookSummarySerializer(read_only=True)
 
     class Meta:
         model = BarterRequest
@@ -26,8 +27,8 @@ class BarterRequestSerializer(serializers.ModelSerializer):
             "id",
             "requester",
             "recipient",
-            "offered_books",
-            "requested_books",
+            "offered_book",
+            "requested_book",
             "message",
             "status",
             "preferred_meeting_type",

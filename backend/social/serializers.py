@@ -16,7 +16,7 @@ class PostSerializer(serializers.ModelSerializer):
     """
 
     # Frontend expects these exact field names (camelCase)
-    id = serializers.UUIDField(read_only=True)
+    id = serializers.IntegerField(read_only=True)
     posterName = serializers.CharField(
         source="author.username", read_only=True
     )
