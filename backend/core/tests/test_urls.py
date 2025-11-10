@@ -19,9 +19,10 @@ def test_core_url_includes_exist(client):
     assert resolve(f"/barter/requests/{uuid.uuid4()}/accept/")
     assert resolve(f"/barter/requests/{uuid.uuid4()}/reject/")
 
-    # Ensure social app routes are included
+    # Ensure social app routes are included (Post.id is now integer, not UUID)
+    fake_post_id = 99999  # Use a fake integer ID - resolve only checks URL pattern, not existence
     assert resolve("/home/")
     assert resolve("/posts/create/")
-    assert resolve(f"/posts/{uuid.uuid4()}/like/")
-    assert resolve(f"/posts/{uuid.uuid4()}/comments/")
-    assert resolve(f"/posts/{uuid.uuid4()}/barter/")
+    assert resolve(f"/posts/{fake_post_id}/like/")
+    assert resolve(f"/posts/{fake_post_id}/comments/")
+    assert resolve(f"/posts/{fake_post_id}/barter/")

@@ -9,6 +9,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from accounts.views import UserProfileMeView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -49,6 +50,8 @@ urlpatterns = [
     # Authentication
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
+    # Place explicit profile endpoint first to avoid overlap with allauth URLs.
+    path("accounts/profile/me/", UserProfileMeView.as_view(), name="profile_me"),
     path("accounts/", include("allauth.urls")),
     # API Endpoints
     path("auth/", include("accounts.urls")),  # Matches frontend expectations

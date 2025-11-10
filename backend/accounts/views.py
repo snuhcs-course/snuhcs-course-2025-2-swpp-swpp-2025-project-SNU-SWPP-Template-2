@@ -15,6 +15,7 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import permissions, serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -635,6 +636,120 @@ def user_preferences(request):
         return Response(serializer.data)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileMeView(APIView):
+    """
+    Combined endpoint for fetching and updating the authenticated user's profile.
+    Matches frontend expectation for /accounts/profile/me/ (GET, PUT/PATCH) and
+    supports multipart form uploads for profile_picture.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    def get(self, request):
+        """Return the current user's profile in frontend's expected shape."""
+        return Response(self._build_frontend_profile(request.user, request))
+
+    def put(self, request):
+        return self._update(request, partial=False)
+
+    def patch(self, request):
+        return self._update(request, partial=True)
+
+    def _update(self, request, partial: bool):
+        # 1) Update basic profile fields (bio, names, etc.)
+        base_serializer = ProfileUpdateSerializer(
+            request.user, data=request.data, partial=True
+        )
+        if base_serializer.is_valid():
+            base_serializer.save()
+        else:
+            # We don't hard-fail here because frontend may only send preferences
+            pass
+
+        # 2) Update preferences coming from nested object
+        prefs = request.data.get("preferences") or {}
+        favorite_genres = request.data.get("favoriteGenres") or []
+
+        # Store trade locations in UserTaste (closest existing fields)
+        # Ensure taste exists
+        from .models import UserTaste
+        taste, _ = UserTaste.objects.get_or_create(user=request.user)
+        # Map incoming fields to available fields
+        trade_location1 = prefs.get("tradeLocation1")
+        trade_spot1 = prefs.get("tradeSpot1")
+        if trade_location1 is not None:
+            taste.trade_place_name = trade_location1
+        if trade_spot1 is not None:
+            taste.trade_address = trade_spot1
+
+        # Save favorite genres if provided
+        if isinstance(favorite_genres, list):
+            taste.favorite_genres = favorite_genres
+        taste.save()
+
+        # Mark initial taste as present if any taste data exists
+        if (trade_location1 or trade_spot1 or favorite_genres) and not request.user.has_initial_taste:
+            request.user.has_initial_taste = True
+            request.user.save(update_fields=["has_initial_taste"])
+
+        return Response(self._build_frontend_profile(request.user, request))
+
+    def _build_frontend_profile(self, user, request):
+        """Build response matching frontend UserProfile DTO."""
+        # Profile URL
+        profile_url = None
+        if user.profile_picture:
+            profile_url = (
+                request.build_absolute_uri(user.profile_picture.url)
+                if request else user.profile_picture.url
+            )
+
+        # Taste and preferences mapping
+        favorite_genres = []
+        trade_location1 = None
+        trade_spot1 = None
+        try:
+            taste = user.taste
+            favorite_genres = taste.favorite_genres or []
+            trade_location1 = taste.trade_place_name or None
+            trade_spot1 = taste.trade_address or None
+        except Exception:
+            pass
+
+        # Compute counts
+        from books.models import BookReview
+        review_count = BookReview.objects.filter(reviewer=user).count()
+        follower_count = getattr(user, "follower_count", None)
+        following_count = getattr(user, "following_count", None)
+        if follower_count is None:
+            follower_count = user.follower_relationships.count()
+        if following_count is None:
+            following_count = user.following_relationships.count()
+
+        return {
+            "username": user.username,
+            "bio": user.bio,
+            "profileUrl": profile_url,
+            "reviewCount": review_count,
+            "followerCount": follower_count,
+            "followingCount": following_count,
+            "favoriteGenres": favorite_genres,
+            "preferences": {
+                # Provide non-null object with nullable fields to avoid NPE on client
+                "tradeLocation1": trade_location1,
+                "tradeLocation2": None,
+                "tradeSpot1": trade_spot1,
+                "tradeSpot2": None,
+                "favBook": None,
+                "favBookNote": None,
+                "favAuthor": None,
+                "favAuthorNote": None,
+                "readingHabit": None,
+            },
+        }
 
 
 class GoogleLoginView(APIView):

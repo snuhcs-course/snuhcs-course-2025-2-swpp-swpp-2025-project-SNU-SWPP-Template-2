@@ -13,6 +13,7 @@ from .models import Book, BookReview, BookWishlist, ReviewHelpfulVote
 from notify.models import Notification
 from rest_framework.decorators import api_view, permission_classes
 from .serializers import (
+    BookSummarySerializer,
     CreateReviewSerializer,
     ReviewLikeResponseSerializer,
     ReviewSerializer,
@@ -149,39 +150,101 @@ class ReviewLikeView(APIView):
         return Response({"review": serializer.data}, status=status.HTTP_200_OK)
 
 
-@api_view(["POST"])
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def user_books_list(request):
+    """
+    Get list of books owned by the current user.
+    
+    GET /library/books/
+    
+    Returns list of books with id, title, author, coverUrl
+    """
+    books = Book.objects.filter(owner=request.user).select_related("publisher").prefetch_related("authors")
+    
+    # Map to frontend's expected Book format
+    results = []
+    for book in books:
+        results.append({
+            "id": str(book.id),
+            "title": book.title,
+            "author": book.author_names if hasattr(book, 'author_names') else ", ".join([a.name for a in book.authors.all()]),
+            "coverUrl": request.build_absolute_uri(book.cover_image.url) if book.cover_image else None,
+        })
+    
+    return Response(results, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def user_wishlist_list(request):
+    """
+    Get list of books in the current user's wishlist.
+    
+    GET /library/wishlist/
+    
+    Returns list of books with id, title, author, coverUrl
+    """
+    wishlist_items = BookWishlist.objects.filter(user=request.user).select_related("book__publisher").prefetch_related("book__authors")
+    
+    # Map to frontend's expected Book format
+    results = []
+    for item in wishlist_items:
+        book = item.book
+        results.append({
+            "id": str(book.id),
+            "title": book.title,
+            "author": book.author_names if hasattr(book, 'author_names') else ", ".join([a.name for a in book.authors.all()]),
+            "coverUrl": request.build_absolute_uri(book.cover_image.url) if book.cover_image else None,
+        })
+    
+    return Response(results, status=status.HTTP_200_OK)
+
+
+@api_view(["POST", "DELETE"])
 @permission_classes([permissions.IsAuthenticated])
 def toggle_wishlist(request, book_id):
     """
-    Toggle the current user's wishlist for a given book (bookmark button).
-
-    POST /books/{book_id}/wishlist/
-
-    Returns { "wishlisted": true|false }
+    Add or remove a book from user's wishlist.
+    
+    POST /library/books/{book_id}/wishlist/ - Add to wishlist
+    DELETE /library/books/{book_id}/wishlist/ - Remove from wishlist
+    
+    Returns status 200 on success
     """
     try:
         book = Book.objects.get(pk=book_id)
     except Book.DoesNotExist:
         return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    existing = BookWishlist.objects.filter(user=request.user, book=book).first()
-    if existing:
-        existing.delete()
-        wishlisted = False
-    else:
-        BookWishlist.objects.create(user=request.user, book=book)
-        wishlisted = True
-        # Record a notification for the actor (accumulates in notifications tab)
-        Notification.objects.create(
-            recipient=request.user,
-            sender=request.user,
-            notification_type="book_wishlisted",
-            title="Book added to wishlist",
-            message=f"You added '{book.title}' to your wishlist.",
-            content_object=book,
+    
+    if request.method == "POST":
+        # Add to wishlist
+        wishlist_item, created = BookWishlist.objects.get_or_create(
+            user=request.user,
+            book=book
         )
-
-    return Response({"wishlisted": wishlisted}, status=status.HTTP_200_OK)
+        if created:
+            # Notify the book owner when their book is wishlisted
+            if getattr(book, "owner", None):
+                Notification.objects.create(
+                    recipient=book.owner,
+                    sender=request.user,
+                    notification_type="book_wishlisted",
+                    title=f"{request.user.username} wishlisted your book",
+                    message=f"{request.user.username} added '{book.title}' to their wishlist",
+                )
+        return Response({"message": "Added to wishlist"}, status=status.HTTP_200_OK)
+    
+    elif request.method == "DELETE":
+        # Remove from wishlist
+        deleted_count, _ = BookWishlist.objects.filter(
+            user=request.user,
+            book=book
+        ).delete()
+        if deleted_count > 0:
+            return Response({"message": "Removed from wishlist"}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Not in wishlist"}, status=status.HTTP_200_OK)
 
 
 @api_view(["PATCH"])

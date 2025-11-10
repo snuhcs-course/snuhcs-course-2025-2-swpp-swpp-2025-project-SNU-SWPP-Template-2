@@ -13,6 +13,7 @@ from accounts.serializers import UserBarterInfoSerializer
 from books.serializers import BookSummarySerializer
 from notify.models import Notification
 from barter.models import BarterRequest
+from books.models import Book
 
 
 @api_view(["GET"])
@@ -206,7 +207,9 @@ def barter_post(request, post_id):
     Create a barter request to the post author from the current user.
 
     POST /posts/{post_id}/barter/
-    Optional body fields:
+        Required body fields:
+          - offered_book_id: uuid (book ID from requester to offer)
+        Optional body fields:
       - message: str
       - preferred_meeting_type: str (in_person/mail/pickup)
       - proposed_meeting_location: str
@@ -220,6 +223,35 @@ def barter_post(request, post_id):
     except Post.DoesNotExist:
         return Response({"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND)
 
+    # 1:1 exchange requires offered book
+    offered_book_id = request.data.get("offered_book_id")
+    if not offered_book_id:
+        return Response(
+            {"error": "offered_book_id is required for 1:1 barter"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not post.related_book:
+        return Response(
+            {"error": "This post has no related book to barter"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    try:
+        offered_book = Book.objects.get(pk=offered_book_id)
+    except Book.DoesNotExist:
+        return Response(
+            {"error": "Offered book not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Verify ownership
+    if offered_book.owner_id != request.user.id:
+        return Response(
+            {"error": "You can only offer books you own"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     recipient = post.author
     requester = request.user
 
@@ -227,9 +259,9 @@ def barter_post(request, post_id):
     msg = request.data.get("message")
     if not msg:
         parts = [
-            f"Hi {recipient.username}, I'd like to barter.",
+            f"Hi {recipient.username}, I'd like to trade my '{offered_book.title}' for your '{post.related_book.title}'.",
         ]
-        if hasattr(requester, "taste") and requester.taste.trade_place_name:
+        if hasattr(requester, "taste") and requester.taste and requester.taste.trade_place_name:
             parts.append(
                 f"Preferred place: {requester.taste.trade_place_name} ({requester.taste.trade_address or 'N/A'})"
             )
@@ -242,15 +274,13 @@ def barter_post(request, post_id):
     barter = BarterRequest.objects.create(
         requester=requester,
         recipient=recipient,
+        offered_book=offered_book,
+        requested_book=post.related_book,
         message=msg,
         preferred_meeting_type=request.data.get("preferred_meeting_type", "in_person"),
         proposed_meeting_location=request.data.get("proposed_meeting_location", ""),
         proposed_meeting_time=request.data.get("proposed_meeting_time"),
     )
-
-    # If the post references a book, add it to requested_books
-    if post.related_book:
-        barter.requested_books.add(post.related_book)
 
     # Notify recipient
     Notification.objects.create(
@@ -264,7 +294,8 @@ def barter_post(request, post_id):
 
     # Build requester info payload and requested book summary
     requester_info = UserBarterInfoSerializer(requester, context={"request": request}).data
-    requested_book = (
+    offered_book_data = BookSummarySerializer(offered_book, context={"request": request}).data
+    requested_book_data = (
         BookSummarySerializer(post.related_book, context={"request": request}).data
         if post.related_book
         else None
@@ -278,7 +309,8 @@ def barter_post(request, post_id):
                 "id": str(barter.id),
                 "message": barter.message,
                 "requester": requester_info,
-                "requestedBook": requested_book,
+                "offeredBook": offered_book_data,
+                "requestedBook": requested_book_data,
             },
         },
         status=status.HTTP_201_CREATED,

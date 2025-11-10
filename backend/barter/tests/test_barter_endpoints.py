@@ -13,27 +13,49 @@ User = get_user_model()
 
 @pytest.mark.django_db
 def test_barter_create_accept_reject_flow():
+    """Test 1:1 book exchange flow."""
     client = APIClient()
     requester = User.objects.create(username="req", email="r@example.com", first_name="R", last_name="Q")
     recipient = User.objects.create(username="rec", email="c@example.com", first_name="C", last_name="P")
 
     publisher = Publisher.objects.create(name="Pub")
     auth = BookAuthor.objects.create(name="Auth")
-    book = Book.objects.create(title="TradeMe", owner=recipient, publisher=publisher)
-    book.authors.add(auth)
+    
+    # Create books for both users
+    requested_book = Book.objects.create(
+        title="TradeMe", 
+        owner=recipient, 
+        publisher=publisher,
+        is_for_barter=True
+    )
+    requested_book.authors.add(auth)
+    
+    offered_book = Book.objects.create(
+        title="MyBook",
+        owner=requester,
+        publisher=publisher,
+        is_for_barter=True
+    )
+    offered_book.authors.add(auth)
 
-    # Create
+    # Create 1:1 barter request
     client.force_authenticate(requester)
     res = client.post(
         reverse("barter:create-request"),
         {
             "recipient_id": recipient.id,
-            "requested_book_id": str(book.id),
+            "requested_book_id": str(requested_book.id),
+            "offered_book_id": str(offered_book.id),
         },
         format="json",
     )
     assert res.status_code == 201
     barter_id = res.data["barter"]["id"]
+    
+    # Verify barter has both books
+    barter = BarterRequest.objects.get(pk=barter_id)
+    assert barter.offered_book == offered_book
+    assert barter.requested_book == requested_book
     assert Notification.objects.filter(recipient=recipient, notification_type="barter_request").exists()
 
     # Accept (as recipient)

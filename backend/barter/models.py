@@ -36,16 +36,22 @@ class BarterRequest(models.Model):
         User, on_delete=models.CASCADE, related_name="received_barter_requests"
     )
 
-    # Books Involved
-    offered_books = models.ManyToManyField(
+    # Books Involved (1:1 exchange)
+    offered_book = models.ForeignKey(
         "books.Book",
+        on_delete=models.CASCADE,
         related_name="offered_in_barters",
-        help_text="Books offered by the requester",
+        help_text="Book offered by the requester",
+        null=True,
+        blank=True,
     )
-    requested_books = models.ManyToManyField(
+    requested_book = models.ForeignKey(
         "books.Book",
+        on_delete=models.CASCADE,
         related_name="requested_in_barters",
-        help_text="Books requested from the recipient",
+        help_text="Book requested from the recipient",
+        null=True,
+        blank=True,
     )
 
     # Request Details
@@ -98,15 +104,7 @@ class BarterRequest(models.Model):
         """Check if the barter request is still active."""
         return self.status in ["pending", "accepted"]
 
-    @property
-    def offered_books_count(self):
-        """Return the number of books offered."""
-        return self.offered_books.count()
-
-    @property
-    def requested_books_count(self):
-        """Return the number of books requested."""
-        return self.requested_books.count()
+    # With 1:1 exchange, counts are not needed
 
 
 class BarterCounter(models.Model):
