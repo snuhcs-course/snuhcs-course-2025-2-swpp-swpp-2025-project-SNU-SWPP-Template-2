@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- 1. Title (달력, 내 정보...) -->
+    <style name="TextAppearance.App.Title" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:fontFamily">@font/roboto_bold</item>
+    </style>
+
+    <!-- 2. Subtitle (부제목 - statistics, preference...) -->
+    <style name="TextAppearance.App.Subtitle" parent="TextAppearance.MaterialComponents.Subtitle2">
+        <item name="android:textColor">@color/gray</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+    </style>
+
+    <!-- 3. Normal (기본 본문) -->
+    <style name="TextAppearance.App.Normal" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="lineHeight">20sp</item>
+    </style>
+
+    <!-- 4. Info (작은 설명/부가 정보) -->
+    <style name="TextAppearance.App.Info" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="android:textColor">@color/gray</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:fontFamily">@font/roboto_regular</item>
+    </style>
+
+    <!-- 5. Button (버튼 위 휜 글씨) -->
+    <style name="TextAppearance.App.ButtonText" parent="TextAppearance.MaterialComponents.Button">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:fontFamily">@font/roboto_medium</item>
+        <item name="android:textAllCaps">false</item> <!-- 대문자 변환 방지 -->
+    </style>
+
+    <!-- 6. Section Title (섹션 제목) -->
+    <style name="SectionTitle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@android:color/black</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">4dp</item>
+    </style>
+
+    <!-- 7. Section Content (섹션 내용) -->
+    <style name="SectionContent">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@android:color/darker_gray</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+    </style>
+
+    <!-- 8. Settings Item Styles -->
+    <style name="SettingsItemStyle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">@drawable/settings_rounded_card</item>
+        <item name="android:layout_marginBottom">12dp</item>
+    </style>
+
+
+</resources>

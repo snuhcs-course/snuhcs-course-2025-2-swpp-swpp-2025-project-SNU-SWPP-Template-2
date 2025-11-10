@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="10dp"
+    android:background="#21262e"> <!-- 시각적 구분을 위한 배경 (가정) -->
+
+    <!-- 알람 시간 표시 (예: 20:00) -->
+    <TextView
+        android:id="@+id/alarmTimeTextView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        tools:text="20:00"
+        android:layout_marginStart="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- 반복 요일 정보 (선택적 기능이지만 확장성을 위해 포함) -->
+    <TextView
+        android:id="@+id/repeatDaysTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="14sp"
+        android:text="매일 반복"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintStart_toEndOf="@id/alarmTimeTextView"
+        app:layout_constraintTop_toTopOf="@id/alarmTimeTextView"
+        app:layout_constraintBottom_toBottomOf="@id/alarmTimeTextView"
+        app:layout_constraintVertical_bias="0.5"
+        app:layout_constraintHorizontal_bias="0"
+        app:layout_constraintEnd_toStartOf="@id/deleteAlarmButton" />
+
+    <!-- 알람 삭제 버튼 (시간을 눌러 상세 설정으로 이동 후 삭제할 수도 있지만, 목록에서 바로 삭제 버튼 제공) -->
+    <ImageButton
+        android:id="@+id/deleteAlarmButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="@android:color/transparent"
+        android:contentDescription="알람 삭제"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

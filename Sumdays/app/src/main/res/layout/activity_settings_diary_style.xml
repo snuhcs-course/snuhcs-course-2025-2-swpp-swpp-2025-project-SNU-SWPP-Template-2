@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#282d35">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <!-- 공통 헤더 include -->
+        <include
+            android:id="@+id/header"
+            layout="@layout/include_settings_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <!-- 페이지 제목 -->
+        <TextView
+            android:id="@+id/titleTextView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="AI 스타일 설정"
+            android:textColor="#FFFFFF"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/header"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 1. 스타일 추출 버튼 및 설명 -->
+
+        <TextView
+            android:id="@+id/extractDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="사용자의 고유한 일기 스타일을 추출하여 AI 일기 작성에 반영합니다. 최소 5개 이상의 텍스트/이미지 일기를 준비해주세요."
+            android:textColor="#AAAAAA"
+            android:textSize="14sp"
+            android:layout_marginTop="20dp"
+            app:layout_constraintTop_toBottomOf="@id/titleTextView"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/extractStyleButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="새로운 스타일 추출하기"
+            android:backgroundTint="#8B008B"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="16dp"
+            app:layout_constraintTop_toBottomOf="@id/extractDescription"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <View
+            android:id="@+id/separator1"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#444444"
+            android:layout_marginTop="32dp"
+            app:layout_constraintTop_toBottomOf="@id/extractStyleButton" />
+
+
+        <!-- 2. 저장된 스타일 목록 섹션 -->
+
+        <TextView
+            android:id="@+id/styleListTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="저장된 스타일 목록 (선택/삭제)"
+            android:textColor="#A0A0A0"
+            android:textSize="18sp"
+            android:layout_marginTop="24dp"
+            app:layout_constraintTop_toBottomOf="@id/separator1"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 스타일 목록을 표시할 RecyclerView -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/styleRecyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="150dp"
+            tools:itemCount="2"
+            tools:listitem="@layout/item_user_style"
+            android:layout_marginTop="12dp"
+            app:layout_constraintTop_toBottomOf="@id/styleListTitle"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            app:layout_constraintTop_toBottomOf="@id/styleRecyclerView"
+            app:layout_constraintBottom_toBottomOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

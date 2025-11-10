@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingVertical="12dp"
+    android:paddingHorizontal="8dp"
+    android:layout_marginBottom="8dp"
+    android:background="#21262e"> <!-- 시각적 구분을 위한 배경 -->
+
+    <!-- 스타일 선택 라디오 버튼 (클릭 시 활성 스타일로 설정) -->
+    <RadioButton
+        android:id="@+id/styleRadioButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:checked="false"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- 스타일 이름 -->
+    <TextView
+        android:id="@+id/styleNameTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginStart="8dp"
+        tools:text="나의 첫 번째 시니컬 스타일"
+        app:layout_constraintStart_toEndOf="@id/styleRadioButton"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/deleteStyleButton" />
+
+    <!-- 스타일 요약 -->
+    <TextView
+        android:id="@+id/styleSummaryTextView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:textColor="#AAAAAA"
+        android:textSize="12sp"
+        tools:text="특징: 반말, 구어체, 감정 표현이 강하고 문장이 짧음"
+        android:layout_marginTop="2dp"
+        app:layout_constraintStart_toStartOf="@id/styleNameTextView"
+        app:layout_constraintTop_toBottomOf="@id/styleNameTextView"
+        app:layout_constraintEnd_toStartOf="@id/deleteStyleButton" />
+
+    <!-- 스타일 삭제 버튼 -->
+    <ImageButton
+        android:id="@+id/deleteStyleButton"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        android:background="@android:color/transparent"
+        android:contentDescription="스타일 삭제"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
