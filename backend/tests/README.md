@@ -104,7 +104,7 @@ Frontend should connect to: http://10.0.2.2:8000/auth/
 
 ### **Common Issues:**
 - **Import errors**: Make sure you're in the `backend` directory
-- **Database errors**: Delete `db.sqlite3` and run migrations again
+- **Database errors**: Ensure PostgreSQL is running (`psql -lqt`) and credentials in `.env` match; recreate the database if needed (`dropdb bookbarter && createdb bookbarter`) or temporarily set `USE_SQLITE=True` for quick local debugging
 - **Port conflicts**: Change port in test scripts if 8000 is busy
 
 ## 📱 Frontend Integration Testing

@@ -70,7 +70,7 @@ backend/
 ### Prerequisites
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/) - Fast Python package installer and resolver
-- PostgreSQL (for production)
+- PostgreSQL 14+ (development/production database)
 - Redis (for production)
 
 ### Development Setup
@@ -135,6 +135,47 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
+### PostgreSQL Configuration
+
+The backend now uses PostgreSQL by default. Provide either a complete `DATABASE_URL`
+or the granular `POSTGRES_*` variables listed in `.env.example`. The default values
+(`bookbarter` database/user/password on `localhost:5432`) work if you mirror them
+inside your local PostgreSQL instance.
+
+#### Quick local database creation
+
+```bash
+# macOS
+brew install postgresql@14
+brew services start postgresql@14
+
+# Ubuntu/Debian
+sudo apt install postgresql postgresql-contrib
+sudo systemctl enable --now postgresql
+
+# Create matching role/database (run once)
+createuser -s bookbarter || true
+psql -d postgres -c "ALTER USER bookbarter WITH PASSWORD 'bookbarter';"
+createdb -O bookbarter bookbarter || true
+
+# Optional: verify connection
+pg_isready
+psql -h localhost -U bookbarter -d bookbarter -c '\dt'
+```
+
+#### Migrating existing SQLite data
+
+1. Temporarily set `USE_SQLITE=True` in your `.env` (or export it) so Django
+   reads from `db.sqlite3`.
+2. Dump the data:  
+   `python manage.py dumpdata --natural-foreign --natural-primary --indent 2 > /tmp/bookbarter.json`
+3. Remove `USE_SQLITE` (or set it to `False`) so the project points back to PostgreSQL.
+4. Load the data into PostgreSQL:  
+   `python manage.py loaddata /tmp/bookbarter.json`
+
+After the import succeeds you can delete the temporary JSON file and the unused
+`db.sqlite3`.
+
 ### External Book Metadata Pipeline
 
 The backend keeps book entries fresh by syncing them with the
@@ -158,6 +199,7 @@ The backend keeps book entries fresh by syncing them with the
     - Use `--limit=<n>` to process a subset of books.
     - Use `--book-id=<id>` to target specific records (repeatable).
     - Use `--all` to process every book even if metadata is already present.
+
 
 #### Option 2: Using pip (Traditional)
 

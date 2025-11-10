@@ -7,6 +7,7 @@ with proper security, social features, and AWS deployment capabilities.
 
 import os
 from pathlib import Path
+from urllib.parse import quote_plus
 
 from dotenv import load_dotenv
 
@@ -126,18 +127,45 @@ SITE_ID = 1
 
 # Database Configuration
 DATABASE_URL = os.getenv("DATABASE_URL")
-if DATABASE_URL:
-    # Production database (PostgreSQL)
-    import dj_database_url
+USE_SQLITE = os.getenv("USE_SQLITE", "").strip().lower() in {"1", "true", "yes", "on"}
 
-    DATABASES = {"default": dj_database_url.parse(DATABASE_URL)}
-else:
-    # Development database (SQLite)
+try:
+    DATABASE_CONN_MAX_AGE = int(os.getenv("DATABASE_CONN_MAX_AGE", "600"))
+except ValueError:
+    DATABASE_CONN_MAX_AGE = 600
+
+DATABASE_SSL_REQUIRE = (
+    os.getenv("DATABASE_SSL_REQUIRE", "false").strip().lower()
+    in {"1", "true", "yes", "on"}
+)
+
+if USE_SQLITE:
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
         }
+    }
+else:
+    import dj_database_url
+
+    if not DATABASE_URL:
+        POSTGRES_DB = os.getenv("POSTGRES_DB", "bookbarter")
+        POSTGRES_USER = os.getenv("POSTGRES_USER", "bookbarter")
+        POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD", "bookbarter")
+        POSTGRES_HOST = os.getenv("POSTGRES_HOST", "localhost")
+        POSTGRES_PORT = os.getenv("POSTGRES_PORT", "5432")
+        DATABASE_URL = (
+            f"postgresql://{POSTGRES_USER}:{quote_plus(POSTGRES_PASSWORD)}"
+            f"@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
+        )
+
+    DATABASES = {
+        "default": dj_database_url.parse(
+            DATABASE_URL,
+            conn_max_age=DATABASE_CONN_MAX_AGE,
+            ssl_require=DATABASE_SSL_REQUIRE,
+        )
     }
 
 # Cache Configuration
@@ -238,9 +266,8 @@ AUTHENTICATION_BACKENDS = [
     "allauth.account.auth_backends.AuthenticationBackend",
 ]
 
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_USERNAME_REQUIRED = False
-ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_LOGIN_METHODS = {"email"}
+ACCOUNT_SIGNUP_FIELDS = ["email*", "password1*", "password2*"]
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_UNIQUE_EMAIL = True
 
