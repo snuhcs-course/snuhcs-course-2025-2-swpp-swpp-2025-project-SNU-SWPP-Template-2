@@ -37,12 +37,10 @@ def test_like_and_comment_and_barter_create_notifications():
     assert res.status_code == 201
     assert Notification.objects.filter(recipient=author, notification_type="comment_received").exists()
 
-    # barter (1:1) - actor must offer a book they own
-    offered = Book.objects.create(title="ActorBook", owner=actor, publisher=publisher, is_for_barter=True, trade_status="available")
-    offered.authors.add(auth)
+    # barter - initial request (no offered_book yet in 2-step flow)
     res = client.post(
         f"/posts/{post.id}/barter/",
-        {"offered_book_id": str(offered.id)},
+        {"message": "I want to trade for your book!"},
         format="json",
     )
     assert res.status_code == 201
@@ -50,4 +48,5 @@ def test_like_and_comment_and_barter_create_notifications():
     payload = res.data["barter"]
     assert payload["requester"]["username"] == "actor"
     assert payload["requested_book"]["id"] == str(book.id)
-    assert payload["offered_book"]["id"] == str(offered.id)
+    # In 2-step flow, offered_book is None initially (set later via counter-proposal)
+    assert payload["offered_book"] is None
