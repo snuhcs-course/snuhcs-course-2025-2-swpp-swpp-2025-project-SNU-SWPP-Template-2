@@ -82,7 +82,7 @@ class BookSummarySerializer(serializers.ModelSerializer):
             "id",
             "title",
             "authorNames",
-            "availability",
+            "trade_status",
             "is_for_barter",
         ]
 

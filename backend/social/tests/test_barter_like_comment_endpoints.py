@@ -21,7 +21,7 @@ def test_like_and_comment_and_barter_create_notifications():
 
     publisher = Publisher.objects.create(name="Pub")
     auth = BookAuthor.objects.create(name="Auth")
-    book = Book.objects.create(title="T", owner=author, publisher=publisher, is_for_barter=True)
+    book = Book.objects.create(title="T", owner=author, publisher=publisher, is_for_barter=True, trade_status="available")
     book.authors.add(auth)
 
     post = Post.objects.create(author=author, content="hello", related_book=book)
@@ -38,7 +38,7 @@ def test_like_and_comment_and_barter_create_notifications():
     assert Notification.objects.filter(recipient=author, notification_type="comment_received").exists()
 
     # barter (1:1) - actor must offer a book they own
-    offered = Book.objects.create(title="ActorBook", owner=actor, publisher=publisher, is_for_barter=True)
+    offered = Book.objects.create(title="ActorBook", owner=actor, publisher=publisher, is_for_barter=True, trade_status="available")
     offered.authors.add(auth)
     res = client.post(
         f"/posts/{post.id}/barter/",
