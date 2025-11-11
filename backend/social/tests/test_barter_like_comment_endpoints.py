@@ -49,5 +49,5 @@ def test_like_and_comment_and_barter_create_notifications():
     assert Notification.objects.filter(recipient=author, notification_type="barter_request").exists()
     payload = res.data["barter"]
     assert payload["requester"]["username"] == "actor"
-    assert payload["requestedBook"]["id"] == str(book.id)
-    assert payload["offeredBook"]["id"] == str(offered.id)
+    assert payload["requested_book"]["id"] == str(book.id)
+    assert payload["offered_book"]["id"] == str(offered.id)
