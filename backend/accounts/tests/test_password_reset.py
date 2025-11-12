@@ -95,3 +95,58 @@ def test_password_reset_confirm_serializer_validation():
         "password": "short",
     })
     assert not serializer.is_valid()
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_view_valid():
+    """Test password reset confirm view with valid data."""
+    client = APIClient()
+
+    res = client.post(
+        reverse("accounts:forgot_password_reset"),
+        {"password": "newpass123"},
+        format="json",
+    )
+    assert res.status_code == 200
+    assert res.data["ok"] is True
+
+
+@pytest.mark.django_db
+def test_password_reset_confirm_view_invalid():
+    """Test password reset confirm view with invalid data."""
+    client = APIClient()
+
+    # Too short password
+    res = client.post(
+        reverse("accounts:forgot_password_reset"),
+        {"password": "short"},
+        format="json",
+    )
+    assert res.status_code == 400
+    assert res.data["ok"] is False
+
+
+@pytest.mark.django_db
+def test_password_reset_start_missing_email():
+    """Test password reset start without email."""
+    client = APIClient()
+    
+    res = client.post(
+        reverse("accounts:forgot_password_start"),
+        {},
+        format="json",
+    )
+    assert res.status_code == 400
+
+
+@pytest.mark.django_db
+def test_password_reset_verify_invalid_code():
+    """Test password reset verify with invalid code."""
+    client = APIClient()
+    
+    res = client.post(
+        reverse("accounts:forgot_password_verify"),
+        {"email": "test@test.com", "code": "000000"},
+        format="json",
+    )
+    assert res.status_code in [400, 404]

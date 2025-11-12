@@ -226,3 +226,4 @@ def test_user_taste_get_creates_new_taste():
     assert res.data["step"] == 1
     assert res.data["is_complete"] is False
     assert UserTaste.objects.filter(user=user).exists()
+    

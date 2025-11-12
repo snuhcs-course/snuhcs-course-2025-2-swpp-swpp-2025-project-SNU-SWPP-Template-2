@@ -136,3 +136,44 @@ def test_create_post_with_related_book():
     
     post = Post.objects.get(author=user, content="Post about my book")
     assert post.related_book == book
+
+
+@pytest.mark.django_db
+def test_create_post_invalid_data():
+    """Test creating post with invalid data."""
+    from rest_framework.test import APIClient
+    
+    client = APIClient()
+    user = User.objects.create(username="user", email="user@test.com", first_name="U", last_name="ser")
+    user.set_password("pass123")
+    user.save()
+    
+    client.force_authenticate(user)
+    
+    # Missing required content
+    res = client.post(
+        "/posts/create/",
+        {},
+        format="json",
+    )
+    assert res.status_code == 400
+
+
+@pytest.mark.django_db
+def test_create_post_empty_content():
+    """Test creating post with empty content."""
+    from rest_framework.test import APIClient
+    
+    client = APIClient()
+    user = User.objects.create(username="user2", email="user2@test.com", first_name="U", last_name="ser")
+    user.set_password("pass123")
+    user.save()
+    
+    client.force_authenticate(user)
+    
+    res = client.post(
+        "/posts/create/",
+        {"content": ""},
+        format="json",
+    )
+    assert res.status_code == 400
