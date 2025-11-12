@@ -148,9 +148,43 @@ def test_counter_propose_nonexistent_request():
     user = User.objects.create(username="user", email="u@test.com", first_name="U", last_name="ser")
     client.force_authenticate(user)
     
+    # Use a valid UUID format
+    fake_uuid = "00000000-0000-0000-0000-000000000001"
     res = client.post(
-        reverse("barter:counter-propose", kwargs={"request_id": 99999}),
+        reverse("barter:counter-propose", kwargs={"request_id": fake_uuid}),
         {"offered_book_id": "00000000-0000-0000-0000-000000000000"},
+        format="json",
+    )
+    assert res.status_code == 404
+
+
+@pytest.mark.django_db
+def test_accept_nonexistent_request():
+    """Test accept with invalid request_id."""
+    client = APIClient()
+    user = User.objects.create(username="user", email="u@test.com", first_name="U", last_name="ser")
+    client.force_authenticate(user)
+    
+    # Use a valid UUID format
+    fake_uuid = "00000000-0000-0000-0000-000000000001"
+    res = client.post(
+        reverse("barter:accept-request", kwargs={"request_id": fake_uuid}),
+        format="json",
+    )
+    assert res.status_code == 404
+
+
+@pytest.mark.django_db
+def test_reject_nonexistent_request():
+    """Test reject with invalid request_id."""
+    client = APIClient()
+    user = User.objects.create(username="user", email="u@test.com", first_name="U", last_name="ser")
+    client.force_authenticate(user)
+    
+    # Use a valid UUID format
+    fake_uuid = "00000000-0000-0000-0000-000000000001"
+    res = client.post(
+        reverse("barter:reject-request", kwargs={"request_id": fake_uuid}),
         format="json",
     )
     assert res.status_code == 404
@@ -296,8 +330,10 @@ def test_accept_nonexistent_request():
     user = User.objects.create(username="user", email="u@test.com", first_name="U", last_name="ser")
     client.force_authenticate(user)
     
+    # Use a valid UUID format
+    fake_uuid = "00000000-0000-0000-0000-000000000001"
     res = client.post(
-        reverse("barter:accept-request", kwargs={"request_id": 99999}),
+        reverse("barter:accept-request", kwargs={"request_id": fake_uuid}),
         format="json",
     )
     assert res.status_code == 404
@@ -310,8 +346,10 @@ def test_reject_nonexistent_request():
     user = User.objects.create(username="user", email="u@test.com", first_name="U", last_name="ser")
     client.force_authenticate(user)
     
+    # Use a valid UUID format
+    fake_uuid = "00000000-0000-0000-0000-000000000001"
     res = client.post(
-        reverse("barter:reject-request", kwargs={"request_id": 99999}),
+        reverse("barter:reject-request", kwargs={"request_id": fake_uuid}),
         format="json",
     )
     assert res.status_code == 404
