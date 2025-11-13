@@ -41,4 +41,9 @@ class HomeRepository @Inject constructor(
             throw e
         }
     }
+
+    suspend fun createRequest(recipientId: String, requestedBookId: String): Boolean {
+        val res = homeApi.createRequest(CreateBarterRequest(recipientId, requestedBookId))
+        return res.isSuccessful
+    }
 }

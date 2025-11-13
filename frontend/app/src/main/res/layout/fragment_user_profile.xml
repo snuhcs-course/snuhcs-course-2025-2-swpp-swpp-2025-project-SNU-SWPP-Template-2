@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingHorizontal="16dp"
-    tools:context=".feature.library.LibraryFragment">
+    tools:context=".feature.library.UserProfileFragment">
 
     <TextView
         android:id="@+id/tvAppName"
@@ -31,7 +31,7 @@
 
     <TextView
         android:id="@+id/tvName"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textStyle="bold"
         android:textSize="@dimen/text_h1"
@@ -41,6 +41,22 @@
         app:layout_constraintStart_toEndOf="@id/ivProfileImage"
         android:layout_marginStart="@dimen/space_m"
         tools:text="SeoRo" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnFollow"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:minWidth="0dp"
+        android:minHeight="0dp"
+        android:paddingHorizontal="@dimen/space_m"
+        android:text="@string/follow"
+        android:paddingBottom="0dp"
+        android:paddingTop="0dp"
+        android:textSize="@dimen/text_body"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBaseline_toBaselineOf="@id/tvName"/>
+
 
     <LinearLayout
         android:id="@+id/statsContainer"
@@ -112,6 +128,7 @@
 
     </LinearLayout>
 
+
     <TextView
         android:id="@+id/tvBio"
         android:layout_width="0dp"
@@ -131,9 +148,7 @@
         android:layout_marginTop="@dimen/space_s"
         app:tabGravity="fill"
         app:tabMode="fixed"
-        app:tabIndicatorColor="@color/grey"
         app:tabIndicatorFullWidth="true"
-        app:tabSelectedTextColor="@color/black"
         app:layout_constraintTop_toBottomOf="@id/ivProfileImage"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -216,12 +231,11 @@
         android:id="@+id/profileContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:visibility="gone"
+        android:visibility="visible"
         app:layout_constraintTop_toBottomOf="@id/contentTabs"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:visibility="visible">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <LinearLayout
             android:id="@+id/profileRoot"
@@ -231,7 +245,6 @@
             android:paddingHorizontal="@dimen/space_l"
             android:paddingVertical="@dimen/space_m">
 
-            <!-- 1) 거래 스타일 -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTradeStyle"
                 android:layout_width="match_parent"
@@ -239,6 +252,7 @@
                 style="@style/Card.Base"
                 android:layout_marginTop="@dimen/space_s"
                 app:cardUseCompatPadding="true">
+
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -270,7 +284,6 @@
                         android:layout_marginTop="@dimen/space_m"
                         android:text="@string/profile_location" />
 
-                    <!-- 보기모드 -->
                     <TextView
                         android:id="@+id/tvTradeLocation1"
                         style="@style/Text.Body.Medium"
@@ -291,106 +304,6 @@
                         android:visibility="visible"
                         tools:visibility="visible" />
 
-                    <!-- 편집모드 (밑줄 스타일 EditText) -->
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupLocations"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:minHeight="0dp"
-                        app:singleLine="false"
-                        android:visibility="gone"
-                        tools:visibility="visible">
-
-                        <com.google.android.material.chip.Chip
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            style="@style/Widget.MaterialComponents.Chip.Entry"
-                            android:text="서울 마포구"
-                            app:closeIconVisible="true"/>
-                    </com.google.android.material.chip.ChipGroup>
-
-                    <LinearLayout
-                        android:id="@+id/locationEditorRow"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="bottom"
-                        android:visibility="gone"
-                        tools:visibility="visible">
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/menuTradeCity"
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            app:boxBackgroundColor="@android:color/transparent"
-                            app:hintEnabled="false"
-                            app:boxStrokeWidth="1dp"
-                            app:boxStrokeWidthFocused="2dp"
-                            tools:visibility="visible">
-
-                            <AutoCompleteTextView
-                                android:id="@+id/autoCompleteLocation1"
-                                style="@style/Text.Body.Medium"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="@string/profile_location_hint_1"
-                                android:inputType="none"
-                                android:minHeight="0dp"
-                                android:singleLine="true"
-                                android:ellipsize="end"
-                                android:scrollHorizontally="true"
-                                android:paddingTop="6dp"
-                                android:paddingBottom="6dp"/>
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <View
-                            android:layout_width="@dimen/space_s"
-                            android:layout_height="0dp"
-                            />
-
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:id="@+id/menuTradeDistrict"
-                            style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            app:hintEnabled="false"
-                            app:boxBackgroundColor="@android:color/transparent"
-                            app:boxStrokeWidth="1dp"
-                            app:boxStrokeWidthFocused="2dp"
-                            tools:visibility="visible">
-
-                            <AutoCompleteTextView
-                                android:id="@+id/autoCompleteLocation2"
-                                style="@style/Text.Body.Medium"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="@string/profile_location_hint_2"
-                                android:minHeight="0dp"
-                                android:inputType="none"
-                                android:ellipsize="end"
-                                android:scrollHorizontally="true"
-                                android:paddingTop="6dp"
-                                android:paddingBottom="6dp"/>
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnAddLocation"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:minWidth="0dp"
-                            android:minHeight="0dp"
-                            android:text="추가"
-                            tools:visibility="visible"/>
-                    </LinearLayout>
-
-                    <!-- 거래 장소 -->
                     <TextView
                         style="@style/Pill.Section"
                         android:textStyle="bold"
@@ -399,7 +312,6 @@
                         android:layout_marginTop="@dimen/space_m"
                         android:text="@string/profile_spot" />
 
-                    <!-- 보기모드 -->
                     <TextView
                         android:id="@+id/tvTradeSpot1"
                         style="@style/Text.Body.Medium"
@@ -419,39 +331,8 @@
                         android:text="@string/profile_spot_example_2"
                         android:visibility="visible"
                         tools:visibility="visible" />
-
-                    <!-- 편집모드 -->
-                    <EditText
-                        android:id="@+id/editTradeSpot1"
-                        style="@style/Text.Body.Medium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:hint="@string/profile_spot_hint_1"
-                        android:background="@drawable/underline"
-                        android:paddingBottom="@dimen/space_xs"
-                        android:inputType="textCapWords"
-                        android:importantForAutofill="no"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-
-                    <EditText
-                        android:id="@+id/editTradeSpot2"
-                        style="@style/Text.Body.Medium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_xs"
-                        android:hint="@string/profile_spot_hint_2"
-                        android:background="@drawable/underline"
-                        android:paddingBottom="@dimen/space_xs"
-                        android:inputType="textCapWords"
-                        android:importantForAutofill="no"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
 
             <!-- 2) 독서 취향 -->
             <com.google.android.material.card.MaterialCardView
@@ -487,7 +368,6 @@
                         android:layout_marginTop="@dimen/space_m"
                         android:text="@string/profile_preferred_genres" />
 
-                    <!-- 읽기모드 -->
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/groupSelectedGenres"
                         android:layout_width="match_parent"
@@ -507,48 +387,6 @@
                         android:visibility="gone"
                         tools:visibility="visible" />
 
-                    <!-- 편집모드 -->
-                    <com.google.android.material.chip.ChipGroup
-                        android:id="@+id/chipGroupGenres"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_xs"
-                        android:visibility="gone"
-                        app:singleLine="false"
-                        tools:visibility="visible">
-
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_modern_fiction"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_classic_fiction"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_essay"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_poetry_play"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_self_improvement"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_science_tech"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_humanities_social"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_history_philosophy"/>
-                        <com.google.android.material.chip.Chip
-                            style="@style/Chip.Filter"
-                            android:text="@string/genre_art_language"/>
-                    </com.google.android.material.chip.ChipGroup>
-
-                    <!-- ============ 좋아하는 책 ============ -->
-
-                    <!-- 보기모드 -->
                     <TextView
                         android:id="@+id/tvFavBookLabel"
                         style="@style/Pill.Section"
@@ -580,105 +418,6 @@
                         android:visibility="visible"
                         tools:visibility="visible"/>
 
-
-                    <!-- 편집모드 (밑줄 스타일 EditText) -->
-
-                    <EditText
-                        android:id="@+id/editFavBook"
-                        style="@style/Text.Body.Medium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:background="@drawable/underline"
-                        android:hint="@string/profile_favorite_book"
-                        android:paddingBottom="@dimen/space_xs"
-                        android:inputType="textCapWords"
-                        android:importantForAutofill="no"
-                        android:visibility="gone"
-                        tools:visibility="visible" />
-
-                    <EditText
-                        android:id="@+id/editFavBookNote"
-                        style="@style/Text.Caption"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:hint="@string/profile_favorite_book_note_hint"
-                        android:gravity="top"
-                        android:background="@drawable/underline"
-                        android:paddingBottom="@dimen/space_xs"
-                        android:inputType="textMultiLine|textCapSentences"
-                        android:importantForAutofill="no"
-                        android:visibility="gone"
-                        tools:visibility="visible"/>
-
-                    <!-- ============ 좋아하는 작가 ============ -->
-
-                    <TextView
-                        android:id="@+id/tvFavAuthorLabel"
-                        style="@style/Pill.Section"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_m"
-                        android:text="@string/profile_favorite_author"
-                        android:textStyle="bold"
-                        android:visibility="visible"
-                        tools:visibility="visible"/>
-
-                    <TextView
-                        android:id="@+id/tvFavAuthor"
-                        style="@style/Text.Body.Medium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:text="@string/profile_favorite_author_example"
-                        android:visibility="visible"
-                        tools:visibility="visible"/>
-
-                    <TextView
-                        android:id="@+id/tvFavAuthorNote"
-                        style="@style/Text.Caption"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_xs"
-                        android:text="@string/profile_favorite_author_note_example"
-                        android:maxLines="2"
-                        android:ellipsize="end"
-                        android:visibility="visible"
-                        tools:visibility="visible"/>
-
-                    <EditText
-                        android:id="@+id/editFavAuthor"
-                        style="@style/Text.Body.Medium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:hint="@string/profile_favorite_author"
-                        android:background="@drawable/underline"
-                        android:paddingBottom="@dimen/space_xs"
-                        android:inputType="textPersonName"
-                        android:autofillHints="personName"
-                        android:visibility="gone"
-                        tools:visibility="visible"/>
-
-                    <EditText
-                        android:id="@+id/editFavAuthorNote"
-                        style="@style/Text.Caption"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:hint="@string/profile_favorite_author_note_hint"
-                        android:gravity="top"
-                        android:background="@drawable/underline"
-                        android:paddingBottom="@dimen/space_xs"
-                        android:inputType="textMultiLine|textCapSentences"
-                        android:importantForAutofill="no"
-                        android:visibility="gone"
-                        tools:visibility="visible"/>
-
-                    <!-- ============ 독서 습관 ============ -->
-
-                    <!-- 보기모드 -->
                     <TextView
                         android:id="@+id/tvReadHabitLabel"
                         style="@style/Pill.Section"
@@ -699,23 +438,6 @@
                         android:text="@string/profile_reading_habit_example"
                         android:visibility="visible"
                         tools:visibility="visible"/>
-
-                    <!-- 편집모드 (밑줄 스타일 EditText) -->
-                    <EditText
-                        android:id="@+id/editReadingHabit"
-                        style="@style/Text.Body.Medium"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/space_s"
-                        android:hint="@string/profile_reading_habit_hint"
-                        android:gravity="top"
-                        android:background="@drawable/underline"
-                        android:paddingBottom="@dimen/space_xs"
-                        android:inputType="textMultiLine|textCapSentences"
-                        android:importantForAutofill="no"
-                        android:visibility="gone"
-                        tools:visibility="visible"/>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -747,15 +469,6 @@
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:text="@string/profile_wishlist"/>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnManageWishlist"
-                            style="@style/Btn.Tonal.Text"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/wishlist_manage"
-                            android:visibility="gone"
-                            tools:visibility="visible"/>
                     </LinearLayout>
 
                     <!-- Divider -->
@@ -791,41 +504,9 @@
                             android:layout_height="wrap_content"
                             android:text="@string/profile_wishlist_empty"/>
                     </LinearLayout>
-
-                    <LinearLayout
-                        android:id="@+id/btnAddWishlist"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:paddingVertical="@dimen/space_l"
-                        android:visibility="gone"
-                        tools:visibility="visible">
-
-                        <com.google.android.material.button.MaterialButton
-                            style="@style/Btn.Tonal.Text"
-                            android:layout_height="wrap_content"
-                            android:layout_width="wrap_content"
-                            android:text="@string/wishlist_add"
-                            tools:visibility="visible"/>
-                    </LinearLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
         </LinearLayout>
     </ScrollView>
-
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAdd"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
-        android:contentDescription="@string/desc_fab"
-        app:backgroundTint="@color/light_gray"
-        app:srcCompat="@drawable/plus_icon"
-        app:tint="@color/white"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

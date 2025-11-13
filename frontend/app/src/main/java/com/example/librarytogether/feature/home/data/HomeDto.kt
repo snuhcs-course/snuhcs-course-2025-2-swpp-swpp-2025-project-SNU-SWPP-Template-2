@@ -23,6 +23,7 @@ package com.example.librarytogether.feature.home.data
 
 data class Post(
     val id: Int,
+    val posterId: Int, // navigate to user profile
     val bookTitle: String,
     val authorName: String,
     val posterName: String,
@@ -32,7 +33,12 @@ data class Post(
     val likeCount: Int = 0,
     val createdAt: String? = null,
     val isLiked: Boolean = false,
-    val userBookId: Int // 교환 대상 책 아이디
+    val userBookId: String // 교환 대상 책 uuid
+)
+
+data class CreateBarterRequest(
+    val recipientId: String,
+    val requestedBookId: String,
 )
 
 data class FeedResponse(

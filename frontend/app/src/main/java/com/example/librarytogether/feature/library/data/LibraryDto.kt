@@ -45,7 +45,7 @@ data class PostReview(
 )
 
 data class Book(
-    val id: Int,
+    val id: String,
     val title: String,
     val author: String?,
     val coverUrl: String?,
@@ -85,6 +85,12 @@ data class UserPreferences(
     val readingHabit: String?
 )
 
+data class WishlistRequest(val book: PostBook)
+
 data class ReviewResponse(
     val results: List<Review>
+)
+
+data class ReviewLikeResponse(
+    val review: Review
 )

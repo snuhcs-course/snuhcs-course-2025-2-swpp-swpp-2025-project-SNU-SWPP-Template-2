@@ -75,6 +75,7 @@ android {
 
 dependencies {
 
+    implementation(libs.flowbinding.android)
     implementation(libs.androidx.hilt.navigation.fragment)
     testImplementation(libs.hamcrest)
     testImplementation(libs.truth)

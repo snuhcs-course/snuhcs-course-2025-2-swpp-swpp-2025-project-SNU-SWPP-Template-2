@@ -15,10 +15,17 @@ import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentLibraryBinding
+import com.example.librarytogether.feature.bookdetail.BookDetailFragmentDirections
+import com.example.librarytogether.feature.bookdetail.EntrySource
+import com.example.librarytogether.feature.library.BookAdapter
+import com.example.librarytogether.feature.library.data.Book
+import com.example.librarytogether.feature.library.data.PostBook
 import com.example.librarytogether.feature.library.data.UserProfile
 import com.example.librarytogether.util.loadAvatar
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
+
+enum class AddBookMode {BOOKSHELF, WISHLIST}
 
 @AndroidEntryPoint
 class LibraryFragment : Fragment() {
@@ -46,25 +53,37 @@ class LibraryFragment : Fragment() {
         )
     ) }
 
-    private val bookRowAdapter by lazy { BookAdapter(
-        mode = BookListMode.ROW,
-        clicks = BookClicks(
-            onClickItem = { book ->
-                // TODO: 책 상세 화면으로 이동
-                Toast.makeText(requireContext(), "책 상세 화면으로 이동", Toast.LENGTH_SHORT).show()
-            }
+    private val bookRowAdapter by lazy {
+        BookAdapter(
+            mode = BookListMode.ROW,
+            clicks = BookClicks(
+                onClickItem = { book ->
+                    val dir = BookDetailFragmentDirections
+                        .actionGlobalBookDetail(
+                            bookId = book.id,
+                            source = EntrySource.WISHLIST
+                        )
+                    findNavController().navigate(dir)
+                }
+            )
         )
-    )}
+    }
 
-    private val bookTileAdapter by lazy { BookAdapter(
-        mode = BookListMode.TILE,
-        clicks = BookClicks(
-            onClickItem = { book ->
-                // TODO: 책 상세 화면으로 이동
-                Toast.makeText(requireContext(), "책 상세 화면으로 이동", Toast.LENGTH_SHORT).show()
-            }
+    private val bookTileAdapter by lazy {
+        BookAdapter(
+            mode = BookListMode.TILE,
+            clicks = BookClicks(
+                onClickItem = { book ->
+                    val dir = BookDetailFragmentDirections
+                        .actionGlobalBookDetail(
+                            bookId = book.id,
+                            source = EntrySource.BOOKSHELF
+                        )
+                    findNavController().navigate(dir)
+                }
+            )
         )
-    )}
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -88,8 +107,9 @@ class LibraryFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnAddWishlist.setOnClickListener {
-            // TODO: 책 검색 화면으로 이동
-            Toast.makeText(requireContext(), "책 검색 화면으로 이동", Toast.LENGTH_SHORT).show()
+            val action = LibraryFragmentDirections
+                .actionLibraryFragmentToAddBookFragment(mode = AddBookMode.WISHLIST)
+            findNavController().navigate(action)
         }
 
         binding.btnManageWishlist.setOnClickListener {
@@ -119,7 +139,7 @@ class LibraryFragment : Fragment() {
         if (currentTab == Tab.PROFILE) {
             rvWishlist.visibility       = if (!isWishlistEmpty) View.VISIBLE else View.GONE
             tvWishlistEmpty.visibility  = if (isWishlistEmpty)  View.VISIBLE else View.GONE
-            btnAddWishlist.visibility   = if (isWishlistEmpty)  View.VISIBLE else View.GONE
+            btnAddWishlist.visibility   = if (isEditingProfile)  View.VISIBLE else View.GONE
         } else {
             rvWishlist.visibility = View.GONE
             tvWishlistEmpty.visibility = View.GONE
@@ -253,7 +273,9 @@ class LibraryFragment : Fragment() {
                 setImageResource(R.drawable.plus_icon)
                 contentDescription = getString(R.string.fab_add_book)
                 setOnClickListener {
-                    findNavController().navigate(R.id.action_libraryFragment_to_addBookFragment)
+                    val action = LibraryFragmentDirections
+                        .actionLibraryFragmentToAddBookFragment(mode = AddBookMode.BOOKSHELF)
+                    findNavController().navigate(action)
                 }
                 show()
             }

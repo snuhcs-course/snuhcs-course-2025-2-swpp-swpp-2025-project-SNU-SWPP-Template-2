@@ -5,7 +5,7 @@ data class SearchItem(
     val bookTitle: String,
     val authorName: String,
     val coverUrl: String? = null,
-    val userBookId: Int? = null
+    val userBookId: String
 )
 
 data class SearchResponse(
