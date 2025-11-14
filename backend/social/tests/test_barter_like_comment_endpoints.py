@@ -21,7 +21,7 @@ def test_like_and_comment_and_barter_create_notifications():
 
     publisher = Publisher.objects.create(name="Pub")
     auth = BookAuthor.objects.create(name="Auth")
-    book = Book.objects.create(title="T", owner=author, publisher=publisher, is_for_barter=True)
+    book = Book.objects.create(title="T", owner=author, publisher=publisher, is_for_barter=True, trade_status="available")
     book.authors.add(auth)
 
     post = Post.objects.create(author=author, content="hello", related_book=book)
@@ -37,17 +37,16 @@ def test_like_and_comment_and_barter_create_notifications():
     assert res.status_code == 201
     assert Notification.objects.filter(recipient=author, notification_type="comment_received").exists()
 
-    # barter (1:1) - actor must offer a book they own
-    offered = Book.objects.create(title="ActorBook", owner=actor, publisher=publisher, is_for_barter=True)
-    offered.authors.add(auth)
+    # barter - initial request (no offered_book yet in 2-step flow)
     res = client.post(
         f"/posts/{post.id}/barter/",
-        {"offered_book_id": str(offered.id)},
+        {"message": "I want to trade for your book!"},
         format="json",
     )
     assert res.status_code == 201
     assert Notification.objects.filter(recipient=author, notification_type="barter_request").exists()
     payload = res.data["barter"]
     assert payload["requester"]["username"] == "actor"
-    assert payload["requestedBook"]["id"] == str(book.id)
-    assert payload["offeredBook"]["id"] == str(offered.id)
+    assert payload["requested_book"]["id"] == str(book.id)
+    # In 2-step flow, offered_book is None initially (set later via counter-proposal)
+    assert payload["offered_book"] is None

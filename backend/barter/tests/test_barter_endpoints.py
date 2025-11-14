@@ -1,3 +1,13 @@
+"""
+DEPRECATED: This test file is outdated and uses the old barter flow.
+Use test_barter_flow.py instead, which tests the new 3-step flow:
+1. A requests B's book (pending)
+2. B counter-proposes (counter_proposed)  
+3. A accepts (completed)
+
+This file is kept for reference only.
+"""
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.urls import reverse
@@ -11,6 +21,7 @@ from notify.models import Notification
 User = get_user_model()
 
 
+@pytest.mark.skip(reason="Outdated test - uses old flow with offered_book in initial request")
 @pytest.mark.django_db
 def test_barter_create_accept_reject_flow():
     """Test 1:1 book exchange flow."""
