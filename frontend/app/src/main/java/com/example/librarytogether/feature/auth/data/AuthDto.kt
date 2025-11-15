@@ -111,7 +111,8 @@ data class GoogleAuthResponse(
     val ok: Boolean,
     val accessToken: String?,
     val refreshToken: String?,
-    val message: String?
+    val message: String?,
+    val user: UserInfo?
 )
 
 data class KakaoAuthRequest(
@@ -122,6 +123,7 @@ data class KakaoAuthResponse(
     val ok: Boolean,
     val accessToken: String?,
     val refreshToken: String?,
-    val message: String?
+    val message: String?,
+    val user: UserInfo?
 )
 

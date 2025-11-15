@@ -29,6 +29,7 @@ import androidx.credentials.GetCredentialResponse
 import androidx.credentials.exceptions.GetCredentialException
 import com.example.librarytogether.BuildConfig
 import com.example.librarytogether.feature.auth.data.KakaoAuthRequest
+import com.example.librarytogether.feature.auth.data.UserInfo
 import com.example.librarytogether.feature.main.MainActivity
 import com.example.librarytogether.feature.onboarding.OnboardingActivity
 
@@ -116,7 +117,7 @@ class LoginActivity : AppCompatActivity() {
                         email.setText("")
                         password.setText("")
 
-                        val hasInitialTaste = body.user?.hasInitialTaste ?: false
+                        val hasInitialTaste = body.user?.has_initial_taste ?: false
                         if (hasInitialTaste) {
                             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                         }else{
@@ -203,7 +204,6 @@ class LoginActivity : AppCompatActivity() {
                                 "구글 로그인 성공! ${googleCred.displayName}님 환영합니다",
                                 Toast.LENGTH_LONG
                             ).show()
-
                             val hasInitialTaste = body.user?.has_initial_taste ?: false
                             if(hasInitialTaste) {
                                 startActivity(Intent(this@LoginActivity, MainActivity::class.java))
