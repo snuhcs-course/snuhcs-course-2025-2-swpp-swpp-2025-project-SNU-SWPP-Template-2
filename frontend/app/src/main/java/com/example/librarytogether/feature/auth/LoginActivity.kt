@@ -30,6 +30,7 @@ import androidx.credentials.exceptions.GetCredentialException
 import com.example.librarytogether.BuildConfig
 import com.example.librarytogether.feature.auth.data.KakaoAuthRequest
 import com.example.librarytogether.feature.main.MainActivity
+import com.example.librarytogether.feature.onboarding.OnboardingActivity
 
 // Google ID Token 관련 import
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
@@ -115,6 +116,12 @@ class LoginActivity : AppCompatActivity() {
                         email.setText("")
                         password.setText("")
 
+                        val hasInitialTaste = body.user?.hasInitialTaste ?: false
+                        if (hasInitialTaste) {
+                            startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                        }else{
+                            startActivity(Intent(this@LoginActivity, OnboardingActivity::class.java))
+                        }
                         startActivity(Intent(this@LoginActivity, MainActivity::class.java))
                         finish()
                     } else {
@@ -126,7 +133,7 @@ class LoginActivity : AppCompatActivity() {
                     when (resp.code()) {
                         400, 401, 403 -> {
                             // 잘못된 아이디/비밀번호
-                            Toast.makeText(this@LoginActivity, "아이디와 비밀번호를 다시 한 번 확인해주세요.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@LoginActivity, "아이디와 비밀번호를 다시 확인해주세요.", Toast.LENGTH_SHORT).show()
                         }
                         in 500..599 -> {
                             // server error
@@ -196,7 +203,13 @@ class LoginActivity : AppCompatActivity() {
                                 "구글 로그인 성공! ${googleCred.displayName}님 환영합니다",
                                 Toast.LENGTH_LONG
                             ).show()
-                             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+
+                            val hasInitialTaste = body.user?.has_initial_taste ?: false
+                            if(hasInitialTaste) {
+                                startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                            }else{
+                                startActivity(Intent(this@LoginActivity, OnboardingActivity::class.java))
+                            }
                              finish()
                         } else {
                             Toast.makeText(this@LoginActivity, body?.message ?: "로그인 실패", Toast.LENGTH_SHORT).show()
@@ -249,8 +262,16 @@ class LoginActivity : AppCompatActivity() {
                             access = body.accessToken,
                             refresh = body.refreshToken
                         )
-                        Toast.makeText(this@LoginActivity, "카카오 로그인 성공! 환영합니다", Toast.LENGTH_LONG).show()
-                         startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                        Toast.makeText(this@LoginActivity, "카카오 로그인 성공! 환영합니다",
+                            Toast.LENGTH_LONG
+                        ).show()
+
+                        val hasInitialTaste: Boolean =  body.user?.has_initial_taste ?: false
+                         if(hasInitialTaste) {
+                             startActivity(Intent(this@LoginActivity, MainActivity::class.java))
+                         }else{
+                             startActivity(Intent(this@LoginActivity, OnboardingActivity::class.java))
+                         }
                          finish()
                     } else {
                         Toast.makeText(this@LoginActivity, body?.message ?: "로그인 실패", Toast.LENGTH_SHORT).show()
@@ -263,5 +284,4 @@ class LoginActivity : AppCompatActivity() {
             }
         }
     }
-
 }

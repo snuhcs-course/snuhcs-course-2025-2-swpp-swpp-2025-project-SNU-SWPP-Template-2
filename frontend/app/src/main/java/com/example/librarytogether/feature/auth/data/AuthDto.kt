@@ -45,14 +45,15 @@ data class UserInfo(
     val following_count: Int? = null,
     val books_count: Int? = null,
     val created_at: String? = null,
-    val last_active: String? = null
+    val last_active: String? = null,
+    val has_initial_taste: Boolean
 )
 
 data class LoginResponse(
     val ok: Boolean,
     val accessToken: String,
     val refreshToken: String,
-    val user: UserInfo? = null,
+    val user: UserInfo?,
     val message: String? = null
 )
 
