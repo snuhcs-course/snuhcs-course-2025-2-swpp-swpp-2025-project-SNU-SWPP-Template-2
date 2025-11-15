@@ -156,6 +156,7 @@ class ReviewLikeView(APIView):
 def user_profile_detail(request, user_id: int):
     """
     Get public profile of a specific user by ID.
+    Returns same structure as UserProfileMeView for consistency.
 
     GET /library/profile/{user_id}/
     """
@@ -164,8 +165,48 @@ def user_profile_detail(request, user_id: int):
     except User.DoesNotExist:
         return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    serializer = UserSerializer(user, context={"request": request})
-    return Response(serializer.data, status=status.HTTP_200_OK)
+    # Build frontend-compatible profile (same as UserProfileMeView)
+    profile_url = None
+    if user.profile_picture:
+        profile_url = request.build_absolute_uri(user.profile_picture.url)
+
+    # Taste and preferences
+    favorite_genres = []
+    trade_location1 = None
+    trade_spot1 = None
+    try:
+        taste = user.taste
+        favorite_genres = taste.favorite_genres or []
+        trade_location1 = taste.trade_place_name or None
+        trade_spot1 = taste.trade_address or None
+    except Exception:
+        pass
+
+    # Compute counts
+    review_count = BookReview.objects.filter(reviewer=user).count()
+    follower_count = user.follower_relationships.count()
+    following_count = user.following_relationships.count()
+
+    return Response({
+        "username": user.username,
+        "bio": user.bio,
+        "profileUrl": profile_url,
+        "reviewCount": review_count,
+        "followerCount": follower_count,
+        "followingCount": following_count,
+        "favoriteGenres": favorite_genres,
+        "preferences": {
+            "tradeLocation1": trade_location1,
+            "tradeLocation2": None,
+            "tradeSpot1": trade_spot1,
+            "tradeSpot2": None,
+            "favBook": None,
+            "favBookNote": None,
+            "favAuthor": None,
+            "favAuthorNote": None,
+            "readingHabit": None,
+        },
+    }, status=status.HTTP_200_OK)
 
 
 @api_view(["GET"])
