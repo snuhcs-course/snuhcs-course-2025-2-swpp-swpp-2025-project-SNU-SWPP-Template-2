@@ -124,16 +124,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun onClickAddToWishlist(post: Post) {
-        val book = Book(
-            id = post.userBookId,
-            title = post.bookTitle,
-            author = post.authorName,
-            coverUrl = post.imageUrls[0],
-            publisher = null,
-            isbn = null
-        )
-        libraryViewModel.addToWishlist(book)
-        Snackbar.make(requireView(), "위시리스트에 추가했습니다.", Snackbar.LENGTH_SHORT).show()
+        libraryViewModel.toggleWishlistById(post.bookId)
+//        Snackbar.make(requireView(), "위시리스트에 추가했습니다.", Snackbar.LENGTH_SHORT).show()
     }
 
     private fun navigateToReview(post: Post) {
@@ -142,10 +134,11 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun onClickExchange(post: Post) {
-        val ownerId = post.posterName
-        val bookId = post.userBookId
+        val ownerName = post.posterName
+        val ownerId = post.posterId
+        val bookId = post.bookId
 
-        val title = getString(R.string.barter_title_to_user, ownerId)
+        val title = getString(R.string.barter_title_to_user, ownerName)
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(title)

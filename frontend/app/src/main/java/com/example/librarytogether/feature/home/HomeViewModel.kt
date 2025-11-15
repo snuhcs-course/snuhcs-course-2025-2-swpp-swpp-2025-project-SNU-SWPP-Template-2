@@ -79,7 +79,7 @@ class HomeViewModel @Inject constructor(
         _posts.value = _posts.value?.map { if (it.id == updated.id) updated else it }
     }
 
-    fun requestBarter(ownerId: String, bookId: String) {
+    fun requestBarter(ownerId: Int, bookId: String) {
         _barterError.value = null
         viewModelScope.launch {
             try {

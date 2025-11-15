@@ -3,8 +3,6 @@ package com.example.librarytogether.feature.bookdetail
 import android.content.res.ColorStateList
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageView
-import androidx.annotation.AttrRes
 import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -13,16 +11,12 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.bumptech.glide.Glide
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentBookDetailBinding
 import com.example.librarytogether.feature.bookdetail.BookDetailViewModel.UiState
 import com.example.librarytogether.feature.bookdetail.data.BookDetail
 import com.example.librarytogether.feature.library.LibraryViewModel
 import com.example.librarytogether.util.loadCover
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.color.MaterialColors
-import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
 
 enum class EntrySource {SEARCH, WISHLIST, EXPLORE, BOOKSHELF, BARTERAPPROVAL}
@@ -111,14 +105,14 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
 
         val book = state.book
         binding.tvTitle.text = book.title
-        binding.tvAuthor.text = book.author
+        binding.tvAuthor.text = book.authors
         binding.tvPublisher.text = book.publisher.orEmpty()
         binding.tvIsbn.text = book.isbn.orEmpty()
         binding.tvDescription.apply {
             isVisible = !book.description.isNullOrBlank()
             text = book.description ?: ""
         }
-        binding.imgCover.loadCover(book.coverUrl)
+        binding.imgCover.loadCover(book.cover_image)
 
         renderPrimaryButton(source, book)
     }
@@ -131,12 +125,12 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
                 setBtnBg(R.color.black)
             }
             else -> {
-                binding.btnPrimary.isEnabled = b.barterable
-                binding.btnPrimary.text = if (b.barterable)
+                binding.btnPrimary.isEnabled = b.is_for_barter
+                binding.btnPrimary.text = if (b.is_for_barter)
                     getString(R.string.action_request_barter)
                 else
                     getString(R.string.unavailable_for_trade)
-                setBtnBg(if (b.barterable) R.color.black else R.color.grey)
+                setBtnBg(if (b.is_for_barter) R.color.black else R.color.grey)
             }
         }
     }

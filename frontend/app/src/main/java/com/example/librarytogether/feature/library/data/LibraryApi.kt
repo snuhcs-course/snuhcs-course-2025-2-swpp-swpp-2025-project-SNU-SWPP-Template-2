@@ -45,9 +45,10 @@ interface LibraryApi {
     @POST("library/wishlist/")
     suspend fun addToWishlist(@Body body: WishlistRequest): Response<Unit>
 
-    @POST("library/wishlist/{bookId}/")
+
+    @POST("library/books/{bookId}/wishlist/")
     suspend fun addToWishlistById(@Path("bookId") bookId: String): Response<Unit>
 
-    @DELETE("library/wishlist/{bookId}/")
+    @DELETE("library/books/{bookId}/wishlist/")
     suspend fun removeFromWishlistById(@Path("bookId") bookId: String): Response<Unit>
 }

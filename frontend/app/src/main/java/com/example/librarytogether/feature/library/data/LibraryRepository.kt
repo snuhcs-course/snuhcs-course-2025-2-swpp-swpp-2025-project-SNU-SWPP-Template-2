@@ -134,11 +134,11 @@ open class LibraryRepository @Inject constructor(
     open suspend fun addToWishlist(book: Book): Boolean {
         val postBook : PostBook = PostBook(
             title = book.title,
-            author = book.author ?: "",
+            authors = book.authors ?: "",
             publisher = book.publisher,
             isbn = book.isbn,
-            isForBarter = false,
-            coverUrl = book.coverUrl
+            is_for_barter = false,
+            cover_image = book.cover_image
         )
         return try {
             val res = libraryApi.addToWishlist(WishlistRequest(postBook))

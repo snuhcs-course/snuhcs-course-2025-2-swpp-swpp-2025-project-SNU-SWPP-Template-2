@@ -7,7 +7,6 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import com.google.android.material.search.SearchView
-import com.google.android.material.search.SearchBar
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -75,22 +74,22 @@ class AddBookFragment : Fragment(R.layout.fragment_add_book) {
 
     private fun saveToBookshelf() {
         val title = binding.etTitle.text.toString()
-        val author = binding.etAuthor.text.toString()
+        val authors = binding.etAuthor.text.toString()
         val publisher = binding.etPublisher.text.toString()
         val isbn = binding.etIsbn.text.toString()
         val isBarterAvailable = binding.switchBarterAvailable.isChecked
 
-        if (title.isBlank() || author.isBlank()) {
+        if (title.isBlank() || authors.isBlank()) {
             Toast.makeText(requireContext(), "책 제목과 저자는 필수입니다.", Toast.LENGTH_SHORT).show()
             return
         }
 
         val postBook = PostBook(
             title = title,
-            author = author,
+            authors = authors,
             publisher = publisher.takeIf { it.isNotBlank() },
             isbn = isbn.takeIf { it.isNotBlank() },
-            isForBarter = isBarterAvailable,
+            is_for_barter = isBarterAvailable,
             //coverUrl =
         )
         viewModel.addNewBook(postBook)
@@ -98,11 +97,11 @@ class AddBookFragment : Fragment(R.layout.fragment_add_book) {
 
     private fun addToWishlist() {
         val title = binding.etTitle.text.toString()
-        val author = binding.etAuthor.text.toString()
+        val authors = binding.etAuthor.text.toString()
         val publisher = binding.etPublisher.text.toString()
         val isbn = binding.etIsbn.text.toString()
 
-        if (title.isBlank() || author.isBlank()) {
+        if (title.isBlank() || authors.isBlank()) {
             Toast.makeText(requireContext(), "책 제목과 저자는 필수입니다.", Toast.LENGTH_SHORT).show()
             return
         }
@@ -110,10 +109,10 @@ class AddBookFragment : Fragment(R.layout.fragment_add_book) {
         val postBook = Book(
             id = "",
             title = title,
-            author = author,
+            authors = authors,
             publisher = publisher.takeIf { it.isNotBlank() },
             isbn = isbn.takeIf { it.isNotBlank() },
-            coverUrl = ""
+            cover_image = ""
         )
 
         viewModel.addToWishlist(postBook)
@@ -154,10 +153,10 @@ class AddBookFragment : Fragment(R.layout.fragment_add_book) {
 
     private fun onBookSearchResultClicked(book: Book) {
         binding.etTitle.setText(book.title)
-        binding.etAuthor.setText(book.author)
+        binding.etAuthor.setText(book.authors)
         binding.etPublisher.setText(book.publisher)
         binding.etIsbn.setText(book.isbn)
-        binding.imgCover.loadCover(book.coverUrl)
+        binding.imgCover.loadCover(book.cover_image)
 
         binding.searchView.hide()
     }

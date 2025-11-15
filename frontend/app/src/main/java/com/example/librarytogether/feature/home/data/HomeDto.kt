@@ -33,12 +33,14 @@ data class Post(
     val likeCount: Int = 0,
     val createdAt: String? = null,
     val isLiked: Boolean = false,
-    val userBookId: String // 교환 대상 책 uuid
+    val bookId: String, // 교환 대상 책 uuid
+    val barterable: Boolean,
+    // 지역
 )
 
 data class CreateBarterRequest(
-    val recipientId: String,
-    val requestedBookId: String,
+    val recipient_id: Int,
+    val requested_book_id: String,
 )
 
 data class FeedResponse(

@@ -87,7 +87,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private fun onClickResult(item: SearchItem) {
         val dir = BookDetailFragmentDirections
             .actionGlobalBookDetail(
-                bookId = item.userBookId,
+                bookId = item.id,
                 source = EntrySource.SEARCH
             )
         findNavController().navigate(dir)

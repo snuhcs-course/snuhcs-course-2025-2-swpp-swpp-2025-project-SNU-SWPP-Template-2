@@ -182,7 +182,7 @@ class LibraryViewModelTest {
 
     @Test
     fun addNewBook_success_refresh_and_navigate() = runTest {
-        val post = PostBook(title = "T", author = "A", publisher = null, isbn = null, isForBarter = true)
+        val post = PostBook(title = "T", author = "A", publisher = null, isbn = null, is_for_barter = true)
         val newBookList =
             listOf(Book(id = 1, title = "T", author = "A", publisher = null, isbn = null, coverUrl = null))
 
