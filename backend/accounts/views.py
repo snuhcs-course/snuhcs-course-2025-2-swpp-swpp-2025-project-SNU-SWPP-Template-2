@@ -794,6 +794,7 @@ class GoogleLoginView(APIView):
                         "accessToken": str(refresh.access_token),
                         "refreshToken": str(refresh),
                         "message": "Google login successful",
+                        "user":UserSerializer(user).data,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -971,6 +972,7 @@ class KakaoLoginView(APIView):
                         "accessToken": str(refresh.access_token),
                         "refreshToken": str(refresh),
                         "message": "Kakao login successful",
+                        "user":UserSerializer(user).data
                     },
                     status=status.HTTP_200_OK,
                 )
