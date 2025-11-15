@@ -46,6 +46,7 @@ class ExploreFragment : Fragment(R.layout.fragment_explore) {
 
         setupRecycler()
         observeViewModel()
+        viewModel.loadRecommendations()
     }
 
     private fun setupRecycler() {

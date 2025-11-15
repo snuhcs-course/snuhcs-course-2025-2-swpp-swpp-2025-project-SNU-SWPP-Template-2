@@ -1,6 +1,8 @@
 package com.example.librarytogether.di
 
 import android.content.Context
+import com.example.librarytogether.feature.barterapproval.data.BarterApprovalApi
+import com.example.librarytogether.feature.barterapproval.data.BarterApprovalDetail
 import com.example.librarytogether.feature.bookdetail.data.BookDetailApi
 import com.example.librarytogether.feature.explore.data.ExploreApi
 import com.example.librarytogether.feature.home.data.HomeApi
@@ -69,4 +71,9 @@ object NetworkModule {
     @Singleton
     fun provideBookDetailApi(retrofit: Retrofit): BookDetailApi =
         retrofit.create(BookDetailApi::class.java)
+
+    @Provides
+    @Singleton
+    fun barterApprovalApi(retrofit: Retrofit): BarterApprovalApi =
+        retrofit.create(BarterApprovalApi::class.java)
 }

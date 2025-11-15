@@ -200,6 +200,12 @@
     <!--explore-->
     <string name="explore_empty">추천 항목이 아직 없어요.</string>
     <string name="msg_error_generic">오류가 발생했어요. 잠시 후 다시 시도해 주세요.</string>
+    <string name="barter_approval_title">교환 신청 상세</string>
+    <string name="barter_reject">교환 신청 거절</string>
+    <string name="desc_book_cover">책 표지</string>
+    <string name="msg_barter_book_accepted">교환을 수락했어요.</string>
+    <string name="msg_barter_request_rejected">교환 신청을 거절했어요.</string>
+    <string name="error_common">문제가 발생했습니다. 잠시 후 다시 시도해주세요.</string>
 
 
 

@@ -1,8 +1,8 @@
-package com.example.librarytogether.feature.barter
+package com.example.librarytogether.feature.barter_approve
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
-import com.example.librarytogether.feature.barter.data.BarterDetailResponse
-import com.example.librarytogether.feature.barter.data.BarterRepository
+import com.example.librarytogether.feature.barter_approve.data.BarterDetailResponse
+import com.example.librarytogether.feature.barter_approve.data.BarterRepository
 import com.example.librarytogether.feature.library.data.Book
 import com.example.librarytogether.feature.library.data.UserPreferences
 import com.example.librarytogether.feature.library.data.UserProfile

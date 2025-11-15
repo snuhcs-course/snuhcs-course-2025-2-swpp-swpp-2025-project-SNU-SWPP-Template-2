@@ -88,5 +88,19 @@
             app:argType="com.example.librarytogether.feature.bookdetail.EntrySource"/>
     </fragment>
 
+    <fragment
+        android:id="@+id/barterApprovalFragment"
+        android:name="com.example.librarytogether.feature.barterapproval.BarterApprovalFragment"
+        tools:layout="@layout/fragment_barter_approval">
+
+        <argument
+            android:name="requestId"
+            app:argType="string" />
+
+        <action
+            android:id="@+id/action_barterApprovalFragment_to_bookDetailFragment"
+            app:destination="@id/bookDetailFragment" />
+    </fragment>
+
 
 </navigation>
