@@ -9,10 +9,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from accounts.views import UserProfileMeView
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
     SpectacularSwaggerView,
+)
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
 )
 
 from rest_framework_simplejwt.views import (
@@ -35,22 +40,25 @@ urlpatterns = [
         SpectacularRedocView.as_view(url_name="schema"),
         name="redoc",
     ),
-
-    #Token API
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-
-
+    # Token API
+    path(
+        "api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"
+    ),
+    path(
+        "api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"
+    ),
     # Authentication
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
+    # Place explicit profile endpoint first to avoid overlap with allauth URLs.
+    path("accounts/profile/me/", UserProfileMeView.as_view(), name="profile_me"),
     path("accounts/", include("allauth.urls")),
     # API Endpoints
     path("auth/", include("accounts.urls")),  # Matches frontend expectations
     path("library/", include("books.urls")),  # User's library (reviews, books)
     path("", include("social.urls")),  # Social features (home feed, posts)
-    path("api/v1/barter/", include("barter.urls")),
-    path("api/v1/notifications/", include("notify.urls")),
+    path("barter/", include("barter.urls")),  # Barter requests
+    # path("api/v1/notifications/", include("notify.urls")),
 ]
 
 # Serve media files in development

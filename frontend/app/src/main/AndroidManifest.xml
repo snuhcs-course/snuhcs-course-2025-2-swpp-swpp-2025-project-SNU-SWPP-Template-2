@@ -25,13 +25,16 @@
         </activity>
 
         <activity
+            android:name=".feature.onboarding.OnboardingActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".feature.auth.SignupActivity"
             android:exported="false" />
 
         <activity
             android:name=".feature.auth.ForgotPasswordActivity"
             android:exported="false" />
-
 
         <activity
             android:name=".feature.auth.ResetPasswordActivity"
@@ -57,6 +60,10 @@
 
         <activity
             android:name=".feature.main.MainActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".util.HiltTestActivity"
             android:exported="false" />
 
     </application>

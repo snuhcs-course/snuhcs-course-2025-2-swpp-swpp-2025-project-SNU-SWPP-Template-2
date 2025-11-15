@@ -6,7 +6,7 @@ Handles book reviews and related data serialization.
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import BookReview, ReviewHelpfulVote
+from .models import Book, BookReview
 
 User = get_user_model()
 
@@ -24,6 +24,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     userName = serializers.CharField(
         source="reviewer.username", read_only=True
     )
+    userId = serializers.IntegerField(source="reviewer.id", read_only=True)
     userProfile = serializers.SerializerMethodField()
     content = serializers.CharField(read_only=True)
     imageUrls = serializers.ListField(
@@ -39,6 +40,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             "id",
             "bookTitle",
             "authorName",
+            "userId",
             "userName",
             "userProfile",
             "content",
@@ -65,6 +67,24 @@ class ReviewSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return obj.helpful_votes.filter(id=request.user.id).exists()
         return False
+
+
+class BookSummarySerializer(serializers.ModelSerializer):
+    """
+    Lightweight serializer for Book objects used in profile/barter payloads.
+    """
+
+    authorNames = serializers.CharField(source="author_names", read_only=True)
+
+    class Meta:
+        model = Book
+        fields = [
+            "id",
+            "title",
+            "authorNames",
+            "trade_status",
+            "is_for_barter",
+        ]
 
 
 class CreateReviewSerializer(serializers.Serializer):

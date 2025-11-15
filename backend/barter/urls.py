@@ -1,14 +1,32 @@
 """
-URL configuration for the barter app.
+URL configuration for barter app.
 """
+
 from django.urls import path
+
 from . import views
 
+app_name = "barter"
+
 urlpatterns = [
-    path("requests/", views.barter_request_list_create, name="barter-request-list-create"),
-    path("requests/<int:barter_id>/", views.barter_request_detail, name="barter-request-detail"),
-    path("requests/<int:barter_id>/action/", views.barter_request_action, name="barter-request-action"),
-    path("transactions/", views.list_transactions, name="list-transaction"),
-    path("transactions/<int:barter_id>/", views.transaction_detail, name="transaction-detail"),
-    path("ratings/<int:barter_id>/", views.rate_transaction, name="rate-transaction"),
+    path(
+        "requests/create/",
+        views.create_barter_request,
+        name="create-request",
+    ),
+    path(
+        "requests/<uuid:request_id>/counter-propose/",
+        views.counter_propose,
+        name="counter-propose",
+    ),
+    path(
+        "requests/<uuid:request_id>/accept/",
+        views.accept_barter_request,
+        name="accept-request",
+    ),
+    path(
+        "requests/<uuid:request_id>/reject/",
+        views.reject_barter_request,
+        name="reject-request",
+    ),
 ]

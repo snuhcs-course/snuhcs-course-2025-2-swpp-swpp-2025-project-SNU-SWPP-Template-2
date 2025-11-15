@@ -1,61 +1,95 @@
-from rest_framework import serializers
-from .models import BarterRequest, BarterTransaction, BarterCounter, BarterRating
-from books.models import Book
+"""
+Serializers for the barter app.
+"""
 
-class BookSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Book
-        fields = ["id", "title", "author", "isbn"]
+from rest_framework import serializers
+
+from accounts.serializers import UserBarterInfoSerializer
+from books.serializers import BookSummarySerializer
+
+from .models import BarterRequest
+
 
 class BarterRequestSerializer(serializers.ModelSerializer):
-    requester = serializers.StringRelatedField(read_only=True)
-    recipient = serializers.StringRelatedField(read_only=True)
-    offered_books = BookSerializer(many=True, read_only=True)
-    requested_books = BookSerializer(many=True, read_only=True)
+    """
+    Serializer for BarterRequest with requester/recipient info.
+    1:1 exchange - single offered_book and single requested_book.
+    Phone numbers are only exposed when status is 'completed'.
+    """
 
-    class Meta:
-        model = BarterRequest
-        fields = "__all__"
-        read_only_fields = [
-            "status", "response_date", "completed_date", "created_at", "updated_at"
-        ]
-
-class BarterRequestCreateSerializer(serializers.ModelSerializer):
-    offered_books = serializers.PrimaryKeyRelatedField(queryset=Book.objects.all(), many=True)
-    requested_books = serializers.PrimaryKeyRelatedField(queryset=Book.objects.all(), many=True)
+    requester = UserBarterInfoSerializer(read_only=True)
+    recipient = UserBarterInfoSerializer(read_only=True)
+    offered_book = BookSummarySerializer(read_only=True)
+    requested_book = BookSummarySerializer(read_only=True)
+    
+    # Phone numbers only visible when trade is completed
+    requester_phone = serializers.SerializerMethodField()
+    recipient_phone = serializers.SerializerMethodField()
 
     class Meta:
         model = BarterRequest
         fields = [
-            "recipient", "offered_books", "requested_books", "message",
-            "preferred_meeting_type", "proposed_meeting_location", "proposed_meeting_time"
+            "id",
+            "requester",
+            "recipient",
+            "offered_book",
+            "requested_book",
+            "message",
+            "status",
+            "preferred_meeting_type",
+            "proposed_meeting_location",
+            "proposed_meeting_time",
+            "response_message",
+            "response_date",
+            "requester_phone",
+            "recipient_phone",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = [
+            "id",
+            "requester",
+            "recipient",
+            "status",
+            "response_date",
+            "requester_phone",
+            "recipient_phone",
+            "created_at",
+            "updated_at",
         ]
 
-    def create(self, validated_data):
-        offered_books = validated_data.pop("offered_books")
-        requested_books = validated_data.pop("requested_books")
-        request = self.context["request"]
+    def get_requester_phone(self, obj):
+        """Return requester's phone only if trade is completed."""
+        if obj.status == "completed":
+            return obj.requester.phone_number
+        return None
 
-        barter_request = BarterRequest.objects.create(requester=request.user, **validated_data)
-        barter_request.offered_books.set(offered_books)
-        barter_request.requested_books.set(requested_books)
-        return barter_request
+    def get_recipient_phone(self, obj):
+        """Return recipient's phone only if trade is completed."""
+        if obj.status == "completed":
+            return obj.recipient.phone_number
+        return None
 
-class BarterTransactionSerializer(serializers.ModelSerializer):
-    barter_request = BarterRequestSerializer(read_only=True)
 
-    class Meta:
-        model = BarterTransaction
-        fields = "__all__"
+class BarterAcceptSerializer(serializers.Serializer):
+    """
+    Serializer for accepting a barter request.
+    """
 
-class BarterCounterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BarterCounter
-        fields = "__all__"
-        read_only_fields = ["original_request", "counter_by"]
+    response_message = serializers.CharField(
+        required=False, allow_blank=True, max_length=500
+    )
+    proposed_meeting_time = serializers.DateTimeField(required=False, allow_null=True)
+    proposed_meeting_location = serializers.CharField(
+        required=False, allow_blank=True, max_length=200
+    )
 
-class BarterRatingSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = BarterRating
-        fields = "__all__"
-        read_only_fields = ["rater", "rated_user", "created_at"]
+
+class BarterRejectSerializer(serializers.Serializer):
+    """
+    Serializer for rejecting a barter request.
+    """
+
+    response_message = serializers.CharField(
+        required=False, allow_blank=True, max_length=500
+    )

@@ -12,17 +12,18 @@ from django.core.cache import cache
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from drf_spectacular.utils import OpenApiResponse, extend_schema
-from rest_framework import permissions, status
+from rest_framework import permissions, serializers, status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
 )
 
-from .models import UserPreferences
+from .models import UserPreferences, UserTaste
 from .serializers import (
     CustomTokenObtainPairSerializer,
     GoogleAuthSerializer,
@@ -35,9 +36,132 @@ from .serializers import (
     UserPreferencesSerializer,
     UserRegistrationSerializer,
     UserSerializer,
+    UserTasteSerializer,
 )
 
 User = get_user_model()
+
+
+class UserTasteView(APIView):
+    """
+    View for managing user's book preferences and taste information.
+    Each step of the categorization process is handled separately.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        """Get user's current taste information and step."""
+        try:
+            taste = UserTaste.objects.get(user=request.user)
+            serializer = UserTasteSerializer(taste)
+            return Response(
+                {
+                    "ok": True,
+                    "taste": serializer.data,
+                    "step": taste.current_step,
+                    "is_complete": request.user.has_initial_taste,
+                }
+            )
+        except UserTaste.DoesNotExist:
+            # Create new taste profile if it doesn't exist
+            taste = UserTaste.objects.create(user=request.user)
+            return Response(
+                {
+                    "ok": True,
+                    "taste": UserTasteSerializer(taste).data,
+                    "step": 1,
+                    "is_complete": False,
+                }
+            )
+
+    def post(self, request):
+        """Handle each step of the taste categorization process."""
+        try:
+            taste = UserTaste.objects.get(user=request.user)
+        except UserTaste.DoesNotExist:
+            taste = UserTaste.objects.create(user=request.user)
+
+        # Get current step from the taste profile
+        current_step = taste.current_step
+
+        # Validate and update based on current step
+        serializer = UserTasteSerializer(
+            taste, data=request.data, partial=True
+        )
+        if serializer.is_valid():
+            # Validate minimum selections based on current step
+            try:
+                self._validate_step_data(
+                    current_step, serializer.validated_data
+                )
+            except serializers.ValidationError as e:
+                return Response(
+                    {"ok": False, "message": str(e)},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+
+            # Update the taste profile
+            taste = serializer.save()
+
+            # Move to next step or complete the process (now 7 steps)
+            if current_step < 7:
+                taste.current_step += 1
+                taste.save()
+            else:
+                # Mark categorization as complete
+                request.user.has_initial_taste = True
+                request.user.save()
+
+            return Response(
+                {
+                    "ok": True,
+                    "taste": UserTasteSerializer(taste).data,
+                    "step": taste.current_step,
+                    "is_complete": request.user.has_initial_taste,
+                }
+            )
+
+        return Response(
+            {"ok": False, "errors": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    def _validate_step_data(self, step, data):
+        """Validate data for each categorization step."""
+        if step == 1 and "favorite_genres" in data:
+            if len(data["favorite_genres"]) < 3:
+                raise serializers.ValidationError(
+                    "최소 3개 이상의 장르를 선택해주세요"
+                )
+        elif step == 2 and "favorite_authors" in data:
+            if len(data["favorite_authors"]) < 3:
+                raise serializers.ValidationError(
+                    "최소 3명 이상의 작가를 선택해주세요"
+                )
+        elif step == 3 and "favorite_books" in data:
+            if len(data["favorite_books"]) < 3:
+                raise serializers.ValidationError(
+                    "최소 3권 이상의 책을 선택해주세요"
+                )
+        elif step == 4 and "preferred_length" in data:
+            if not data["preferred_length"]:
+                raise serializers.ValidationError("책 분량을 선택해주세요")
+        elif step == 5 and "preferred_moods" in data:
+            if len(data["preferred_moods"]) < 3:
+                raise serializers.ValidationError(
+                    "최소 3개 이상의 분위기를 선택해주세요"
+                )
+        elif step == 6 and "reading_purposes" in data:
+            if len(data["reading_purposes"]) < 3:
+                raise serializers.ValidationError(
+                    "최소 3개 이상의 목적을 선택해주세요"
+                )
+        elif step == 7:
+            # Trade style step is optional; if provided, accept without strict min checks
+            # Fields: trade_place_name, trade_address
+            # No additional validation required here.
+            return
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -175,7 +299,7 @@ class PasswordResetRequestView(APIView):
 
             # Check if user exists (but don't reveal this in response)
             try:
-                user = User.objects.get(email=email)
+                User.objects.get(email=email)
                 user_exists = True
             except User.DoesNotExist:
                 user_exists = False
@@ -513,6 +637,120 @@ def user_preferences(request):
         return Response(serializer.data)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserProfileMeView(APIView):
+    """
+    Combined endpoint for fetching and updating the authenticated user's profile.
+    Matches frontend expectation for /accounts/profile/me/ (GET, PUT/PATCH) and
+    supports multipart form uploads for profile_picture.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    def get(self, request):
+        """Return the current user's profile in frontend's expected shape."""
+        return Response(self._build_frontend_profile(request.user, request))
+
+    def put(self, request):
+        return self._update(request, partial=False)
+
+    def patch(self, request):
+        return self._update(request, partial=True)
+
+    def _update(self, request, partial: bool):
+        # 1) Update basic profile fields (bio, names, etc.)
+        base_serializer = ProfileUpdateSerializer(
+            request.user, data=request.data, partial=True
+        )
+        if base_serializer.is_valid():
+            base_serializer.save()
+        else:
+            # We don't hard-fail here because frontend may only send preferences
+            pass
+
+        # 2) Update preferences coming from nested object
+        prefs = request.data.get("preferences") or {}
+        favorite_genres = request.data.get("favoriteGenres") or []
+
+        # Store trade locations in UserTaste (closest existing fields)
+        # Ensure taste exists
+        from .models import UserTaste
+        taste, _ = UserTaste.objects.get_or_create(user=request.user)
+        # Map incoming fields to available fields
+        trade_location1 = prefs.get("tradeLocation1")
+        trade_spot1 = prefs.get("tradeSpot1")
+        if trade_location1 is not None:
+            taste.trade_place_name = trade_location1
+        if trade_spot1 is not None:
+            taste.trade_address = trade_spot1
+
+        # Save favorite genres if provided
+        if isinstance(favorite_genres, list):
+            taste.favorite_genres = favorite_genres
+        taste.save()
+
+        # Mark initial taste as present if any taste data exists
+        if (trade_location1 or trade_spot1 or favorite_genres) and not request.user.has_initial_taste:
+            request.user.has_initial_taste = True
+            request.user.save(update_fields=["has_initial_taste"])
+
+        return Response(self._build_frontend_profile(request.user, request))
+
+    def _build_frontend_profile(self, user, request):
+        """Build response matching frontend UserProfile DTO."""
+        # Profile URL
+        profile_url = None
+        if user.profile_picture:
+            profile_url = (
+                request.build_absolute_uri(user.profile_picture.url)
+                if request else user.profile_picture.url
+            )
+
+        # Taste and preferences mapping
+        favorite_genres = []
+        trade_location1 = None
+        trade_spot1 = None
+        try:
+            taste = user.taste
+            favorite_genres = taste.favorite_genres or []
+            trade_location1 = taste.trade_place_name or None
+            trade_spot1 = taste.trade_address or None
+        except Exception:
+            pass
+
+        # Compute counts
+        from books.models import BookReview
+        review_count = BookReview.objects.filter(reviewer=user).count()
+        follower_count = getattr(user, "follower_count", None)
+        following_count = getattr(user, "following_count", None)
+        if follower_count is None:
+            follower_count = user.follower_relationships.count()
+        if following_count is None:
+            following_count = user.following_relationships.count()
+
+        return {
+            "username": user.username,
+            "bio": user.bio,
+            "profileUrl": profile_url,
+            "reviewCount": review_count,
+            "followerCount": follower_count,
+            "followingCount": following_count,
+            "favoriteGenres": favorite_genres,
+            "preferences": {
+                # Provide non-null object with nullable fields to avoid NPE on client
+                "tradeLocation1": trade_location1,
+                "tradeLocation2": None,
+                "tradeSpot1": trade_spot1,
+                "tradeSpot2": None,
+                "favBook": None,
+                "favBookNote": None,
+                "favAuthor": None,
+                "favAuthorNote": None,
+                "readingHabit": None,
+            },
+        }
 
 
 class GoogleLoginView(APIView):
