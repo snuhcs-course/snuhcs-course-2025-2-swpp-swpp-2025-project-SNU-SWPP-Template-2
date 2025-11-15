@@ -22,7 +22,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .models import UserPreferences, UserTaste
+from .models import UserPreferences, UserTaste, Follow
 from .serializers import (
     CustomTokenObtainPairSerializer,
     GoogleAuthSerializer,
@@ -1086,3 +1086,53 @@ class KakaoSignupView(APIView):
             return Response(data, status=status.HTTP_200_OK)
 
         return response
+
+
+@api_view(["POST", "DELETE"])
+@permission_classes([permissions.IsAuthenticated])
+def follow_view(request, user_id: int):
+    """
+    Follow/unfollow a user by ID.
+
+    - POST /users/follow/{userId}/    -> follow
+    - DELETE /users/follow/{userId}/  -> unfollow
+
+    Returns 200 on success. Body is optional (frontend expects Unit).
+    """
+    try:
+        target = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if target.id == request.user.id:
+        return Response({"error": "Cannot follow yourself"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if request.method == "POST":
+        # Create follow if not exists
+        _, created = Follow.objects.get_or_create(
+            follower=request.user,
+            following=target,
+        )
+
+        # Optionally notify the target user on first follow
+        if created:
+            try:
+                from notify.models import Notification
+
+                Notification.objects.create(
+                    recipient=target,
+                    sender=request.user,
+                    notification_type="user_followed",
+                    title=f"{request.user.username} started following you",
+                    message=f"{request.user.username} is now following you.",
+                )
+            except Exception:
+                # Notification failures should not break the API contract
+                pass
+
+        return Response({}, status=status.HTTP_200_OK)
+
+    # DELETE -> unfollow
+    Follow.objects.filter(follower=request.user, following=target).delete()
+    return Response({}, status=status.HTTP_200_OK)
+
