@@ -8,7 +8,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentOnboardingBinding
-// Unused import, can be removed: import com.example.librarytogether.feature.onboarding.ChipSelectableAdapter
+import com.example.librarytogether.feature.onboarding.ChipSelectableAdapter
 import com.example.librarytogether.feature.main.MainActivity
 import com.google.android.flexbox.FlexWrap
 import com.google.android.flexbox.FlexboxLayoutManager

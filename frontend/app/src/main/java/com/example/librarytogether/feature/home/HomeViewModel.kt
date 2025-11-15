@@ -50,7 +50,7 @@ class HomeViewModel @Inject constructor(
             SortType.LATEST -> originalPosts.sortedByDescending { it.createdAt }
             SortType.POPULAR -> originalPosts.sortedByDescending { it.likeCount }
         }
-        _posts.value = sorted
+        _posts.value = sorted.toList()
     }
 
     fun toggleLike(post: Post) {
