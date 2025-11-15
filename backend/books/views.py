@@ -8,15 +8,17 @@ from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
 
-from .models import Book, BookReview, BookWishlist, ReviewHelpfulVote
+from .models import Book, BookReview, BookWishlist, ReviewHelpfulVote, BookCollection, ReadingStatus
+from django.shortcuts import get_object_or_404
 from notify.models import Notification
 from rest_framework.decorators import api_view, permission_classes
 from .serializers import (
     BookSummarySerializer,
     CreateReviewSerializer,
     ReviewLikeResponseSerializer,
-    ReviewSerializer,
+    ReviewSerializer, BookReview, BookSerializer, BookCollectionSerializer, ReadingStatusSerializer
 )
 
 User = get_user_model()
@@ -274,3 +276,175 @@ def toggle_book_for_barter(request, book_id):
     book.save(update_fields=["is_for_barter"])
 
     return Response({"is_for_barter": book.is_for_barter}, status=status.HTTP_200_OK)
+
+
+#GET BOOK
+#UPDATE BOOK
+#DELETE BOOK
+@api_view(["GET", "PUT", "DELETE"])
+@permission_classes([IsAuthenticated])
+def book_detail(request, pk):
+    """
+    GET /books/<pk>/    - Retrieve a single book
+    PUT /books/<pk>/    - Update book details (authenticated users only)
+    DELETE /books/<pk>/ - Delete a book (authenticated users only)
+    """
+    book = get_object_or_404(Book, pk=pk)
+
+    if request.method == "GET":
+        serializer = BookSerializer(book)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == "PUT":
+        serializer = BookSerializer(book, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "DELETE":
+        book.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def book_list(request):
+    """
+    GET /books/  - List all books
+    POST /books/ - Add a new book (owned by the authenticated user)
+    """
+    if request.method == "GET":
+        books = Book.objects.all().prefetch_related("authors")
+        serializer = BookSerializer(books, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    elif request.method == "POST":
+        serializer = BookSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(owner=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# --- Create & List collections ---
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def collection_list_view(request):
+    user = request.user
+
+    if request.method == "GET":
+        collections = BookCollection.objects.filter(owner=user)
+        serializer = BookCollectionSerializer(collections, many=True)
+        return Response(serializer.data)
+
+    elif request.method == "POST":
+        name = request.data.get("name")
+        if not name:
+            return Response({"error": "Collection name is required."}, status=status.HTTP_400_BAD_REQUEST)
+        description = request.data.get("description", "")
+        is_public = request.data.get("is_public", True)
+
+        collection = BookCollection.objects.create(
+            name=name,
+            description=description,
+            is_public=is_public,
+            owner=user
+        )
+        serializer = BookCollectionSerializer(collection)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+# --- Add/Remove book from a collection ---
+@api_view(["POST", "DELETE"])
+@permission_classes([IsAuthenticated])
+def modify_collection_books(request, pk):
+    user = request.user
+
+    try:
+        collection = BookCollection.objects.get(id=pk, owner=user)
+    except BookCollection.DoesNotExist:
+        return Response({"error": "Collection not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    book_id = request.data.get("book_id")
+    if not book_id:
+        return Response({"error": "book_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        book = Book.objects.get(id=book_id)
+    except Book.DoesNotExist:
+        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == "POST":
+        collection.books.add(book)
+        return Response({"message": f"{book.title} added to {collection.name}."})
+
+    elif request.method == "DELETE":
+        collection.books.remove(book)
+        return Response({"message": f"{book.title} removed from {collection.name}."})
+
+# --- Create & List reading status ---
+
+@api_view(["GET", "POST"])
+@permission_classes([IsAuthenticated])
+def reading_status_view(request):
+
+    user = request.user
+    # --- GET: list all reading statuses for the user ---
+    if request.method == "GET":
+        statuses = ReadingStatus.objects.filter(user=user)
+        serializer = ReadingStatusSerializer(statuses, many=True)
+        return Response(serializer.data)
+
+    # --- POST: create or update status for a book ---
+    elif request.method == "POST":
+        book_id = request.data.get("book_id")
+        if not book_id:
+            return Response({"error": "book_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            book = Book.objects.get(id=book_id)
+        except Book.DoesNotExist:
+            return Response({"error": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        reading_status, created = ReadingStatus.objects.get_or_create(user=user, book=book)
+        serializer = ReadingStatusSerializer(reading_status, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(["PATCH", "DELETE"])
+@permission_classes([IsAuthenticated])
+def modify_reading_status(request, pk):
+    user = request.user
+    # --- PATCH: partial update (e.g., update pages_read or status) ---
+    if request.method == "PATCH":
+        # Get ID from URL path (pk) instead of request.data
+        try:
+            reading_status = ReadingStatus.objects.get(id=pk, user=user)
+        except ReadingStatus.DoesNotExist:
+            return Response({"error": "Reading status not found."}, status=status.HTTP_404_NOT_FOUND)
+        serializer = ReadingStatusSerializer(reading_status, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # --- DELETE: remove a reading status entry ---
+    elif request.method == "DELETE":
+        # Get ID from URL path (pk)
+        try:
+            ReadingStatus.objects.filter(id=pk, user=user).delete()
+        except ReadingStatus.DoesNotExist:
+            return Response({"error": "Reading status not found."},
+                            status=status.HTTP_404_NOT_FOUND)
+
+        return Response({"message": "Reading status removed."},
+                        status=status.HTTP_204_NO_CONTENT)
+
+
+
+
+
+
+
+
