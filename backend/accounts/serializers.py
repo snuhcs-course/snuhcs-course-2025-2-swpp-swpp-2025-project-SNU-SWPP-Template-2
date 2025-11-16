@@ -154,6 +154,7 @@ class UserSerializer(serializers.ModelSerializer):
     follower_count = serializers.ReadOnlyField()
     following_count = serializers.ReadOnlyField()
     books_count = serializers.ReadOnlyField()
+    has_initial_taste = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -177,12 +178,15 @@ class UserSerializer(serializers.ModelSerializer):
             "books_count",
             "created_at",
             "last_active",
+            "has_initial_taste",
         )
         read_only_fields = (
             "id",
             "reputation_score",
             "successful_trades",
             "created_at",
+            "has_initial_taste",
+
         )
 
 
@@ -359,8 +363,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "last_name",
             "bio",
             "location",
-            "latitude",
-            "longitude",
             "birth_date",
             "profile_picture",
             "phone_number",
@@ -419,7 +421,6 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
     library = serializers.SerializerMethodField()
     wishlist = serializers.SerializerMethodField()
     taste = serializers.SerializerMethodField()
-    distance_km = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     reviewCount = serializers.SerializerMethodField()
 
@@ -437,7 +438,6 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             "library",
             "wishlist",
             "taste",
-            "distance_km",
             "reviews",
             "reviewCount",
         )
@@ -472,9 +472,6 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             return None
 
         data = UserTasteSerializer(taste, context=self.context).data
-        # For barter payloads, exclude precise coordinates to avoid exposing PII
-        data.pop("trade_latitude", None)
-        data.pop("trade_longitude", None)
         return data
 
     def get_distance_km(self, obj):
@@ -529,10 +526,8 @@ class UserTasteSerializer(serializers.ModelSerializer):
     """
     Serializer for user's book preferences and taste information.
     """
-
     favorite_genres = serializers.ListField(
-        child=serializers.ChoiceField(choices=BookGenre.choices),
-        required=False,
+        child=serializers.ChoiceField(choices=BookGenre.choices), required=False,
     )
     favorite_authors = serializers.ListField(
         child=serializers.ChoiceField(choices=Author.choices), required=False
@@ -557,12 +552,6 @@ class UserTasteSerializer(serializers.ModelSerializer):
     trade_address = serializers.CharField(
         max_length=200, required=False, allow_blank=True
     )
-    trade_latitude = serializers.DecimalField(
-        max_digits=9, decimal_places=6, required=False, allow_null=True
-    )
-    trade_longitude = serializers.DecimalField(
-        max_digits=9, decimal_places=6, required=False, allow_null=True
-    )
 
     class Meta:
         model = UserTaste
@@ -575,8 +564,6 @@ class UserTasteSerializer(serializers.ModelSerializer):
             "reading_purposes",
             "trade_place_name",
             "trade_address",
-            "trade_latitude",
-            "trade_longitude",
             "current_step",
         )
         read_only_fields = ("current_step",)

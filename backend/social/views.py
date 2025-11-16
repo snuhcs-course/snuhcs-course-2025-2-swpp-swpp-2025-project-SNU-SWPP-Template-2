@@ -2,14 +2,15 @@
 Views for the social app.
 """
 
-from accounts.serializers import UserBarterInfoSerializer
 from barter.models import BarterRequest
-from books.serializers import BookSummarySerializer
+from books.models import BookCopy
 from notify.models import Notification
+from notify.utils import create_notification
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 from social.models import Comment, Post, PostLike
 from social.serializers import PostCreateSerializer, PostSerializer
 
@@ -21,36 +22,15 @@ def home_feed(request):
     Get the home feed with all public posts.
 
     GET /home/
-
-    Returns:
-        {
-            "results": [
-                {
-                    "id": 1,
-                    "posterName": "username",
-                    "posterProfile": "url",
-                    "bookTitle": "Book Title",
-                    "authorName": "Author Name",
-                    "content": "Post content",
-                    "imageUrls": ["url1", "url2"],
-                    "likeCount": 10,
-                    "createdAt": "2025-10-10T09:00:00Z",
-                    "isLiked": false
-                },
-                ...
-            ]
-        }
     """
-    # Get all public posts ordered by creation date (newest first)
+
     posts = (
         Post.objects.filter(is_public=True)
-        .select_related("author", "related_book")
-        .prefetch_related("related_book__authors", "likes")
+        .select_related("author", "related_book", "related_book__publication")
+        .prefetch_related("related_book__publication__authors", "likes")
         .order_by("-created_at")
     )
-
     serializer = PostSerializer(posts, many=True, context={"request": request})
-
     return Response({"results": serializer.data}, status=status.HTTP_200_OK)
 
 
@@ -61,52 +41,14 @@ def create_post(request):
     Create a new post with optional image upload.
 
     POST /posts/create/
-    Content-Type: multipart/form-data
-    Fields:
-        - content: str
-        - post_type: str (optional, default "text")
-        - related_book: int (optional, book ID)
-        - image: file (optional)
-        - is_public: boolean (optional, default True)
     """
+
     serializer = PostCreateSerializer(
         data=request.data, context={"request": request}
     )
-
     if serializer.is_valid():
         serializer.save()
-        return Response(
-            {"post": serializer.data}, status=status.HTTP_201_CREATED
-        )
-
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-def create_post(request):
-    """
-    Create a new post with optional image upload.
-
-    POST /posts/create/
-    Content-Type: multipart/form-data
-    Fields:
-        - content: str
-        - post_type: str (optional, default "text")
-        - related_book: int (optional, book ID)
-        - image: file (optional)
-        - is_public: boolean (optional, default True)
-    """
-    serializer = PostCreateSerializer(
-        data=request.data, context={"request": request}
-    )
-
-    if serializer.is_valid():
-        serializer.save()
-        return Response(
-            {"post": serializer.data}, status=status.HTTP_201_CREATED
-        )
-
+        return Response({"post": serializer.data}, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -115,26 +57,14 @@ def create_post(request):
 def like_post(request, post_id):
     """
     Like or unlike a post.
-
-    POST /posts/{post_id}/like/
-
-    Args:
-        post_id: Integer ID of the post
-
-    Returns:
-        {
-            "post": {
-                "id": 1,
-                "posterName": "username",
-                ...
-                "isLiked": true
-            }
-        }
     """
+
     try:
         post = (
-            Post.objects.select_related("author", "related_book")
-            .prefetch_related("related_book__authors", "likes")
+            Post.objects.select_related(
+                "author", "related_book", "related_book__publication"
+            )
+            .prefetch_related("related_book__publication__authors", "likes")
             .get(id=post_id)
         )
     except Post.DoesNotExist:
@@ -142,29 +72,21 @@ def like_post(request, post_id):
             {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
-    # Toggle like
-    like, created = PostLike.objects.get_or_create(
-        post=post, user=request.user
-    )
+    like, created = PostLike.objects.get_or_create(post=post, user=request.user)
 
     if not created:
-        # Unlike if already liked
         like.delete()
-    else:
-        # Create notification for the post author (if not self)
-        if post.author_id != request.user.id:
-            Notification.objects.create(
-                recipient=post.author,
-                sender=request.user,
-                notification_type="post_liked",
-                title="Your post was liked",
-                message=f"{request.user.username} liked your post.",
-                content_object=post,
-            )
+    elif post.author_id != request.user.id:
+        Notification.objects.create(
+            recipient=post.author,
+            sender=request.user,
+            notification_type="post_liked",
+            title="Your post was liked",
+            message=f"{request.user.username} liked your post.",
+            content_object=post,
+        )
 
-    # Return updated post
     serializer = PostSerializer(post, context={"request": request})
-
     return Response({"post": serializer.data}, status=status.HTTP_200_OK)
 
 
@@ -173,15 +95,12 @@ def like_post(request, post_id):
 def comment_post(request, post_id):
     """
     Create a comment on a post and notify the post author.
-
-    POST /posts/{post_id}/comments/
-    Body: { "content": "..." }
     """
+
     content = request.data.get("content", "").strip()
     if not content:
         return Response(
-            {"error": "Content is required"},
-            status=status.HTTP_400_BAD_REQUEST,
+            {"error": "Content is required"}, status=status.HTTP_400_BAD_REQUEST
         )
 
     try:
@@ -194,8 +113,6 @@ def comment_post(request, post_id):
     comment = Comment.objects.create(
         post=post, author=request.user, content=content
     )
-
-    # Notify post author (if not self)
     if post.author_id != request.user.id:
         Notification.objects.create(
             recipient=post.author,
@@ -214,95 +131,84 @@ def comment_post(request, post_id):
 @permission_classes([IsAuthenticated])
 def barter_post(request, post_id):
     """
-    Create a barter request to the post author from the current user.
-
-    POST /posts/{post_id}/barter/
-    Optional body fields:
-      - message: str
-      - preferred_meeting_type: str (in_person/mail/pickup)
-      - proposed_meeting_location: str
-      - proposed_meeting_time: datetime
-
-    Uses the user's profile info (location, trade style from taste if present)
-    to prefill reasonable defaults in the request message.
+    Create initial barter request from a post (Step 1: requester → recipient).
     """
+
     try:
-        post = Post.objects.select_related("author", "related_book").get(
-            pk=post_id
-        )
+        post = Post.objects.select_related(
+            "author", "related_book", "related_book__publication"
+        ).get(pk=post_id)
     except Post.DoesNotExist:
         return Response(
             {"error": "Post not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
+    if not post.related_book:
+        return Response(
+            {"error": "This post has no related book to barter"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    requested_book = post.related_book
     recipient = post.author
     requester = request.user
 
-    # Build a helpful default message including requester's profile info
-    msg = request.data.get("message")
-    if not msg:
-        parts = [
-            f"Hi {recipient.username}, I'd like to barter.",
-        ]
-        if hasattr(requester, "taste") and requester.taste.trade_place_name:
-            parts.append(
-                f"Preferred place: {requester.taste.trade_place_name} ({requester.taste.trade_address or 'N/A'})"
-            )
-        if requester.latitude is not None and requester.longitude is not None:
-            parts.append(
-                f"My location: lat {requester.latitude}, lng {requester.longitude}"
-            )
-        msg = " \n".join(parts)
+    if requested_book.owner_id == requester.id:
+        return Response(
+            {"error": "Cannot request your own book"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if not requested_book.is_for_barter:
+        return Response(
+            {
+                "error": (
+                    "This book is not available for barter "
+                    "(owner disabled trading)"
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if requested_book.trade_status != "available":
+        return Response(
+            {
+                "error": (
+                    "This book is not available for barter "
+                    "(already in a pending trade)"
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    message = request.data.get("message")
+    if not message:
+        message = (
+            f"Hi {recipient.username}, I'd like to barter for "
+            f"'{requested_book.title}'."
+        )
+
+    requested_book.trade_status = "not_available"
+    requested_book.save(update_fields=["trade_status"])
 
     barter = BarterRequest.objects.create(
         requester=requester,
         recipient=recipient,
-        message=msg,
-        preferred_meeting_type=request.data.get(
-            "preferred_meeting_type", "in_person"
-        ),
-        proposed_meeting_location=request.data.get(
-            "proposed_meeting_location", ""
-        ),
-        proposed_meeting_time=request.data.get("proposed_meeting_time"),
+        offered_book=None,
+        requested_book=requested_book,
+        message=message,
     )
 
-    # If the post references a book, add it to requested_books
-    if post.related_book:
-        barter.requested_books.add(post.related_book)
-
-    # Notify recipient
     Notification.objects.create(
         recipient=recipient,
         sender=requester,
         notification_type="barter_request",
         title="New barter request",
-        message=f"{requester.username} sent you a barter request.",
+        message=f"{requester.username} wants to trade for '{requested_book.title}'.",
         content_object=barter,
     )
 
-    # Build requester info payload and requested book summary
-    requester_info = UserBarterInfoSerializer(
-        requester, context={"request": request}
-    ).data
-    requested_book = (
-        BookSummarySerializer(
-            post.related_book, context={"request": request}
-        ).data
-        if post.related_book
-        else None
-    )
+    from barter.serializers import BarterRequestSerializer
 
-    serializer = PostSerializer(post, context={"request": request})
-    return Response(
-        {
-            "post": serializer.data,
-            "barter": {
-                "id": str(barter.id),
-                "message": barter.message,
-                "requester": requester_info,
-                "requestedBook": requested_book,
-            },
-        },
-        status=status.HTTP_201_CREATED,
-    )
+    serializer = BarterRequestSerializer(barter, context={"request": request})
+    return Response({"barter": serializer.data}, status=status.HTTP_201_CREATED)

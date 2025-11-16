@@ -2,6 +2,7 @@
 Views for the barter app.
 """
 
+from accounts.serializers import UserBarterInfoSerializer
 from barter.models import BarterRequest
 from barter.serializers import (
     BarterAcceptSerializer,
@@ -9,6 +10,7 @@ from barter.serializers import (
     BarterRequestSerializer,
 )
 from books.models import BookCopy
+from books.serializers import BookSummarySerializer
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from notify.models import Notification
@@ -19,21 +21,111 @@ from rest_framework.response import Response
 User = get_user_model()
 
 
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def get_barter_request_detail(request, request_id):
+    """
+    Get barter request detail for approval screen.
+    Returns different data based on who is viewing:
+    - If recipient (B): shows requester info and requester's books (for counter-propose)
+    - If requester (A) after counter-propose: shows recipient info and the selected book
+    
+    GET /barter/requests/<uuid:request_id>/
+    """
+    barter_request = (
+        BarterRequest.objects.select_related(
+            "requester",
+            "recipient",
+            "offered_book__publication",
+            "requested_book__publication",
+        )
+        .prefetch_related(
+            "offered_book__publication__authors",
+            "offered_book__publication__genres",
+            "requested_book__publication__authors",
+            "requested_book__publication__genres",
+        )
+        .filter(pk=request_id)
+        .first()
+    )
+    if not barter_request:
+        return Response(
+            {"error": "Barter request not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    # Check permission - only requester or recipient can view
+    if request.user.id not in [barter_request.requester_id, barter_request.recipient_id]:
+        return Response(
+            {"error": "You don't have permission to view this request"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    # Determine who is viewing
+    is_recipient = request.user.id == barter_request.recipient_id
+    
+    if is_recipient:
+        # B viewing: show A's info and A's available books for counter-propose
+        other_user = barter_request.requester
+        available_books = (
+            BookCopy.objects.filter(
+                owner=other_user,
+                is_for_barter=True,
+                trade_status="available",
+            )
+            .select_related("publication")
+            .prefetch_related("publication__authors", "publication__genres")
+        )
+        books_data = BookSummarySerializer(available_books, many=True).data
+        messages = [barter_request.message] if barter_request.message else []
+    else:
+        # A viewing after counter-propose: show B's info and selected book
+        other_user = barter_request.recipient
+        if barter_request.offered_book:
+            books_data = [
+                BookSummarySerializer(barter_request.offered_book).data
+            ]
+        else:
+            books_data = []
+
+        messages = list(
+            filter(
+                None,
+                [
+                    barter_request.message,
+                    barter_request.response_message,
+                ],
+            )
+        )
+
+    user_serializer = UserBarterInfoSerializer(other_user)
+    
+    return Response(
+        {
+            "id": str(barter_request.id),
+            "requesterName": other_user.username,
+            "requesterAvatarUrl": user_serializer.data.get(
+                "profile_picture"
+            ),
+            "createdAt": barter_request.created_at.isoformat(),
+            "books": books_data,
+            "message": messages,
+        },
+        status=status.HTTP_200_OK,
+    )
+
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
 def create_barter_request(request):
     """
-    Create a barter request from requester to a specific user for a book.
-    This is used when user finds nearby owners via search/wishlist flow.
+    Create initial barter request (Step 1: requester → recipient).
+    Requester asks for recipient's book without specifying their offer yet.
 
     POST /barter/requests/create/
     Body:
       - recipient_id: int (user ID)
-      - requested_book_id: uuid (book ID)
+      - requested_book_id: uuid (book ID from recipient)
       - message: str (optional)
-      - preferred_meeting_type: str (optional)
-      - proposed_meeting_location: str (optional)
-      - proposed_meeting_time: datetime (optional)
     """
     recipient_id = request.data.get("recipient_id")
     requested_book_id = request.data.get("requested_book_id")
@@ -62,6 +154,33 @@ def create_barter_request(request):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    if requested_book.owner_id != recipient_id:
+        return Response(
+            {"error": "Requested book must belong to recipient"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Check if owner allows barter for this book
+    if not requested_book.is_for_barter:
+        return Response(
+            {"error": "This book is not available for barter (owner disabled trading)"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Check if book is available for barter (not in pending trade)
+    if requested_book.trade_status != "available":
+        return Response(
+            {"error": "This book is not available for barter (already in a pending trade)"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Verify requester cannot request their own book
+    if requested_book.owner_id == request.user.id:
+        return Response(
+            {"error": "Cannot request your own book"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
     # Build message with requester's info
     msg = request.data.get("message")
     if not msg:
@@ -69,24 +188,32 @@ def create_barter_request(request):
         parts = [
             f"Hi {recipient.username}, I'd like to barter for '{requested_book.title}'."
         ]
+        taste = getattr(requester, "taste", None)
         if (
-            hasattr(requester, "taste")
-            and requester.taste
-            and requester.taste.trade_place_name
+            taste
+            and getattr(taste, "trade_place_name", None)
         ):
             parts.append(
-                f"Preferred place: {requester.taste.trade_place_name} ({requester.taste.trade_address or 'N/A'})"
+                f"Preferred place: {taste.trade_place_name} ({taste.trade_address or 'N/A'})"
             )
-        if requester.latitude and requester.longitude:
+        if getattr(requester, "latitude", None) and getattr(
+            requester, "longitude", None
+        ):
             parts.append(
                 f"My location: lat {requester.latitude}, lng {requester.longitude}"
             )
         msg = "\n".join(parts)
 
-    # Create barter request
+    # Create initial barter request (no offered_book yet)
+    # Mark requested_book as not_available while barter is pending
+    requested_book.trade_status = "not_available"
+    requested_book.save(update_fields=["trade_status"])
+
     barter = BarterRequest.objects.create(
         requester=request.user,
         recipient=recipient,
+        offered_book=None,  # Will be set later by recipient in counter-proposal
+        requested_book=requested_book,
         message=msg,
         preferred_meeting_type=request.data.get(
             "preferred_meeting_type", "in_person"
@@ -96,7 +223,6 @@ def create_barter_request(request):
         ),
         proposed_meeting_time=request.data.get("proposed_meeting_time"),
     )
-    barter.requested_books.add(requested_book)
 
     # Notify recipient
     Notification.objects.create(
@@ -104,7 +230,7 @@ def create_barter_request(request):
         sender=request.user,
         notification_type="barter_request",
         title="New barter request",
-        message=f"{request.user.username} wants to barter for '{requested_book.title}'.",
+        message=f"{request.user.username} wants to trade for '{requested_book.title}'.",
         content_object=barter,
     )
 
@@ -116,19 +242,145 @@ def create_barter_request(request):
 
 @api_view(["POST"])
 @permission_classes([permissions.IsAuthenticated])
+def counter_propose(request, request_id):
+    """
+    Recipient selects a book from requester's library to counter-propose.
+
+    POST /barter/requests/<uuid:request_id>/counter-propose/
+    Body:
+      - offered_book_id: uuid (BookCopy owned by requester)
+      - response_message: str (optional)
+      - proposed_meeting_time/location: optional overrides
+    """
+    barter_request = (
+        BarterRequest.objects.select_related(
+            "requester", "recipient", "requested_book"
+        )
+        .filter(pk=request_id)
+        .first()
+    )
+    if not barter_request:
+        return Response(
+            {"error": "Barter request not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if barter_request.recipient_id != request.user.id:
+        return Response(
+            {"error": "Only the recipient can counter-propose"},
+            status=status.HTTP_403_FORBIDDEN,
+        )
+
+    if barter_request.status not in ["pending", "counter_proposed"]:
+        return Response(
+            {
+                "error": (
+                    f"Cannot counter-propose: request already "
+                    f"{barter_request.status}"
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    offered_book_id = request.data.get("offered_book_id")
+    if not offered_book_id:
+        return Response(
+            {"error": "offered_book_id is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    offered_book = (
+        BookCopy.objects.select_related("owner", "publication")
+        .filter(pk=offered_book_id)
+        .first()
+    )
+    if not offered_book:
+        return Response(
+            {"error": "Offered book not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    if offered_book.owner_id != barter_request.requester_id:
+        return Response(
+            {"error": "Offered book must belong to the original requester"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not offered_book.is_for_barter:
+        return Response(
+            {
+                "error": (
+                    "Selected book is not available for barter "
+                    "(owner disabled trading)"
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if offered_book.trade_status != "available":
+        return Response(
+            {
+                "error": (
+                    "Selected book is not available for barter "
+                    "(already in a pending trade)"
+                )
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    offered_book.trade_status = "not_available"
+    offered_book.save(update_fields=["trade_status"])
+
+    barter_request.offered_book = offered_book
+    barter_request.status = "counter_proposed"
+    barter_request.response_message = request.data.get(
+        "response_message", ""
+    )
+    barter_request.response_date = timezone.now()
+    if "proposed_meeting_time" in request.data:
+        barter_request.proposed_meeting_time = request.data.get(
+            "proposed_meeting_time"
+        )
+    if "proposed_meeting_location" in request.data:
+        barter_request.proposed_meeting_location = request.data.get(
+            "proposed_meeting_location"
+        )
+    barter_request.save()
+
+    Notification.objects.create(
+        recipient=barter_request.requester,
+        sender=request.user,
+        notification_type="barter_counter_proposed",
+        title="Counter-proposal received",
+        message=(
+            f"{request.user.username} wants to trade "
+            f"'{offered_book.title}' for your requested book."
+        ),
+        content_object=barter_request,
+    )
+
+    result_serializer = BarterRequestSerializer(
+        barter_request, context={"request": request}
+    )
+    return Response(
+        {"barter": result_serializer.data}, status=status.HTTP_200_OK
+    )
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
 def accept_barter_request(request, request_id):
     """
-    Accept a barter request.
-
+    Requester (A) accepts recipient's (B) counter-proposal.
+    This finalizes the trade: ownership transfer + status update + availability restore.
+    
     POST /barter/requests/<uuid:request_id>/accept/
     Optional body:
       - response_message: str
-      - proposed_meeting_time: datetime
-      - proposed_meeting_location: str
     """
     try:
         barter_request = BarterRequest.objects.select_related(
-            "requester", "recipient"
+            "requester", "recipient", "offered_book", "requested_book"
         ).get(pk=request_id)
     except BarterRequest.DoesNotExist:
         return Response(
@@ -136,50 +388,56 @@ def accept_barter_request(request, request_id):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Only recipient can accept
-    if barter_request.recipient_id != request.user.id:
+    # Only requester (A) can accept counter-proposal
+    if barter_request.requester_id != request.user.id:
         return Response(
-            {"error": "Only the recipient can accept this request"},
+            {"error": "Only the original requester can accept the counter-proposal"},
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Check if already responded
-    if barter_request.status != "pending":
+    # Check if counter-proposed
+    if barter_request.status != "counter_proposed":
         return Response(
-            {"error": f"Request already {barter_request.status}"},
+            {"error": f"Cannot accept: request status is '{barter_request.status}', expected 'counter_proposed'"},
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    serializer = BarterAcceptSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # Verify both books are set
+    if not barter_request.offered_book or not barter_request.requested_book:
+        return Response(
+            {"error": "Both offered_book and requested_book must be set to complete the trade"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    # Transfer ownership: offered_book (A→B), requested_book (B→A)
+    offered_book = barter_request.offered_book
+    requested_book = barter_request.requested_book
+
+    # A's book → B (mark as not for barter after receiving)
+    offered_book.owner = barter_request.recipient
+    offered_book.trade_status = "available"
+    offered_book.is_for_barter = False
+    offered_book.save(update_fields=["owner", "trade_status", "is_for_barter"])
+
+    # B's book → A (mark as not for barter after receiving)
+    requested_book.owner = barter_request.requester
+    requested_book.trade_status = "available"
+    requested_book.is_for_barter = False
+    requested_book.save(update_fields=["owner", "trade_status", "is_for_barter"])
 
     # Update barter request
-    barter_request.status = "accepted"
-    barter_request.response_message = serializer.validated_data.get(
-        "response_message", ""
-    )
-    barter_request.response_date = timezone.now()
-
-    # Optionally update meeting details from recipient
-    if "proposed_meeting_time" in serializer.validated_data:
-        barter_request.proposed_meeting_time = serializer.validated_data[
-            "proposed_meeting_time"
-        ]
-    if "proposed_meeting_location" in serializer.validated_data:
-        barter_request.proposed_meeting_location = serializer.validated_data[
-            "proposed_meeting_location"
-        ]
-
+    barter_request.status = "completed"
+    barter_request.completed_date = timezone.now()
+    barter_request.completion_notes = request.data.get("response_message", "Trade completed successfully")
     barter_request.save()
 
-    # Notify requester
+    # Notify recipient (B) about acceptance
     Notification.objects.create(
-        recipient=barter_request.requester,
+        recipient=barter_request.recipient,
         sender=request.user,
-        notification_type="barter_accepted",
-        title="Barter request accepted",
-        message=f"{request.user.username} accepted your barter request!",
+        notification_type="barter_completed",
+        title="Trade completed!",
+        message=f"{request.user.username} accepted your counter-proposal. Trade is complete!",
         content_object=barter_request,
     )
 
@@ -195,7 +453,8 @@ def accept_barter_request(request, request_id):
 @permission_classes([permissions.IsAuthenticated])
 def reject_barter_request(request, request_id):
     """
-    Reject a barter request.
+    Reject a barter request (requester or recipient).
+    Restores availability of involved books to 'available'.
 
     POST /barter/requests/<uuid:request_id>/reject/
     Optional body:
@@ -203,7 +462,7 @@ def reject_barter_request(request, request_id):
     """
     try:
         barter_request = BarterRequest.objects.select_related(
-            "requester", "recipient"
+            "requester", "recipient", "offered_book", "requested_book"
         ).get(pk=request_id)
     except BarterRequest.DoesNotExist:
         return Response(
@@ -211,15 +470,15 @@ def reject_barter_request(request, request_id):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    # Only recipient can reject
-    if barter_request.recipient_id != request.user.id:
+    # Both requester and recipient can reject
+    if barter_request.recipient_id != request.user.id and barter_request.requester_id != request.user.id:
         return Response(
-            {"error": "Only the recipient can reject this request"},
+            {"error": "Only the requester or recipient can reject this request"},
             status=status.HTTP_403_FORBIDDEN,
         )
 
-    # Check if already responded
-    if barter_request.status != "pending":
+    # Check if already finalized
+    if barter_request.status in ["completed", "rejected"]:
         return Response(
             {"error": f"Request already {barter_request.status}"},
             status=status.HTTP_400_BAD_REQUEST,
@@ -229,6 +488,15 @@ def reject_barter_request(request, request_id):
     if not serializer.is_valid():
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    # Restore book trade_status
+    if barter_request.requested_book:
+        barter_request.requested_book.trade_status = "available"
+        barter_request.requested_book.save(update_fields=["trade_status"])
+
+    if barter_request.offered_book:
+        barter_request.offered_book.trade_status = "available"
+        barter_request.offered_book.save(update_fields=["trade_status"])
+
     # Update barter request
     barter_request.status = "rejected"
     barter_request.response_message = serializer.validated_data.get(
@@ -237,13 +505,14 @@ def reject_barter_request(request, request_id):
     barter_request.response_date = timezone.now()
     barter_request.save()
 
-    # Notify requester
+    # Notify the other party
+    other_user = barter_request.requester if request.user.id == barter_request.recipient_id else barter_request.recipient
     Notification.objects.create(
-        recipient=barter_request.requester,
+        recipient=other_user,
         sender=request.user,
         notification_type="barter_rejected",
         title="Barter request declined",
-        message=f"{request.user.username} declined your barter request.",
+        message=f"{request.user.username} declined the barter request.",
         content_object=barter_request,
     )
 

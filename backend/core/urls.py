@@ -9,6 +9,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from accounts.views import UserProfileMeView, follow_view
 from drf_spectacular.views import (
     SpectacularAPIView,
     SpectacularRedocView,
@@ -44,13 +45,17 @@ urlpatterns = [
     # Authentication
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
+    # Place explicit profile endpoint first to avoid overlap with allauth URLs.
+    path("accounts/profile/me/", UserProfileMeView.as_view(), name="profile_me"),
     path("accounts/", include("allauth.urls")),
     # API Endpoints
     path("auth/", include("accounts.urls")),  # Matches frontend expectations
     path("library/", include("books.urls")),  # User's library (reviews, books)
     path("", include("social.urls")),  # Social features (home feed, posts)
     path("barter/", include("barter.urls")),  # Barter requests
-    # path("api/v1/notifications/", include("notify.urls")),
+    # Follow API to match frontend expectations
+    path("users/follow/<int:user_id>/", follow_view, name="follow_user"),
+    path("notifications/", include("notify.urls")),  # Notifications
 ]
 
 # Serve media files in development

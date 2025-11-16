@@ -6,7 +6,7 @@ Handles book reviews and related data serialization.
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import BookCopy, BookReview
+from .models import BookCollection, BookCopy, BookReview, ReadingStatus
 
 User = get_user_model()
 
@@ -24,6 +24,7 @@ class ReviewSerializer(serializers.ModelSerializer):
     userName = serializers.CharField(
         source="reviewer.username", read_only=True
     )
+    userId = serializers.IntegerField(source="reviewer.id", read_only=True)
     userProfile = serializers.SerializerMethodField()
     content = serializers.CharField(read_only=True)
     imageUrls = serializers.ListField(
@@ -39,6 +40,7 @@ class ReviewSerializer(serializers.ModelSerializer):
             "id",
             "bookTitle",
             "authorName",
+            "userId",
             "userName",
             "userProfile",
             "content",
@@ -80,7 +82,7 @@ class BookSummarySerializer(serializers.ModelSerializer):
             "id",
             "title",
             "authorNames",
-            "availability",
+            "trade_status",
             "is_for_barter",
         ]
 
@@ -127,3 +129,105 @@ class ReviewLikeResponseSerializer(serializers.Serializer):
 
     class Meta:
         fields = ["review"]
+
+class BookSerializer(serializers.ModelSerializer):
+    """
+    Serializer for user-owned book copies exposed via profile/library APIs.
+    """
+
+    owner = serializers.ReadOnlyField(source="owner.username")
+    title = serializers.CharField(source="title", read_only=True)
+    authors = serializers.SerializerMethodField()
+    publisher = serializers.SerializerMethodField()
+    publication_date = serializers.DateField(
+        source="publication.publication_date", read_only=True
+    )
+    isbn_13 = serializers.CharField(
+        source="publication.isbn_13", read_only=True
+    )
+    description = serializers.CharField(
+        source="publication.description", read_only=True
+    )
+    cover_image = serializers.SerializerMethodField()
+    owner_notes = serializers.CharField(required=False, allow_blank=True)
+
+    class Meta:
+        model = BookCopy
+        fields = [
+            "id",
+            "title",
+            "authors",
+            "publisher",
+            "publication_date",
+            "isbn_13",
+            "description",
+            "cover_image",
+            "is_for_barter",
+            "owner_notes",
+            "trade_status",
+            "owner",
+        ]
+        read_only_fields = [
+            "id",
+            "owner",
+            "title",
+            "authors",
+            "publisher",
+            "publication_date",
+            "isbn_13",
+            "description",
+            "cover_image",
+            "trade_status",
+        ]
+
+    def get_authors(self, obj):
+        return list(obj.publication.authors.values_list("name", flat=True))
+
+    def get_publisher(self, obj):
+        publisher = obj.publication.publisher
+        return publisher.name if publisher else None
+
+    def get_cover_image(self, obj):
+        if not obj.cover_image:
+            return None
+        request = self.context.get("request")
+        url = obj.cover_image.url
+        return request.build_absolute_uri(url) if request else url
+
+class BookCollectionSerializer(serializers.ModelSerializer):
+    books = BookSerializer(many=True, read_only=True)
+    book_count = serializers.ReadOnlyField()
+
+    class Meta:
+        model = BookCollection
+        fields = [
+            "id",
+            "name",
+            "description",
+            "is_public",
+            "books",
+            "book_count",
+            "created_at",
+            "updated_at",
+        ]
+
+
+class ReadingStatusSerializer(serializers.ModelSerializer):
+    book_title = serializers.CharField(source="book.title", read_only=True)
+    book = serializers.PrimaryKeyRelatedField(
+        queryset=BookCopy.objects.all(), write_only=True
+    )
+
+    class Meta:
+        model = ReadingStatus
+        fields = [
+            "id",
+            "book",
+            "book_title",
+            "status",
+            "pages_read",
+            "start_date",
+            "finish_date",
+            "personal_rating",
+            "notes",
+        ]
