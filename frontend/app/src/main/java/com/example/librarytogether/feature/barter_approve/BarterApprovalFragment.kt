@@ -1,5 +1,6 @@
 package com.example.librarytogether.feature.barterapproval
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -8,7 +9,6 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.bumptech.glide.Glide
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentBarterApprovalBinding
 import com.example.librarytogether.feature.barterapproval.BarterApprovalViewModel.UiState
@@ -41,8 +41,9 @@ class BarterApprovalFragment : Fragment(R.layout.fragment_barter_approval) {
 
         setupToolbar()
         setupRecycler()
-        setupRejectButton()
+        setupButtons()
         observeViewModel()
+        observeSelectedBook()
     }
 
     private fun setupToolbar() {
@@ -55,8 +56,10 @@ class BarterApprovalFragment : Fragment(R.layout.fragment_barter_approval) {
         adapter = BookAdapter(
             mode = BookListMode.ROW,
             clicks = BookClicks(
-                onClickItem = { book -> openBookDetail(book) },
-                onClickMore = { book, _ -> acceptBook(book) }
+                // 상세보기는 btnMore 로
+                onClickItem = { },
+                onClickMore = { book, _ -> openBookDetail(book) },
+                onSelect = { book -> viewModel.toggleSelectedBook(book) }
             )
         )
         binding.rvBooks.adapter = adapter
@@ -87,6 +90,13 @@ class BarterApprovalFragment : Fragment(R.layout.fragment_barter_approval) {
             viewModel.rejectRequest {
                 findNavController().popBackStack()
             }
+        }
+    }
+
+    private fun observeSelectedBook() {
+        viewModel.selectedBook.observe(viewLifecycleOwner) { selected ->
+            binding.btnReject.text =
+                if (selected == null) "거절" else "수락"
         }
     }
 
