@@ -100,17 +100,13 @@ class Book(models.Model):
     title = models.CharField(max_length=200)
     subtitle = models.CharField(max_length=200, blank=True)
     authors = models.ManyToManyField(Author, related_name="books")
+
     publisher = models.ForeignKey(
         Publisher, on_delete=models.SET_NULL, null=True, blank=True
     )
 
     # Publication Details
-    isbn_10 = models.CharField(
-        max_length=10, blank=True, unique=True, null=True
-    )
-    isbn_13 = models.CharField(
-        max_length=13, blank=True, unique=True, null=True
-    )
+    isbn = models.CharField(max_length=13, blank=True, unique=True, null=True)
     publication_date = models.DateField(null=True, blank=True)
     edition = models.CharField(max_length=50, blank=True)
     pages = models.IntegerField(
@@ -191,7 +187,7 @@ class Book(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["title"]),
-            models.Index(fields=["isbn_13"]),
+            models.Index(fields=["isbn"]),
             models.Index(fields=["owner"]),
             models.Index(fields=["trade_status"]),
             models.Index(fields=["is_for_barter"]),

@@ -19,7 +19,8 @@ from .views import (
     book_list,
     book_detail,
     collection_list_view,
-    modify_collection_books, reading_status_view, modify_reading_status,
+    modify_collection_books, reading_status_view, modify_reading_status, user_reviews_by_id,
+    user_wishlist_by_id,
     )
 
 
@@ -63,13 +64,13 @@ urlpatterns = [
     ),
     # Add/remove book from wishlist
     path(
-        "books/<uuid:book_id>/wishlist/",
+        "books/<uuid:id>/wishlist/",
         toggle_wishlist,
         name="toggle-wishlist",
     ),
     # Toggle barter availability for owned book
     path(
-        "books/<uuid:book_id>/toggle-barter/",
+        "books/<uuid:id>/toggle-barter/",
         toggle_book_for_barter,
         name="toggle-barter",
     ),
@@ -81,7 +82,7 @@ urlpatterns = [
     path("books/", book_list, name="books-list"),
 
     #Book detail API.
-    path("books/<uuid:book_id>/", book_detail, name="book-detail"),
+    path("books/<uuid:pk>/", book_detail, name="book-detail"),
 
     #Collection API
     path("collections/", collection_list_view, name="collection-view"),  # List or modify collections

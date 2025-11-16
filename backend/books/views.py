@@ -449,6 +449,8 @@ def book_detail(request, pk):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == "PUT":
+        data = request.data.copy()
+        data.pop("owner", None)  # Ignore owner field if sent
         serializer = BookSerializer(book, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -466,18 +468,27 @@ def book_list(request):
     GET /books/  - List all books
     POST /books/ - Add a new book (owned by the authenticated user)
     """
+    # print("book_list reached with method:", request.method)
+    
     if request.method == "GET":
         books = Book.objects.all().prefetch_related("authors")
         serializer = BookSerializer(books, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
+    
     elif request.method == "POST":
         serializer = BookSerializer(data=request.data)
         if serializer.is_valid():
-            serializer.save(owner=request.user)
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            book = serializer.save(owner=request.user)
+            
+            # Re-serialize the saved book with authors prefetched
+            saved_book = Book.objects.prefetch_related('authors').get(pk=book.pk)
+            response_serializer = BookSerializer(saved_book)
+            
+            # print("Check if book added: ", response_serializer.data)
+            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
+        
+        # print("Serializer errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 # --- Create & List collections ---
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
@@ -516,7 +527,7 @@ def modify_collection_books(request, pk):
     except BookCollection.DoesNotExist:
         return Response({"error": "Collection not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    book_id = request.data.get("book_id")
+    book_id = request.data.get("id")
     if not book_id:
         return Response({"error": "book_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -548,7 +559,7 @@ def reading_status_view(request):
 
     # --- POST: create or update status for a book ---
     elif request.method == "POST":
-        book_id = request.data.get("book_id")
+        book_id = request.data.get("id")
         if not book_id:
             return Response({"error": "book_id is required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -593,11 +604,3 @@ def modify_reading_status(request, pk):
 
         return Response({"message": "Reading status removed."},
                         status=status.HTTP_204_NO_CONTENT)
-
-
-
-
-
-
-
-
