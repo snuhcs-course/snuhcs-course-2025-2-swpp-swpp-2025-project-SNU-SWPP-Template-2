@@ -145,6 +145,16 @@ class BookPublication(models.Model):
         blank=True,
         help_text="Sales status from external API (e.g., 정상, 품절, 절판)",
     )
+    category_scores = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="Cached LLM category scores (label + score dicts)",
+    )
+    taste_profile = models.JSONField(
+        default=dict,
+        blank=True,
+        help_text="Cached LLM taste profile (genres, moods, purposes, length)",
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
