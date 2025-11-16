@@ -296,6 +296,8 @@ def book_detail(request, pk):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == "PUT":
+        data = request.data.copy()
+        data.pop("owner", None)  # Ignore owner field if sent
         serializer = BookSerializer(book, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -363,7 +365,7 @@ def modify_collection_books(request, pk):
     except BookCollection.DoesNotExist:
         return Response({"error": "Collection not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    book_id = request.data.get("book_id")
+    book_id = request.data.get("id")
     if not book_id:
         return Response({"error": "book_id is required"}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -395,7 +397,7 @@ def reading_status_view(request):
 
     # --- POST: create or update status for a book ---
     elif request.method == "POST":
-        book_id = request.data.get("book_id")
+        book_id = request.data.get("id")
         if not book_id:
             return Response({"error": "book_id is required."}, status=status.HTTP_400_BAD_REQUEST)
 

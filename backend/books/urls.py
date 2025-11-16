@@ -36,13 +36,13 @@ urlpatterns = [
     path("wishlist/", user_wishlist_list, name="user-wishlist-list"),
     # Add/remove book from wishlist
     path(
-        "books/<uuid:book_id>/wishlist/",
+        "books/<uuid:id>/wishlist/",
         toggle_wishlist,
         name="toggle-wishlist",
     ),
     # Toggle barter availability for owned book
     path(
-        "books/<uuid:book_id>/toggle-barter/",
+        "books/<uuid:id>/toggle-barter/",
         toggle_book_for_barter,
         name="toggle-barter",
     ),
@@ -54,7 +54,7 @@ urlpatterns = [
     path("books/", book_list, name="books-list"),
 
     #Book detail API.
-    path("books/<uuid:book_id>/", book_detail, name="book-detail"),
+    path("books/<uuid:id>/", book_detail, name="book-detail"),
 
     #Collection API
     path("collections/", collection_list_view, name="collection-view"),  # List or modify collections
@@ -63,7 +63,4 @@ urlpatterns = [
     # Reading status API
     path("reading-status/", reading_status_view, name="reading-status-view"),  # Add or update reading status
     path("reading-status/<int:pk>/", modify_reading_status, name="reading-status-detail"),  # Single book status
-
-
-
 ]
