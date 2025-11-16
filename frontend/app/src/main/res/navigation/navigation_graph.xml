@@ -83,9 +83,16 @@
         android:id="@+id/bookDetailFragment"
         android:name="com.example.librarytogether.feature.bookdetail.BookDetailFragment">
         <argument android:name="bookId" app:argType="string" />
+
         <argument
             android:name="source"
             app:argType="com.example.librarytogether.feature.bookdetail.EntrySource"/>
+
+        <argument
+            android:name="barterMessage"
+            app:nullable="true"
+            app:argType="string"
+            android:defaultValue="@null" />
     </fragment>
 
     <fragment

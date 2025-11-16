@@ -1,6 +1,7 @@
 package com.example.librarytogether.feature.home
 
 import android.content.res.ColorStateList
+import android.provider.CalendarContract
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
@@ -63,6 +64,10 @@ class FeedAdapter(
         private var pageCallback: ViewPager2.OnPageChangeCallback? = null
 
         private var current: Post? = null
+
+        private val defaultLikeIconTint = binding.btnLike.iconTint
+        private val enabledExchangeTextColors = binding.btnExchange.textColors
+        private val enabledExchangeIconTint = binding.btnExchange.iconTint
 
         init {
             with(binding) {
@@ -158,11 +163,12 @@ class FeedAdapter(
             }
 
             val IconColor = if (post.isLiked) {
-                ContextCompat.getColor(itemView.context, R.color.red)
+                val red = ContextCompat.getColor(itemView.context, R.color.red)
+                ColorStateList.valueOf(red)
             } else {
-                ContextCompat.getColor(itemView.context, R.color.black)
+                defaultLikeIconTint
             }
-            btnLike.iconTint = ColorStateList.valueOf(IconColor)
+            btnLike.iconTint = IconColor
 
             if (post.isLiked) {
                 btnLike.setIconResource(R.drawable.filled_like_icon)
@@ -174,13 +180,16 @@ class FeedAdapter(
 
             btnExchange.isEnabled = barterAvailable
 
-            val exchangeColor = if (barterAvailable) {
-                ContextCompat.getColor(itemView.context, R.color.black)
+            if (barterAvailable) {
+                btnExchange.isEnabled = true
+                btnExchange.setTextColor(enabledExchangeTextColors)
+                btnExchange.iconTint = enabledExchangeIconTint
             } else {
-                ContextCompat.getColor(itemView.context, android.R.color.darker_gray)
+                btnExchange.isEnabled = false
+                val disabledColor = ContextCompat.getColor(itemView.context, R.color.grey)
+                btnExchange.setTextColor(disabledColor)
+                btnExchange.iconTint = ColorStateList.valueOf(disabledColor)
             }
-            btnExchange.iconTint = ColorStateList.valueOf(exchangeColor)
-            btnExchange.setTextColor(exchangeColor)
         }
 
         fun cleanup() = with(binding) {
