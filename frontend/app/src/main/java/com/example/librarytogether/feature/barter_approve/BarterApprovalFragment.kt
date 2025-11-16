@@ -12,6 +12,7 @@ import com.bumptech.glide.Glide
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentBarterApprovalBinding
 import com.example.librarytogether.feature.barterapproval.BarterApprovalViewModel.UiState
+import com.example.librarytogether.feature.barterapproval.data.BarterApprovalDetail
 import com.example.librarytogether.feature.bookdetail.EntrySource
 import com.example.librarytogether.feature.library.BookAdapter
 import com.example.librarytogether.feature.library.BookClicks
@@ -29,12 +30,14 @@ class BarterApprovalFragment : Fragment(R.layout.fragment_barter_approval) {
     private val viewModel: BarterApprovalViewModel by viewModels()
     private val args: BarterApprovalFragmentArgs by navArgs()
     private val requestId by lazy { args.requestId }
+    private var currentDetail: BarterApprovalDetail? = null
 
     private lateinit var adapter: BookAdapter
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentBarterApprovalBinding.bind(view)
+        val binding = binding
 
         setupToolbar()
         setupRecycler()
@@ -60,32 +63,28 @@ class BarterApprovalFragment : Fragment(R.layout.fragment_barter_approval) {
     }
 
     private fun openBookDetail(book: Book) {
+        val detail = currentDetail ?: return
+        val index = detail.books.indexOfFirst { it.id == book.id }
+        val messageForThisBook: String? =
+            if (index in detail.message.indices) detail.message[index] else null
+
         val action =
             BarterApprovalFragmentDirections
                 .actionBarterApprovalFragmentToBookDetailFragment(
                     bookId = book.id,
-                    source = EntrySource.EXPLORE
+                    source = EntrySource.EXPLORE,
+                    barterMessage = messageForThisBook
                 )
         findNavController().navigate(action)
     }
 
     private fun acceptBook(book: Book) {
         viewModel.acceptBook(book)
-        Toast.makeText(
-            requireContext(),
-            getString(R.string.msg_barter_book_accepted, book.title),
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     private fun setupRejectButton() {
         binding.btnReject.setOnClickListener {
             viewModel.rejectRequest {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.msg_barter_request_rejected),
-                    Toast.LENGTH_SHORT
-                ).show()
                 findNavController().popBackStack()
             }
         }
@@ -120,11 +119,13 @@ class BarterApprovalFragment : Fragment(R.layout.fragment_barter_approval) {
         contentGroup.isVisible = true
 
         val detail = state.detail
+        currentDetail = detail
 
         tvRequesterName.text = detail.requesterName
         tvCreatedAt.text = detail.createdAt
-        tvMessage.text = detail.message.orEmpty().joinToString("\n")
+        tvMessage.text = getString(R.string.barter_message_to_user, detail.requesterName)
         binding.imgAvatar.loadAvatar(detail.requesterAvatarUrl)
+
         adapter.submitList(detail.books)
     }
 

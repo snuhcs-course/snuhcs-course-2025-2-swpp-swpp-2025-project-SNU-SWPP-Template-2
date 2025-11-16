@@ -59,6 +59,7 @@
     <string name="feed_author">모건 하우절</string>
     <string name="feed_content">책을 읽은 후 느낀점</string>
     <string name="feed_time">1시간 전</string>
+    <string name="like_count_short">%1$d</string>
 
     <!-- a11y descriptions -->
     <string name="desc_profile_image">작성자 프로필 이미지</string>
@@ -172,9 +173,11 @@
     <string name="barter_confirm_msg">사용자님의 책장에서 자동으로 상대방의 취향에 맞는 3권이 교환 대상이 됩니다\n교환 하시겠습니까?</string>
     <string name="barter_apply">신청</string>
     <string name="cancel">취소</string>
+    <string name="barter_message_to_user">%1$s님이 교환을 신청하였습니다.</string>
 
     <!--follow-->
     <string name="follow">팔로우</string>
+    <string name="unfollow">언팔로우</string>
     <string name="following">팔로잉</string>
 
     <!--book detail-->

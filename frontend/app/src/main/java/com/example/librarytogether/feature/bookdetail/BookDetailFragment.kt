@@ -107,7 +107,7 @@ class BookDetailFragment : Fragment(R.layout.fragment_book_detail) {
         binding.tvTitle.text = book.title
         binding.tvAuthor.text = book.authors
         binding.tvPublisher.text = book.publisher.orEmpty()
-        binding.tvIsbn.text = book.isbn.orEmpty()
+        binding.tvIsbn.text = book.isbn_13.orEmpty()
         binding.tvDescription.apply {
             isVisible = !book.description.isNullOrBlank()
             text = book.description ?: ""

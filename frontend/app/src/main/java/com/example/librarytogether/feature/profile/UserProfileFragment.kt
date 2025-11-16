@@ -149,6 +149,12 @@ class UserProfileFragment : Fragment(R.layout.fragment_user_profile) {
             binding.tvReviewCount.text = profile.reviewCount.toString()
             binding.tvFollowerCount.text = profile.followerCount.toString()
             binding.tvFollowingCount.text = profile.followingCount.toString()
+
+            binding.btnFollow.text = if (profile.isFollowing) {
+                getString(R.string.unfollow)
+            } else {
+                getString(R.string.follow)
+            }
         }
 
         viewModel.reviews.observe(viewLifecycleOwner) { reviews ->
