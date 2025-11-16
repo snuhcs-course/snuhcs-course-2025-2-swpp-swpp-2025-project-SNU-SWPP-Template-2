@@ -110,6 +110,60 @@ python examples/scripts/manual_test_with_local_llm.py
 python examples/scripts/test_real_model.py
 ```
 
+### Hybrid RF + LLM Exchange API
+
+The `HybridExchangePipeline` mixes a lightweight Random Forest ranker with the
+LLM counter-proposal writer to power step (3) in the barter flow. Launch the
+FastAPI server from the `ai-model` directory:
+
+```bash
+uvicorn api.server:app --app-dir src --reload
+```
+
+Then call the endpoint:
+
+```bash
+curl -X POST http://localhost:8000/api/exchange/counter-proposal \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "requester": {"id": "user-a", "name": "Alice"},
+        "responder": {
+            "id": "user-b",
+            "name": "Bob",
+            "preferred_genres": ["NOVEL", "SCIENCE_TECH"],
+            "preferred_moods": ["IMMERSIVE"],
+            "reading_purposes": ["INSPIRATION"]
+        },
+        "requester_books": [
+            {"id": "bk-1", "title": "Project Hail Mary", "genres": ["SCIENCE_TECH"], "moods": ["IMMERSIVE"], "popularity": 0.9}
+        ]
+     }'
+```
+
+The API returns RF-ranked books plus the LLM-authored counter message that user
+B can send back to user A.
+
+Need the two-LLM reasoning dialogue? Call
+`POST /api/exchange/reasoned-proposal` with the same payload — the response adds
+`reasoning`, which contains the recommender/critic conversation (3~5 books are
+discussed), the final joint recommendation, and a confidence score ready for the
+backend to display.
+
+### Training the Random Forest Ranker
+
+The RF checkpoint is produced from the real PostgreSQL data (`bookbarter_db`).
+Provide `DATABASE_URL` (defaults to the local development DSN) and run:
+
+```bash
+cd ai-model
+PYTHONPATH=src python -m training.train_rf
+```
+
+The script loads `books_book_publication` rows, synthesizes responder tastes,
+and saves a `models/checkpoints/rf_ranker.pkl` file that the API loads at
+startup. If the database lacks enough samples the trainer still produces a
+synthetic model so the pipeline keeps functioning.
+
 ## 💡 Usage Examples
 
 ### Example 1: Book Recommendation with Reasoning
@@ -327,4 +381,3 @@ When adding new features:
 - [examples/README.md](examples/README.md) - Examples documentation
 - [examples/scripts/example_usage.py](examples/scripts/example_usage.py) - Complete usage examples
 - [examples/scripts/manual_test_with_local_llm.py](examples/scripts/manual_test_with_local_llm.py) - Manual testing with real model
-
