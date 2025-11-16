@@ -1,0 +1,112 @@
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+
+    <View
+        android:id="@+id/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#282d35" />
+
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+    <ImageButton
+        android:id="@+id/back_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_arrow_back"
+        android:contentDescription="뒤로가기"
+        android:background="?attr/selectableItemBackgroundBorderless"/>
+
+    <TextView
+        android:id="@+id/month_title_text_view"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="주간 통계 상세 분석"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginStart="16dp"/>
+
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
+        app:layout_constraintBottom_toTopOf="@id/navigation_bar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/month_range_text_view"
+                style="@style/SectionContent"
+                android:layout_marginBottom="16dp"
+                android:textColor="@android:color/white"
+                android:textStyle="italic"
+                android:text="2025-09-01 ~ 2025-09-30 | 키워드1, 키워드2"/>
+
+            <TextView style="@style/SectionTitle" android:text="월간 일기 작성 횟수 (Diary Count)" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingBottom="16dp">
+                <TextView android:id="@+id/diary_count_ratio" android:layout_width="wrap_content" android:layout_height="wrap_content" android:textSize="16sp" android:textStyle="bold" android:layout_marginEnd="16dp" android:text="20/30"/>
+                <ProgressBar android:id="@+id/diary_count_progress" style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                    android:layout_width="0dp" android:layout_height="16dp" android:layout_weight="1" android:max="30" android:progress="20" android:progressTint="@color/colorPrimary" />
+            </LinearLayout>
+
+            <TextView style="@style/SectionTitle" android:text="1. 월간 개요 (Summary Overview)" />
+            <TextView android:id="@+id/overview_text_view" style="@style/SectionContent" />
+
+            <TextView style="@style/SectionContent" android:text="감정 분포" android:textStyle="bold"/>
+            <com.github.mikephil.charting.charts.BarChart
+                android:id="@+id/emotion_analysis_bar_chart"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginTop="8dp" />
+
+            <TextView style="@style/SectionTitle" android:text="2. 감정 분석 (Emotion Analysis)" android:layout_marginTop="24dp" />
+
+
+            <TextView style="@style/SectionContent" android:text="주간별 감정 추이" android:textStyle="bold" android:layout_marginTop="16dp"/>
+            <com.github.mikephil.charting.charts.LineChart
+                android:id="@+id/weekly_emotion_line_chart"
+                android:layout_width="match_parent"
+                android:layout_height="120dp"
+                android:layout_marginTop="8dp" />
+
+            <TextView style="@style/SectionTitle" android:text="3. 주간 요약 목록 (Weekly Summaries)" android:layout_marginTop="24dp" />
+            <TextView android:id="@+id/week_summaries_list" style="@style/SectionContent" android:text="주간 요약 데이터가 여기에 표시됩니다."/>
+
+            <TextView style="@style/SectionTitle" android:text="4. 통찰 및 조언 (Insights)" android:layout_marginTop="24dp" />
+            <TextView android:id="@+id/advice_text_view" style="@style/SectionContent" />
+            <TextView android:id="@+id/emotion_cycle_text_view" style="@style/SectionContent" android:layout_marginTop="8dp" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <include
+        android:id="@+id/navigation_bar"
+        layout="@layout/include_nav_calendar"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

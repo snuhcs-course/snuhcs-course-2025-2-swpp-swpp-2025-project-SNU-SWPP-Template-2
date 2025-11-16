@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="32dp"
+    android:paddingBottom="32dp"
+    android:background="@drawable/dark_sky_background">
+
+
+    <ImageView
+        android:id="@+id/grape_glow_background"
+        android:layout_width="200dp"  android:layout_height="200dp"
+        android:src="@drawable/ic_moon"
+        app:layout_constraintTop_toTopOf="@id/grape_icon"
+        app:layout_constraintBottom_toBottomOf="@id/grape_icon"
+        app:layout_constraintStart_toStartOf="@id/grape_icon"
+        app:layout_constraintEnd_toEndOf="@id/grape_icon"
+        android:visibility="gone"
+        android:contentDescription="포도 빛 효과" />
+
+    <View
+        android:id="@+id/statistics_background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/statistics_background" />
+
+    <LinearLayout
+        android:id="@+id/tree_stem_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:orientation="vertical"
+        android:gravity="bottom|center_horizontal"
+        app:layout_constraintTop_toBottomOf="@id/grape_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="-20dp"
+        android:layout_marginBottom="40dp"
+        android:paddingBottom="10dp"
+        android:clipChildren="false">
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/grape_icon"
+        android:layout_width="128dp"
+        android:layout_height="128dp"
+        android:layout_marginTop="40dp"
+        android:contentDescription="월간 요약 포도"
+        android:src="@drawable/ic_grape"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.7"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

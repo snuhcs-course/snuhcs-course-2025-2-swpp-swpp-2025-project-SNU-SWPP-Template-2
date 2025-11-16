@@ -1,0 +1,31 @@
+<!-- res/layout/item_memo.xml -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/fox_bubble"
+    android:layout_marginTop="6dp"
+    android:layout_marginBottom="6dp">
+
+    <!-- 본문: 가운데 정렬 -->
+    <TextView
+        android:id="@+id/memo_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        android:text="내용"
+        android:textColor="@android:color/black"
+        android:textSize="16sp"
+        android:layout_marginTop="28dp"/> <!-- 타임스탬프랑 겹치면 살짝 내려줌 -->
+
+    <!-- 타임스탬프: 왼쪽 위에 '딱' -->
+    <TextView
+        android:id="@+id/memo_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="21:05"
+        android:textSize="12sp"
+        android:textColor="#666666"
+        android:layout_gravity="start|top"
+        android:layout_margin="0dp"/> <!-- 0이면 9패치 content 경계에 정확히 붙음 -->
+</FrameLayout>

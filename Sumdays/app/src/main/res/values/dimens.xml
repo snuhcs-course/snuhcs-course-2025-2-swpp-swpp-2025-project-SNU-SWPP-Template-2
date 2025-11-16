@@ -1,0 +1,5 @@
+<resources>
+    <dimen name="spacing_between_week_blocks">0dp</dimen>
+    <dimen name="week_summary_block_height">60dp</dimen>
+    <dimen name="week_summary_block_width">120dp</dimen>
+</resources>

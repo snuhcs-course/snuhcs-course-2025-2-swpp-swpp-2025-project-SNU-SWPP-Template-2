@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoginActivity">
+
+    <!-- 은하 배경 -->
+    <ImageView
+        android:id="@+id/galaxy_background"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/galaxy_background"
+
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+    />
+
+    <!-- 흰색 사다리꼴 배경 -->
+    <ImageView
+        android:id="@+id/white_poly_background"
+        android:layout_width="500dp"
+        android:layout_height="600dp"
+        android:background="@drawable/white_polygon_background"
+
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <!--로그인 화면의 하얀 직사각형 배경-->
+
+    <ImageView
+        android:id="@+id/white_rec_background"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+
+        android:background="@drawable/login_white_rectangle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <TextView
+        android:id="@+id/login_instruction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:text="Login to Sumdays"
+        android:textSize="28dp"
+        android:textStyle="bold"
+
+        app:layout_constraintStart_toStartOf="@id/white_rec_background"
+        app:layout_constraintEnd_toEndOf="@id/white_rec_background"
+        app:layout_constraintTop_toTopOf="@id/white_rec_background"
+        />
+
+    <TextView
+        android:id="@+id/app_description"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:text="Quick &amp; Simple way to record your days"
+        android:textSize="12dp"
+
+        app:layout_constraintStart_toStartOf="@id/login_instruction"
+        app:layout_constraintEnd_toEndOf="@id/login_instruction"
+        app:layout_constraintTop_toTopOf="@id/login_instruction"
+        />
+
+    <ImageView
+        android:id="@+id/fox_login_logo"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="25dp"
+        android:src="@drawable/fox_login_logo"
+
+        app:layout_constraintStart_toStartOf="@id/app_description"
+        app:layout_constraintEnd_toEndOf="@id/app_description"
+        app:layout_constraintTop_toTopOf="@id/app_description"
+        />
+
+    <EditText
+        android:id="@+id/idInput_EditText"
+        android:layout_width="270dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:ems="10"
+        android:hint="아이디를 입력하세요"
+        android:inputType="text"
+
+        app:layout_constraintBottom_toTopOf="@+id/passwordInput_EditText"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <EditText
+        android:id="@+id/passwordInput_EditText"
+        android:layout_width="270dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:ems="10"
+        android:hint="비밀번호를 입력하세요"
+        android:inputType="textPassword"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@+id/idInput_EditText"
+        app:layout_constraintStart_toStartOf="@+id/idInput_EditText"
+        app:layout_constraintTop_toBottomOf="@+id/idInput_EditText" />
+
+    <!--Changed Button -> ImageButton-->
+    <ImageButton
+        android:id="@+id/login_button"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:ems="10"
+        android:src="@drawable/login_btn"
+        app:layout_constraintEnd_toEndOf="@+id/passwordInput_EditText"
+        app:layout_constraintStart_toStartOf="@+id/passwordInput_EditText"
+        app:layout_constraintTop_toBottomOf="@+id/passwordInput_EditText" />
+    <TextView
+        android:id="@+id/signup_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="40dp"
+        android:padding="8dp"
+        android:text="Don't have an account? Sign Up"
+        android:textColor="@color/design_default_color_primary"
+        app:layout_constraintEnd_toEndOf="@+id/login_button"
+        app:layout_constraintStart_toStartOf="@+id/login_button"
+        app:layout_constraintTop_toBottomOf="@+id/login_button" />
+    <TextView
+        android:id="@+id/skip_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="80dp"
+        android:padding="8dp"
+        android:text="로그인 스킵"
+        android:textColor="@color/design_default_color_primary"
+        app:layout_constraintEnd_toEndOf="@+id/signup_text"
+        app:layout_constraintStart_toStartOf="@+id/signup_text"
+        app:layout_constraintTop_toBottomOf="@+id/signup_text" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

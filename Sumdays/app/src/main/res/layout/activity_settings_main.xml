@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".CalendarActivity">
+
+    <!-- 배경색 추가 -->
+    <View
+        android:id="@+id/background"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#282d35" />
+
+    <ScrollView
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- 사용자 블록 -->
+            <LinearLayout
+                android:id="@+id/userBlock"
+                android:background="@drawable/settings_rounded_card"
+                android:padding="20dp"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/nickname"
+                    android:text="닉네임"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+<!--                <LinearLayout-->
+<!--                    android:orientation="horizontal"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="wrap_content">-->
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/strike"-->
+<!--                        android:text="🔥 Strike: 12"-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:textColor="#FFFFFF"-->
+<!--                        android:layout_marginTop="4dp"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content" />-->
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/leaves"-->
+<!--                        android:text="🍃 leaves: 34"-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:textColor="#FFFFFF"-->
+<!--                        android:layout_marginTop="4dp"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content" />-->
+
+<!--                    <TextView-->
+<!--                        android:id="@+id/grapes"-->
+<!--                        android:text="🍇 Grapes: 10"-->
+<!--                        android:textSize="14sp"-->
+<!--                        android:textColor="#FFFFFF"-->
+<!--                        android:layout_marginTop="4dp"-->
+<!--                        android:layout_width="wrap_content"-->
+<!--                        android:layout_height="wrap_content" />-->
+
+<!--                </LinearLayout>-->
+
+            </LinearLayout>
+
+            <!-- 구분선 -->
+            <View
+                android:layout_marginVertical="16dp"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#DDDDDD" />
+
+            <!-- 아래 항목들 (버튼 역할) -->
+
+            <LinearLayout
+                android:id="@+id/notificationBlock"
+                style="@style/SettingsItemStyle" >
+                <TextView
+                    android:text="알림 설정"
+                    style="@style/TextAppearance.App.Normal"
+                    android:textColor="#FFFFFF"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/diaryStyleBlock"
+                style="@style/SettingsItemStyle" >
+                <TextView
+                    android:text="일기 스타일"
+                    style="@style/TextAppearance.App.Normal"
+                    android:textColor="#FFFFFF"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/accountBlock"
+                style="@style/SettingsItemStyle" >
+                <TextView
+                    android:text="계정 설정"
+                    style="@style/TextAppearance.App.Normal"
+                    android:textColor="#FFFFFF"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/logoutBlock"
+                style="@style/SettingsItemStyle">
+                <TextView
+                    android:text="로그아웃"
+                    style="@style/TextAppearance.App.Normal"
+                    android:textColor="#FF0000"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <include
+        android:id="@+id/navigation_bar"
+        layout="@layout/include_nav_calendar"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#303136"
+    tools:context=".DailyReadActivity">
+
+    <!-- 상단 날짜 및 버튼 -->
+    <TextView
+        android:id="@+id/date_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:textColor="@android:color/white"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="2025-09-27" />
+
+    <!-- 좌우 이동 버튼 (날짜 양옆) -->
+    <ImageView
+        android:id="@+id/prev_day_button"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="8dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_arrow_back_ios"
+        app:layout_constraintBottom_toBottomOf="@+id/date_text"
+        app:layout_constraintEnd_toStartOf="@+id/date_text"
+        app:layout_constraintTop_toTopOf="@+id/date_text"
+        app:tint="@android:color/white" />
+    <ImageView
+        android:id="@+id/next_day_button"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginStart="8dp"
+        android:padding="8dp"
+        android:src="@drawable/ic_arrow_forward_ios"
+        app:layout_constraintBottom_toBottomOf="@+id/date_text"
+        app:layout_constraintStart_toEndOf="@+id/date_text"
+        app:layout_constraintTop_toTopOf="@+id/date_text"
+        app:tint="@android:color/white" />
+
+    <!-- (복구) 메모 보기 버튼 (주황색) -->
+    <Button
+        android:id="@+id/edit_memos_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="메모 보기"
+        android:backgroundTint="#E26A2C"
+        android:minHeight="0dp"
+        android:paddingVertical="8dp"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintBottom_toBottomOf="@+id/next_day_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/next_day_button" />
+
+
+    <!-- 이모지/키워드 영역 (중앙 정렬됨) -->
+    <LinearLayout
+        android:id="@+id/analysis_header_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="24dp"
+        android:layout_marginEnd="64dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/date_text">
+        <TextView
+            android:id="@+id/comment_icon"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:textSize="30sp"
+            tools:text="🤔" />
+        <TextView
+            android:id="@+id/keywords_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textColor="#B0BEC5"
+            android:textSize="14sp"
+            tools:text="산책, 생각, 사유, 자아성찰" />
+    </LinearLayout>
+
+    <!-- 1. 내비게이션 바 (화면 하단 고정) -->
+    <include
+        android:id="@+id/bottom_buttons_layout"
+        layout="@layout/include_nav_calendar"
+        android:layout_width="0dp"
+        android:layout_height="150dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginBottom="16dp"/>
+
+
+    <!-- 2. "오늘의 코멘트" 카드뷰 (내비게이션 바 위에 고정) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/comment_card"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="32dp"
+        android:layout_marginEnd="32dp"
+        android:layout_marginBottom="32dp"
+        app:cardBackgroundColor="#4A4B50"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_buttons_layout">
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp">
+            <!-- 코멘트 카드 내부 레이아웃 -->
+            <TextView
+                android:id="@+id/comment_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="오늘의 코멘트"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+            <ImageView
+                android:id="@+id/thermometer_icon"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_marginTop="16dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/comment_title"
+                tools:src="@drawable/ic_thermometer_high" />
+            <TextView
+                android:id="@+id/emotion_score"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                app:layout_constraintEnd_toEndOf="@id/thermometer_icon"
+                app:layout_constraintStart_toStartOf="@id/thermometer_icon"
+                app:layout_constraintTop_toBottomOf="@id/thermometer_icon"
+                tools:text="30°C" />
+            <TextView
+                android:id="@+id/comment_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
+                android:lineSpacingExtra="4sp"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                app:layout_constraintEnd_toStartOf="@+id/thermometer_icon"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/comment_title"
+                tools:text="산책 속에서 생각이 많았지만 차분한 자아성찰로 마무리된 하루였습니다." />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- 3. 사진첩 (RecyclerView) (삭제됨) -->
+
+    <!-- 4. 일기 내용 ScrollView (코멘트 카드 위에 고정) -->
+    <ScrollView
+        android:id="@+id/diary_scroll_view"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="40dp"
+        android:layout_marginBottom="16dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@+id/comment_card"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/analysis_header_layout">
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/diary_content_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="8sp"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:visibility="visible"
+                tools:text="오늘은 산책하면서 생각이 많았던 하루였다." />
+            <EditText
+                android:id="@+id/diary_content_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@android:color/transparent"
+                android:gravity="top"
+                android:lineSpacingExtra="8sp"
+                android:textColor="@android:color/white"
+                android:textColorHint="#AFAFAF"
+                android:textSize="16sp"
+                android:visibility="gone"
+                tools:text="수정 모드..." />
+        </FrameLayout>
+    </ScrollView>
+
+
+    <!-- 5. 수정/저장 버튼 (Floating) -->
+    <ImageView
+        android:id="@+id/edit_inplace_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_bubble_grey"
+        android:padding="12dp"
+        android:src="@drawable/ic_edit_diary"
+        android:elevation="4dp"
+        app:layout_constraintBottom_toBottomOf="@+id/diary_scroll_view"
+        app:layout_constraintEnd_toEndOf="@+id/diary_scroll_view"
+        app:tint="@android:color/black" />
+
+    <ImageView
+        android:id="@+id/save_button"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_bubble_grey"
+        android:padding="12dp"
+        android:src="@drawable/ic_save"
+        android:elevation="4dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@+id/diary_scroll_view"
+        app:layout_constraintEnd_toEndOf="@+id/diary_scroll_view"
+        app:tint="@android:color/black" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
