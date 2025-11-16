@@ -15,6 +15,7 @@ from notify.models import Notification
 from barter.models import BarterRequest
 from books.models import Book
 
+from notify.utils import create_notification
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

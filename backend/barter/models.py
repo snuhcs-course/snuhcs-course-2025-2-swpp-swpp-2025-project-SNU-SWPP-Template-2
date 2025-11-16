@@ -94,6 +94,14 @@ class BarterRequest(models.Model):
             models.Index(fields=["created_at"]),
         ]
 
+    def create_transaction(self):
+        if hasattr(self, "transaction"):
+            #...
+            return self.transaction 
+        
+        return BarterTransaction.objects.create(barter_request=self, meeting_type=self.preferred_meeting_type,)
+
+
     def __str__(self):
         return f"Barter Request from {self.requester.username} to {self.recipient.username}"
 

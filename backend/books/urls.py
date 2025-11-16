@@ -11,9 +11,13 @@ from .views import (
     user_profile_detail,
     toggle_book_for_barter,
     toggle_wishlist,
+    user_books_list,
+    user_books_list_by_id,
+    user_wishlist_list,
+    user_wishlist_by_id,
+    user_reviews_by_id,
     book_list,
     book_detail,
-    user_wishlist_list,
     collection_list_view,
     modify_collection_books, reading_status_view, modify_reading_status, user_reviews_by_id,
     user_wishlist_by_id,
@@ -39,6 +43,16 @@ urlpatterns = [
         ReviewLikeView.as_view(),
         name="review-like",
     ),
+    # Other user's profile (basic)
+    path(
+        "profile/<int:user_id>/",
+        user_profile_detail,
+        name="user-profile-by-id",
+    ),
+    # User's books list
+    path("books/", user_books_list, name="user-books-list"),
+    # Other user's books by ID
+    path("books/<int:user_id>/", user_books_list_by_id, name="user-books-list-by-id"),
    
     # User's wishlist
     path("wishlist/", user_wishlist_list, name="user-wishlist-list"),
