@@ -186,7 +186,7 @@ class FeedAdapter(
                 btnExchange.iconTint = enabledExchangeIconTint
             } else {
                 btnExchange.isEnabled = false
-                val disabledColor = ContextCompat.getColor(itemView.context, R.color.grey)
+                val disabledColor = ContextCompat.getColor(itemView.context, R.color.light_gray)
                 btnExchange.setTextColor(disabledColor)
                 btnExchange.iconTint = ColorStateList.valueOf(disabledColor)
             }
