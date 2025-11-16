@@ -37,6 +37,7 @@ class BarterApprovalFragment : Fragment(R.layout.fragment_barter_approval) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentBarterApprovalBinding.bind(view)
+        val binding = binding
 
         setupToolbar()
         setupRecycler()

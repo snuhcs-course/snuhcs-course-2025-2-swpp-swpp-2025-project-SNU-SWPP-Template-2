@@ -36,24 +36,19 @@ class NotificationFragment : Fragment(R.layout.fragment_notification) {
                     }
                 },
                 onClickAction = { item ->
-                    //vm.markAsRead(item)
+                    vm.markAsRead(item)
                     //if (item.deepLink == "BARTER") {
                     Log.d("NotificationFragment", "onClickAction called. item = $item")
                     val requestId = item.related_object_id
                     if (requestId.isNullOrEmpty()) {
-                        //return@NotificationClicks
-                        NotificationFragmentDirections
-                            .actionNotificationToBarterApprovalFragment(
-                                requestId = "22333ea0-7b84-4583-816e-8924e1635936"
-                            )
+                        return@NotificationClicks
                     }
 
                     val action =
                         NotificationFragmentDirections
                             .actionNotificationToBarterApprovalFragment(
-                                requestId = requestId!!
+                                requestId = requestId
                             )
-
                     findNavController().navigate(action)
                 }
             )
