@@ -565,8 +565,4 @@ class Migration(migrations.Migration):
             name="reviewhelpfulvote",
             unique_together={("review", "user")},
         ),
-        migrations.AlterUniqueTogether(
-            name="bookreview",
-            unique_together={("book", "reviewer")},
-        ),
     ]

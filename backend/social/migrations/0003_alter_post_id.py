@@ -10,9 +10,9 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('social', '0002_alter_post_id'),
-        ('books', '0002_alter_bookreview_unique_together_and_more'),
-        ('contenttypes', '0002_remove_content_type_name'),
+        ("social", "0002_alter_post_id"),
+        ("books", "0005_remove_book_authors_remove_book_genres_and_more"),
+        ("contenttypes", "0002_remove_content_type_name"),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
@@ -46,14 +46,17 @@ class Migration(migrations.Migration):
                     related_name='posts',
                     to=settings.AUTH_USER_MODEL
                 )),
-                ('related_book', models.ForeignKey(
-                    blank=True,
-                    null=True,
-                    on_delete=django.db.models.deletion.SET_NULL,
-                    related_name='related_posts',
-                    to='books.book',
-                    help_text='Book this post is about (optional)'
-                )),
+                (
+                    "related_book",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Book this post is about (optional)",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="related_posts",
+                        to="books.bookcopy",
+                    ),
+                ),
             ],
             options={
                 'db_table': 'social_post',

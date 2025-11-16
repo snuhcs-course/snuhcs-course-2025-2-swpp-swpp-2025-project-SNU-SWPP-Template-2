@@ -109,9 +109,10 @@ def migrate_book_data(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("barter", "0003_alter_bartercounter_offered_books_and_more"),
+        ("barter", "0008_alter_barterrequest_bookcopy_refs"),
         ("books", "0005_remove_book_authors_remove_book_genres_and_more"),
         ("social", "0003_alter_bookclub_current_book_and_more"),
+        ("social", "0003_alter_post_id"),
     ]
 
     operations = [

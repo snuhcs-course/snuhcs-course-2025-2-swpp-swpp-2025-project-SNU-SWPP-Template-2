@@ -29,22 +29,4 @@ class Migration(migrations.Migration):
                 to="books.bookcopy",
             ),
         ),
-        migrations.AlterField(
-            model_name="barterrequest",
-            name="offered_books",
-            field=models.ManyToManyField(
-                help_text="Books offered by the requester",
-                related_name="offered_in_barters",
-                to="books.bookcopy",
-            ),
-        ),
-        migrations.AlterField(
-            model_name="barterrequest",
-            name="requested_books",
-            field=models.ManyToManyField(
-                help_text="Books requested from the recipient",
-                related_name="requested_in_barters",
-                to="books.bookcopy",
-            ),
-        ),
     ]
