@@ -13,14 +13,19 @@ from .models import BarterRequest
 class BarterRequestSerializer(serializers.ModelSerializer):
     """
     Serializer for BarterRequest with requester/recipient info.
-    1:1 exchange - single offered_book and single requested_book.
+    New flow: requester proposes 3 books (offered_book_ids) for recipient's 1 book (requested_book).
     Phone numbers are only exposed when status is 'completed'.
     """
 
     requester = UserBarterInfoSerializer(read_only=True)
     recipient = UserBarterInfoSerializer(read_only=True)
-    offered_book = BookSummarySerializer(read_only=True)
+    offered_book = BookSummarySerializer(read_only=True)  # The selected book after acceptance
     requested_book = BookSummarySerializer(read_only=True)
+    offered_book_ids = serializers.ListField(
+        child=serializers.UUIDField(),
+        read_only=True,
+        help_text="List of 3 book IDs proposed by requester"
+    )
     
     # Phone numbers only visible when trade is completed
     requester_phone = serializers.SerializerMethodField()
@@ -32,7 +37,8 @@ class BarterRequestSerializer(serializers.ModelSerializer):
             "id",
             "requester",
             "recipient",
-            "offered_book",
+            "offered_book",  # The final selected book (set after acceptance)
+            "offered_book_ids",  # The 3 proposed books
             "requested_book",
             "message",
             "status",
@@ -50,6 +56,8 @@ class BarterRequestSerializer(serializers.ModelSerializer):
             "id",
             "requester",
             "recipient",
+            "offered_book",
+            "offered_book_ids",
             "status",
             "response_date",
             "requester_phone",
@@ -92,4 +100,16 @@ class BarterRejectSerializer(serializers.Serializer):
 
     response_message = serializers.CharField(
         required=False, allow_blank=True, max_length=500
+    )
+
+
+class BarterCreateSerializer(serializers.Serializer):
+    """
+    Serializer for creating a new barter request.
+    Requester just selects recipient's book, backend automatically picks 3 of requester's books.
+    """
+    
+    requested_book_id = serializers.UUIDField(
+        required=True,
+        help_text="ID of the book that requester wants from recipient"
     )

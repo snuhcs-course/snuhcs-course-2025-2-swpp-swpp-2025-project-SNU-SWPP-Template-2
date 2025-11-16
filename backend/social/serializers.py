@@ -144,12 +144,11 @@ class PostSerializer(serializers.ModelSerializer):
         """Return whether the related book is currently available for barter."""
         if not obj.related_book:
             return False
-        # Prefer model property to encapsulate availability logic
-        try:
-            return bool(getattr(obj.related_book, "is_available_for_barter", False))
-        except Exception:
-            # Fallback to basic field if property is unavailable
-            return bool(getattr(obj.related_book, "is_for_barter", False))
+        # Check both is_for_barter (owner wants to trade) and trade_status (not locked in trade)
+        return (
+            obj.related_book.is_for_barter and 
+            obj.related_book.trade_status == "available"
+        )
 
 
 class FeedResponseSerializer(serializers.Serializer):
