@@ -7,7 +7,7 @@ A book bartering social network mobile application built for the SNU Software Pr
 ![Kotlin](https://img.shields.io/badge/kotlin-2.0-orange)
 ![Django](https://img.shields.io/badge/django-5.2.7-green)
 
-[▶️ Watch Demo (iter1_demo.mov)](./sources/iter1_demo.mov)
+[▶️ Watch Demo (iter4_demo.mp4)](./sources/iter4_demo.mp4)
 
 ## 📖 About
 
