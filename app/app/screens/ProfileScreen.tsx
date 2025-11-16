@@ -89,12 +89,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         label_manually_edited: photo.label_manually_edited || false
       }));
 
-    // Merge without duplicating already-loaded items
-    setUserImages(prev => {
-      const seen = new Set(prev.map(i => i.image.uri))
-      const added = currentImages.filter(i => !seen.has(i.image.uri))
-      return [...prev, ...added]
-    })
+    // Replace the entire list to ensure deleted images are removed
+    setUserImages(currentImages)
   }
   useEffect(() => { getUserPhotos(); }, []);
 
@@ -114,20 +110,47 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
 
   const handleConfirmDelete = async () => {
     try {
+      setIsLoading(true)
       const imageIds = Array.from(selectedImageIds)
+      const failedDeletions: number[] = []
+      
       // Delete each image
       for (const id of imageIds) {
-        await api.deleteImage(id)
+        try {
+          const response = await api.deleteImage(id)
+          if (!response.ok) {
+            failedDeletions.push(id)
+            console.error(`Failed to delete image ${id}:`, response.problem)
+          }
+        } catch (error) {
+          failedDeletions.push(id)
+          console.error(`Error deleting image ${id}:`, error)
+        }
       }
-      // Refresh photos list
+      
+      if (failedDeletions.length > 0) {
+        Alert.alert("오류", `${failedDeletions.length}개의 사진 삭제에 실패했습니다.`)
+      }
+      
+      // Remove successfully deleted images from state immediately for better UX
+      const successfullyDeletedIds = imageIds.filter(id => !failedDeletions.includes(id))
+      if (successfullyDeletedIds.length > 0) {
+        setUserImages(prev => prev.filter(img => !successfullyDeletedIds.includes(img.id)))
+      }
+      
+      // Refresh photos list to ensure consistency with server
       await getUserPhotos()
+      
       // Clear selection
       setSelectedImageIds(new Set())
       setIsSelectMode(false)
       setDeleteConfirmationVisible(false)
     } catch (e) {
-      Alert.alert("오류", "사진 삭제 실패")
+      console.error("Delete error:", e)
+      Alert.alert("오류", "사진 삭제 중 오류가 발생했습니다.")
       setDeleteConfirmationVisible(false)
+    } finally {
+      setIsLoading(false)
     }
   }
 
