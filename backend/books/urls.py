@@ -9,18 +9,20 @@ from .views import (
     ReviewLikeView,
     UserReviewListCreateView,
     user_profile_detail,
+    book_detail,
+    book_list,
+    collection_list_view,
+    modify_collection_books,
+    modify_reading_status,
+    reading_status_view,
     toggle_book_for_barter,
     toggle_wishlist,
-    user_books_list,
+    nearby_owners,
     user_books_list_by_id,
-    user_wishlist_list,
-    user_wishlist_by_id,
     user_reviews_by_id,
-    book_list,
-    book_detail,
-    collection_list_view,
-    modify_collection_books, reading_status_view, modify_reading_status,
-    )
+    user_wishlist_by_id,
+    user_wishlist_list,
+)
 
 
 from .book_search_api import book_search
@@ -49,9 +51,9 @@ urlpatterns = [
         name="user-profile-by-id",
     ),
     # User's books list
-    path("books/", user_books_list, name="user-books-list"),
+    #path("books/", user_books_list, name="user-books-list"),
     # Other user's books by ID
-    path("books/<int:user_id>/", user_books_list_by_id, name="user-books-list-by-id"),
+    path("<int:user_id>/books/", user_books_list_by_id, name="user-books-list-by-id"),
    
     # User's wishlist
     path("wishlist/", user_wishlist_list, name="user-wishlist-list"),
@@ -73,6 +75,11 @@ urlpatterns = [
         toggle_book_for_barter,
         name="toggle-barter",
     ),
+    path(
+        "books/<uuid:book_id>/nearby-owners/",
+        nearby_owners,
+        name="nearby-owners",
+    ),
 
     #Book search API
     path("books/search/", book_search, name="book-search"),
@@ -81,7 +88,7 @@ urlpatterns = [
     path("books/", book_list, name="books-list"),
 
     #Book detail API.
-    path("books/<uuid:book_id>/", book_detail, name="book-detail"),
+    path("books/<uuid:pk>/", book_detail, name="book-detail"),
 
     #Collection API
     path("collections/", collection_list_view, name="collection-view"),  # List or modify collections

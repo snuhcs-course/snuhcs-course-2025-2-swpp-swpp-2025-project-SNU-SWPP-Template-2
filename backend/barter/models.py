@@ -39,9 +39,15 @@ class BarterRequest(models.Model):
         "books.BookCopy",
         on_delete=models.CASCADE,
         related_name="offered_in_barters",
-        help_text="Book copy offered by the requester",
+        help_text="Book copy offered by the requester (final selection by recipient)",
         null=True,
         blank=True,
+    )
+    # Store 3 proposed book IDs as JSON
+    offered_book_ids = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of 3 book IDs proposed by requester"
     )
     requested_book = models.ForeignKey(
         "books.BookCopy",

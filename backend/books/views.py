@@ -408,7 +408,7 @@ def book_detail(request, pk):
         serializer = BookSerializer(book, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    if request.method == "PUT":
+    elif request.method == "PUT":
         serializer = BookSerializer(
             book, data=request.data, partial=True, context={"request": request}
         )
@@ -427,7 +427,10 @@ def book_list(request):
     """List all book copies or create a new one owned by the authenticated user."""
 
     if request.method == "GET":
-        books = BookCopy.objects.all().select_related("publication", "owner")
+        books = (
+            BookCopy.objects.filter(owner=request.user)
+            .select_related("publication", "owner")
+        )
         serializer = BookSerializer(
             books, many=True, context={"request": request}
         )
@@ -439,7 +442,7 @@ def book_list(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+# --- Create & List collections ---
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def collection_list_view(request):
@@ -481,7 +484,7 @@ def modify_collection_books(request, pk):
             {"error": "Collection not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
-    book_id = request.data.get("book_id")
+    book_id = request.data.get("id")
     if not book_id:
         return Response(
             {"error": "book_id is required"}, status=status.HTTP_400_BAD_REQUEST
@@ -514,7 +517,7 @@ def reading_status_view(request):
         serializer = ReadingStatusSerializer(statuses, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    book_id = request.data.get("book_id")
+    book_id = request.data.get("book_id") or request.data.get("id")
     if not book_id:
         return Response(
             {"error": "book_id is required."}, status=status.HTTP_400_BAD_REQUEST

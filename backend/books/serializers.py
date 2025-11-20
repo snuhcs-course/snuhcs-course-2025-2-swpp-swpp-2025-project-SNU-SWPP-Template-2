@@ -6,7 +6,13 @@ Handles book reviews and related data serialization.
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 
-from .models import BookCollection, BookCopy, BookReview, ReadingStatus
+from .models import (
+    BookCollection,
+    BookCopy,
+    BookPublication,
+    BookReview,
+    ReadingStatus,
+)
 
 User = get_user_model()
 
@@ -130,6 +136,7 @@ class ReviewLikeResponseSerializer(serializers.Serializer):
     class Meta:
         fields = ["review"]
 
+
 class BookSerializer(serializers.ModelSerializer):
     """
     Serializer for user-owned book copies exposed via profile/library APIs.
@@ -138,18 +145,23 @@ class BookSerializer(serializers.ModelSerializer):
     owner = serializers.ReadOnlyField(source="owner.username")
     title = serializers.CharField(source="title", read_only=True)
     authors = serializers.SerializerMethodField()
+    authors_display = serializers.SerializerMethodField()
     publisher = serializers.SerializerMethodField()
+    publisher_name = serializers.SerializerMethodField()
     publication_date = serializers.DateField(
         source="publication.publication_date", read_only=True
     )
-    isbn_13 = serializers.CharField(
-        source="publication.isbn_13", read_only=True
-    )
+    isbn = serializers.CharField(source="publication.isbn_13", read_only=True)
     description = serializers.CharField(
         source="publication.description", read_only=True
     )
     cover_image = serializers.SerializerMethodField()
     owner_notes = serializers.CharField(required=False, allow_blank=True)
+    publication = serializers.PrimaryKeyRelatedField(
+        queryset=BookPublication.objects.all(),
+        write_only=True,
+        required=False,
+    )
 
     class Meta:
         model = BookCopy
@@ -157,35 +169,45 @@ class BookSerializer(serializers.ModelSerializer):
             "id",
             "title",
             "authors",
-            "publisher",
+            "authors_display",
+            "publisher_name",
             "publication_date",
-            "isbn_13",
+            "isbn",
             "description",
             "cover_image",
             "is_for_barter",
             "owner_notes",
             "trade_status",
             "owner",
+            "publication",
         ]
         read_only_fields = [
             "id",
             "owner",
             "title",
             "authors",
-            "publisher",
+            "authors_display",
+            "publisher_name",
             "publication_date",
-            "isbn_13",
+            "isbn",
             "description",
             "cover_image",
             "trade_status",
         ]
+        extra_kwargs = {"publication": {"write_only": True}}
 
     def get_authors(self, obj):
         return list(obj.publication.authors.values_list("name", flat=True))
 
+    def get_authors_display(self, obj):
+        return self.get_authors(obj)
+
     def get_publisher(self, obj):
         publisher = obj.publication.publisher
         return publisher.name if publisher else None
+
+    def get_publisher_name(self, obj):
+        return self.get_publisher(obj)
 
     def get_cover_image(self, obj):
         if not obj.cover_image:
@@ -193,6 +215,18 @@ class BookSerializer(serializers.ModelSerializer):
         request = self.context.get("request")
         url = obj.cover_image.url
         return request.build_absolute_uri(url) if request else url
+
+    def create(self, validated_data):
+        publication = validated_data.pop("publication", None)
+        if publication is None:
+            raise serializers.ValidationError(
+                {"publication": "This field is required."}
+            )
+        return BookCopy.objects.create(
+            publication=publication,
+            **validated_data,
+        )
+
 
 class BookCollectionSerializer(serializers.ModelSerializer):
     books = BookSerializer(many=True, read_only=True)

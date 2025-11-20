@@ -30,7 +30,6 @@ class WriteReviewFragment : Fragment(R.layout.fragment_write_review) {
 
         setupRecyclerView()
         setupListeners()
-        submitReview()
 
     }
 
@@ -52,6 +51,10 @@ class WriteReviewFragment : Fragment(R.layout.fragment_write_review) {
     private fun setupListeners() = with(binding) {
         btnAddPhoto.setOnClickListener {
             // TODO: 갤러리/카메라 선택 로직 붙이기 (ActivityResult API)
+        }
+
+        btnSubmit.setOnClickListener {
+            submitReview()
         }
     }
 

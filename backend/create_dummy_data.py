@@ -330,7 +330,8 @@ def create_books(users, genres, authors, publishers, count=50):
     ]
     
     conditions = ["new", "like_new", "very_good", "good", "acceptable"]
-    trade_statuses = ["available", "available", "available", "pending", "not_available"]
+    trade_statuses = ["available", "available", "available", "available", "available", "available", "available", "available" 
+                      "pending", "not_available"]
     
     books = []
     for i in range(count):
@@ -349,7 +350,7 @@ def create_books(users, genres, authors, publishers, count=50):
             condition=random.choice(conditions),
             trade_status=random.choice(trade_statuses),
             owner_notes=random.choice(["깨끗한 상태입니다", "밑줄 조금 있어요", "상태 좋아요", ""]),
-            is_for_barter=random.choice([True, True, True, False]),
+            is_for_barter=random.choice([True, True, True, True, True, False]),  # 83% True
             average_rating=Decimal(str(round(random.uniform(3.0, 5.0), 2))),
             review_count=random.randint(0, 50),
         )
@@ -638,23 +639,21 @@ def create_reading_statuses(users, books):
     print(f"  Created {len(reading_statuses)} reading statuses")
     return reading_statuses
 
-'''def create_barter_requests(users, books):
-    """Create barter requests."""
+def create_barter_requests(users, books):
+    """Create barter requests with new simplified flow: backend auto-selects books."""
     print("Creating barter requests...")
     
-    messages = [
-        "이 책과 교환하고 싶어요! 관심있으시면 연락주세요.",
-        "서로 관심있는 책을 교환해요!",
-        "좋은 조건으로 교환하고 싶습니다.",
-        "이 책 정말 읽고 싶었어요. 교환 가능하실까요?",
-        "Would you be interested in a book exchange?",
-        "Let's swap books!",
+    message_templates = [
+        "I'd like to offer '{}' for exchange.",
+        "Would you be interested in '{}'?",
+        "This is '{}' from my collection.",
+        "이 책 정말 좋아요! 제 컬렉션에 추가하고 싶습니다.",
+        "깔끔한 상태의 책입니다. 마음에 드셨으면 좋겠어요.",
+        "흥미로운 책이에요. 교환 고려해주세요!",
     ]
     
-    # Updated status choices to match BarterRequest model
-    statuses = ["pending", "pending", "counter_proposed", "rejected", "completed"]
-    meeting_types = ["in_person", "mail", "pickup"]
-    locations = ["강남역 스타벅스", "홍대 입구", "신촌 북카페", "코엑스", "서울대 도서관"]
+    # Status choices: pending, completed, rejected
+    statuses = ["pending", "pending", "pending", "completed", "rejected"]
     
     barter_requests = []
     for _ in range(15):
@@ -665,62 +664,83 @@ def create_reading_statuses(users, books):
         requester_books = list(requester.books.filter(is_for_barter=True, trade_status="available"))
         recipient_books = list(recipient.books.filter(is_for_barter=True, trade_status="available"))
         
-        if not recipient_books:
+        # Need at least 1 book from each user
+        if not recipient_books or not requester_books:
             continue
         
         status = random.choice(statuses)
         requested_book = random.choice(recipient_books)
         
-        # For pending status, no offered_book yet
+        # Select up to 3 books from requester's available books
+        num_offered = min(3, len(requester_books))
+        offered_books = random.sample(requester_books, num_offered)
+        
+        # Generate messages for each offered book
+        messages = []
+        for book in offered_books:
+            template = random.choice(message_templates)
+            messages.append(template.format(book.title) if '{}' in template else template)
+        
+        barter = BarterRequest.objects.create(
+            requester=requester,
+            recipient=recipient,
+            requested_book=requested_book,
+            offered_book_ids=[str(book.id) for book in offered_books],
+            message="\n---\n".join(messages),
+            status=status,
+            created_at=random_date_in_past(30),
+        )
+        
+        # Update trade_status based on status
         if status == "pending":
-            barter = BarterRequest.objects.create(
-                requester=requester,
-                recipient=recipient,
-                requested_book=requested_book,
-                message=random.choice(messages),
-                status=status,
-                created_at=random_date_in_past(30),
-            )
+            # Mark all books as not_available
             requested_book.trade_status = "not_available"
             requested_book.save()
-        # For other statuses, include offered_book
-        elif requester_books:
-            offered_book = random.choice(requester_books)
+            for book in offered_books:
+                book.trade_status = "not_available"
+                book.save()
+        
+        elif status == "completed":
+            # One of the offered books was accepted
+            selected_book = random.choice(offered_books)
+            barter.offered_book = selected_book
+            barter.completed_date = random_date_in_past(3)
+            barter.save()
             
-            barter = BarterRequest.objects.create(
-                requester=requester,
-                recipient=recipient,
-                requested_book=requested_book,
-                offered_book=offered_book,
-                message=random.choice(messages),
-                status=status,
-                preferred_meeting_type=random.choice(meeting_types),
-                proposed_meeting_location=random.choice(locations),
-                proposed_meeting_time=timezone.now() + timedelta(days=random.randint(1, 14)),
-                response_message="좋아요! 교환합시다." if status != "pending" else "",
-                response_date=random_date_in_past(7) if status != "pending" else None,
-                completed_date=random_date_in_past(3) if status == "completed" else None,
-                created_at=random_date_in_past(30),
-            )
-            
-            requested_book.trade_status = "not_available" if status != "completed" else "available"
+            # Transfer ownership
+            requested_book.owner = requester
+            requested_book.is_for_barter = False
+            requested_book.trade_status = "traded"
             requested_book.save()
-            offered_book.trade_status = "not_available" if status != "completed" else "available"
-            offered_book.save()
             
-            # For completed trades, swap ownership
-            if status == "completed":
-                requested_book.owner = requester
-                requested_book.save()
-                offered_book.owner = recipient
-                offered_book.save()
-        else:
-            continue
+            selected_book.owner = recipient
+            selected_book.is_for_barter = False
+            selected_book.trade_status = "traded"
+            selected_book.save()
+            
+            # Restore other non-selected books to available
+            for book in offered_books:
+                if book.id != selected_book.id:
+                    book.trade_status = "available"
+                    book.save()
+        
+        elif status == "rejected":
+            # All books restored to available
+            barter.response_date = random_date_in_past(7)
+            barter.response_message = "죄송하지만 교환이 어려울 것 같습니다."
+            barter.save()
+            
+            requested_book.trade_status = "available"
+            requested_book.save()
+            for book in offered_books:
+                book.trade_status = "available"
+                book.save()
         
         barter_requests.append(barter)
     
     print(f"  Created {len(barter_requests)} barter requests")
-    return barter_requests'''
+    return barter_requests
+
 
 def create_book_clubs(users, books):
     """Create book clubs."""
@@ -813,7 +833,7 @@ def main():
         create_reading_statuses(users, books)
         
         # Create barter requests
-        #create_barter_requests(users, books)
+        create_barter_requests(users, books)
         
         # Create book clubs
         create_book_clubs(users, books)

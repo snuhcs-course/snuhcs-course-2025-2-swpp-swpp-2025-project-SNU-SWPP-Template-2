@@ -19,16 +19,10 @@ urlpatterns = [
         views.get_barter_request_detail,
         name="get-request-detail",
     ),
-
     path(
-        "requests/<uuid:request_id>/counter-propose/",
-        views.counter_propose,
-        name="counter-propose",
-    ),
-    path(
-        "requests/<uuid:request_id>/accept/",
-        views.accept_barter_request,
-        name="accept-request",
+        "requests/<uuid:request_id>/accept/<uuid:book_id>/",
+        views.accept_book_for_counter_propose,
+        name="accept-book",
     ),
     path(
         "requests/<uuid:request_id>/reject/",

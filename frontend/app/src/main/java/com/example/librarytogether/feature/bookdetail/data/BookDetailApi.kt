@@ -5,6 +5,6 @@ import retrofit2.http.GET
 import retrofit2.http.Path
 
 interface BookDetailApi {
-    @GET("books/{id}/")
+    @GET("library/books/{id}/")
     suspend fun getBook(@Path("id") id: String): Response<BookDetail>
 }

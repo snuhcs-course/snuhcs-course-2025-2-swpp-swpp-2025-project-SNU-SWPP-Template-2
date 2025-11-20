@@ -6,5 +6,5 @@ import retrofit2.http.Query
 
 interface SearchApi {
     @GET("library/books/search/")
-    suspend fun search(@Query("q") query: String): Response<SearchResponse>
+    suspend fun search(@Query("q") query: String): Response<List<SearchItem>>
 }

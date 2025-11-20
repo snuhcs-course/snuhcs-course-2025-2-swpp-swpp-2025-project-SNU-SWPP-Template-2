@@ -36,7 +36,12 @@
         android:id="@+id/nav_notification"
         android:name="com.example.librarytogether.feature.notification.NotificationFragment"
         android:label="@string/nav_notification"
-        tools:layout="@layout/fragment_notification"/>
+        tools:layout="@layout/fragment_notification">
+
+    <action
+        android:id="@+id/action_notification_to_barterApprovalFragment"
+        app:destination="@id/barterApprovalFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/nav_library"
@@ -83,9 +88,16 @@
         android:id="@+id/bookDetailFragment"
         android:name="com.example.librarytogether.feature.bookdetail.BookDetailFragment">
         <argument android:name="bookId" app:argType="string" />
+
         <argument
             android:name="source"
             app:argType="com.example.librarytogether.feature.bookdetail.EntrySource"/>
+
+        <argument
+            android:name="barterMessage"
+            app:nullable="true"
+            app:argType="string"
+            android:defaultValue="@null" />
     </fragment>
 
     <fragment
