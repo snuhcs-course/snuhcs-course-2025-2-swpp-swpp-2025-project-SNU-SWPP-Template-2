@@ -54,9 +54,12 @@ def test_bootstrap_rejects_non_positive_size():
         call_command("bootstrap_korean_books", "--skip-copies", "--size", "0")
 
 
-@pytest.mark.django_db
 def test_import_books_resolves_owner_and_calls_service(monkeypatch):
-    user = User.objects.create_user(email="owner@example.com", password="pass")
+    user = User.objects.create_user(
+        username="owner",
+        email="owner@example.com",
+        password="pass",
+    )
     calls: list[tuple[str, User, int, bool]] = []
 
     class DummyService:
@@ -81,13 +84,19 @@ def test_import_books_resolves_owner_and_calls_service(monkeypatch):
     assert calls == [("harry potter", user, 3, True)]
 
 
+@pytest.mark.django_db
 def test_import_books_rejects_non_positive_size():
+    user = User.objects.create_user(
+        username="owner2",
+        email="x@y.com",
+        password="pass",
+    )
     with pytest.raises(CommandError):
         call_command(
             "import_books_from_kakao",
             "query",
             "--owner-email",
-            "x@y.com",
+            user.email,
             "--size",
             "0",
         )
@@ -139,7 +148,7 @@ def test_categorize_publications_persists_classification(monkeypatch):
 
 def test_categorize_publications_rejects_invalid_batch_size():
     with pytest.raises(CommandError):
-        call_command("categorize_publications", "--batch-size", "0")
+        call_command("categorize_publications", "--batch-size", "-1")
 
 
 @pytest.mark.django_db
