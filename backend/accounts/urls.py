@@ -57,4 +57,6 @@ urlpatterns = [
     path("preferences/", views.user_preferences, name="user_preferences"),
     # User Taste endpoints
     path("taste/", views.UserTasteView.as_view(), name="user_taste"),
+    # Onboarding
+    path("onboarding/submit/", views.onboarding_submit, name="onboarding_submit"),
 ]
