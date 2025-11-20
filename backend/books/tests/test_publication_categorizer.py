@@ -1,11 +1,12 @@
 import json
 
-import books.services.publication_categories as publication_categories
 from accounts.models import BookGenre, BookLength, BookMood, ReadingPurpose
+
+import books.services.publication_categories as publication_categories
 from books.services.publication_categories import (
     PublicationCategorizer,
-    PublicationPayload,
     PublicationClassification,
+    PublicationPayload,
     keyword_present,
 )
 
@@ -15,12 +16,16 @@ class _StubLLM:
         self.response = response
         self.calls = 0
 
-    def generate(self, *args, **kwargs):  # pragma: no cover - exercised via categorizer
+    def generate(
+        self, *args, **kwargs
+    ):  # pragma: no cover - exercised via categorizer
         self.calls += 1
         return self.response
 
 
-def _payload(description: str = "mystery case", genres: list[str] | None = None):
+def _payload(
+    description: str = "mystery case", genres: list[str] | None = None
+):
     return PublicationPayload(
         identifier="test",
         title="Sample",
@@ -47,7 +52,7 @@ class _Message:
 
 
 def test_categorizer_prefers_llm_response():
-    llm = _StubLLM("[{\"label\": \"Psychological Fiction\", \"score\": 0.91}]")
+    llm = _StubLLM('[{"label": "Psychological Fiction", "score": 0.91}]')
     categorizer = PublicationCategorizer(llm_client=llm, enable_llm=False)
 
     result = categorizer.classify(_payload())
@@ -62,7 +67,10 @@ def test_categorizer_falls_back_to_heuristics():
     categorizer = PublicationCategorizer(enable_llm=False)
 
     result = categorizer.classify(
-        _payload(description="A hopeful coming-of-age story", genres=["Coming Of Age"])
+        _payload(
+            description="A hopeful coming-of-age story",
+            genres=["Coming Of Age"],
+        )
     )
 
     assert result.category_scores, "Expected heuristic categories"
@@ -167,11 +175,11 @@ def test_parse_llm_response_normalises_scores_and_taste():
 
 
 def test_extract_json_handles_wrapped_payload():
-    raw = "Some noise before {\"hello\": \"world\"} trailing tokens"
+    raw = 'Some noise before {"hello": "world"} trailing tokens'
 
     snippet = PublicationCategorizer._extract_json(raw)
 
-    assert snippet == "{\"hello\": \"world\"}"
+    assert snippet == '{"hello": "world"}'
 
 
 def test_heuristic_classification_sets_defaults_when_empty():
