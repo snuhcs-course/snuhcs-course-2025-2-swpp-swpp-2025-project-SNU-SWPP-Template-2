@@ -97,7 +97,8 @@ backend/
 ├── static/                 # Static files
 ├── logs/                   # Application logs
 ├── scripts/                # Utility scripts
-└── requirements.txt        # Python dependencies
+├── pyproject.toml          # Project metadata & dependencies
+└── uv.lock                 # Dependency lockfile (uv)
 ```
 
 ### Django Apps Architecture
