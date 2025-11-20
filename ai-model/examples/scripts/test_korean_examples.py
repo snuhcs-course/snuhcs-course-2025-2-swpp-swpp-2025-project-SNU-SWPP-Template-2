@@ -70,7 +70,11 @@ def test_korean_mystery_lover():
     ]
 
     # 독서 이력
-    reading_history = ["백야행", "나미야 잡화점의 기적", "그리고 아무도 없었다"]
+    reading_history = [
+        "백야행",
+        "나미야 잡화점의 기적",
+        "그리고 아무도 없었다",
+    ]
 
     # LLM 설정 (로컬 모델 사용, DM 스타일)
     config = LLMConfig(
@@ -102,16 +106,20 @@ def test_korean_mystery_lover():
     )
 
     # 결과 출력 (DM 대화 형식)
-    print(f"\n💬 BookBot ↔️ CriticBot 대화 ({len(trajectory.conversation)}개 메시지):")
+    print(
+        f"\n💬 BookBot ↔️ CriticBot 대화 ({len(trajectory.conversation)}개 메시지):"
+    )
     print("-" * 60)
-    for i, turn in enumerate(trajectory.conversation, 1):
+    for turn in trajectory.conversation:
         speaker_emoji = "📚" if turn.speaker == "recommender" else "🔍"
-        speaker_name = "BookBot" if turn.speaker == "recommender" else "CriticBot"
+        speaker_name = (
+            "BookBot" if turn.speaker == "recommender" else "CriticBot"
+        )
         print(f"\n{speaker_emoji} {speaker_name}")
         print(f"  {turn.message}")
 
     print("\n" + "-" * 60)
-    print(f"\n✅ 최종 추천:")
+    print("\n✅ 최종 추천:")
     print(f"{trajectory.final_recommendation}")
     print(f"\n📊 신뢰도: {trajectory.confidence_score:.2f}")
 
@@ -180,16 +188,20 @@ def test_korean_casual_reader():
         user_reading_history=reading_history,
     )
 
-    print(f"\n💬 BookBot ↔️ CriticBot 대화 ({len(trajectory.conversation)}개 메시지):")
+    print(
+        f"\n💬 BookBot ↔️ CriticBot 대화 ({len(trajectory.conversation)}개 메시지):"
+    )
     print("-" * 60)
     for turn in trajectory.conversation:
         speaker_emoji = "📚" if turn.speaker == "recommender" else "🔍"
-        speaker_name = "BookBot" if turn.speaker == "recommender" else "CriticBot"
+        speaker_name = (
+            "BookBot" if turn.speaker == "recommender" else "CriticBot"
+        )
         print(f"\n{speaker_emoji} {speaker_name}")
         print(f"  {turn.message}")
 
     print("\n" + "-" * 60)
-    print(f"\n✅ 최종 추천:")
+    print("\n✅ 최종 추천:")
     print(f"{trajectory.final_recommendation}")
     print(f"\n📊 신뢰도: {trajectory.confidence_score:.2f}")
 
@@ -222,11 +234,15 @@ def main():
         print("\n" + "=" * 60)
         print("📊 테스트 완료 요약")
         print("=" * 60)
-        print(f"\n✅ 테스트 1 - 추천 책: {', '.join(trajectory1.recommended_books)}")
+        print(
+            f"\n✅ 테스트 1 - 추천 책: {', '.join(trajectory1.recommended_books)}"
+        )
         print(f"   신뢰도: {trajectory1.confidence_score:.2f}")
         print(f"   대화 메시지: {len(trajectory1.conversation)}개 (DM 스타일)")
 
-        print(f"\n✅ 테스트 2 - 추천 책: {', '.join(trajectory2.recommended_books)}")
+        print(
+            f"\n✅ 테스트 2 - 추천 책: {', '.join(trajectory2.recommended_books)}"
+        )
         print(f"   신뢰도: {trajectory2.confidence_score:.2f}")
         print(f"   대화 메시지: {len(trajectory2.conversation)}개 (DM 스타일)")
 
@@ -235,7 +251,7 @@ def main():
         print("=" * 60)
 
     except FileNotFoundError as e:
-        print(f"\n❌ 오류: 로컬 모델을 찾을 수 없습니다.")
+        print("\n❌ 오류: 로컬 모델을 찾을 수 없습니다.")
         print(f"   {e}")
         print("\n💡 해결 방법:")
         print("   1. models/gemma3-4b-it 디렉토리에 모델 파일이 있는지 확인")
@@ -251,4 +267,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

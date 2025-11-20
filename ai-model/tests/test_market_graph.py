@@ -1,9 +1,4 @@
-from data.entities import (
-    BarterContext,
-    Item,
-    TradeRequest,
-    UserProfile,
-)
+from data.entities import BarterContext, Item, TradeRequest, UserProfile
 from graph.market_graph import MarketGraphBuilder
 
 
