@@ -237,7 +237,10 @@ class BookCopy(models.Model):
     # System automatically sets this to "not_available" when a barter request is created,
     # and restores to "available" when trade is rejected/cancelled or completed.
     trade_status = models.CharField(
-        max_length=20, choices=TRADE_STATUS_CHOICES, default="available"
+        max_length=20,
+        choices=TRADE_STATUS_CHOICES,
+        default="available",
+        db_column="availability",  # reuse legacy column created before BookCopy rename
     )
 
     # Barter Preference (User-controlled, owner's trading preference)
@@ -324,6 +327,11 @@ class BookCopy(models.Model):
     def is_available_for_barter(self):
         """Check if book is available for bartering."""
         return self.is_for_barter and self.trade_status == "available"
+    
+    @property
+    def availability(self):
+        """Backward-compatible alias for legacy column name."""
+        return self.trade_status
 
     def __getattr__(self, item):
         if item in self._PUBLICATION_FIELD_PROXY:
