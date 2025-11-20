@@ -54,6 +54,7 @@ def test_bootstrap_rejects_non_positive_size():
         call_command("bootstrap_korean_books", "--skip-copies", "--size", "0")
 
 
+@pytest.mark.django_db
 def test_import_books_resolves_owner_and_calls_service(monkeypatch):
     user = User.objects.create_user(
         username="owner",
