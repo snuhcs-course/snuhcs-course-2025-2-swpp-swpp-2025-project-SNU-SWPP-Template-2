@@ -142,16 +142,10 @@ source venv/bin/activate
 ### 2. uv로 의존성 설치
 ```bash
 # uv를 사용한 개발 의존성 설치 (더 빠름)
-uv pip install -e ".[dev]"
+cd backend && uv sync --extra dev  # 모든 선택 의존성: uv sync --all-extras
 
-# 또는 requirements 파일에서 설치
-uv pip install -r backend/requirements.txt
-uv pip install -r backend/requirements-dev.txt
-
-# 대안: uv로 생성 및 동기화
-uv venv
-source .venv/bin/activate  # Windows: .venv\Scripts\activate
-uv pip sync requirements.txt
+# uv가 없다면 pyproject 기반으로 pip 설치
+cd backend && pip install -e ".[dev]"
 ```
 
 ### 3. 데이터베이스 설정
@@ -242,15 +236,18 @@ emulator -avd <your_avd_name>
 source venv/bin/activate
 
 # uv를 사용한 AI 의존성 설치 (더 빠름)
-uv pip install -e ".[ai]"
+cd ai-model && uv sync --extra dev
+
+# uv가 없다면 pyproject 기반으로 pip 설치
+cd ai-model && pip install -e ".[dev]"
 
 # GPU 지원용 (선택적, CUDA 필요)
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-# 대안: uv로 AI 환경 관리
+# 대안: AI 전용 가상환경 사용
 uv venv ai-env
 source ai-env/bin/activate
-uv pip install -r ai-model/requirements.txt
+cd ai-model && uv pip install -e .
 ```
 
 ### 2. 사전 훈련된 모델 다운로드

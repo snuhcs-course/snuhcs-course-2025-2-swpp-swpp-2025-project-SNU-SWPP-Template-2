@@ -34,8 +34,8 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies from pyproject (includes dev/test extras)
+pip install -e ".[dev]"  # or: uv sync --extra dev, uv sync --all-extras
 
 # Run migrations
 python manage.py migrate
@@ -131,8 +131,8 @@ python -m venv .venv
 # Activate virtual environment
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies from pyproject (includes dev/test extras)
+pip install -e ".[dev]"  # or: uv sync --extra dev / uv sync --all-extras
 
 # Run database migrations
 python manage.py migrate
@@ -303,7 +303,7 @@ python manage.py runserver 8080
 source backend/.venv/bin/activate
 
 # Reinstall dependencies
-pip install -r backend/requirements.txt
+cd backend && uv sync --extra dev  # or: pip install -e ".[dev]"
 ```
 
 ### Frontend Issues
