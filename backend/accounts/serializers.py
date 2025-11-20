@@ -454,11 +454,18 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
 
     def get_library(self, obj):
         # All books owned by the user (use reverse relation to avoid import ambiguity)
-        qs = obj.books.select_related("publisher").prefetch_related("authors")
+        qs = (
+            obj.book_copies.select_related("publication")
+            .prefetch_related("publication__authors")
+        )
         return BookSummarySerializer(qs, many=True, context=self.context).data
 
     def get_wishlist(self, obj):
-        qs = BookWishlist.objects.filter(user=obj).select_related("book")
+        qs = (
+            BookWishlist.objects.filter(user=obj)
+            .select_related("book__publication")
+            .prefetch_related("book__publication__authors")
+        )
         books = [item.book for item in qs]
         return BookSummarySerializer(
             books, many=True, context=self.context
