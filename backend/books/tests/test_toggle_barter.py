@@ -6,7 +6,7 @@ import pytest
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 
-from books.models import Book, Publisher
+from books.models import BookCopy, BookPublication, Publisher
 
 User = get_user_model()
 
@@ -33,13 +33,12 @@ def test_toggle_barter_not_owner():
     other = User.objects.create(username="other", email="other@test.com", first_name="O", last_name="ther")
     
     publisher = Publisher.objects.create(name="Pub")
-    book = Book.objects.create(
-        title="Book",
+    publication = BookPublication.objects.create(title="Book", publisher=publisher)
+    book = BookCopy.objects.create(
+        publication=publication,
         owner=owner,
-        publisher=publisher,
         is_for_barter=False
     )
-    
     client.force_authenticate(other)
     res = client.patch(f"/library/books/{book.id}/toggle-barter/")
     
@@ -54,10 +53,10 @@ def test_toggle_barter_success():
     owner = User.objects.create(username="owner", email="owner@test.com", first_name="O", last_name="wner")
     
     publisher = Publisher.objects.create(name="Pub")
-    book = Book.objects.create(
-        title="Book",
+    publication = BookPublication.objects.create(title="Book", publisher=publisher)
+    book = BookCopy.objects.create(
+        publication=publication,
         owner=owner,
-        publisher=publisher,
         is_for_barter=False
     )
     

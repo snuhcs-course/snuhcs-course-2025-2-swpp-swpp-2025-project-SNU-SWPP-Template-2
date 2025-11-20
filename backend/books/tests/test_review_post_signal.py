@@ -4,7 +4,13 @@ Tests for BookReview to Post signal.
 
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from books.models import BookReview, Book, Publisher, Author
+from books.models import (
+    BookReview,
+    BookCopy,
+    BookPublication,
+    Publisher,
+    Author,
+)
 from social.models import Post
 
 User = get_user_model()
@@ -24,12 +30,15 @@ class BookReviewPostSignalTestCase(TestCase):
         self.publisher = Publisher.objects.create(name="Test Publisher")
         self.author = Author.objects.create(name="Test Author")
         
-        self.book = Book.objects.create(
+        publication = BookPublication.objects.create(
             title="Test Book",
-            owner=self.user,
             publisher=self.publisher,
         )
-        self.book.authors.add(self.author)
+        publication.authors.add(self.author)
+        self.book = BookCopy.objects.create(
+            publication=publication,
+            owner=self.user,
+        )
 
     def test_post_created_when_review_created(self):
         """Test that Post is automatically created when BookReview is created."""

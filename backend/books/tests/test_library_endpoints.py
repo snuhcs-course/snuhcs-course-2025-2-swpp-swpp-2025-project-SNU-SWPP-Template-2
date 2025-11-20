@@ -6,7 +6,14 @@ from django.test import TestCase
 from django.contrib.auth import get_user_model
 from rest_framework.test import APIClient
 from rest_framework import status
-from books.models import Book, BookWishlist, Genre, Author, Publisher
+from books.models import (
+    BookCopy,
+    BookPublication,
+    BookWishlist,
+    Genre,
+    Author,
+    Publisher,
+)
 import uuid
 
 User = get_user_model()
@@ -33,29 +40,22 @@ class LibraryBooksEndpointTestCase(TestCase):
         # Create test publisher and author
         self.publisher = Publisher.objects.create(name="Test Publisher")
         self.author = Author.objects.create(name="Test Author")
+
+        # Helper to create a publication + copy for a given owner/title
+        def make_copy(title, owner):
+            publication = BookPublication.objects.create(
+                title=title,
+                publisher=self.publisher,
+            )
+            publication.authors.add(self.author)
+            return BookCopy.objects.create(publication=publication, owner=owner)
         
         # Create books owned by user
-        self.book1 = Book.objects.create(
-            title="My Book 1",
-            owner=self.user,
-            publisher=self.publisher,
-        )
-        self.book1.authors.add(self.author)
-        
-        self.book2 = Book.objects.create(
-            title="My Book 2",
-            owner=self.user,
-            publisher=self.publisher,
-        )
-        self.book2.authors.add(self.author)
+        self.book1 = make_copy("My Book 1", self.user)
+        self.book2 = make_copy("My Book 2", self.user)
         
         # Create book owned by other user
-        self.other_book = Book.objects.create(
-            title="Other Book",
-            owner=self.other_user,
-            publisher=self.publisher,
-        )
-        self.other_book.authors.add(self.author)
+        self.other_book = make_copy("Other Book", self.other_user)
         
         self.url = "/library/books/"
 
@@ -129,33 +129,25 @@ class LibraryWishlistEndpointTestCase(TestCase):
         # Create test publisher and author
         self.publisher = Publisher.objects.create(name="Test Publisher")
         self.author = Author.objects.create(name="Test Author")
+
+        def make_copy(title, owner):
+            publication = BookPublication.objects.create(
+                title=title,
+                publisher=self.publisher,
+            )
+            publication.authors.add(self.author)
+            return BookCopy.objects.create(publication=publication, owner=owner)
         
         # Create books
-        self.book1 = Book.objects.create(
-            title="Wishlist Book 1",
-            owner=self.other_user,
-            publisher=self.publisher,
-        )
-        self.book1.authors.add(self.author)
-        
-        self.book2 = Book.objects.create(
-            title="Wishlist Book 2",
-            owner=self.other_user,
-            publisher=self.publisher,
-        )
-        self.book2.authors.add(self.author)
+        self.book1 = make_copy("Wishlist Book 1", self.other_user)
+        self.book2 = make_copy("Wishlist Book 2", self.other_user)
         
         # Add books to user's wishlist
         BookWishlist.objects.create(user=self.user, book=self.book1)
         BookWishlist.objects.create(user=self.user, book=self.book2)
         
         # Add book to other user's wishlist (should not appear in response)
-        self.book3 = Book.objects.create(
-            title="Other Wishlist Book",
-            owner=self.other_user,
-            publisher=self.publisher,
-        )
-        self.book3.authors.add(self.author)
+        self.book3 = make_copy("Other Wishlist Book", self.other_user)
         BookWishlist.objects.create(user=self.other_user, book=self.book3)
         
         self.url = "/library/wishlist/"

@@ -7,7 +7,7 @@ from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
 from rest_framework.test import APIRequestFactory
 
-from books.models import Book, Publisher
+from books.models import BookCopy, BookPublication, Publisher
 from social.models import Post
 from social.serializers import PostSerializer
 
@@ -87,10 +87,13 @@ def test_post_serializer_with_book():
     )
     
     publisher = Publisher.objects.create(name="Test Publisher")
-    book = Book.objects.create(
+    publication = BookPublication.objects.create(
         title="Test Book",
-        owner=user,
         publisher=publisher,
+    )
+    book = BookCopy.objects.create(
+        publication=publication,
+        owner=user,
         is_for_barter=True
     )
     
