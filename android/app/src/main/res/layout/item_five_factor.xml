@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="2.5dp"
+    android:padding="16dp"
+    android:elevation="4dp"
+    app:cardCornerRadius="15dp"
+    app:cardBackgroundColor="@color/five_factor_default_bg">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="15dp"
+        android:gravity="center_vertical">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:id="@+id/lottieFactor"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
+            android:layout_marginBottom="10dp"
+            android:layout_gravity="center_horizontal"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true"
+            app:lottie_rawRes="@raw/anim_analysis" />
+
+        <TextView
+            android:id="@+id/tvFactorTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="성실성 (Conscientiousness)"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#636779"/>
+
+        <TextView
+            android:id="@+id/tvFactorBody"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:textSize="13sp"
+            android:textColor="#2D3142"
+            android:lineSpacingExtra="2dp"
+            tools:text="계획을 세우고 끝까지 밀어붙이는 스타일입니다." />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="@color/bg">
+
+    <!-- 제목 -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="분석"
+        android:textColor="#2D3142"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 제목 하단 구분선 -->
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/dividerTop"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        app:dividerColor="#636779"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollAnalysis"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/dividerTop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- ================== [1] 사용자 유형 카드 ================== -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardUserType"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                app:cardBackgroundColor="#F3F1EB"
+                app:cardCornerRadius="18dp"
+                app:cardUseCompatPadding="false"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp"
+                    android:gravity="center_horizontal">
+
+                    <!-- 캐릭터 이미지 (유형에 따라 바인딩) -->
+                    <ImageView
+                        android:id="@+id/ivUserTypeCharacter"
+                        android:layout_width="250dp"
+                        android:layout_height="250dp"
+                        android:scaleType="fitCenter"
+                        android:adjustViewBounds="true"
+                        android:src="@drawable/ic_user_type_undefined"/>
+
+                    <!-- 유형 텍스트 -->
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvUserTypeName"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#2D3142"
+                        android:textStyle="bold"
+                        android:textSize="18sp"
+                        tools:text="🧭 탐험가형 (Explorer)" />
+
+                    <!-- 한 줄 태그라인 -->
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvUserTypeDescription"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:gravity="center"
+                        android:textColor="#636779"
+                        android:textSize="14sp"
+                        android:lineSpacingExtra="2dp"
+                        android:maxLines="3"
+                        android:ellipsize="end"
+                        tools:text="새로운 가능성을 향해 계속해서 움직이는,\n호기심 많은 목표 탐색형 유형이에요." />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ================== [2] Five Factor 상세 카드 ================== -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardComprehensive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                app:cardBackgroundColor="#F3F1EB"
+                app:cardCornerRadius="18dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvComprehensiveTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="성향 심층 분석"
+                        android:textColor="#2D3142"
+                        android:textStyle="bold"
+                        android:textSize="15sp" />
+
+                    <!-- 🔥 Five Factor 카드뉴스 ViewPager2 -->
+                    <androidx.viewpager2.widget.ViewPager2
+                        android:id="@+id/vpFiveFactor"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp" />
+
+                    <!-- 🔥 페이지 인디케이터 -->
+                    <com.tbuonomo.viewpagerdotsindicator.WormDotsIndicator
+                        android:id="@+id/dotsIndicator"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        app:dotsColor="#D1CFCA"
+                        app:selectedDotColor="#4C5061"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="8dp" />
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- ================== [4] 오늘의 조언 카드 ================== -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardAdvice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="96dp"
+                app:cardBackgroundColor="#FFF7E8"
+                app:cardCornerRadius="18dp"
+                app:cardUseCompatPadding="false"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingTop="16dp"
+                    android:paddingHorizontal="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvAdviceEmoji"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="✨"
+                            android:textSize="18sp" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/tvAdviceType"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="6dp"
+                            android:text="오늘의 성장 포인트"
+                            android:textColor="#2D3142"
+                            android:textStyle="bold"
+                            android:textSize="14sp"
+                            tools:text="오늘의 성장 포인트" />
+                    </LinearLayout>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvAdviceBody"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:textColor="#2D3142"
+                        android:textSize="13sp"
+                        android:lineSpacingExtra="2dp"
+                        tools:text="오늘은 '완벽한 답'보다 '충분히 좋은 시도'에 초점을 맞춰보세요. 지금의 선택이 다음 탐험의 단서를 만들어 줄 거예요." />
+
+                    <!-- 🧠 조언 캐릭터 애니메이션 -->
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/lottieAdviceCharacter"
+                        android:layout_width="200dp"
+                        android:layout_height="160dp"
+                        android:layout_marginTop="15dp"
+                        android:layout_gravity="center_horizontal"
+                        app:lottie_autoPlay="true"
+                        app:lottie_loop="true"
+                        app:lottie_rawRes="@raw/anim_advice"/>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

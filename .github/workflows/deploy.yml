@@ -1,0 +1,38 @@
+name: Deploy to EC2 with Local Docker Build
+
+on:
+  push:
+    branches: [ main ]
+
+env:
+  AWS_HOST: ${{ secrets.AWS_HOST }}
+  AWS_SSH_KEY: ${{ secrets.AWS_SSH_KEY }}
+  AWS_USER: ${{ secrets.AWS_USER }}
+  AWS_SSH_PORT: ${{ secrets.AWS_SSH_PORT }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Deploy to EC2 via SSH
+      uses: appleboy/ssh-action@v1.2.0
+      with:
+        host: ${{ env.AWS_HOST }}
+        username: ${{ env.AWS_USER }}
+        key: ${{ env.AWS_SSH_KEY }}
+        port: ${{ env.AWS_SSH_PORT }}
+        script: |
+          cd /home/${{ env.AWS_USER }}/swpp-2025-project-team-14/backend
+          git pull origin main
+
+          docker-compose -f docker-compose.prod.yml down
+          docker-compose -f docker-compose.prod.yml build --no-cache
+          docker-compose -f docker-compose.prod.yml up -d
+          docker image prune -f
+
+          echo "🚀 배포 완료! 컨테이너 로그:"
+          docker logs mindlog-backend --tail 30

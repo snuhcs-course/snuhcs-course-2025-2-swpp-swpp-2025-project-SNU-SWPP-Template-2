@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/tv_emotion_left"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="슬픔"
+        android:textStyle="bold"
+        android:textColor="@color/emotion_sad"/>
+
+    <RadioGroup
+        android:id="@+id/radio_group_emotion"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- backgroundTint 속성을 모두 제거합니다. -->
+        <RadioButton
+            android:id="@+id/rb_left"
+            style="@style/EmotionRadioButtonStyle"
+            android:background="@drawable/selector_emotion_radio"/>
+
+        <RadioButton
+            android:id="@+id/rb_mid_left"
+            style="@style/EmotionRadioButtonStyle"
+            android:background="@drawable/selector_emotion_radio"/>
+
+        <RadioButton
+            android:id="@+id/rb_center"
+            style="@style/EmotionRadioButtonStyle"
+            android:background="@drawable/selector_emotion_radio"/>
+
+        <RadioButton
+            android:id="@+id/rb_mid_right"
+            style="@style/EmotionRadioButtonStyle"
+            android:background="@drawable/selector_emotion_radio"/>
+
+        <RadioButton
+            android:id="@+id/rb_right"
+            style="@style/EmotionRadioButtonStyle"
+            android:background="@drawable/selector_emotion_radio"/>
+
+    </RadioGroup>
+
+
+
+    <TextView
+        android:id="@+id/tv_emotion_right"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="end"
+        android:text="행복"
+        android:textStyle="bold"
+        android:textColor="@color/emotion_happy"/>
+
+</LinearLayout>

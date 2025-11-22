@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="@dimen/screen_padding_top"
+    android:background="@color/bg"
+    tools:context=".features.journal.presentation.detail.JournalDetailActivity">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        android:layout_marginTop="30dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="@color/text_primary"
+        app:title="일기 상세"
+        app:titleCentered="true"
+        app:titleTextColor="@color/text_primary"/>
+
+    <!-- ✨ [위치 변경] 수정 아이콘을 가장 오른쪽으로 -->
+    <ImageButton
+        android:id="@+id/btn_detail_edit"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_writing"
+        app:tint="@color/text_primary"
+        android:contentDescription="수정"
+        app:layout_constraintEnd_toEndOf="@id/toolbar"
+        app:layout_constraintTop_toTopOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="@id/toolbar"
+        android:layout_marginEnd="8dp"/>
+
+    <!-- ✨ [위치 변경] 삭제 아이콘을 수정 아이콘의 왼쪽으로 -->
+    <ImageButton
+        android:id="@+id/btn_detail_delete"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_delete"
+        app:tint="@color/text_primary"
+        android:contentDescription="삭제"
+        app:layout_constraintEnd_toStartOf="@id/btn_detail_edit"
+        app:layout_constraintTop_toTopOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="@id/toolbar"
+        android:layout_marginEnd="0dp"/>
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/detail_fragment_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/toolbar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:layout="@layout/fragment_journal_detail"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

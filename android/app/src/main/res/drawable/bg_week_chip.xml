@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 선택됨: 둥근 진한 배경 -->
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/text_primary"/>
+            <corners android:radius="12dp"/>
+        </shape>
+    </item>
+    <!-- 기본: 투명 (배경 없음) -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@android:color/transparent"/>
+            <corners android:radius="12dp"/>
+        </shape>
+    </item>
+</selector>

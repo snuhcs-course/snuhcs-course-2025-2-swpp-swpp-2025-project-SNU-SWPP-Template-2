@@ -1,0 +1,88 @@
+# =========================
+# Global
+# =========================
+*.log
+*.tmp
+*.swp
+*.swo
+*.bak
+*.DS_Store
+Thumbs.db
+
+# =========================
+# Env / Secrets
+# =========================
+*.env*
+!*.env.example
+/secrets/*
+/keys/*
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.venv/
+venv/
+ENV/
+*.sqlite3
+
+# =========================
+# Docker
+# =========================
+/backend/.venv
+/backend/.mypy_cache
+/backend/.pytest_cache
+/backend/.ruff_cache
+/backend/.coverage
+docker-compose.override.yml
+.docker/
+
+# =========================
+# Android (Gradle & Studio)
+# =========================
+android/.gradle/
+android/.idea/
+android/.cxx/
+android/local.properties
+android/app/build/
+android/build/
+*.iml
+*.apk
+*.aar
+*.dex
+*.class
+*.jar
+*.keystore
+*.jks
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.code-workspace
+*.sublime-workspace
+*.sublime-project
+
+# =========================
+# Mac / Linux / Windows
+# =========================
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+ehthumbs.db
+
+test.db

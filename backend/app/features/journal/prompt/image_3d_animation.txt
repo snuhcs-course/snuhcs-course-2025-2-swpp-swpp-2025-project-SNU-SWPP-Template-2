@@ -1,0 +1,3 @@
+Read the user's diary entry and summarize its core emotion or key event into a detailed visual prompt.
+The output image must be in 3D animation art, such as Pixar/Disney.
+You MUST respond in JSON format: {"scene_prompt": "a detailed english prompt"}

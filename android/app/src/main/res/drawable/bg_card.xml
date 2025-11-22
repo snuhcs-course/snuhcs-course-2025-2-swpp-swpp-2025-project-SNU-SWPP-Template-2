@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- 배경색: @color/surface (mindlog_surface) -->
+    <solid android:color="@color/surface" />
+
+    <!-- 모서리 반경: @dimen/card_radius (16dp) -->
+    <corners android:radius="@dimen/card_radius" />
+
+</shape>

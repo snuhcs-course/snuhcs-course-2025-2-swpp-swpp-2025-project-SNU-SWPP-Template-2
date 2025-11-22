@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph_home"
+    app:startDestination="@id/journalFragment">
+
+    <fragment
+        android:id="@+id/journalFragment"
+        android:name="com.example.mindlog.features.journal.presentation.list.JournalFragment"
+        android:label="Journal" />
+
+    <fragment
+        android:id="@+id/selfAwareFragment"
+        android:name="com.example.mindlog.features.selfaware.presentation.fragment.SelfAwareFragment"
+        android:label="fragment_self_aware"
+        tools:layout="@layout/fragment_self_aware" >
+
+        <!-- Optional: You can define an action from selfAwareFragment to selfAwareHistoryFragment -->
+        <action
+            android:id="@+id/action_selfAwareFragment_to_selfAwareHistoryFragment"
+            app:destination="@id/selfAwareHistoryFragment" />
+
+    </fragment>
+
+    <!-- This is the missing destination you need to add -->
+    <fragment
+        android:id="@+id/selfAwareHistoryFragment"
+        android:name="com.example.mindlog.features.selfaware.presentation.fragment.SelfAwareHistoryFragment"
+        android:label="fragment_self_aware_history"
+        tools:layout="@layout/fragment_self_aware_history" />
+
+
+    <fragment
+        android:id="@+id/statisticsFragment"
+        android:name="com.example.mindlog.features.statistics.presentation.StatisticsFragment"
+        android:label="Statistics"/>
+
+    <fragment
+        android:id="@+id/analysisFragment"
+        android:name="com.example.mindlog.features.analysis.presentation.AnalysisFragment"
+        android:label="Analysis"/>
+</navigation>

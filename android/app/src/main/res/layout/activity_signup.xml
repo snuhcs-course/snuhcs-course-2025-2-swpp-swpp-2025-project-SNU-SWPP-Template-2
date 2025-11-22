@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F6F0"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingHorizontal="24dp">
+
+        <!-- 상단 여백을 위한 가이드라인(비율 기반) -->
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/Top"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_begin="132dp" />
+
+        <!-- Name -->
+        <TextView
+            android:id="@+id/tvUsername"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textColor="#1B1E33"
+            android:textSize="16sp"
+            app:layout_constraintTop_toTopOf="@id/Top"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 이름 입력 -->
+        <EditText
+            android:id="@+id/etUsername"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            app:layout_constraintTop_toBottomOf="@id/tvUsername"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"
+            android:hint="이름을 입력하세요"
+            android:background="@drawable/edittext_bg"
+            android:paddingHorizontal="16dp"
+            android:textColor="#1B1E33"
+            android:textColorHint="#B0B0B0"
+            android:textSize="16sp"
+            android:textCursorDrawable="@drawable/edittext_cursor"/>
+
+        <!-- ID -->
+        <TextView
+            android:id="@+id/tvLoginId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ID"
+            android:textColor="#1B1E33"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/etUsername"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 아이디 입력 -->
+        <EditText
+            android:id="@+id/etLoginId"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            app:layout_constraintTop_toBottomOf="@id/tvLoginId"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"
+            android:hint="아이디를 입력하세요"
+            android:background="@drawable/edittext_bg"
+            android:paddingHorizontal="16dp"
+            android:textColor="#1B1E33"
+            android:textColorHint="#B0B0B0"
+            android:textSize="16sp"
+            android:textCursorDrawable="@drawable/edittext_cursor"/>
+
+        <!-- Password -->
+        <TextView
+            android:id="@+id/tvPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textColor="#1B1E33"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/etLoginId"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <EditText
+            android:id="@+id/etPassword"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            app:layout_constraintTop_toBottomOf="@id/tvPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"
+            android:hint="비밀번호를 입력하세요"
+            android:inputType="textPassword"
+            android:background="@drawable/edittext_bg"
+            android:paddingHorizontal="16dp"
+            android:textColor="#1B1E33"
+            android:textColorHint="#B0B0B0"
+            android:textSize="16sp"
+            android:textCursorDrawable="@drawable/edittext_cursor"/>
+
+        <!-- Confirm Password -->
+        <TextView
+            android:id="@+id/tvConfirmPassword"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirm Password"
+            android:textColor="#1B1E33"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/etPassword"
+            android:layout_marginTop="20dp"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <!-- 비밀번호 확인 -->
+        <EditText
+            android:id="@+id/etConfirmPassword"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            app:layout_constraintTop_toBottomOf="@id/tvConfirmPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp"
+            android:hint="비밀번호를  다시 입력하세요"
+            android:inputType="textPassword"
+            android:background="@drawable/edittext_bg"
+            android:paddingHorizontal="16dp"
+            android:textColor="#1B1E33"
+            android:textColorHint="#B0B0B0"
+            android:textSize="16sp"
+            android:textCursorDrawable="@drawable/edittext_cursor"/>
+
+        <!-- 회원가입 버튼 -->
+        <Button
+            android:id="@+id/btnSignup"
+            android:layout_width="0dp"
+            android:layout_height="66dp"
+            android:text="회원가입"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-medium"
+            app:backgroundTint="#2D3142"
+            app:cornerRadius="16dp"
+            app:layout_constraintTop_toBottomOf="@id/etConfirmPassword"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="18dp" />
+
+        <!-- 로그인으로 이동 -->
+        <TextView
+            android:id="@+id/tvGoLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="이미 계정이 있으신가요? 로그인 하러가기"
+            android:textColor="#666666"
+            android:textSize="16sp"
+            app:layout_constraintTop_toBottomOf="@id/btnSignup"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="20dp"
+            android:textCursorDrawable="@null"
+            android:textColorHighlight="@color/black"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

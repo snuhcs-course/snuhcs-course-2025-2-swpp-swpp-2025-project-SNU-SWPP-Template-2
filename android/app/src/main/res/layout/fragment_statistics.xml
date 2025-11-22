@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="24dp"
+    android:background="#F8F6F0" >
+
+    <!-- 제목 -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="통계"
+        android:textColor="#2D3142"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 제목 하단 구분선 -->
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/dividerTop"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        app:dividerColor="#636779"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+    
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        app:layout_constraintTop_toBottomOf="@id/dividerTop" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/CardViewStyle"
+                android:id="@+id/cardPeriod"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="15dp">
+
+                    <!-- 기간 라벨 + 날짜 Pill -->
+                    <androidx.constraintlayout.widget.ConstraintLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/tvPeriodLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginLeft="10dp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintLeft_toLeftOf="parent"
+                            android:text="기간"
+                            android:textColor="#636779"
+                            android:textSize="14sp" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/tvPeriodRange"
+                            android:layout_width="wrap_content"
+                            android:layout_height="32dp"
+                            app:layout_constraintTop_toTopOf="parent"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintRight_toRightOf="parent"
+                            android:backgroundTint="#EDE7DE"
+                            android:gravity="center"
+                            android:minWidth="220dp"
+                            android:paddingHorizontal="16dp"
+                            android:text="2025.09.01–2025.09.30"
+                            android:textColor="#2D3142"
+                            android:textSize="14sp"
+                            android:background="@drawable/textview_rounded_bg"/>
+                    </androidx.constraintlayout.widget.ConstraintLayout>
+
+                    <!-- 기간 프리셋 버튼: 주간 / 월간 / 사용자 지정 -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnWeekly"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            android:text="주간"
+                            android:textColor="#2D3142"
+                            app:cornerRadius="14dp"
+                            app:backgroundTint="#EDE7DE" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnMonthly"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginHorizontal="8dp"
+                            android:layout_weight="1"
+                            android:text="월간"
+                            android:textColor="#2D3142"
+                            app:cornerRadius="14dp"
+                            app:backgroundTint="#EDE7DE" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnCustom"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            android:text="사용자 지정"
+                            android:textSize="10sp"
+                            android:textColor="#2D3142"
+                            app:cornerRadius="14dp"
+                            app:backgroundTint="#EDE7DE" />
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 2) 감정 비율 (HorizontalBarChart) -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/CardViewStyle"
+                android:id="@+id/cardEmotionRates"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="감정 비율"
+                        android:textColor="#2D3142"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="10dp"/>
+
+                    <com.github.mikephil.charting.charts.PieChart
+                        android:id="@+id/chartEmotionRates"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 3) 감정 변화 (LineChart) -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/CardViewStyle"
+                android:id="@+id/cardEmotionTrend"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                >
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="감정 변화 그래프"
+                        android:textColor="#2D3142"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="10dp"/>
+
+                    <com.github.mikephil.charting.charts.LineChart
+                        android:id="@+id/chartEmotionTrend"
+                        android:layout_width="match_parent"
+                        android:layout_height="220dp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 감정 칩 (카드 밖, 아래 줄) -->
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupEmotions"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="15dp"
+                app:layout_constraintTop_toBottomOf="@+id/cardPeriod"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="false"
+                app:chipSpacingHorizontal="10dp"
+                app:checkedChip="@id/chipHappy">
+
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chipHappy"
+                    android:checkable="true"
+                    android:text="행복"
+                    android:textAllCaps="false"
+                    android:textColor="#2D3142"
+                    app:chipMinHeight="36dp"
+                    app:chipCornerRadius="18dp"
+                    app:chipBackgroundColor="#EDE7DE"
+                    app:ensureMinTouchTargetSize="false" />
+
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chipSad"
+                    android:checkable="true"
+                    android:text="슬픔"
+                    android:textColor="#2D3142"
+                    android:textAllCaps="false"
+                    app:chipMinHeight="36dp"
+                    app:chipCornerRadius="18dp"
+                    app:chipBackgroundColor="#EDE7DE"
+                    app:ensureMinTouchTargetSize="false" />
+
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chipAnxious"
+                    android:checkable="true"
+                    android:text="불안"
+                    android:textAllCaps="false"
+                    android:textColor="#2D3142"
+                    app:chipMinHeight="36dp"
+                    app:chipCornerRadius="18dp"
+                    app:chipBackgroundColor="#EDE7DE"
+                    app:ensureMinTouchTargetSize="false" />
+
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chipLethargy"
+                    android:checkable="true"
+                    android:text="무기력"
+                    android:textAllCaps="false"
+                    android:textColor="#2D3142"
+                    app:chipMinHeight="36dp"
+                    app:chipCornerRadius="18dp"
+                    app:chipBackgroundColor="#EDE7DE"
+                    app:ensureMinTouchTargetSize="false" />
+
+                <com.google.android.material.chip.Chip
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chipExciting"
+                    android:checkable="true"
+                    android:text="흥미"
+                    android:textAllCaps="false"
+                    android:textColor="#2D3142"
+                    app:chipMinHeight="36dp"
+                    app:chipCornerRadius="18dp"
+                    app:chipBackgroundColor="#EDE7DE"
+                    app:ensureMinTouchTargetSize="false" />
+            </com.google.android.material.chip.ChipGroup>
+
+            <com.google.android.material.card.MaterialCardView
+                style="@style/CardViewStyle"
+                android:id="@+id/cardEmotionEvents"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="15dp"
+                app:layout_constraintTop_toBottomOf="@+id/chipGroupEmotions"
+                >
+
+                <LinearLayout
+                    android:id="@+id/cardEmotionEventsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="최근 행복했던 이유는?"
+                        android:textColor="#636779"
+                        android:textSize="13sp"
+                        android:layout_marginBottom="15dp"/>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="1. 가족과 첫 유럽 여행을 계획했다"
+                        android:textColor="#2D3142"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="7dp"/>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="7dp"
+                        android:text="2. 오랜만의 친구 모임으로 재충전했다"
+                        android:textColor="#2D3142"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3. 프로젝트 마감 목표를 달성했다"
+                        android:textColor="#2D3142"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="7dp"/>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="4. 주말 등산을 컨디션 회복"
+                        android:textColor="#2D3142"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="7dp"/>
+                    <com.google.android.material.textview.MaterialTextView
+
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="5. 동료에게서 좋은 피드백을 받았다"
+                        android:textColor="#2D3142"
+                        android:textSize="14sp"
+                        android:layout_marginBottom="7dp"/>
+
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 4) 워드클라우드 -->
+            <com.google.android.material.card.MaterialCardView
+                style="@style/CardViewStyle"
+                android:id="@+id/cardWordCloud"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="120dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="10dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="일기 워드클라우드"
+                        android:textColor="#2D3142"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="10dp"/>
+
+                    <FrameLayout
+                        android:id="@+id/wordCloudView"
+                        android:layout_width="match_parent"
+                        android:layout_height="300dp"
+                        android:layout_margin="15dp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

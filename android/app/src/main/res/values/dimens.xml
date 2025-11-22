@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="grid_base">4dp</dimen>
+    <dimen name="space_xs">8dp</dimen>
+    <dimen name="space_s">12dp</dimen>
+    <dimen name="space_m">16dp</dimen>
+    <dimen name="space_l">20dp</dimen>
+    <dimen name="space_xl">24dp</dimen>
+    <dimen name="screen_padding_h">16dp</dimen>
+    <dimen name="card_radius">16dp</dimen>
+    <dimen name="searchbar_radius">16dp</dimen>
+    <dimen name="icon_size">24dp</dimen>
+    <dimen name="touch_target">32dp</dimen>
+    <dimen name="divider_thin">1dp</dimen>
+    <dimen name="nav_center_gap">88dp</dimen>
+    <dimen name="bottom_bar_height">64dp</dimen>
+    <dimen name="fab_bottom_margin_in_bar">24dp</dimen>  <!-- 중심이 바 안쪽으로 들어오게 -->
+    <dimen name="center_gap">56dp</dimen>                <!-- FAB 지름과 동일 (겹침 방지) -->
+    <dimen name="nav_icon">24dp</dimen>
+    <dimen name="nav_padding_v">6dp</dimen>
+    <dimen name="home_side_padding">16dp</dimen>
+    <dimen name="search_bar_height">44dp</dimen>
+    <dimen name="week_item_min_width">44dp</dimen>
+    <dimen name="week_item_height">48dp</dimen>
+    <dimen name="week_item_hpad">8dp</dimen>
+    <dimen name="week_item_vpad">6dp</dimen>
+    <dimen name="screen_padding_top">24dp</dimen>
+</resources>

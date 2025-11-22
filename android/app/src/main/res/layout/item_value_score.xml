@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="20dp">
+
+    <!-- 왼쪽 라벨 -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvValue"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:text="성장"
+        android:textSize="14sp"
+        android:textColor="#2D3142"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- 가운데 진행바 (라운드 + 옅은 트랙) -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/progress"
+        style="@style/Widget.Material3.LinearProgressIndicator"
+        android:layout_width="0dp"
+        android:layout_height="10dp"
+        android:layout_marginRight="10dp"
+        android:max="100"
+        android:progress="82"
+        app:trackThickness="10dp"
+        app:trackCornerRadius="5dp"
+        app:indicatorColor="#6AA9F5"
+        app:trackColor="#F1EDE4"
+        app:showAnimationBehavior="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/tvValue"
+        app:layout_constraintEnd_toStartOf="@id/tvScore"/>
+
+    <!-- 오른쪽 점수 -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvScore"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="82"
+        android:textSize="14sp"
+        android:textColor="#636779"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>

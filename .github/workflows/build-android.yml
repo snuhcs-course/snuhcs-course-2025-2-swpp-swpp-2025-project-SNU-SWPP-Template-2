@@ -1,0 +1,54 @@
+name: Build Android App
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    # ✅ keystore는 android/app 안에 복원 (working-directory 고려)
+    - name: Decode keystore
+      run: |
+        mkdir -p app
+        echo "$KEYSTORE_BASE64" | base64 --decode > app/my-release-key.jks
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+
+    - name: Grant execute permission to gradlew
+      run: chmod +x gradlew
+
+    # ✅ signed APK 빌드
+    - name: Build signed APK
+      run: ./gradlew assembleRelease
+      env:
+        KEYSTORE_PATH: ${{ github.workspace }}/android/app/my-release-key.jks
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+
+    # ✅ 결과 확인 및 업로드
+    - name: Show release folder contents
+      run: ls -R app/build/outputs/apk || echo "No APK directory found"
+
+    - name: Upload signed APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release-signed.apk
+        path: android/app/build/outputs/apk/release/app-release.apk

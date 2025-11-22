@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginVertical="6dp"
+    android:backgroundTint="#F3F1EB"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp"
+    app:strokeColor="@android:color/transparent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- 날짜 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2025/09/22 (월)"
+            android:textSize="13sp"
+            android:textColor="#7A766D" />
+
+        <!-- 질문 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvQuestion"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:text="Q. 자기 자신을 알아가는 질문!"
+            android:textColor="#2D3142"
+            android:textSize="16sp"/>
+
+        <!-- 답변 -->
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/tvAnswer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="A. 나는 어떤 사람인지!"
+            android:textColor="#2D3142"
+            android:textSize="14sp"
+            android:lineSpacingExtra="2dp" />
+
+        <!-- 칩 그룹 -->
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/chipGroupValues"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            app:chipSpacingHorizontal="8dp"
+            app:singleLine="true">
+        </com.google.android.material.chip.ChipGroup>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

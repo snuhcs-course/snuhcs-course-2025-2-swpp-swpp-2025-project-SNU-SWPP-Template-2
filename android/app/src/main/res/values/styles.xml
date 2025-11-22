@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="EmotionLabelStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="EmotionRadioButtonStyle">
+        <item name="android:layout_width">32dp</item><item name="android:layout_height">32dp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <!-- 모든 버튼은 이 하나의 shape를 배경으로 사용 -->
+        <item name="android:background">@drawable/shape_circle_background</item>
+        <item name="android:button">@null</item> <!-- 기본 체크박스 모양 제거 -->
+    </style>
+
+    <!-- ✨ [핵심 수정] AI 스타일 선택지를 위한 커스텀 스타일 -->
+    <style name="AiStyleSelectableCell" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_ai_style_selector</item>
+        <!-- ✨ [핵심] 기본 동그라미 버튼을 완전히 제거합니다. -->
+        <item name="android:button">@null</item>
+        <!-- ✨ [핵심] 텍스트를 셀의 중앙으로 정렬합니다. -->
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <!-- ✨ [핵심 추가] 키워드 칩을 위한 스타일 -->
+    <style name="Widget.Mindlog.KeywordChip" parent="Widget.MaterialComponents.Chip.Action">
+        <!-- 배경 색상 -->
+        <item name="chipBackgroundColor">@color/surface</item>
+        <!-- 텍스트 색상 -->
+        <item name="android:textColor">@color/text_secondary</item>
+        <!-- 텍스트 크기 -->
+        <item name="android:textSize">14sp</item>
+        <!-- 클릭 시 물결 효과 색상 -->
+        <item name="rippleColor">@color/text_primary</item>
+        <!-- X 아이콘 비활성화 -->
+        <item name="closeIconVisible">false</item>
+        <!-- 체크 아이콘 비활성화 -->
+        <item name="checkedIconVisible">false</item>
+        <item name="chipMinHeight">24dp</item> <!-- 칩의 최소 높이를 줄임 -->
+        <item name="android:paddingTop">0dp</item> <!-- 내부 상단 패딩 제거 -->
+        <item name="android:paddingBottom">0dp</item> <!-- 내부 하단 패딩 제거 -->
+        <item name="chipSpacingVertical">0dp</item> <!-- 텍스트와 아이콘 사이의 수직 간격 제거 -->
+    </style>
+</resources>

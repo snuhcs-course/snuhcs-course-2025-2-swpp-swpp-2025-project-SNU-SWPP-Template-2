@@ -1,0 +1,51 @@
+name: Android CI (lint + test + coverage)
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-test-coverage:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) 코드 체크아웃
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) JDK 설정 (Gradle 캐시 포함)
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      # 3) Android SDK 설치
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      # 4) gradlew 실행권한
+      - name: Set executable on gradlew
+        run: chmod +x android/gradlew
+
+      # 5) Lint 검사
+      - name: Run Android Lint
+        working-directory: android
+        run: ./gradlew :app:lintDebug
+
+      # 6) 유닛 테스트 + (원하면) 유닛 커버리지 리포트
+      - name: Run unit tests
+        working-directory: android
+        run: ./gradlew :app:testDebugUnitTest
+
+      # 8) 커버리지 리포트 아티팩트 업로드
+      - name: Upload coverage reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-reports
+          path: |
+            android/app/build/reports/jacoco/unitTest

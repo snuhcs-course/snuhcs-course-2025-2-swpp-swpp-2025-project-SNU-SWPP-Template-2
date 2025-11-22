@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/journalFragment"
+        android:icon="@drawable/ic_journal"
+        android:title=""/>
+    <item
+        android:id="@+id/selfAwareFragment"
+        android:icon="@drawable/ic_selfaware"
+        android:title=""/>
+
+    <!-- 빈 공간용 아이템 -->
+    <item
+        android:id="@+id/navigation_space"
+        android:enabled="false"
+        android:icon="@null"
+        android:title=""
+        android:checkable="false" />
+
+    <item
+        android:id="@+id/statisticsFragment"
+        android:icon="@drawable/ic_stats"
+        android:title=""/>
+    <item
+        android:id="@+id/analysisFragment"
+        android:icon="@drawable/ic_analysis"
+        android:title=""/>
+</menu>

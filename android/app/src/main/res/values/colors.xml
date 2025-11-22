@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="bg">#F8F6F0</color>
+    <color name="surface">#F3F1EB</color>
+    <color name="text_primary">#2D3142</color>
+    <color name="text_secondary">#636779</color>
+    <color name="divider">#C9C9C9</color>
+    <color name="divider_alt">#C3C3C2</color>
+    <color name="accent">#743600</color>
+    <color name="accent_alt">#422B0D</color>
+    <color name="navigator">#CFC9B9</color>
+    <!-- Emotion Colors -->
+    <color name="emotion_happy">#FFA726</color>
+    <color name="emotion_calm">#66BB6A</color>
+    <color name="emotion_satisfied">#26A69A</color>
+    <color name="emotion_interested">#EC407A</color>
+    <color name="emotion_energetic">#FFD54F</color>
+    <color name="emotion_sad">#42A5F5</color>
+    <color name="emotion_anxious">#7E57C2</color>
+    <color name="emotion_annoyed">#EF5350</color>
+    <color name="emotion_bored">#8D949D</color>
+    <color name="emotion_lethargic">#5C6BC0</color>
+    <!-- Five Factor Colors -->
+    <color name="five_factor_default_bg">#F3F1EB</color>
+    <color name="factor_conscientious_bg">#F4E7D4</color>
+    <color name="factor_neuroticism_bg">#EEDDE3</color>
+    <color name="factor_extraversion_bg">#E1F1EA</color>
+    <color name="factor_openness_bg">#E6E3F2</color>
+    <color name="factor_agreeableness_bg">#E3EEFA</color>
+
+</resources>

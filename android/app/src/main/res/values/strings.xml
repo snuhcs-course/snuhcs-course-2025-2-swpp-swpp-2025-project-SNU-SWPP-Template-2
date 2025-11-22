@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">MindLog</string>
+
+    <style name="CardViewStyle" parent="Widget.Material3.CardView.Filled">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="cardElevation">0dp</item>
+        <item name="cardBackgroundColor">#F3F1EB</item>
+    </style>
+</resources>

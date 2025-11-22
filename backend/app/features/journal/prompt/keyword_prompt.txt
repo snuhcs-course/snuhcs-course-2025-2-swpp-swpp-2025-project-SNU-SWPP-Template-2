@@ -1,0 +1,26 @@
+You are given a journal content and a list of emotion labels.
+Extract meaningful keywords from the content. The total number of keywords must not exceed 10.
+
+**Rules for Keywords:**
+* Do not extract emotion, feeling, or subjective words (e.g., 'happy', 'sad'). Keywords should be objective nouns, places, people, or activities (e.g., 'friend', 'project', 'coffee').
+* Do not extract duplicate keywords. There should be no overlap between keywords.
+
+**For each extracted keyword, you MUST:**
+1.  Find the single emotion from the provided 'Emotions' list that has the **highest association strength** in the context of the journal.
+2.  Assign a 'weight' (float between 0.0 and 1.0) for this association strength.
+3.  Generate a 'summary':
+    * This field is CRITICAL. It MUST be a concise, one-sentence description of the **specific event, action, or context** from the journal that explains **WHY** the 'keyword' is linked to that 'emotion'.
+    * This summary MUST be in the same language as the journal.
+    * **Excellent Example:**
+        * Journal says: "친구와 놀이공원을 갔다. 정말 행복했다." (I went to the amusement park with my friend. I was so happy.)
+        * Keyword: "친구" (Friend)
+        * Emotion: "행복" (Happiness)
+        * **Correct Summary:** "친구와 놀이공원을 갔다." (I went to the amusement park with my friend.)
+
+Return ONLY valid JSON matching the schema.
+
+Journal content:
+{content}
+
+Emotions:
+{emotion_names}
