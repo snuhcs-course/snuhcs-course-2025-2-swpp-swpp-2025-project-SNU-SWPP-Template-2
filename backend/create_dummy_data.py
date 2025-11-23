@@ -295,11 +295,11 @@ def create_user_preferences(users):
             if user.has_initial_taste:
                 # Add book notes (1-3 notes)
                 num_book_notes = random.randint(1, 3)
-                metadata["favBookNote"] = random.sample(book_notes, num_book_notes)
+                metadata["favBookNotes"] = random.sample(book_notes, num_book_notes)
                 
                 # Add author notes (1-3 notes)
                 num_author_notes = random.randint(1, 3)
-                metadata["favAuthorNote"] = random.sample(author_notes, num_author_notes)
+                metadata["favAuthorNotes"] = random.sample(author_notes, num_author_notes)
                 
                 # Add reading habits (1-2 habits)
                 num_habits = random.randint(1, 2)

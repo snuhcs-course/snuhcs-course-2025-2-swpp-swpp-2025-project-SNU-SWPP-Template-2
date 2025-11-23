@@ -5,6 +5,7 @@ Maps URLs to views for book review endpoints.
 
 from django.urls import path
 
+from .ai_views import explore_recommendations, get_barter_context
 from .book_search_api import book_search
 from .views import (
     ReviewLikeView,

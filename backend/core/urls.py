@@ -6,6 +6,7 @@ The `urlpatterns` list routes URLs to views. For more information please see:
 """
 
 from accounts.views import UserProfileMeView, follow_view
+from books.ai_views import explore_recommendations, get_barter_context
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -53,6 +54,9 @@ urlpatterns = [
     # API Endpoints
     path("auth/", include("accounts.urls")),  # Matches frontend expectations
     path("library/", include("books.urls")),  # User's library (reviews, books)
+    # Root-level AI/Explore shortcuts (kept alongside library/ paths for compatibility)
+    path("explore/", explore_recommendations, name="explore-recommendations"),
+    path("ai/barter-context/", get_barter_context, name="barter-context"),
     path("", include("social.urls")),  # Social features (home feed, posts)
     path("barter/", include("barter.urls")),  # Barter requests
     # Follow API to match frontend expectations
