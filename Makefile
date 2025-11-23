@@ -14,6 +14,7 @@ NC := \033[0m # No Color
 PROJECT_NAME := swpp-ai-app
 PYTHON := python3
 PIP := pip3
+UV := uv
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
 AI_MODEL_DIR := ai-model
@@ -37,8 +38,12 @@ install: ## Install all dependencies
 
 install-backend: ## Install backend dependencies
 	@echo "$(BLUE)Installing backend dependencies...$(NC)"
-	@cd $(BACKEND_DIR) && $(PIP) install -r requirements.txt
-	@cd $(BACKEND_DIR) && $(PIP) install -r requirements-dev.txt
+	@cd $(BACKEND_DIR) && \
+		if command -v $(UV) >/dev/null 2>&1; then \
+			$(UV) sync --extra dev; \
+		else \
+			$(PIP) install -e ".[dev]"; \
+		fi
 	@echo "$(GREEN)✅ Backend dependencies installed$(NC)"
 
 install-frontend: ## Install frontend dependencies
@@ -48,8 +53,12 @@ install-frontend: ## Install frontend dependencies
 
 install-ai: ## Install AI model dependencies
 	@echo "$(BLUE)Installing AI model dependencies...$(NC)"
-	@if [ -f $(AI_MODEL_DIR)/requirements.txt ]; then \
-		cd $(AI_MODEL_DIR) && $(PIP) install -r requirements.txt; \
+	@if [ -d $(AI_MODEL_DIR) ]; then \
+		if command -v $(UV) >/dev/null 2>&1; then \
+			cd $(AI_MODEL_DIR) && $(UV) sync --extra dev; \
+		else \
+			cd $(AI_MODEL_DIR) && $(PIP) install -e ".[dev]"; \
+		fi; \
 	fi
 	@echo "$(GREEN)✅ AI model dependencies installed$(NC)"
 
@@ -331,4 +340,3 @@ info: ## Display project information
 	@echo "make format       - Format all code"
 	@echo "make lint         - Run all linters"
 	@echo "make ci-local     - Run CI checks locally"
-

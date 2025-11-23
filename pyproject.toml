@@ -78,6 +78,38 @@ ignore = [
 "**/asgi.py" = ["E402"]
 "**/settings.py" = ["E402"]
 "test_*.py" = ["E402", "F401", "F841", "S101"]
+
+# ============================================================================
+# Shared Flake8 configuration to align with Ruff defaults
+# ============================================================================
+[tool.flake8]
+max-line-length = 79
+extend-ignore = [
+    "E203", # Whitespace before ':', conflicts with Black
+    "W503", # Line break before binary operator, conflicts with Black
+    "E501", # Line too long handled by formatter
+]
+exclude = [
+    ".eggs",
+    ".git",
+    ".pytest_cache",
+    ".ruff_cache",
+    ".tox",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "migrations",
+    "__pycache__",
+    "node_modules",
+]
+per-file-ignores = [
+    "__init__.py:F401",
+    "**/asgi.py:E402",
+    "**/settings.py:E402",
+    "**/tests/**:E402,F401,F841",
+    "ai-model/examples/scripts/*.py:E402,F401",
+]
 "**/tests/**" = ["E402", "F401", "F841", "S101"]
 "*/admin.py" = ["F401"]
 

@@ -2,10 +2,9 @@
 Serializers for the barter app.
 """
 
-from rest_framework import serializers
-
 from accounts.serializers import UserBarterInfoSerializer
 from books.serializers import BookSummarySerializer
+from rest_framework import serializers
 
 from .models import BarterRequest
 
@@ -19,14 +18,16 @@ class BarterRequestSerializer(serializers.ModelSerializer):
 
     requester = UserBarterInfoSerializer(read_only=True)
     recipient = UserBarterInfoSerializer(read_only=True)
-    offered_book = BookSummarySerializer(read_only=True)  # The selected book after acceptance
+    offered_book = BookSummarySerializer(
+        read_only=True
+    )  # The selected book after acceptance
     requested_book = BookSummarySerializer(read_only=True)
     offered_book_ids = serializers.ListField(
         child=serializers.UUIDField(),
         read_only=True,
-        help_text="List of 3 book IDs proposed by requester"
+        help_text="List of 3 book IDs proposed by requester",
     )
-    
+
     # Phone numbers only visible when trade is completed
     requester_phone = serializers.SerializerMethodField()
     recipient_phone = serializers.SerializerMethodField()
@@ -87,7 +88,9 @@ class BarterAcceptSerializer(serializers.Serializer):
     response_message = serializers.CharField(
         required=False, allow_blank=True, max_length=500
     )
-    proposed_meeting_time = serializers.DateTimeField(required=False, allow_null=True)
+    proposed_meeting_time = serializers.DateTimeField(
+        required=False, allow_null=True
+    )
     proposed_meeting_location = serializers.CharField(
         required=False, allow_blank=True, max_length=200
     )
@@ -108,8 +111,8 @@ class BarterCreateSerializer(serializers.Serializer):
     Serializer for creating a new barter request.
     Requester just selects recipient's book, backend automatically picks 3 of requester's books.
     """
-    
+
     requested_book_id = serializers.UUIDField(
         required=True,
-        help_text="ID of the book that requester wants from recipient"
+        help_text="ID of the book that requester wants from recipient",
     )

@@ -4,9 +4,9 @@ Note: These tests use mocks to avoid actual model inference,
 making them suitable for CI/CD environments like GitHub Actions.
 """
 
-import pytest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import MagicMock, Mock, patch
 
+import pytest
 from adapters.backend_adapter import BackendDataAdapter
 from data.entities import Item, UserProfile
 from llm.client import LLMClient, Message
@@ -17,8 +17,8 @@ from llm.reasoning import ReasoningGenerator
 class TestLLMClient:
     """Test LLM client functionality (with mocks)."""
 
-    @patch('llm.client.LLMClient._init_local_model')
-    @patch('llm.client.LLMClient._init_openai_client')
+    @patch("llm.client.LLMClient._init_local_model")
+    @patch("llm.client.LLMClient._init_openai_client")
     def test_client_initialization_local(self, mock_openai, mock_local):
         """Test LLM client initializes with local model."""
         config = LLMConfig(use_local_model=True)
@@ -27,19 +27,17 @@ class TestLLMClient:
         assert client.config.use_local_model is True
         mock_local.assert_called_once()
 
-    @patch('llm.client.LLMClient._init_openai_client')
+    @patch("llm.client.LLMClient._init_openai_client")
     def test_client_initialization_openai(self, mock_openai):
         """Test LLM client initializes with OpenAI."""
-        config = LLMConfig(
-            use_local_model=False, openai_api_key="test_key"
-        )
+        config = LLMConfig(use_local_model=False, openai_api_key="test_key")
         client = LLMClient(config)
 
         assert client is not None
         mock_openai.assert_called_once()
 
-    @patch('llm.client.LLMClient._generate_local')
-    @patch('llm.client.LLMClient._init_local_model')
+    @patch("llm.client.LLMClient._generate_local")
+    @patch("llm.client.LLMClient._init_local_model")
     def test_generate_with_messages(self, mock_init, mock_generate):
         """Test generating response with messages."""
         mock_generate.return_value = "This is a test response."
@@ -60,8 +58,8 @@ class TestLLMClient:
         assert response == "This is a test response."
         mock_generate.assert_called_once()
 
-    @patch('llm.client.LLMClient._generate_local')
-    @patch('llm.client.LLMClient._init_local_model')
+    @patch("llm.client.LLMClient._generate_local")
+    @patch("llm.client.LLMClient._init_local_model")
     def test_chat_interface(self, mock_init, mock_generate):
         """Test simple chat interface."""
         mock_generate.return_value = "I recommend 'The Da Vinci Code'."
@@ -120,7 +118,7 @@ class TestReasoningGenerator:
             ),
         ]
 
-    @patch('llm.reasoning.LLMClient')
+    @patch("llm.reasoning.LLMClient")
     def test_reasoning_generator_initialization(self, mock_client_class):
         """Test reasoning generator initializes correctly."""
         mock_client_class.return_value = Mock()
@@ -131,7 +129,7 @@ class TestReasoningGenerator:
         assert generator.critic_client is not None
         assert generator.max_turns >= 3
 
-    @patch('llm.reasoning.LLMClient')
+    @patch("llm.reasoning.LLMClient")
     def test_generate_book_recommendation_reasoning(
         self, mock_client_class, sample_user_profile, sample_books
     ):
@@ -177,8 +175,10 @@ class TestReasoningGenerator:
             assert isinstance(turn.message, str)
             assert len(turn.message) > 0
 
-    @patch('llm.reasoning.LLMClient')
-    def test_prepare_context(self, mock_client_class, sample_user_profile, sample_books):
+    @patch("llm.reasoning.LLMClient")
+    def test_prepare_context(
+        self, mock_client_class, sample_user_profile, sample_books
+    ):
         """Test context preparation for LLM."""
         mock_client_class.return_value = Mock()
         generator = ReasoningGenerator()
@@ -305,9 +305,7 @@ class TestConversationFormatter:
         """Test formatting reasoning trajectory."""
         from llm.client import ConversationTurn
         from llm.reasoning import ReasoningTrajectory
-        from visualization.conversation_formatter import (
-            ConversationFormatter,
-        )
+        from visualization.conversation_formatter import ConversationFormatter
 
         trajectory = ReasoningTrajectory(
             user_id="user_123",
@@ -344,9 +342,7 @@ class TestConversationFormatter:
         """Test Android-specific formatting."""
         from llm.client import ConversationTurn
         from llm.reasoning import ReasoningTrajectory
-        from visualization.conversation_formatter import (
-            ConversationFormatter,
-        )
+        from visualization.conversation_formatter import ConversationFormatter
 
         trajectory = ReasoningTrajectory(
             user_id="user_123",
@@ -371,4 +367,3 @@ class TestConversationFormatter:
         assert "messages" in android_format
         assert "confidenceLevel" in android_format
         assert android_format["confidenceLevel"] == "HIGH"
-

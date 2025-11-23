@@ -174,14 +174,14 @@ make test-coverage
 
 ### Package Management
 ```bash
-# Install dependencies with uv
-uv pip install -r requirements.txt
+# Install backend dependencies with uv (includes dev extras)
+cd backend && uv sync --extra dev
 
-# Add new dependency
-uv add package-name
+# Add new backend dependency
+cd backend && uv add package-name
 
-# Update dependencies
-uv pip compile requirements.in
+# Update/refresh the lockfile
+cd backend && uv lock --upgrade
 ```
 
 ## 📊 Project Status

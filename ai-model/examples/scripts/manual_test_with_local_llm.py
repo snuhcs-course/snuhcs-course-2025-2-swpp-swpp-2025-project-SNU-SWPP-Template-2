@@ -18,9 +18,7 @@ from adapters.backend_adapter import BackendDataAdapter
 from adapters.frontend_adapter import FrontendDataAdapter
 from data.entities import Item, UserProfile
 from llm.reasoning import ReasoningGenerator
-from visualization.conversation_formatter import (
-    ConversationFormatter,
-)
+from visualization.conversation_formatter import ConversationFormatter
 
 
 def setup_environment():
@@ -36,7 +34,11 @@ def save_yaml(data: dict, filename: str, examples_dir: Path):
     output_path = examples_dir / filename
     with open(output_path, "w", encoding="utf-8") as f:
         yaml.dump(
-            data, f, default_flow_style=False, allow_unicode=True, sort_keys=False
+            data,
+            f,
+            default_flow_style=False,
+            allow_unicode=True,
+            sort_keys=False,
         )
     print(f"✅ Saved: {output_path}")
     return output_path
@@ -270,9 +272,6 @@ def test_example_2_casual_reader():
         user_reading_history=reading_history,
     )
 
-    # Format for frontend
-    formatted = ConversationFormatter.format_reasoning_trajectory(trajectory)
-
     # Prepare YAML output
     example_data = {
         "example_id": "example_2_casual_reader",
@@ -461,4 +460,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

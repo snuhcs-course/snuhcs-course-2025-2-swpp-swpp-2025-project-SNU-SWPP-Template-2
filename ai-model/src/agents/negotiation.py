@@ -91,7 +91,6 @@ class NegotiationMediator:
         fairness: float,
     ) -> NegotiationOutcome:
         """LLM-based mediation with conversation."""
-        from llm.client import Message
 
         # Prepare context for LLM
         context_str = self._prepare_llm_context(candidate, context)
@@ -117,9 +116,7 @@ class NegotiationMediator:
             "You are a critical evaluator assessing a barter proposal. "
             "Identify benefits and potential concerns."
         )
-        evaluator_context = (
-            f"{context_str}\n\nProposal:\n{proposer_msg}"
-        )
+        evaluator_context = f"{context_str}\n\nProposal:\n{proposer_msg}"
         evaluator_msg = self.llm_client.chat(
             evaluator_prompt, evaluator_context, temperature=0.8
         )
@@ -208,8 +205,7 @@ class NegotiationMediator:
                 or "no new items"
             )
             given = (
-                ", ".join(item.title for item in offer.give_items)
-                or "nothing"
+                ", ".join(item.title for item in offer.give_items) or "nothing"
             )
             preference_score = context.profiles[
                 offer.user_id
@@ -277,9 +273,7 @@ class NegotiationMediator:
             # Assign to each participant
             for offer in candidate.participants:
                 talking_points[offer.user_id] = [
-                    refined[:200] + "..."
-                    if len(refined) > 200
-                    else refined
+                    refined[:200] + "..." if len(refined) > 200 else refined
                 ]
 
         return talking_points

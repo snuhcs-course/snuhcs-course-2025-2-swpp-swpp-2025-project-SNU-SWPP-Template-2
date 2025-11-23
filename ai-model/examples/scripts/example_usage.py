@@ -9,19 +9,17 @@ This script demonstrates how to:
 
 import json
 import os
-from pathlib import Path
 
 # Add src to path for imports
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
 from adapters.backend_adapter import BackendDataAdapter
 from data.entities import Item, UserProfile
 from llm.reasoning import ReasoningGenerator
-from visualization.conversation_formatter import (
-    ConversationFormatter,
-)
+from visualization.conversation_formatter import ConversationFormatter
 
 
 def example_book_recommendation():
@@ -253,4 +251,3 @@ if __name__ == "__main__":
     print("\n" + "=" * 60)
     print("Examples completed successfully!")
     print("=" * 60)
-

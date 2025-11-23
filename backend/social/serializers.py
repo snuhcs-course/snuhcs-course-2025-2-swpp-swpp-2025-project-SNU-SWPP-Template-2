@@ -2,10 +2,9 @@
 Serializers for the social app.
 """
 
-from rest_framework import serializers
-
-from social.models import Post
 from books.models import BookWishlist
+from rest_framework import serializers
+from social.models import Post
 
 
 class PostSerializer(serializers.ModelSerializer):
@@ -22,7 +21,9 @@ class PostSerializer(serializers.ModelSerializer):
     )
     # Added: posterId and posterLocation for profile navigation
     posterId = serializers.IntegerField(source="author.id", read_only=True)
-    posterLocation = serializers.CharField(source="author.location", read_only=True)
+    posterLocation = serializers.CharField(
+        source="author.location", read_only=True
+    )
     posterProfile = serializers.SerializerMethodField()
     bookTitle = serializers.SerializerMethodField()
     authorName = serializers.SerializerMethodField()
@@ -34,7 +35,9 @@ class PostSerializer(serializers.ModelSerializer):
 
     # Engagement stats
     likeCount = serializers.IntegerField(source="like_count", read_only=True)
-    commentCount = serializers.IntegerField(source="comment_count", read_only=True)
+    commentCount = serializers.IntegerField(
+        source="comment_count", read_only=True
+    )
 
     # User-specific interaction states
     isLiked = serializers.SerializerMethodField()
@@ -79,6 +82,7 @@ class PostSerializer(serializers.ModelSerializer):
             "createdAt",
             "bookId",
         ]
+
     def get_bookId(self, obj):
         """Return the related book's id if exists, else None."""
         if obj.related_book:
@@ -144,10 +148,20 @@ class PostSerializer(serializers.ModelSerializer):
         """Return whether the related book is currently available for barter."""
         if not obj.related_book:
             return False
-        # Check both is_for_barter (owner wants to trade) and trade_status (not locked in trade)
-        return ( 
-            obj.related_book.is_for_barter and 
-            obj.related_book.trade_status == "available"
+        book = obj.related_book
+        if hasattr(book, "is_available_for_barter"):
+            try:
+                return bool(book.is_available_for_barter)
+            except Exception:
+                # Defensive: fall back to field checks if property raises
+                pass
+
+        is_for_barter = bool(getattr(book, "is_for_barter", False))
+        trade_status = getattr(book, "trade_status", None)
+        return (
+            is_for_barter
+            if trade_status is None
+            else is_for_barter and trade_status == "available"
         )
 
 

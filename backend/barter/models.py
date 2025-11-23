@@ -34,12 +34,12 @@ class BarterRequest(models.Model):
         User, on_delete=models.CASCADE, related_name="received_barter_requests"
     )
 
-    # Books Involved (1:1 exchange)
+    # Books Involved (1:1 exchange of copies)
     offered_book = models.ForeignKey(
-        "books.Book",
+        "books.BookCopy",
         on_delete=models.CASCADE,
         related_name="offered_in_barters",
-        help_text="Book offered by the requester (final selection by recipient)",
+        help_text="Book copy offered by the requester (final selection by recipient)",
         null=True,
         blank=True,
     )
@@ -47,13 +47,13 @@ class BarterRequest(models.Model):
     offered_book_ids = models.JSONField(
         default=list,
         blank=True,
-        help_text="List of 3 book IDs proposed by requester"
+        help_text="List of 3 book IDs proposed by requester",
     )
     requested_book = models.ForeignKey(
-        "books.Book",
+        "books.BookCopy",
         on_delete=models.CASCADE,
         related_name="requested_in_barters",
-        help_text="Book requested from the recipient",
+        help_text="Book copy requested from the recipient",
         null=True,
         blank=True,
     )
@@ -102,11 +102,13 @@ class BarterRequest(models.Model):
 
     def create_transaction(self):
         if hasattr(self, "transaction"):
-            #...
-            return self.transaction 
-        
-        return BarterTransaction.objects.create(barter_request=self, meeting_type=self.preferred_meeting_type,)
+            # ...
+            return self.transaction
 
+        return BarterTransaction.objects.create(
+            barter_request=self,
+            meeting_type=self.preferred_meeting_type,
+        )
 
     def __str__(self):
         return f"Barter Request from {self.requester.username} to {self.recipient.username}"
@@ -131,10 +133,10 @@ class BarterCounter(models.Model):
 
     # Counter Offer Details
     offered_books = models.ManyToManyField(
-        "books.Book", related_name="counter_offered_books", blank=True
+        "books.BookCopy", related_name="counter_offered_books", blank=True
     )
     requested_books = models.ManyToManyField(
-        "books.Book", related_name="counter_requested_books", blank=True
+        "books.BookCopy", related_name="counter_requested_books", blank=True
     )
 
     message = models.TextField(help_text="Explanation of the counter offer")

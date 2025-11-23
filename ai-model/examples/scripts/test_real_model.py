@@ -34,7 +34,7 @@ def test_basic_inference():
         print(f"   Using local model: {config.use_local_model}")
 
         client = LLMClient(config)
-        print(f"   ✅ Client initialized successfully!")
+        print("   ✅ Client initialized successfully!")
         print(f"   Device: {client.device}")
         print(f"   Model type: {client.model_type}")
 
@@ -50,13 +50,14 @@ def test_basic_inference():
             user_message="Recommend a mystery book in one sentence.",
             temperature=0.7,
         )
-        print(f"   User: Recommend a mystery book in one sentence.")
+        print("   User: Recommend a mystery book in one sentence.")
         print(f"   Assistant: {response}")
-        print(f"   ✅ Simple chat works!")
+        print("   ✅ Simple chat works!")
 
     except Exception as e:
         print(f"   ❌ Simple chat failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -75,13 +76,14 @@ def test_basic_inference():
         ]
 
         response = client.generate(messages, temperature=0.7, max_tokens=100)
-        print(f"   User: What makes a good mystery novel?")
+        print("   User: What makes a good mystery novel?")
         print(f"   Assistant: {response[:200]}...")
-        print(f"   ✅ Multi-message conversation works!")
+        print("   ✅ Multi-message conversation works!")
 
     except Exception as e:
         print(f"   ❌ Multi-message conversation failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -108,13 +110,14 @@ def test_basic_inference():
         ]
 
         response = client.generate(messages, temperature=0.7, max_tokens=150)
-        print(f"   Scenario: Mystery lover seeking recommendations")
+        print("   Scenario: Mystery lover seeking recommendations")
         print(f"   Response: {response}")
-        print(f"   ✅ Book recommendation scenario works!")
+        print("   ✅ Book recommendation scenario works!")
 
     except Exception as e:
         print(f"   ❌ Book recommendation scenario failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -137,7 +140,9 @@ def test_device_detection():
         if torch.cuda.is_available():
             print(f"CUDA device: {torch.cuda.get_device_name(0)}")
 
-        print(f"MPS available: {hasattr(torch.backends, 'mps') and torch.backends.mps.is_available()}")
+        print(
+            f"MPS available: {hasattr(torch.backends, 'mps') and torch.backends.mps.is_available()}"
+        )
 
         # Show what device will be used
         os.environ["USE_LOCAL_MODEL"] = "true"
@@ -152,6 +157,7 @@ def test_device_detection():
     except Exception as e:
         print(f"❌ Device detection failed: {e}")
         import traceback
+
         traceback.print_exc()
 
 
@@ -174,4 +180,3 @@ if __name__ == "__main__":
     else:
         print("\n❌ Some tests failed. Please check the errors above.")
         sys.exit(1)
-
