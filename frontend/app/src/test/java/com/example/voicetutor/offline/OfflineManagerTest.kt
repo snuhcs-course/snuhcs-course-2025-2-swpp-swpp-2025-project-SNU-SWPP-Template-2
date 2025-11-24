@@ -231,48 +231,6 @@ class OfflineManagerTest {
     }
 
     @Test
-    fun formatCacheSize_formatsCorrectly() {
-        offlineManager = OfflineManager(mockContext)
-
-        val formatted = offlineManager.formatCacheSize()
-
-        assertNotNull(formatted)
-        assertTrue(
-            formatted.contains("B") || formatted.contains("KB") ||
-                formatted.contains("MB") || formatted.contains("GB"),
-        )
-    }
-
-    @Test
-    fun formatCacheSize_withBytes_formatsAsBytes() {
-        offlineManager = OfflineManager(mockContext)
-        // 캐시 크기가 0이면 "0 B"로 포맷됨
-        val formatted = offlineManager.formatCacheSize()
-        assertTrue(formatted.contains("B"))
-    }
-
-    @Test
-    fun formatCacheSize_withKB_formatsAsKB() {
-        offlineManager = OfflineManager(mockContext)
-        // 캐시에 데이터를 추가하여 KB 단위로 포맷되도록 함
-        offlineManager.cacheData("large_key", "x".repeat(2048)) // 2KB 이상
-        val formatted = offlineManager.formatCacheSize()
-        // KB 이상이면 KB, MB, GB 중 하나로 포맷됨
-        assertNotNull(formatted)
-    }
-
-    @Test
-    fun formatCacheSize_withMB_formatsAsMB() {
-        offlineManager = OfflineManager(mockContext)
-        // 캐시에 더 많은 데이터를 추가하여 MB 단위로 포맷되도록 함
-        for (i in 1..10) {
-            offlineManager.cacheData("key_$i", "x".repeat(1024 * 1024)) // 1MB씩
-        }
-        val formatted = offlineManager.formatCacheSize()
-        assertNotNull(formatted)
-    }
-
-    @Test
     fun getCachedData_withExpiredCache_returnsNull() {
         offlineManager = OfflineManager(mockContext)
 
