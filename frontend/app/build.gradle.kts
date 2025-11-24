@@ -317,6 +317,8 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
             "**/voicetutor/MainActivity*",
             "**/voicetutor/VoiceTutorApplication*",
             "**/ComposableSingletons*",
+            "**/LazyDsl*",
+            "**/Comparisons*"
             // Add classes annotated with @ExcludeFromJacocoGeneratedReport
             *excludedClassesPatterns.toTypedArray()
         )
@@ -447,6 +449,15 @@ val testClassGroup4 = listOf(
     "com.example.voicetutor.ui.components.OnboardingPagerTest"
 )
 
+val testClassGroup5 = listOf(
+    "com.example.voicetutor.ui.screens.CreateAssignmentScreenHighCoverageTest",
+    "com.example.voicetutor.ui.screens.EditAssignmentScreenHighCoverageTest",
+    "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenHighCoverageTest",
+    "com.example.voicetutor.ui.screens.AssignmentScreenCoverageTest",
+    "com.example.voicetutor.ui.screens.TeacherStudentsScreenCoverageTest",
+    "com.example.voicetutor.ui.screens.SignupScreenCoverageTest",
+)
+
 tasks.register("connectedDebug1", Exec::class) {
     group = "verification"
     description = "Run first group of Android instrumentation tests (14 test classes)"
@@ -512,6 +523,26 @@ tasks.register("connectedDebug4", Exec::class) {
     description = "Run fourth group of Android instrumentation tests (TeacherStudentAssignmentDetailScreenCoverageTest, CreateAssignmentScreenCoverageTest, TeacherStudentsScreenTest, ThemeManagerCoverageTest, SettingsScreenCoverageTest, AppInfoScreenTest, AssignmentDetailedResultsScreenTest, OnboardingPagerTest)"
     
     val classArg = testClassGroup4.joinToString(",")
+    val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
+        "gradlew.bat"
+    } else {
+        "./gradlew"
+    }
+    
+    commandLine = listOf(
+        gradlew,
+        "connectedDebugAndroidTest",
+        "-Pandroid.testInstrumentationRunnerArguments.class=$classArg"
+    )
+    workingDir = project.rootDir
+    isIgnoreExitValue = false
+}
+
+tasks.register("connectedDebug5", Exec::class) {
+    group = "verification"
+    description = "Run fifth group of Android instrumentation tests (CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest)"
+    
+    val classArg = testClassGroup5.joinToString(",")
     val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
         "gradlew.bat"
     } else {

@@ -624,33 +624,17 @@ class MaximumCoverageTests {
     fun appInfoScreen_internalComponents_allVariations() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    // Test InfoItem variations
-                    InfoItem(label = "라벨 1", value = "값 1")
-                    InfoItem(label = "라벨 2", value = "값 2")
-
-                    // Test ContactItem variations
-                    ContactItem(
-                        icon = Icons.Filled.Email,
-                        title = "이메일",
-                        value = "email@example.com",
-                        onClick = {},
-                    )
-                    ContactItem(
-                        icon = Icons.Filled.Language,
-                        title = "웹사이트",
-                        value = "www.example.com",
-                        onClick = {},
-                    )
-                }
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("라벨 1", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("라벨 2", useUnmergedTree = true).assertExists()
+        
+        composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("빌드 번호", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("최종 업데이트", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("플랫폼", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("웹사이트", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("앱 평가하기", useUnmergedTree = true).assertExists()
     }
 
     @Test

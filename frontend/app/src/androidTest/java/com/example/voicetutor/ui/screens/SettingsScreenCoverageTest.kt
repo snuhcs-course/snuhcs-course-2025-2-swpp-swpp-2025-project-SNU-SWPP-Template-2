@@ -69,7 +69,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_displaysProfileSection() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -88,7 +88,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_displaysLoadingState() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -100,7 +100,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_displaysUserInfo() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -117,7 +117,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_displaysTutorialResetOption() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -130,7 +130,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_displaysAppInfoOption() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -143,7 +143,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_displaysDeleteAccountButton() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -155,7 +155,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_opensDeleteAccountDialog() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -188,7 +188,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_deleteAccountDialog_cancelsOnCancelButton() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -206,7 +206,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_opensTutorialResetDialog() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -232,7 +232,7 @@ class SettingsScreenCoverageTest {
     fun settingsScreen_tutorialResetDialog_cancelsOnCancelButton() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -252,7 +252,7 @@ class SettingsScreenCoverageTest {
         // For now, we test the UI structure without forcing an error
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -271,7 +271,7 @@ class SettingsScreenCoverageTest {
         // For now, we test the UI structure without forcing an error
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -289,7 +289,6 @@ class SettingsScreenCoverageTest {
         composeRule.setContent {
             VoiceTutorTheme {
                 SettingsScreen(
-                    userRole = UserRole.TEACHER,
                     studentId = 1,
                 )
             }
@@ -309,7 +308,6 @@ class SettingsScreenCoverageTest {
         composeRule.setContent {
             VoiceTutorTheme {
                 SettingsScreen(
-                    userRole = UserRole.TEACHER,
                     studentId = 1,
                 )
             }

@@ -730,7 +730,6 @@ fun VoiceTutorNavigation(
                 userRole = userRole,
             ) {
                 SettingsScreen(
-                    userRole = userRole,
                     studentId = if (studentId != -1) studentId else null,
                     navController = navController,
                 )

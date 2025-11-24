@@ -5,10 +5,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.voicetutor.HiltComponentActivity
 import com.example.voicetutor.data.models.*
+import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.UninstallModules
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -17,11 +23,21 @@ import org.junit.runner.RunWith
  * Additional comprehensive tests to maximize coverage.
  * Tests various composable functions with different data combinations.
  */
+@HiltAndroidTest
+@UninstallModules(NetworkModule::class)
 @RunWith(AndroidJUnit4::class)
 class ExtendedScreenTests {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+    @get:Rule(order = 0)
+    val hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
+    val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
+
+    @Before
+    fun init() {
+        hiltRule.inject()
+    }
 
     // Test AppInfoScreen multiple times to cover all code paths
     @Test
@@ -463,127 +479,46 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test SettingsItem with various items
     @Test
-    fun settingsItem_variousItems() {
-        val items = listOf(
-            Triple("앱 설정", "앱 설정을 변경합니다", Icons.Filled.Settings),
-            Triple("알림 설정", "알림을 관리합니다", Icons.Filled.Notifications),
-        )
-        // Render all items in one composition
+    fun settingsScreen_settingsItem_variousItems() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    items.forEach { (title, subtitle, icon) ->
-                        SettingsItem(
-                            icon = icon,
-                            title = title,
-                            subtitle = subtitle,
-                            onClick = {},
-                        )
-                    }
-                }
+                SettingsScreen()
             }
         }
         composeTestRule.waitForIdle()
-    }
-
-    // Test InfoItem with various info
-    @Test
-    fun infoItem_variousInfo() {
-        val infoPairs = listOf(
-            Pair("버전", "1.0.0"),
-            Pair("빌드 번호", "100"),
-        )
-        // Render all info in one composition
-        composeTestRule.setContent {
-            VoiceTutorTheme {
-                Column {
-                    infoPairs.forEach { (label, value) ->
-                        InfoItem(label = label, value = value)
-                    }
-                }
-            }
-        }
-        composeTestRule.waitForIdle()
-    }
-
-    // Test ContactItem with various contacts
-    @Test
-    fun contactItem_variousContacts() {
-        val contacts = listOf(
-            Triple(Icons.Filled.Email, "이메일", "support@voicetutor.com"),
-            Triple(Icons.Filled.Language, "웹사이트", "www.voicetutor.com"),
-        )
-        // Render all contacts in one composition
-        composeTestRule.setContent {
-            VoiceTutorTheme {
-                Column {
-                    contacts.forEach { (icon, title, value) ->
-                        ContactItem(
-                            icon = icon,
-                            title = title,
-                            value = value,
-                            onClick = {},
-                        )
-                    }
-                }
-            }
-        }
-        composeTestRule.waitForIdle()
+        
+        composeTestRule.onNodeWithText("튜토리얼 다시 보기", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("앱 정보", useUnmergedTree = true).assertExists()
     }
 
     @Test
-    fun appInfoScreen_infoItem_multipleItems() {
-        val infoItems = listOf(
-            "라벨 1" to "값 1",
-            "라벨 2" to "값 2",
-            "라벨 3" to "값 3",
-        )
+    fun appInfoScreen_displaysAllInfoItems() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    infoItems.forEach { (label, value) ->
-                        InfoItem(label = label, value = value)
-                    }
-                }
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
-        infoItems.forEach { (label, value) ->
-            composeTestRule.onNodeWithText(label, useUnmergedTree = true).assertExists()
-            composeTestRule.onNodeWithText(value, useUnmergedTree = true).assertExists()
-        }
+        composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("빌드 번호", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("최종 업데이트", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("플랫폼", useUnmergedTree = true).assertExists()
     }
 
     @Test
-    fun appInfoScreen_contactItem_multipleItems() {
-        val contactItems = listOf(
-            Triple(Icons.Filled.Email, "이메일", "email@example.com"),
-            Triple(Icons.Filled.Language, "웹사이트", "www.example.com"),
-            Triple(Icons.Filled.Star, "앱 평가하기", "Google Play Store"),
-        )
+    fun appInfoScreen_displaysAllContactItems() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    contactItems.forEach { (icon, title, value) ->
-                        ContactItem(
-                            icon = icon,
-                            title = title,
-                            value = value,
-                            onClick = {},
-                        )
-                    }
-                }
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
-        contactItems.forEach { (_, title, value) ->
-            composeTestRule.onNodeWithText(title, useUnmergedTree = true).assertExists()
-            composeTestRule.onNodeWithText(value, useUnmergedTree = true).assertExists()
-        }
+        composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("앱 평가하기", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("support@voicetutor.com", useUnmergedTree = true).assertExists()
     }
 
     // Test NoRecentAssignmentScreen with different states
