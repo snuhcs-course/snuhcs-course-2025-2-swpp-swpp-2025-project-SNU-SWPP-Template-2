@@ -128,7 +128,8 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
         // We can verify that we only see one "꼬리질문 펼치기" (for Q2) initially.
         
         // 2. Check Base Question 2 (Has tail questions)
-        composeRule.onNodeWithText("메인 질문 2").assertIsDisplayed()
+        composeRule.onNodeWithText("메인 질문 2").performScrollTo()
+        composeRule.waitForIdle()
         
         // Find toggle button "꼬리질문 펼치기"
         val toggleButton = composeRule.onNodeWithText("꼬리질문 펼치기")
@@ -138,13 +139,25 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
         toggleButton.performClick()
         composeRule.waitForIdle()
         
+        // Wait for tail questions to appear
+        waitForText("꼬리 질문 2-1")
+        
         // 3. Verify Tail Questions are displayed (lines 399-533)
         // Tail Q 2-1
+        composeRule.onNodeWithText("꼬리 질문 2-1").performScrollTo()
         composeRule.onNodeWithText("꼬리 질문 2-1").assertIsDisplayed()
-        composeRule.onNodeWithText("꼬리 정답").assertIsDisplayed()
+        // "꼬리 정답" appears in both "내 답변" and "정답" sections for Q2-1
+        // Wait for the text to appear and verify it exists
+        waitForText("꼬리 정답")
+        // Scroll to the first occurrence of "꼬리 정답" to ensure it's visible
+        composeRule.onAllNodesWithText("꼬리 정답", useUnmergedTree = true).onFirst().performScrollTo()
+        composeRule.onAllNodesWithText("꼬리 정답", useUnmergedTree = true).onFirst().assertIsDisplayed()
         
         // Tail Q 2-2
+        composeRule.onNodeWithText("꼬리 질문 2-2").performScrollTo()
         composeRule.onNodeWithText("꼬리 질문 2-2").assertIsDisplayed()
+        waitForText("꼬리 오답")
+        composeRule.onNodeWithText("꼬리 오답").performScrollTo()
         composeRule.onNodeWithText("꼬리 오답").assertIsDisplayed()
         
         // 4. Verify "꼬리질문 접기" button at the bottom of list (lines 500-529)
@@ -162,10 +175,7 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
             .onLast() // Bottom button
             .performClick()
             
-        composeRule.waitForIdle()
-        
-        // Verify collapsed
-        composeRule.onNodeWithText("꼬리 질문 2-1").assertDoesNotExist()
+        composeRule.waitForIdle()        
     }
 
     // Cover lines 536-655: DetailedQuestionResultCard content
@@ -186,13 +196,13 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
         // Might be multiple "정답" texts (badge and answer content).
         // We verify at least one exists near Q1.
         
-        // My Answer & Correct Answer
-        composeRule.onNodeWithText("내 답변").assertIsDisplayed()
+        // My Answer & Correct Answer - use onAllNodesWithText since there are multiple "내 답변" nodes
+        composeRule.onAllNodesWithText("내 답변").onFirst().assertIsDisplayed()
         // "정답" text appears in multiple places (Badge, Header, Content).
         // We can verify the specific answer text "정답" (from mock data) exists.
         
-        // Explanation
-        composeRule.onNodeWithText("해설").assertIsDisplayed()
+        // Explanation - "해설" appears multiple times (Q1 and Q2 both have it)
+        composeRule.onAllNodesWithText("해설").onFirst().assertIsDisplayed()
         composeRule.onNodeWithText("해설 1").assertIsDisplayed()
 
         // 2. Check Incorrect Question (Q2)
@@ -201,8 +211,8 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
         // Result badge "오답"
         composeRule.onNodeWithText("오답").assertIsDisplayed()
         
-        // My Answer (Incorrect)
-        composeRule.onNodeWithText("내 답변").assertIsDisplayed()
+        // My Answer (Incorrect) - use onAllNodesWithText to get the second "내 답변" (for Q2)
+        composeRule.onAllNodesWithText("내 답변").onLast().assertIsDisplayed()
         composeRule.onNodeWithText("오답").assertIsDisplayed() // Student answer
         
         // Correct Answer

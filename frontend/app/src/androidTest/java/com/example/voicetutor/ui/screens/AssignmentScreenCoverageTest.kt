@@ -178,7 +178,7 @@ class AssignmentScreenCoverageTest {
         // Ensure current question exists
         val questions = listOf(
             PersonalAssignmentQuestion(
-                id = 1, number = "1", question = "Q1", answer = "A1", explanation = "Exp1"
+                id = 1, number = "1", question = "Q1", answer = "A1", explanation = "Exp1", difficulty = "Easy",
             )
         )
         composeRule.runOnIdle {

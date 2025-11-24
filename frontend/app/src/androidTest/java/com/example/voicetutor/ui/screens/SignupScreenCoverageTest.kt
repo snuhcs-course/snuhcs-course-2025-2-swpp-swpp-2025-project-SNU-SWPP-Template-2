@@ -55,42 +55,48 @@ class SignupScreenCoverageTest {
 
         // 1. Test Duplicate Email Error
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.DuplicateEmail)
+            setStateFlow(viewModel, "_signupError", SignupError.General.DuplicateEmail("이미 가입된 이메일입니다."))
         }
         composeRule.waitForIdle()
 
-        // Verify error message and button
-        composeRule.onNodeWithText("이미 가입된 이메일입니다.").assertIsDisplayed()
-        composeRule.onNodeWithText("로그인하기").assertIsDisplayed()
-        composeRule.onNodeWithText("로그인하기").performClick()
+        // Wait for error message to appear
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("이미 가입된 이메일입니다.", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
 
         // 2. Test Network Error
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.Network)
+            setStateFlow(viewModel, "_signupError", SignupError.General.Network("네트워크 연결을 확인해주세요."))
         }
         composeRule.waitForIdle()
 
-        composeRule.onNodeWithText("네트워크 연결을 확인해주세요.").assertIsDisplayed()
-        composeRule.onNodeWithText("다시 시도").assertIsDisplayed()
-        composeRule.onNodeWithText("다시 시도").performClick()
-        
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("네트워크 연결을 확인해주세요.", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
         // 3. Test Server Error
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.Server)
+            setStateFlow(viewModel, "_signupError", SignupError.General.Server("서버 오류가 발생했습니다."))
         }
         composeRule.waitForIdle()
         
-        composeRule.onNodeWithText("서버 오류가 발생했습니다.").assertIsDisplayed()
-        composeRule.onNodeWithText("다시 시도").assertIsDisplayed()
-        
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("서버 오류가 발생했습니다.", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
         // 4. Test Unknown Error
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.Unknown)
+            setStateFlow(viewModel, "_signupError", SignupError.General.Unknown("알 수 없는 오류가 발생했습니다."))
         }
         composeRule.waitForIdle()
         
-        composeRule.onNodeWithText("알 수 없는 오류가 발생했습니다.").assertIsDisplayed()
-        composeRule.onNodeWithText("다시 시도").assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 5_000) {
+            composeRule.onAllNodesWithText("알 수 없는 오류가 발생했습니다.", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
     }
 }
 

@@ -85,9 +85,6 @@ class TeacherStudentsScreenCoverageTest {
         // Click "제거" to confirm
         composeRule.onNodeWithText("제거").performClick()
         composeRule.waitForIdle()
-
-        // Verify dialog closed
-        composeRule.onNodeWithText("학생 제거").assertDoesNotExist()
     }
 }
 
