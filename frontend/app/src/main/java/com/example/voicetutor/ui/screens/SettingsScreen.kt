@@ -37,7 +37,6 @@ import com.example.voicetutor.utils.TutorialPreferences
 
 @Composable
 fun SettingsScreen(
-    userRole: UserRole = UserRole.STUDENT,
     studentId: Int? = null,
     navController: androidx.navigation.NavHostController? = null,
 ) {
@@ -62,7 +61,6 @@ fun SettingsScreen(
     // studentId가 있으면 해당 학생 정보 로드
     LaunchedEffect(studentId) {
         studentId?.let { id ->
-            println("SettingsScreen - Loading student info for ID: $id")
             studentViewModel.loadStudentById(id)
         }
     }
@@ -294,7 +292,6 @@ fun SettingsScreen(
                     subtitle = "버전 1.0.0",
                     onClick = {
                         navController?.navigate("app_info")
-                        println("앱 정보 화면으로 이동")
                     },
                 )
             }
@@ -456,7 +453,7 @@ fun SettingsScreen(
 }
 
 @Composable
-fun SettingsItem(
+private fun SettingsItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     subtitle: String,

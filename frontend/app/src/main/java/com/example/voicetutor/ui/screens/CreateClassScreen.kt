@@ -42,23 +42,30 @@ fun CreateClassScreen(
     val isLoading by classViewModel.isLoading.collectAsStateWithLifecycle()
     val error by classViewModel.error.collectAsStateWithLifecycle()
     val classes by classViewModel.classes.collectAsStateWithLifecycle()
-    
-    var previousClassesSize by remember { mutableStateOf(classes.size) }
+
+    var initialClassesSize by remember { mutableStateOf(classes.size) }
     var isCreating by remember { mutableStateOf(false) }
-    
-    LaunchedEffect(classes.size, isLoading, error) {
-        if (isCreating) {
-            if (!isLoading) {
-                if (error == null && classes.size > previousClassesSize) {
-                    isCreating = false
-                    onClassCreated()
-                } else if (error != null) {
-                    isCreating = false
-                }
-                previousClassesSize = classes.size
+
+    LaunchedEffect(classes.size, isLoading) {
+        if (isCreating && !isLoading && classes.size > initialClassesSize) {
+            isCreating = false
+            onClassCreated()
+            initialClassesSize = classes.size
+        }
+    }
+
+    LaunchedEffect(isLoading) {
+        if (!isLoading && isCreating) {
+            initialClassesSize = classes.size
+        }
+    }
+
+    error?.let { errorMessage ->
+        LaunchedEffect(errorMessage) {
+            if (isCreating) {
+                isCreating = false
             }
-        } else if (!isLoading) {
-            previousClassesSize = classes.size
+            classViewModel.clearError()
         }
     }
 
@@ -160,43 +167,16 @@ fun CreateClassScreen(
                     }
                 }
 
-                VTButton(
-                    text = if (isLoading) "생성 중..." else "수업 생성",
-                    onClick = {
-                        println("CreateClassScreen - teacherId: $teacherId")
-
-                        if (teacherId != null) {
-                            try {
-                                val teacherIdInt = teacherId.toInt()
-
-                                val createClassRequest = CreateClassRequest.builder()
-                                    .name(className)
-                                    .description(description)
-                                    .subjectName(subject)
-                                    .teacherId(teacherIdInt)
-                                    .build()
-
-                                println("CreateClassScreen - createClassRequest: $createClassRequest")
-                                println("CreateClassScreen - teacher_id: $teacherIdInt")
-                                previousClassesSize = classes.size
-                                isCreating = true
-                                classViewModel.createClass(createClassRequest)
-                            } catch (e: NumberFormatException) {
-                                println("CreateClassScreen - ERROR: Invalid teacherId format: $teacherId")
-                            }
-                        } else {
-                            println("CreateClassScreen - ERROR: teacherId is null!")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading && className.isNotBlank(),
-                    variant = ButtonVariant.Gradient,
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.Add,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp),
-                        )
+                CreateClassButton(
+                    isLoading = isLoading,
+                    className = className,
+                    subject = subject,
+                    description = description,
+                    teacherId = teacherId,
+                    onClassCreate = { request ->
+                        initialClassesSize = classes.size
+                        isCreating = true
+                        classViewModel.createClass(request)
                     },
                 )
 
@@ -210,4 +190,47 @@ fun CreateClassScreen(
             }
         }
     }
+}
+
+@Composable
+private fun CreateClassButton(
+    isLoading: Boolean,
+    className: String,
+    subject: String,
+    description: String,
+    teacherId: String?,
+    onClassCreate: (CreateClassRequest) -> Unit,
+) {
+    VTButton(
+        text = if (isLoading) "생성 중..." else "수업 생성",
+        onClick = {
+            if (teacherId == null) {
+                return@VTButton
+            }
+
+            val teacherIdInt = teacherId.toIntOrNull()
+            if (teacherIdInt == null) {
+                return@VTButton
+            }
+
+            val createClassRequest = CreateClassRequest.builder()
+                .name(className)
+                .description(description)
+                .subjectName(subject)
+                .teacherId(teacherIdInt)
+                .build()
+
+            onClassCreate(createClassRequest)
+        },
+        modifier = Modifier.fillMaxWidth(),
+        enabled = !isLoading && className.isNotBlank(),
+        variant = ButtonVariant.Gradient,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Filled.Add,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp),
+            )
+        },
+    )
 }

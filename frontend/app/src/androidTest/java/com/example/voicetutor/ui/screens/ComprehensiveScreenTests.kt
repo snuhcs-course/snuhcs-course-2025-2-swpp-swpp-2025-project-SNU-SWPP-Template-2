@@ -615,35 +615,26 @@ class ComprehensiveScreenTests {
     fun appInfoScreen_infoItem_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    InfoItem(label = "라벨", value = "값")
-                }
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("라벨", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("값", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("빌드 번호", useUnmergedTree = true).assertExists()
     }
 
     @Test
     fun appInfoScreen_contactItem_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    ContactItem(
-                        icon = Icons.Filled.Email,
-                        title = "이메일",
-                        value = "test@example.com",
-                        onClick = {},
-                    )
-                }
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("test@example.com", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("support@voicetutor.com", useUnmergedTree = true).assertExists()
     }
 
     // Test more screen combinations
@@ -651,21 +642,13 @@ class ComprehensiveScreenTests {
     fun appInfoScreen_allHelperComposables() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    InfoItem(label = "라벨", value = "값")
-                    ContactItem(
-                        icon = Icons.Filled.Email,
-                        title = "연락처",
-                        value = "값",
-                        onClick = {},
-                    )
-                }
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
         // Verify all components render
-        composeTestRule.onNodeWithText("라벨", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("연락처", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertExists()
     }
 }
