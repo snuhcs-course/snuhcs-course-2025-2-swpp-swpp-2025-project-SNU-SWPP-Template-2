@@ -36,6 +36,7 @@ fun CreateClassScreen(
     classViewModel: ClassViewModel = hiltViewModel(),
 ) {
     var className by remember { mutableStateOf("") }
+    var classNameError by remember { mutableStateOf<String?>(null) }
     var subject by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
 
@@ -104,7 +105,15 @@ fun CreateClassScreen(
                         ) {
                             OutlinedTextField(
                                 value = className,
-                                onValueChange = { className = it },
+                                onValueChange = {
+                                    val sanitized = it.replace("/", "")
+                                    if (sanitized.length != it.length) {
+                                        classNameError = "'/' 문자는 사용할 수 없어요."
+                                    } else {
+                                        classNameError = null
+                                    }
+                                    className = sanitized
+                                },
                                 label = { Text("수업 이름") },
                                 placeholder = { Text("예: 고등학교 1학년 A반") },
                                 modifier = Modifier.fillMaxWidth(),
@@ -113,6 +122,12 @@ fun CreateClassScreen(
                                     imeAction = ImeAction.Next,
                                 ),
                                 singleLine = true,
+                                isError = classNameError != null,
+                                supportingText = {
+                                    classNameError?.let {
+                                        Text(text = it, color = Error)
+                                    }
+                                },
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = PrimaryIndigo,
                                     focusedLabelColor = PrimaryIndigo,
@@ -223,7 +238,7 @@ private fun CreateClassButton(
             onClassCreate(createClassRequest)
         },
         modifier = Modifier.fillMaxWidth(),
-        enabled = !isLoading && className.isNotBlank(),
+        enabled = !isLoading && className.isNotBlank() && classNameError == null,
         variant = ButtonVariant.Gradient,
         leadingIcon = {
             Icon(
