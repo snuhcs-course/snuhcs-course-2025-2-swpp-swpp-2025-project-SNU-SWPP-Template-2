@@ -458,6 +458,7 @@ val testClassGroup5 = listOf(
     "com.example.voicetutor.ui.screens.SignupScreenCoverageTest",
     "com.example.voicetutor.ui.navigation.VoiceTutorNavigationCoverageTest",
     "com.example.voicetutor.ui.navigation.MainLayoutCoverageTest",
+    "com.example.voicetutor.ui.screens.AllAssignmentsScreenCoverageTest",
 )
 
 tasks.register("connectedDebug1", Exec::class) {
@@ -542,7 +543,7 @@ tasks.register("connectedDebug4", Exec::class) {
 
 tasks.register("connectedDebug5", Exec::class) {
     group = "verification"
-    description = "Run fifth group of Android instrumentation tests (CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest, AssignmentDetailedResultsScreenHighCoverageTest, AssignmentScreenCoverageTest, TeacherStudentsScreenCoverageTest, SignupScreenCoverageTest, VoiceTutorNavigationCoverageTest, MainLayoutCoverageTest)"
+    description = "Run fifth group of Android instrumentation tests (CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest, AssignmentDetailedResultsScreenHighCoverageTest, AssignmentScreenCoverageTest, TeacherStudentsScreenCoverageTest, SignupScreenCoverageTest, VoiceTutorNavigationCoverageTest, MainLayoutCoverageTest, AllAssignmentsScreenCoverageTest)"
     
     val classArg = testClassGroup5.joinToString(",")
     val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {

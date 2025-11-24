@@ -314,21 +314,4 @@ class OfflineManager(private val context: Context) {
             // 저장 실패 시 무시
         }
     }
-
-    /**
-     * 캐시 크기를 사람이 읽기 쉬운 형태로 변환
-     */
-    fun formatCacheSize(): String {
-        val bytes = _offlineState.value.cacheSize
-        val kb = bytes / 1024.0
-        val mb = kb / 1024.0
-        val gb = mb / 1024.0
-
-        return when {
-            gb >= 1 -> String.format("%.1f GB", gb)
-            mb >= 1 -> String.format("%.1f MB", mb)
-            kb >= 1 -> String.format("%.1f KB", kb)
-            else -> "$bytes B"
-        }
-    }
 }
