@@ -3147,7 +3147,6 @@ class AssignmentViewModelTest {
             field.isAccessible = true
             field.set(viewModel, assignmentId)
             
-            // [FIX] assignmentId는 Raw Value이고, 뒤에는 Matcher이므로 eq()로 감싸야 함
             Mockito.`when`(assignmentRepository.updateAssignment(eq(assignmentId), kotlinAny()))
                 .thenReturn(Result.failure(Exception("Update failed")))
 
@@ -3173,7 +3172,6 @@ class AssignmentViewModelTest {
         field.isAccessible = true
         field.set(viewModel, assignmentId)
 
-        // [FIX] assignmentId에 eq() 사용, any() 대신 kotlinAny() 사용 권장
         Mockito.`when`(assignmentRepository.updateAssignment(eq(assignmentId), kotlinAny()))
             .thenThrow(RuntimeException("Update exception"))
 
@@ -3319,16 +3317,12 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.createAssignment(assignment))
             .thenReturn(Result.success(createResponse))
         
-        // kotlinAny() 사용 (NPE 방지)
         Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
             .thenReturn(Result.success(true))
             
         Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
             .thenReturn(Result.success(Unit))
         
-        // [수정 포인트] thenThrow 대신 Result.failure 반환으로 변경
-        // ViewModel 내부에서 try-catch 없이 runCatching/Result 패턴을 사용하므로, 
-        // throw를 하면 코루틴이 크래시가 납니다. Result.failure를 리턴해야 onFailure 블록이 실행됩니다.
         Mockito.`when`(assignmentRepository.getAllAssignments(nullable(String::class.java), isNull(), isNull()))
             .thenReturn(Result.failure(RuntimeException("Refresh failed")))
 
@@ -3358,8 +3352,6 @@ class AssignmentViewModelTest {
                 val nextError = awaitItem() 
                 assertNotNull(nextError)
             } else {
-                 // 이미 에러가 있거나, 초기값 null 이후 에러가 왔는지 확인 로직 필요
-                 // 여기서는 간단히 null이 아님을 확인하거나 구체적 메시지 확인
                  // assertNotNull(error) // 테스트 시나리오에 따라 다름
             }
             cancelAndIgnoreRemainingEvents()
@@ -3392,15 +3384,12 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.createAssignment(assignment))
             .thenReturn(Result.success(createResponse))
             
-        // [FIX] File은 non-nullable이므로 any() 대신 kotlinAny() 사용. 
-        // 또한 anyString()과 섞어 쓰므로 안전하게 처리.
         Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
             .thenReturn(Result.success(true))
             
         Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
             .thenReturn(Result.failure(Exception("Question generation failed")))
 
-        // [FIX] getAllAssignments 호출 시 teacherId가 null일 수 있으므로 anyString() 대신 nullable 사용
         Mockito.`when`(assignmentRepository.getAllAssignments(nullable(String::class.java), isNull(), isNull()))
             .thenReturn(Result.success(emptyList()))
 
@@ -3448,14 +3437,12 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.createAssignment(assignment))
             .thenReturn(Result.success(createResponse))
             
-        // [FIX] NPE 방지를 위해 kotlinAny() 사용
         Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
             .thenReturn(Result.success(true))
             
         Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
             .thenThrow(RuntimeException("Question generation exception"))
 
-        // [FIX] Nullable String 처리
         Mockito.`when`(assignmentRepository.getAllAssignments(nullable(String::class.java), isNull(), isNull()))
             .thenReturn(Result.success(emptyList()))
 
@@ -3492,9 +3479,6 @@ class AssignmentViewModelTest {
         val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()
 
-        // [FIX] createAssignment에는 실제 객체가 전달되므로 Matcher를 쓸 필요가 없거나,
-        // Matcher를 쓴다면 kotlinAny()를 써야 안전함. 여기서는 실제 객체 전달로 가정하고 그대로 둠.
-        // 다만 any() NPE 문제가 발생했던 곳이므로 안전하게 처리하려면:
         Mockito.`when`(assignmentRepository.createAssignment(kotlinAny()))
             .thenThrow(RuntimeException("Top level exception"))
 
