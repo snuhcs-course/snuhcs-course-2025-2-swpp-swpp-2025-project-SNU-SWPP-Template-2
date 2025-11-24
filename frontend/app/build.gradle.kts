@@ -449,7 +449,15 @@ val testClassGroup4 = listOf(
 
 val testClassGroup5 = listOf(
     "com.example.voicetutor.ui.screens.CreateAssignmentScreenHighCoverageTest",
-    "com.example.voicetutor.ui.screens.EditAssignmentScreenHighCoverageTest"
+    "com.example.voicetutor.ui.screens.EditAssignmentScreenHighCoverageTest",
+    "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenHighCoverageTest"
+)
+
+val testClassGroup6 = listOf(
+    "com.example.voicetutor.ui.screens.AssignmentScreenCoverageTest",
+    "com.example.voicetutor.ui.screens.TeacherStudentsScreenCoverageTest",
+    "com.example.voicetutor.ui.screens.SignupScreenCoverageTest",
+    "com.example.voicetutor.ui.screens.TeacherClassDetailScreenCoverageTest"
 )
 
 tasks.register("connectedDebug1", Exec::class) {
@@ -537,6 +545,26 @@ tasks.register("connectedDebug5", Exec::class) {
     description = "Run fifth group of Android instrumentation tests (CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest)"
     
     val classArg = testClassGroup5.joinToString(",")
+    val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
+        "gradlew.bat"
+    } else {
+        "./gradlew"
+    }
+    
+    commandLine = listOf(
+        gradlew,
+        "connectedDebugAndroidTest",
+        "-Pandroid.testInstrumentationRunnerArguments.class=$classArg"
+    )
+    workingDir = project.rootDir
+    isIgnoreExitValue = false
+}
+
+tasks.register("connectedDebug6", Exec::class) {
+    group = "verification"
+    description = "Run sixth group of Android instrumentation tests (Coverage tests for Assignment, TeacherStudents, Signup, TeacherClassDetail)"
+    
+    val classArg = testClassGroup6.joinToString(",")
     val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
         "gradlew.bat"
     } else {
