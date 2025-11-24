@@ -3,6 +3,7 @@ package com.example.voicetutor.ui.navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
@@ -25,8 +26,11 @@ fun VoiceTutorNavigation(
     ) {
         // Auth screens
         composable(VoiceTutorScreens.Login.route) {
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
             val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
@@ -42,19 +46,19 @@ fun VoiceTutorNavigation(
 
             // 로그인 성공 시 자동으로 대시보드로 이동
             LaunchedEffect(isLoggedIn, currentUser) {
-                if (isLoggedIn && currentUser != null) {
-                    when (currentUser?.role) {
-                        com.example.voicetutor.data.models.UserRole.TEACHER -> {
+                val user = currentUser
+                if (isLoggedIn && user != null) {
+                    when (user.role) {
+                        UserRole.TEACHER -> {
                             navController.navigate(VoiceTutorScreens.TeacherDashboard.route) {
                                 popUpTo(VoiceTutorScreens.Login.route) { inclusive = true }
                             }
                         }
-                        com.example.voicetutor.data.models.UserRole.STUDENT -> {
+                        UserRole.STUDENT -> {
                             navController.navigate(VoiceTutorScreens.StudentDashboard.route) {
                                 popUpTo(VoiceTutorScreens.Login.route) { inclusive = true }
                             }
                         }
-                        null -> { /* 로그인되지 않음 */ }
                     }
                 }
             }
@@ -66,12 +70,12 @@ fun VoiceTutorNavigation(
                     // Navigate to appropriate dashboard based on user role
                     val userRole = authViewModel.currentUser.value?.role
                     when (userRole) {
-                        com.example.voicetutor.data.models.UserRole.TEACHER -> {
+                        UserRole.TEACHER -> {
                             navController.navigate(VoiceTutorScreens.TeacherDashboard.route) {
                                 popUpTo(VoiceTutorScreens.Login.route) { inclusive = true }
                             }
                         }
-                        com.example.voicetutor.data.models.UserRole.STUDENT -> {
+                        UserRole.STUDENT -> {
                             navController.navigate(VoiceTutorScreens.StudentDashboard.route) {
                                 popUpTo(VoiceTutorScreens.Login.route) { inclusive = true }
                             }
@@ -88,7 +92,10 @@ fun VoiceTutorNavigation(
         }
 
         composable(VoiceTutorScreens.Signup.route) {
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val isLoggedIn by authViewModel.isLoggedIn.collectAsStateWithLifecycle()
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
@@ -98,18 +105,15 @@ fun VoiceTutorNavigation(
                 if (isLoggedIn && user != null) {
                     println("VoiceTutorNavigation -  Navigating to dashboard for role: ${user.role}")
                     when (user.role) {
-                        com.example.voicetutor.data.models.UserRole.TEACHER -> {
+                        UserRole.TEACHER -> {
                             navController.navigate(VoiceTutorScreens.TeacherDashboard.route) {
                                 popUpTo(VoiceTutorScreens.Login.route) { inclusive = true }
                             }
                         }
-                        com.example.voicetutor.data.models.UserRole.STUDENT -> {
+                        UserRole.STUDENT -> {
                             navController.navigate(VoiceTutorScreens.StudentDashboard.route) {
                                 popUpTo(VoiceTutorScreens.Login.route) { inclusive = true }
                             }
-                        }
-                        null -> {
-                            println("VoiceTutorNavigation -  User role is null!")
                         }
                     }
                 } else {
@@ -130,9 +134,11 @@ fun VoiceTutorNavigation(
 
         // Student screens with layout
         composable(VoiceTutorScreens.StudentDashboard.route) {
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
-            val dashboardViewModel: com.example.voicetutor.ui.viewmodel.DashboardViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
             LaunchedEffect(currentUser) {
@@ -170,11 +176,12 @@ fun VoiceTutorNavigation(
             ),
         ) { backStackEntry ->
             val assignmentId = backStackEntry.arguments?.getString("assignmentId") ?: "1"
-            val assignmentTitle = backStackEntry.arguments?.getString("title") ?: "과제"
 
             // Use graph-scoped ViewModels to share data between screens
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
-            val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
 
             MainLayout(
                 navController = navController,
@@ -195,7 +202,10 @@ fun VoiceTutorNavigation(
         }
 
         composable(VoiceTutorScreens.Progress.route) {
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
             MainLayout(
@@ -276,8 +286,11 @@ fun VoiceTutorNavigation(
             println("TeacherDashboard composable - Received refresh timestamp: $refreshTimestamp, deleted: $deleted")
 
             // Use graph-scoped ViewModels to share data between screens
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
             MainLayout(
                 navController = navController,
@@ -327,8 +340,11 @@ fun VoiceTutorNavigation(
         ) { backStackEntry ->
             val created = backStackEntry.arguments?.getBoolean("created") ?: false
             // Use graph-scoped ViewModels to share data between screens
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
             MainLayout(
                 navController = navController,
@@ -364,7 +380,10 @@ fun VoiceTutorNavigation(
             ),
         ) { backStackEntry ->
             val classId = backStackEntry.arguments?.getString("classId")?.toIntOrNull()
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
             MainLayout(
@@ -384,7 +403,10 @@ fun VoiceTutorNavigation(
 
         composable(VoiceTutorScreens.AllAssignments.route) {
             // Use graph-scoped ViewModels to get current user
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
             MainLayout(
@@ -408,7 +430,10 @@ fun VoiceTutorNavigation(
 
         composable(VoiceTutorScreens.AllStudents.route) {
             // Use graph-scoped ViewModels to get current user
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
             MainLayout(
@@ -443,7 +468,10 @@ fun VoiceTutorNavigation(
                 userRole = UserRole.STUDENT,
             ) {
                 // Use graph-scoped ViewModel so selection persists across screens
-                val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+                val graphBackStackEntry = remember(navController.graph.id) {
+                    navController.getBackStackEntry(navController.graph.id)
+                }
+                val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
                 val selectedPersonalAssignmentId by assignmentViewModel.selectedPersonalAssignmentId.collectAsStateWithLifecycle()
 
                 AssignmentDetailScreen(
@@ -474,8 +502,11 @@ fun VoiceTutorNavigation(
             ),
         ) { backStackEntry ->
             val classId = backStackEntry.arguments?.getInt("classId") ?: 0
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
             MainLayout(
                 navController = navController,
@@ -513,7 +544,10 @@ fun VoiceTutorNavigation(
             ),
         ) { backStackEntry ->
             val assignmentId = backStackEntry.arguments?.getInt("assignment_id") ?: 0
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
             MainLayout(
                 navController = navController,
@@ -548,7 +582,10 @@ fun VoiceTutorNavigation(
             ),
         ) { backStackEntry ->
             val assignmentId = backStackEntry.arguments?.getInt("assignment_id") ?: 0
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
             MainLayout(
                 navController = navController,
@@ -611,7 +648,10 @@ fun VoiceTutorNavigation(
             ),
         ) { backStackEntry ->
             val assignmentId = backStackEntry.arguments?.getInt("id") ?: 0
-            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
             MainLayout(
                 navController = navController,
@@ -678,7 +718,10 @@ fun VoiceTutorNavigation(
             ),
         ) { backStackEntry ->
             val studentId = backStackEntry.arguments?.getInt("studentId") ?: -1
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
             val userRole = currentUser?.role ?: (if (studentId != -1) UserRole.STUDENT else UserRole.STUDENT)
 
@@ -696,7 +739,10 @@ fun VoiceTutorNavigation(
 
         // Create class screen
         composable(VoiceTutorScreens.CreateClass.route) {
-            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(navController.getBackStackEntry(navController.graph.id))
+            val graphBackStackEntry = remember(navController) {
+                navController.getBackStackEntry(navController.graph.id)
+            }
+            val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
             MainLayout(
