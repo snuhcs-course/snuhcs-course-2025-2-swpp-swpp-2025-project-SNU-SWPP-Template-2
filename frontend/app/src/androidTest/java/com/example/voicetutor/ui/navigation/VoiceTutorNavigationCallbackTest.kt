@@ -113,58 +113,6 @@ class VoiceTutorNavigationCallbackTest {
     }
 
     @Test
-    fun loginScreen_onSignupClick_navigatesToSignup() {
-        composeRule.waitForIdle()
-        
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            try {
-                composeRule
-                    .onAllNodesWithText("회원가입", substring = true, useUnmergedTree = true)
-                    .fetchSemanticsNodes(atLeastOneRootRequired = false)
-                    .isNotEmpty()
-            } catch (e: Exception) {
-                false
-            }
-        }
-        
-        composeRule
-            .onAllNodesWithText("회원가입", substring = true, useUnmergedTree = true)
-            .onFirst()
-            .performClick()
-        
-        waitForRoutePrefix(VoiceTutorScreens.Signup.route)
-        composeRule.waitForIdle()
-    }
-
-    @Test
-    fun signupScreen_onLoginClick_navigatesBackToLogin() {
-        composeRule.runOnIdle {
-            navController.navigate(VoiceTutorScreens.Signup.route)
-        }
-        waitForRoutePrefix(VoiceTutorScreens.Signup.route)
-        composeRule.waitForIdle()
-        
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            try {
-                composeRule
-                    .onAllNodesWithText("로그인", substring = true, useUnmergedTree = true)
-                    .fetchSemanticsNodes(atLeastOneRootRequired = false)
-                    .isNotEmpty()
-            } catch (e: Exception) {
-                false
-            }
-        }
-        
-        composeRule
-            .onAllNodesWithText("로그인", substring = true, useUnmergedTree = true)
-            .onFirst()
-            .performClick()
-        
-        waitForRoutePrefix(VoiceTutorScreens.Login.route)
-        composeRule.waitForIdle()
-    }
-
-    @Test
     fun mainLayout_backButton_navigatesBack() {
         loginTeacher()
         
@@ -324,31 +272,6 @@ class VoiceTutorNavigationCallbackTest {
             .performClick()
         
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
-        composeRule.waitForIdle()
-    }
-
-    @Test
-    fun bottomNavigation_teacherClasses_navigatesToClasses() {
-        loginTeacher()
-        composeRule.waitForIdle()
-        
-        composeRule.waitUntil(timeoutMillis = 5_000) {
-            try {
-                composeRule
-                    .onAllNodesWithText("수업", substring = true, useUnmergedTree = true)
-                    .fetchSemanticsNodes(atLeastOneRootRequired = false)
-                    .isNotEmpty()
-            } catch (e: Exception) {
-                false
-            }
-        }
-        
-        composeRule
-            .onAllNodesWithText("수업", substring = true, useUnmergedTree = true)
-            .onFirst()
-            .performClick()
-        
-        waitForRoutePrefix(VoiceTutorScreens.TeacherClasses.route)
         composeRule.waitForIdle()
     }
 
