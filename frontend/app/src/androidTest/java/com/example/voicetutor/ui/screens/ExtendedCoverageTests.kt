@@ -800,57 +800,42 @@ class ExtendedCoverageTests {
     // ========== AppInfoScreen Internal Components ==========
 
     @Test
-    fun infoItem_renders_withLabelAndValue() {
+    fun appInfoScreen_infoItem_renders_withLabelAndValue() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                InfoItem(label = "라벨", value = "값")
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("라벨", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("값", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("빌드 번호", useUnmergedTree = true).assertExists()
     }
 
     @Test
-    fun contactItem_renders_withAllFields() {
-        var clicked = false
+    fun appInfoScreen_contactItem_renders_withAllFields() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                ContactItem(
-                    icon = Icons.Filled.Email,
-                    title = "이메일",
-                    value = "test@example.com",
-                    onClick = { clicked = true },
-                )
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("test@example.com", useUnmergedTree = true).assertExists()
-        composeTestRule.onNodeWithText("이메일").performClick()
-        assert(clicked)
+        composeTestRule.onNodeWithText("support@voicetutor.com", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("앱 평가하기", useUnmergedTree = true).assertExists()
     }
 
     @Test
     fun appInfoScreen_allInternalComponents_render() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                Column {
-                    InfoItem(label = "라벨", value = "값")
-                    ContactItem(
-                        icon = Icons.Filled.Email,
-                        title = "이메일",
-                        value = "test@example.com",
-                        onClick = {},
-                    )
-                }
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("라벨", useUnmergedTree = true).assertExists()
+        composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertExists()
     }
 }

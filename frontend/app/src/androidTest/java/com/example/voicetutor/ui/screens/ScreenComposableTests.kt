@@ -4,10 +4,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import com.example.voicetutor.HiltComponentActivity
 import com.example.voicetutor.data.models.*
+import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
+import dagger.hilt.android.testing.HiltAndroidRule
+import dagger.hilt.android.testing.HiltAndroidTest
+import dagger.hilt.android.testing.UninstallModules
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -16,11 +22,21 @@ import org.junit.runner.RunWith
  * Tests for small composable functions within screens.
  * These tests directly call composable functions to maximize coverage.
  */
+@HiltAndroidTest
+@UninstallModules(NetworkModule::class)
 @RunWith(AndroidJUnit4::class)
 class ScreenComposableTests {
 
-    @get:Rule
-    val composeTestRule = createComposeRule()
+    @get:Rule(order = 0)
+    val hiltRule = HiltAndroidRule(this)
+
+    @get:Rule(order = 1)
+    val composeTestRule = createAndroidComposeRule<HiltComponentActivity>()
+
+    @Before
+    fun init() {
+        hiltRule.inject()
+    }
 
     @Test
     fun studentAssignmentCard_renders_withAllFields() {
@@ -488,40 +504,29 @@ class ScreenComposableTests {
     }
 
     @Test
-    fun infoItem_renders() {
+    fun appInfoScreen_infoItem_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                InfoItem(
-                    label = "버전",
-                    value = "1.0.0",
-                )
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithText("버전", substring = true).assertExists()
-        composeTestRule.onNodeWithText("1.0.0", substring = true).assertExists()
+        composeTestRule.onNodeWithText("개발사", substring = true).assertExists()
+        composeTestRule.onNodeWithText("빌드 번호", substring = true).assertExists()
     }
 
     @Test
-    fun contactItem_renders() {
-        var clicked = false
+    fun appInfoScreen_contactItem_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                ContactItem(
-                    icon = Icons.Filled.Email,
-                    title = "이메일",
-                    value = "support@voicetutor.com",
-                    onClick = { clicked = true },
-                )
+                AppInfoScreen()
             }
         }
         composeTestRule.waitForIdle()
 
         composeTestRule.onNodeWithText("이메일", substring = true).assertExists()
         composeTestRule.onNodeWithText("support@voicetutor.com", substring = true).assertExists()
-        composeTestRule.onNodeWithText("이메일", substring = true).performClick()
-        assert(clicked)
     }
 
     // Test StatusBadge with all statuses
@@ -700,25 +705,16 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("학생: 25", substring = true).assertExists()
     }
 
-    // Test SettingsItem
     @Test
-    fun settingsItem_renders_andClickable() {
-        var clicked = false
+    fun settingsScreen_settingsItem_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                SettingsItem(
-                    icon = androidx.compose.material.icons.Icons.Filled.Settings,
-                    title = "앱 설정",
-                    subtitle = "앱 설정을 변경합니다",
-                    onClick = { clicked = true },
-                )
+                SettingsScreen()
             }
         }
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("앱 설정", substring = true).assertExists()
-        composeTestRule.onNodeWithText("앱 설정을 변경합니다", substring = true).assertExists()
-        composeTestRule.onNodeWithText("앱 설정", substring = true).performClick()
-        assert(clicked)
+        composeTestRule.onNodeWithText("튜토리얼 다시 보기", substring = true).assertExists()
+        composeTestRule.onNodeWithText("앱 정보", substring = true).assertExists()
     }
 
     // Test StudentSubmissionItem

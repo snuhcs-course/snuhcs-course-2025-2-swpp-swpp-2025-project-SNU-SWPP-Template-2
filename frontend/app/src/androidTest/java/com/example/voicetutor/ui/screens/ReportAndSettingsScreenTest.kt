@@ -93,7 +93,7 @@ class ReportAndSettingsScreenTest {
     fun settingsScreen_teacherRole_showsTeacherBadge() {
         composeRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.TEACHER)
+                SettingsScreen()
             }
         }
 
@@ -111,7 +111,6 @@ class ReportAndSettingsScreenTest {
         composeRule.setContent {
             VoiceTutorTheme {
                 SettingsScreen(
-                    userRole = UserRole.TEACHER,
                     studentId = 1,
                 )
             }

@@ -44,7 +44,7 @@ class ScreenDirectTests {
     fun settingsScreen_renders_withStudentRole() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.STUDENT)
+                SettingsScreen()
             }
         }
 
@@ -58,7 +58,7 @@ class ScreenDirectTests {
     fun settingsScreen_renders_withTeacherRole() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                SettingsScreen(userRole = UserRole.TEACHER)
+                SettingsScreen()
             }
         }
 

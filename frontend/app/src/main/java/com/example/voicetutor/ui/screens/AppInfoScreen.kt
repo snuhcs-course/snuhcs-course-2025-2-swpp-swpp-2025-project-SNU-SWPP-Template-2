@@ -20,6 +20,16 @@ import androidx.compose.ui.unit.dp
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 
+private const val APP_NAME = "VoiceTutor"
+private const val APP_DESCRIPTION = "음성 인식 기반 교육 플랫폼"
+private const val APP_VERSION = "1.0.0"
+private const val BUILD_NUMBER = "1.0.0 (100)"
+private const val DEVELOPER_NAME = "VoiceTutor Team"
+private const val LAST_UPDATE_DATE = "2025년 12월 7일"
+private const val PLATFORM = "Android"
+private const val SUPPORT_EMAIL = "support@voicetutor.com"
+private const val COPYRIGHT_YEAR = "2025"
+
 @Composable
 fun AppInfoScreen(
     onBackClick: () -> Unit = {},
@@ -31,31 +41,7 @@ fun AppInfoScreen(
             .windowInsetsPadding(WindowInsets.statusBars)
             .windowInsetsPadding(WindowInsets.navigationBars),
     ) {
-        // Header
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-        ) {
-            IconButton(
-                onClick = onBackClick,
-                modifier = Modifier.size(40.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "뒤로가기",
-                    tint = Color.Black,
-                )
-            }
-            Text(
-                text = "앱 정보",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = Color.Black,
-            )
-        }
+        AppInfoHeader(onBackClick = onBackClick)
 
         Column(
             modifier = Modifier
@@ -64,151 +50,168 @@ fun AppInfoScreen(
                 .padding(horizontal = 12.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
         ) {
-            // App logo and basic info
-            VTCard(variant = CardVariant.Outlined) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    // App icon
-                    Box(
-                        modifier = Modifier
-                            .size(80.dp)
-                            .background(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(PrimaryIndigo, PrimaryPurple),
-                                ),
-                                shape = MaterialTheme.shapes.large,
-                            ),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Text(
-                            text = "V",
-                            style = MaterialTheme.typography.headlineLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = Color.White,
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "VoiceTutor",
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = Gray800,
-                    )
-
-                    Text(
-                        text = "음성 인식 기반 교육 플랫폼",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Gray600,
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = "버전 1.0.0",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Gray500,
-                    )
-                }
-            }
-
+            AppInfoCard()
             Spacer(modifier = Modifier.height(4.dp))
-
-            // Development info
-            VTCard(variant = CardVariant.Outlined) {
-                Column {
-                    Text(
-                        text = "개발 정보",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Gray800,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    InfoItem(
-                        label = "개발사",
-                        value = "VoiceTutor Team",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    InfoItem(
-                        label = "빌드 번호",
-                        value = "1.0.0 (100)",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    InfoItem(
-                        label = "최종 업데이트",
-                        value = "2025년 12월 7일",
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    InfoItem(
-                        label = "플랫폼",
-                        value = "Android",
-                    )
-                }
-            }
-
+            DevelopmentInfoCard()
             Spacer(modifier = Modifier.height(8.dp))
-
-            // Contact and support
-            VTCard(variant = CardVariant.Outlined) {
-                Column {
-                    Text(
-                        text = "문의 및 지원",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Gray800,
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    ContactItem(
-                        icon = Icons.Filled.Email,
-                        title = "이메일",
-                        value = "support@voicetutor.com",
-                        onClick = {
-                            // TODO: Open email client
-                        },
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    ContactItem(
-                        icon = Icons.Filled.Star,
-                        title = "앱 평가하기",
-                        value = "Google Play Store",
-                        onClick = {
-                            // TODO: Open app store
-                        },
-                    )
-                }
-            }
+            ContactSupportCard()
         }
 
-        // Copyright - 하단 고정
+        AppInfoCopyright()
+    }
+}
+
+@Composable
+private fun AppInfoHeader(onBackClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        IconButton(
+            onClick = onBackClick,
+            modifier = Modifier.size(40.dp),
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "뒤로가기",
+                tint = Color.Black,
+            )
+        }
         Text(
-            text = "© 2025 VoiceTutor Team. All rights reserved.",
-            style = MaterialTheme.typography.bodySmall,
-            color = Gray500,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp)
-                .padding(bottom = 16.dp)
-                .windowInsetsPadding(WindowInsets.navigationBars),
-            textAlign = TextAlign.Center,
+            text = "앱 정보",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black,
         )
     }
 }
 
 @Composable
-fun InfoItem(
+private fun AppInfoCard() {
+    VTCard(variant = CardVariant.Outlined) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(PrimaryIndigo, PrimaryPurple),
+                        ),
+                        shape = MaterialTheme.shapes.large,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "V",
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = APP_NAME,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                color = Gray800,
+            )
+
+            Text(
+                text = APP_DESCRIPTION,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Gray600,
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "버전 $APP_VERSION",
+                style = MaterialTheme.typography.bodySmall,
+                color = Gray500,
+            )
+        }
+    }
+}
+
+@Composable
+private fun DevelopmentInfoCard() {
+    VTCard(variant = CardVariant.Outlined) {
+        Column {
+            Text(
+                text = "개발 정보",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = Gray800,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            InfoItem(label = "개발사", value = DEVELOPER_NAME)
+            Spacer(modifier = Modifier.height(8.dp))
+            InfoItem(label = "빌드 번호", value = BUILD_NUMBER)
+            Spacer(modifier = Modifier.height(8.dp))
+            InfoItem(label = "최종 업데이트", value = LAST_UPDATE_DATE)
+            Spacer(modifier = Modifier.height(8.dp))
+            InfoItem(label = "플랫폼", value = PLATFORM)
+        }
+    }
+}
+
+@Composable
+private fun ContactSupportCard() {
+    VTCard(variant = CardVariant.Outlined) {
+        Column {
+            Text(
+                text = "문의 및 지원",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = Gray800,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+
+            ContactItem(
+                icon = Icons.Filled.Email,
+                title = "이메일",
+                value = SUPPORT_EMAIL,
+                onClick = {},
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            ContactItem(
+                icon = Icons.Filled.Star,
+                title = "앱 평가하기",
+                value = "Google Play Store",
+                onClick = {},
+            )
+        }
+    }
+}
+
+@Composable
+private fun AppInfoCopyright() {
+    Text(
+        text = "© $COPYRIGHT_YEAR $DEVELOPER_NAME. All rights reserved.",
+        style = MaterialTheme.typography.bodySmall,
+        color = Gray500,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 12.dp)
+            .padding(bottom = 16.dp)
+            .windowInsetsPadding(WindowInsets.navigationBars),
+        textAlign = TextAlign.Center,
+    )
+}
+
+@Composable
+private fun InfoItem(
     label: String,
     value: String,
 ) {
@@ -232,7 +235,7 @@ fun InfoItem(
 }
 
 @Composable
-fun ContactItem(
+private fun ContactItem(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     title: String,
     value: String,
