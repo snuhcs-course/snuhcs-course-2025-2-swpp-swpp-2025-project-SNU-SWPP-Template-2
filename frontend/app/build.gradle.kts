@@ -319,9 +319,7 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
             "**/ComposableSingletons*",
             "**/LazyDsl*",
             "**/Comparisons*"
-            // Add classes annotated with @ExcludeFromJacocoGeneratedReport
-            *excludedClassesPatterns.toTypedArray()
-        )
+        ) + excludedClassesPatterns
 
     // Android projects use multiple class output directories
     val debugTree =
