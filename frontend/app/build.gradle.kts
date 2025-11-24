@@ -318,7 +318,7 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
             "**/voicetutor/VoiceTutorApplication*",
             "**/ComposableSingletons*",
             "**/LazyDsl*",
-            "**/Comparisons*"
+            "**/Comparisons*",
             // Add classes annotated with @ExcludeFromJacocoGeneratedReport
             *excludedClassesPatterns.toTypedArray()
         )
@@ -456,6 +456,8 @@ val testClassGroup5 = listOf(
     "com.example.voicetutor.ui.screens.AssignmentScreenCoverageTest",
     "com.example.voicetutor.ui.screens.TeacherStudentsScreenCoverageTest",
     "com.example.voicetutor.ui.screens.SignupScreenCoverageTest",
+    "com.example.voicetutor.ui.navigation.VoiceTutorNavigationCoverageTest",
+    "com.example.voicetutor.ui.navigation.MainLayoutCoverageTest",
 )
 
 tasks.register("connectedDebug1", Exec::class) {
@@ -540,7 +542,7 @@ tasks.register("connectedDebug4", Exec::class) {
 
 tasks.register("connectedDebug5", Exec::class) {
     group = "verification"
-    description = "Run fifth group of Android instrumentation tests (CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest)"
+    description = "Run fifth group of Android instrumentation tests (CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest, AssignmentDetailedResultsScreenHighCoverageTest, AssignmentScreenCoverageTest, TeacherStudentsScreenCoverageTest, SignupScreenCoverageTest, VoiceTutorNavigationCoverageTest, MainLayoutCoverageTest)"
     
     val classArg = testClassGroup5.joinToString(",")
     val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
