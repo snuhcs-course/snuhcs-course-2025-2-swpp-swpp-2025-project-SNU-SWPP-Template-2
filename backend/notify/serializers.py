@@ -29,7 +29,7 @@ class NotificationSerializer(serializers.ModelSerializer):
             return None
         
         # 알림 타입별로 딥링크 생성
-        if obj.notification_type in ['barter_request', 'barter_accepted', 'barter_rejected', 'barter_completed', 'barter_counter_proposed']:
+        if obj.notification_type in ['barter_request', 'barter_request_sent', 'barter_accepted', 'barter_rejected', 'barter_completed', 'barter_counter_proposed']:
             return f"app://barter/{obj.object_id}"
         elif obj.notification_type in ['post_liked', 'comment_received']:
             return f"app://post/{obj.object_id}"

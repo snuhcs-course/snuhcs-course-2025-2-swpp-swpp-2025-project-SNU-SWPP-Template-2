@@ -54,6 +54,14 @@ def create_notification(request, type_of_notification, post_id=None, follow_id=N
         message = f"{sender.first_name} sent you a barter request!"
         content_object = barter
 
+    # --- Barter Request Sent ---
+    elif type_of_notification == 'barter_request_sent' and barter_id:
+        barter = BarterRequest.objects.get(pk=barter_id)
+        recipient = barter.requester
+        title = "Barter Request Sent"
+        message = f"You sent a barter request to {barter.recipient.first_name}."
+        content_object = barter
+
     # --- Barter Accepted ---
     elif type_of_notification == 'barter_accepted' and barter_id:
         barter = BarterRequest.objects.get(pk=barter_id)

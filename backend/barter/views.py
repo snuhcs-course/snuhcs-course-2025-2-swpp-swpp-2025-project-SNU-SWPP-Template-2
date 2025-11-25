@@ -181,6 +181,14 @@ def create_barter_request(request):
         status="pending",
     )
 
+    # Notify sender
+    Notification.objects.create(
+        recipient=request.user,
+        notification_type="barter_request_sent",
+        message=f"You requested a trade for '{requested_book.title}'.",
+        content_object=barter,
+    )
+
     # Notify recipient
     Notification.objects.create(
         recipient=recipient,

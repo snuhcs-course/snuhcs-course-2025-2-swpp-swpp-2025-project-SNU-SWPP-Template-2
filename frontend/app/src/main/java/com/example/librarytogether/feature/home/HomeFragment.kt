@@ -3,9 +3,11 @@ import android.os.Bundle
 import android.view.View
 import android.widget.PopupMenu
 import android.widget.Toast
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.librarytogether.R
@@ -14,6 +16,8 @@ import com.example.librarytogether.feature.comment.CommentBottomSheet
 import com.example.librarytogether.feature.home.data.Post
 import com.example.librarytogether.feature.library.LibraryViewModel
 import com.example.librarytogether.feature.library.data.Book
+import com.example.librarytogether.feature.search.SearchSharedViewModel
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +29,8 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     private val binding get() = _binding!!
     private val homeviewModel: HomeViewModel by viewModels()
     private val libraryViewModel: LibraryViewModel by activityViewModels()
+    private val searchSharedViewModel: SearchSharedViewModel by activityViewModels ()
+
     private val feedAdapter: FeedAdapter by lazy { FeedAdapter(
         FeedClicks(
             onClickLike = homeviewModel::toggleLike,
@@ -185,13 +191,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun searchTitle(post: Post) {
-        Toast.makeText(requireContext(), "제목", Toast.LENGTH_SHORT).show()
-        // TODO: 제목 클릭 시 제목 검색
+        val query = post.bookTitle
+        searchSharedViewModel.setQuery(query)
+
+        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+        bottomNav.selectedItemId = R.id.nav_search
     }
 
     private fun searchAuthor(post: Post) {
-        Toast.makeText(requireContext(), "작가", Toast.LENGTH_SHORT).show()
-        // TODO: 작가 클릭 시 작가 검색
+        val query = post.authorName
+        searchSharedViewModel.setQuery(query)
+
+        val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNavigationView)
+        bottomNav.selectedItemId = R.id.nav_search
     }
 
     private fun expandContent(post: Post) {

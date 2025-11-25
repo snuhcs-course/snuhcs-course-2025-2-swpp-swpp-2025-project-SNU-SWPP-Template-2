@@ -11,6 +11,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentSearchBinding
@@ -36,6 +37,7 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     private val binding get() = _binding!!
 
     private val searchViewModel: SearchViewModel by viewModels()
+    private val searchSharedViewModel: SearchSharedViewModel by activityViewModels()
     private val homeViewModel: HomeViewModel by activityViewModels()
 
     private val searchResultAdapter: SearchResultAdapter by lazy {
@@ -45,6 +47,14 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentSearchBinding.bind(view)
+
+        val pendingQuery = searchSharedViewModel.consumeQuery()
+
+        if (!pendingQuery.isNullOrBlank()) {
+            binding.etSearch.setText(pendingQuery)
+
+            searchViewModel.search(pendingQuery)
+        }
 
         setupRecyclerView()
         observeViewModel()
