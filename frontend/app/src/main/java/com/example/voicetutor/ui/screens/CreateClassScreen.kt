@@ -182,6 +182,7 @@ fun CreateClassScreen(
                 CreateClassButton(
                     isLoading = isLoading,
                     className = className,
+                    classNameError = classNameError,
                     subject = subject,
                     description = description,
                     teacherId = teacherId,
@@ -208,6 +209,7 @@ fun CreateClassScreen(
 private fun CreateClassButton(
     isLoading: Boolean,
     className: String,
+    classNameError: String?,
     subject: String,
     description: String,
     teacherId: String?,
