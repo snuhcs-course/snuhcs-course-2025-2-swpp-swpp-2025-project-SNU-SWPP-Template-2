@@ -540,6 +540,17 @@ data class AssignmentDetail(
     val completionRate: Int,
 )
 
+/**
+ * 학생 제출 정보 데이터 클래스
+ */
+data class StudentSubmission(
+    val name: String,
+    val studentId: String,
+    val submittedAt: String,
+    val score: Int,
+    val status: String,
+)
+
 @Preview(showBackground = true)
 @Composable
 fun TeacherAssignmentDetailScreenPreview() {
