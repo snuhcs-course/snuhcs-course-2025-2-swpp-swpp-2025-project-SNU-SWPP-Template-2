@@ -137,9 +137,9 @@ class VoiceTutorNavigationCoverageTest {
         )
 
         composeRule.runOnIdle {
-
             val field = AuthViewModel::class.java.getDeclaredField("_currentUser")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val stateFlow = field.get(authViewModel) as MutableStateFlow<User?>
             stateFlow.value = userWithAssignments
         }
@@ -208,11 +208,13 @@ class VoiceTutorNavigationCoverageTest {
             )
             val field = AuthViewModel::class.java.getDeclaredField("_currentUser")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val stateFlow = field.get(authViewModel) as MutableStateFlow<User?>
             stateFlow.value = user
 
             val isLoggedInField = AuthViewModel::class.java.getDeclaredField("_isLoggedIn")
             isLoggedInField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val isLoggedInFlow = isLoggedInField.get(authViewModel) as MutableStateFlow<Boolean>
             isLoggedInFlow.value = true
         }
@@ -225,8 +227,6 @@ class VoiceTutorNavigationCoverageTest {
     @Test
     fun testSignupScreenCallbacks() {
         setContent()
-
-        val authViewModel = authViewModel()
 
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.Signup.route)

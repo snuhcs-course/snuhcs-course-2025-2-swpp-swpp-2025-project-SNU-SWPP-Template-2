@@ -13,7 +13,6 @@ import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
-import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.AuthViewModel
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -83,30 +82,6 @@ class VoiceTutorNavigationRouteCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
     }
 
-    private fun loginStudent() {
-        var authViewModel: AuthViewModel? = null
-        composeRule.runOnIdle {
-            val entry = navController.getBackStackEntry(navController.graph.id)
-            authViewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
-        }
-        val viewModel = checkNotNull(authViewModel)
-        composeRule.runOnIdle {
-            viewModel.login("student@voicetutor.com", "student123")
-        }
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            viewModel.currentUser.value != null
-        }
-        waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
-    }
-
-    private fun assignmentViewModel(): AssignmentViewModel {
-        var viewModel: AssignmentViewModel? = null
-        composeRule.runOnIdle {
-            val entry = navController.getBackStackEntry(navController.graph.id)
-            viewModel = ViewModelProvider(entry)[AssignmentViewModel::class.java]
-        }
-        return checkNotNull(viewModel)
-    }
 
     private fun waitForRoutePrefix(prefix: String, timeoutMillis: Long = 15_000) {
         composeRule.waitUntil(timeoutMillis) {
@@ -146,7 +121,7 @@ class VoiceTutorNavigationRouteCoverageTest {
                     )
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -171,7 +146,7 @@ class VoiceTutorNavigationRouteCoverageTest {
                     .onAllNodesWithText("환영", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }

@@ -54,12 +54,11 @@ class OnboardingPagerTest {
 
     @Test
     fun onboardingPager_displaysFirstPage() {
-        var onCompleteCalled = false
         composeRule.setContent {
             VoiceTutorTheme {
                 OnboardingPager(
                     pages = testPages,
-                    onComplete = { onCompleteCalled = true },
+                    onComplete = {},
                 )
             }
         }
@@ -117,6 +116,7 @@ class OnboardingPagerTest {
         composeRule.onNodeWithText("건너뛰기", substring = true).performClick()
         composeRule.waitForIdle()
 
+        assert(onCompleteCalled || onSkipCalled)
     }
 
     @Test
@@ -315,6 +315,7 @@ class OnboardingPagerTest {
         composeRule.onNodeWithText("시작하기", substring = true).performClick()
         composeRule.waitForIdle()
 
+        assert(onCompleteCalled)
     }
 
     @Test

@@ -14,7 +14,6 @@ import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
-import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.AuthViewModel
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -83,15 +82,6 @@ class MainLayoutStudentNavigationTest {
         composeRule.runOnIdle {
             val entry = navController.getBackStackEntry(navController.graph.id)
             viewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
-        }
-        return checkNotNull(viewModel)
-    }
-
-    private fun assignmentViewModel(): AssignmentViewModel {
-        var viewModel: AssignmentViewModel? = null
-        composeRule.runOnIdle {
-            val entry = navController.getBackStackEntry(navController.graph.id)
-            viewModel = ViewModelProvider(entry)[AssignmentViewModel::class.java]
         }
         return checkNotNull(viewModel)
     }

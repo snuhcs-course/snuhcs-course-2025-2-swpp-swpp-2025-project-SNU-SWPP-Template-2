@@ -8,13 +8,11 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.voicetutor.HiltComponentActivity
-import com.example.voicetutor.data.models.User
 import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
@@ -457,11 +455,13 @@ class MainLayoutCoverageTest {
         composeRule.runOnIdle {
             val isGeneratingField = AssignmentViewModel::class.java.getDeclaredField("_isGeneratingQuestions")
             isGeneratingField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val isGeneratingFlow = isGeneratingField.get(assignmentViewModel) as MutableStateFlow<Boolean>
             isGeneratingFlow.value = true
 
             val titleField = AssignmentViewModel::class.java.getDeclaredField("_generatingAssignmentTitle")
             titleField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val titleFlow = titleField.get(assignmentViewModel) as MutableStateFlow<String?>
             titleFlow.value = "Test Assignment"
         }
@@ -497,11 +497,13 @@ class MainLayoutCoverageTest {
         composeRule.runOnIdle {
             val successField = AssignmentViewModel::class.java.getDeclaredField("_questionGenerationSuccess")
             successField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val successFlow = successField.get(assignmentViewModel) as MutableStateFlow<Boolean>
             successFlow.value = true
 
             val isGeneratingField = AssignmentViewModel::class.java.getDeclaredField("_isGeneratingQuestions")
             isGeneratingField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val isGeneratingFlow = isGeneratingField.get(assignmentViewModel) as MutableStateFlow<Boolean>
             isGeneratingFlow.value = false
         }
@@ -537,6 +539,7 @@ class MainLayoutCoverageTest {
         composeRule.runOnIdle {
             val cancelledField = AssignmentViewModel::class.java.getDeclaredField("_questionGenerationCancelled")
             cancelledField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val cancelledFlow = cancelledField.get(assignmentViewModel) as MutableStateFlow<Boolean>
             cancelledFlow.value = true
         }
@@ -572,8 +575,9 @@ class MainLayoutCoverageTest {
         composeRule.runOnIdle {
             val recentAssignmentField = AssignmentViewModel::class.java.getDeclaredField("_recentAssignment")
             recentAssignmentField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val recentAssignmentFlow = recentAssignmentField.get(assignmentViewModel) as MutableStateFlow<RecentAssignment?>
-            recentAssignmentFlow.value = com.example.voicetutor.ui.navigation.RecentAssignment(
+            recentAssignmentFlow.value = RecentAssignment(
                 id = "1",
                 title = "Test Assignment",
                 assignmentId = 1,
@@ -631,7 +635,6 @@ class MainLayoutCoverageTest {
         setContent()
 
         val authViewModel = authViewModel()
-        val assignmentViewModel = assignmentViewModel()
 
         composeRule.runOnIdle {
             authViewModel.login("student@voicetutor.com", "student123")

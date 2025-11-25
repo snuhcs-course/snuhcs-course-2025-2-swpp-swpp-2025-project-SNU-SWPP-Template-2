@@ -164,7 +164,7 @@ class AssignmentDetailedResultsScreenTest {
     @Test
     fun assignmentDetailedResultsScreen_displaysEmptyState() {
         val emptyApi = FakeApiService().apply {
-            assignmentCorrectnessResponses = emptyList<com.example.voicetutor.data.models.AssignmentCorrectnessItem>()
+            assignmentCorrectnessResponses = emptyList()
         }
         val viewModel = AssignmentViewModel(AssignmentRepository(emptyApi))
 

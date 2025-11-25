@@ -5,7 +5,6 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.data.models.*
-import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import org.junit.Rule
 import org.junit.Test
@@ -164,10 +163,6 @@ class AdditionalComponentTests {
         val assignment = createMockAssignmentData(
             id = 1,
             title = "수학 과제",
-            subjectName = "수학",
-            className = "수학 1반",
-            dueDate = "2024-12-31T23:59:59Z",
-            totalQuestions = 10,
         )
 
         composeTestRule.setContent {
@@ -194,10 +189,6 @@ class AdditionalComponentTests {
         val assignment = createMockAssignmentData(
             id = 1,
             title = "과제",
-            subjectName = "수학",
-            className = "수학 1반",
-            dueDate = "2024-12-31T23:59:59Z",
-            totalQuestions = 10,
         )
 
         composeTestRule.setContent {
@@ -214,8 +205,7 @@ class AdditionalComponentTests {
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onAllNodesWithText("과제", substring = true, useUnmergedTree = true)
-            .get(0)
+        composeTestRule.onAllNodesWithText("과제", substring = true, useUnmergedTree = true)[0]
             .performClick()
         assert(assignmentClicked)
     }
@@ -229,10 +219,6 @@ class AdditionalComponentTests {
                         assignment = createMockAssignmentData(
                             id = 1,
                             title = "과제 0/10",
-                            subjectName = "수학",
-                            className = "수학 1반",
-                            dueDate = "2024-12-31T23:59:59Z",
-                            totalQuestions = 10,
                         ),
                         submittedCount = 0,
                         totalCount = 10,
@@ -244,10 +230,6 @@ class AdditionalComponentTests {
                         assignment = createMockAssignmentData(
                             id = 2,
                             title = "과제 5/10",
-                            subjectName = "수학",
-                            className = "수학 1반",
-                            dueDate = "2024-12-31T23:59:59Z",
-                            totalQuestions = 10,
                         ),
                         submittedCount = 5,
                         totalCount = 10,
@@ -259,10 +241,6 @@ class AdditionalComponentTests {
                         assignment = createMockAssignmentData(
                             id = 3,
                             title = "과제 10/10",
-                            subjectName = "수학",
-                            className = "수학 1반",
-                            dueDate = "2024-12-31T23:59:59Z",
-                            totalQuestions = 10,
                         ),
                         submittedCount = 10,
                         totalCount = 10,
@@ -338,10 +316,6 @@ class AdditionalComponentTests {
                         assignment = createMockAssignmentData(
                             id = 3,
                             title = "전체 과제",
-                            subjectName = "수학",
-                            className = "수학 1반",
-                            dueDate = "2024-12-31T23:59:59Z",
-                            totalQuestions = 10,
                         ),
                         submittedCount = 5,
                         totalCount = 10,
@@ -359,8 +333,7 @@ class AdditionalComponentTests {
         }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onAllNodesWithText("과제", substring = true, useUnmergedTree = true)
-            .get(0)
+        composeTestRule.onAllNodesWithText("과제", substring = true, useUnmergedTree = true)[0]
             .assertExists()
     }
 
@@ -397,10 +370,6 @@ class AdditionalComponentTests {
                         assignment = createMockAssignmentData(
                             id = 1,
                             title = "과제",
-                            subjectName = "수학",
-                            className = "수학 1반",
-                            dueDate = "2024-12-31T23:59:59Z",
-                            totalQuestions = 10,
                         ),
                         submittedCount = 0,
                         totalCount = 0,
@@ -412,10 +381,6 @@ class AdditionalComponentTests {
                         assignment = createMockAssignmentData(
                             id = 2,
                             title = "완료된 과제",
-                            subjectName = "수학",
-                            className = "수학 1반",
-                            dueDate = "2024-12-31T23:59:59Z",
-                            totalQuestions = 10,
                         ),
                         submittedCount = 10,
                         totalCount = 10,
@@ -461,10 +426,6 @@ class AdditionalComponentTests {
                         assignment = createMockAssignmentData(
                             id = 3,
                             title = "과제 3",
-                            subjectName = "수학",
-                            className = "수학 1반",
-                            dueDate = "2024-12-31T23:59:59Z",
-                            totalQuestions = 10,
                         ),
                         submittedCount = 5,
                         totalCount = 10,
@@ -485,10 +446,10 @@ class AdditionalComponentTests {
     private fun createMockAssignmentData(
         id: Int,
         title: String,
-        subjectName: String,
-        className: String,
-        dueDate: String,
-        totalQuestions: Int,
+        subjectName: String = "수학",
+        className: String = "수학 1반",
+        dueDate: String = "2024-12-31T23:59:59Z",
+        totalQuestions: Int = 10,
     ): AssignmentData {
         return AssignmentData(
             id = id,
