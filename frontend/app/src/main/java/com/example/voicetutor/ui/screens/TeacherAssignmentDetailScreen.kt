@@ -2,9 +2,9 @@ package com.example.voicetutor.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -14,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -26,6 +25,15 @@ import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 
+/**
+ * 선생님 과제 상세 화면
+ *
+ * @param assignmentViewModel 과제 관련 ViewModel (테스트용으로 주입 가능)
+ * @param assignmentId 과제 ID
+ * @param assignmentTitle 과제 제목 (ID가 없을 때 사용)
+ * @param onNavigateToEditAssignment 과제 편집 화면으로 이동하는 콜백
+ * @param onNavigateToStudentDetail 학생 상세 화면으로 이동하는 콜백
+ */
 @Composable
 fun TeacherAssignmentDetailScreen(
     assignmentViewModel: AssignmentViewModel? = null,
@@ -64,6 +72,7 @@ fun TeacherAssignmentDetailScreen(
     val hasBasicAssignmentData = assignment != null || targetAssignment != null
     val isInitialLoading = isLoading && !hasBasicAssignmentData
 
+    // 과제 데이터 로드: assignmentId가 있으면 직접 로드, 없으면 targetAssignment를 찾아서 로드
     LaunchedEffect(assignmentId) {
         if (assignmentId > 0 && assignmentId != loadedAssignmentId) {
             println("TeacherAssignmentDetail - Loading assignment ID: $assignmentId")
@@ -82,6 +91,7 @@ fun TeacherAssignmentDetailScreen(
         }
     }
 
+    // 과제 통계 및 학생 결과 로드: 과제가 로드되면 통계와 학생 결과를 함께 로드
     LaunchedEffect(assignment?.id) {
         assignment?.let { a ->
             if (a.id != loadedStatsForAssignmentId) {
@@ -94,6 +104,7 @@ fun TeacherAssignmentDetailScreen(
         }
     }
 
+    // 에러 처리: 에러가 발생하면 자동으로 클리어
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             viewModel.clearError()
@@ -123,47 +134,26 @@ fun TeacherAssignmentDetailScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (isInitialLoading) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center,
-            ) {
-                CircularProgressIndicator(
-                    color = PrimaryIndigo,
+        when {
+            isInitialLoading -> {
+                LoadingIndicator()
+            }
+            assignmentDetail == null && !hasBasicAssignmentData -> {
+                EmptyState(
+                    icon = Icons.Filled.Assignment,
+                    message = "과제 정보를 찾을 수 없습니다",
                 )
             }
-        } else if (assignmentDetail == null && !hasBasicAssignmentData) {
-            Box(
-                modifier = Modifier.fillMaxWidth(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Assignment,
-                        contentDescription = null,
-                        tint = Gray400,
-                        modifier = Modifier.size(48.dp),
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "과제 정보를 찾을 수 없습니다",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = Gray600,
-                    )
-                }
-            }
-        } else {
-            assignmentDetail?.let { detail ->
+            else -> {
+                assignmentDetail?.let { detail ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
                             color = PrimaryIndigo.copy(alpha = 0.08f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            shape = RoundedCornerShape(16.dp),
                         )
-                        .padding(20.dp),
+                        .padding(16.dp),
                 ) {
                     Column {
                         Text(
@@ -263,10 +253,10 @@ fun TeacherAssignmentDetailScreen(
                         )
                     }
                 }
-            }
+                }
 
-            Column {
-                Row(
+                Column {
+                    Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -284,67 +274,48 @@ fun TeacherAssignmentDetailScreen(
                         color = PrimaryIndigo,
                         fontWeight = FontWeight.Medium,
                     )
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                if (isLoading) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        CircularProgressIndicator(
-                            color = PrimaryIndigo,
-                        )
                     }
-                } else if (students.isEmpty()) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.Person,
-                                contentDescription = null,
-                                tint = Gray400,
-                                modifier = Modifier.size(48.dp),
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "제출된 과제가 없습니다",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = Gray600,
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    when {
+                        isLoading -> {
+                            LoadingIndicator()
+                        }
+                        students.isEmpty() -> {
+                            EmptyState(
+                                icon = Icons.Filled.Person,
+                                message = "제출된 과제가 없습니다",
                             )
                         }
-                    }
-                } else {
-                    // 학생 목록 정렬: 완료 > 진행중 > 미시작
-                    val sortedStudents = remember(students) {
-                        students.sortedBy { student ->
-                            when (student.status) {
-                                "완료" -> 0
-                                "진행중" -> 1
-                                "미시작" -> 2
-                                else -> 3
-                            }
-                        }
-                    }
-                    
-                    sortedStudents.forEachIndexed { index, student ->
-                        TeacherAssignmentResultCard(
-                            student = student,
-                            onStudentClick = {
-                                val destinationAssignmentId = resolvedAssignmentId
-                                if (destinationAssignmentId != 0) {
-                                    onNavigateToStudentDetail(student.studentId, destinationAssignmentId, dynamicAssignmentTitle)
+                        else -> {
+                            // 학생 목록 정렬: 완료 > 진행중 > 미시작
+                            val sortedStudents = remember(students) {
+                                students.sortedBy { student ->
+                                    when (student.status) {
+                                        "완료" -> 0
+                                        "진행중" -> 1
+                                        "미시작" -> 2
+                                        else -> 3
+                                    }
                                 }
-                            },
-                        )
+                            }
 
-                        if (index < sortedStudents.size - 1) {
-                            Spacer(modifier = Modifier.height(8.dp))
+                            sortedStudents.forEachIndexed { index, student ->
+                                TeacherAssignmentResultCard(
+                                    student = student,
+                                    onStudentClick = {
+                                        val destinationAssignmentId = resolvedAssignmentId
+                                        if (destinationAssignmentId != 0) {
+                                            onNavigateToStudentDetail(student.studentId, destinationAssignmentId, dynamicAssignmentTitle)
+                                        }
+                                    },
+                                )
+
+                                if (index < sortedStudents.size - 1) {
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                }
+                            }
                         }
                     }
                 }
@@ -353,6 +324,55 @@ fun TeacherAssignmentDetailScreen(
     }
 }
 
+/**
+ * 로딩 인디케이터 컴포넌트
+ */
+@Composable
+private fun LoadingIndicator() {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        CircularProgressIndicator(
+            color = PrimaryIndigo,
+        )
+    }
+}
+
+/**
+ * 빈 상태 표시 컴포넌트
+ */
+@Composable
+private fun EmptyState(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    message: String,
+) {
+    Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = Gray400,
+                modifier = Modifier.size(48.dp),
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyLarge,
+                color = Gray600,
+            )
+        }
+    }
+}
+
+/**
+ * 학생별 과제 결과 카드
+ */
 @Composable
 fun TeacherAssignmentResultCard(
     student: StudentResult,
@@ -418,7 +438,6 @@ fun TeacherAssignmentResultCard(
             }
 
             if (!isNotStarted) {
-                // 진행 중이거나 완료된 경우 제출 정보 표시
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -447,11 +466,9 @@ fun TeacherAssignmentResultCard(
                             )
                         }
                     } else {
-                        // 제출 시간이 없는 경우 공간 유지
                         Spacer(modifier = Modifier.weight(1f))
                     }
 
-                    // 진행 중이거나 완료 상태일 때는 항상 점수 표시
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -505,45 +522,9 @@ private fun formatSubmittedTime(isoTime: String): String {
     return com.example.voicetutor.utils.formatSubmittedTime(isoTime)
 }
 
-private fun formatDuration(startIso: String?, endIso: String?): String {
-    return try {
-        if (startIso.isNullOrEmpty() || endIso.isNullOrEmpty()) {
-            return "정보 없음"
-        }
-        val start = parseIsoToMillis(startIso)
-        val end = parseIsoToMillis(endIso)
-        if (start == null || end == null || end < start) {
-            return "정보 없음"
-        }
-        val diffMs = end - start
-        val totalSeconds = diffMs / 1000
-        val hours = (totalSeconds / 3600).toInt()
-        val minutes = ((totalSeconds % 3600) / 60).toInt()
-        val seconds = (totalSeconds % 60).toInt()
-        if (hours > 0) {
-            String.format("%02d:%02d:%02d", hours, minutes, seconds)
-        } else {
-            String.format("%02d:%02d", minutes, seconds)
-        }
-    } catch (e: Exception) {
-        "정보 없음"
-    }
-}
-
-private fun parseIsoToMillis(iso: String): Long? {
-    return try {
-        val cleaned = iso.replace("Z", "").let { raw ->
-            val dotIdx = raw.indexOf('.')
-            if (dotIdx != -1) raw.substring(0, dotIdx) else raw
-        }
-        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
-        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
-        sdf.parse(cleaned)?.time
-    } catch (e: Exception) {
-        null
-    }
-}
-
+/**
+ * 과제 상세 정보 데이터 클래스
+ */
 data class AssignmentDetail(
     val title: String,
     val subject: String,
@@ -559,6 +540,9 @@ data class AssignmentDetail(
     val completionRate: Int,
 )
 
+/**
+ * 학생 제출 정보 데이터 클래스
+ */
 data class StudentSubmission(
     val name: String,
     val studentId: String,
