@@ -128,6 +128,7 @@ fun CreateAssignmentScreen(
     var selectedStudents by remember { mutableStateOf<Set<Int>>(emptySet()) }
 
     var assignmentTitle by remember { mutableStateOf("") }
+    var assignmentTitleError by remember { mutableStateOf<String?>(null) }
     var assignmentDescription by remember { mutableStateOf("") }
     var selectedClass by remember { mutableStateOf("") }
     var selectedClassId by remember { mutableStateOf<Int?>(null) }
@@ -247,7 +248,15 @@ fun CreateAssignmentScreen(
                         ) {
                             OutlinedTextField(
                                 value = assignmentTitle,
-                                onValueChange = { assignmentTitle = it },
+                                onValueChange = {
+                                    val sanitized = it.replace("/", "")
+                                    if (sanitized.length != it.length) {
+                                        assignmentTitleError = "'/' 문자는 사용할 수 없어요."
+                                    } else {
+                                        assignmentTitleError = null
+                                    }
+                                    assignmentTitle = sanitized
+                                },
                                 label = { Text("과제 제목") },
                                 placeholder = { Text("예: 세포 구조와 기능 복습") },
                                 modifier = Modifier.fillMaxWidth(),
@@ -256,6 +265,12 @@ fun CreateAssignmentScreen(
                                     imeAction = ImeAction.Next,
                                 ),
                                 singleLine = true,
+                                isError = assignmentTitleError != null,
+                                supportingText = {
+                                    assignmentTitleError?.let {
+                                        Text(text = it, color = Error)
+                                    }
+                                },
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = PrimaryIndigo,
                                     focusedLabelColor = PrimaryIndigo,
@@ -799,7 +814,8 @@ fun CreateAssignmentScreen(
                     selectedClass.isNotBlank() && selectedClassId != null &&
                     selectedGrade.isNotBlank() && selectedSubject.isNotBlank() &&
                     dueDateRequest.isNotBlank() &&
-                    questionCount.isNotBlank() && selectedFiles.isNotEmpty()
+                    questionCount.isNotBlank() && selectedFiles.isNotEmpty() &&
+                    assignmentTitleError == null
 
                 VTButton(
                     text = "과제 생성",

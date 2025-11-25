@@ -71,6 +71,7 @@ fun EditAssignmentScreen(
     // 동적 과제 제목 가져오기
     val dynamicAssignmentTitle = currentAssignment?.title ?: targetAssignment?.title ?: assignmentTitle ?: "과제"
     var title: String by remember { mutableStateOf(dynamicAssignmentTitle) }
+    var titleError by remember { mutableStateOf<String?>(null) }
     var description by remember { mutableStateOf("") }
 
     // 삭제 확인 다이얼로그 상태
@@ -196,7 +197,15 @@ fun EditAssignmentScreen(
                         // Assignment title
                         OutlinedTextField(
                             value = title,
-                            onValueChange = { title = it },
+                            onValueChange = {
+                                val sanitized = it.replace("/", "")
+                                if (sanitized.length != it.length) {
+                                    titleError = "'/' 문자는 사용할 수 없어요."
+                                } else {
+                                    titleError = null
+                                }
+                                title = sanitized
+                            },
                             label = { Text("과제 제목") },
                             placeholder = { Text("예: 세포 구조와 기능 복습") },
                             modifier = Modifier.fillMaxWidth(),
@@ -205,6 +214,12 @@ fun EditAssignmentScreen(
                                 imeAction = ImeAction.Next,
                             ),
                             singleLine = true,
+                            isError = titleError != null,
+                            supportingText = {
+                                titleError?.let {
+                                    Text(text = it, color = Error)
+                                }
+                            },
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedBorderColor = PrimaryIndigo,
                                 focusedLabelColor = PrimaryIndigo,
