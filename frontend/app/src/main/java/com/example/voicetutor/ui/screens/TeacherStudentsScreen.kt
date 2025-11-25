@@ -33,6 +33,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+private const val HEADER_ALPHA = 0.08f
+private const val HEADER_CORNER_RADIUS = 16
+private const val EMPTY_STATE_ICON_SIZE = 48
+private const val AVATAR_SIZE = 32
+private const val AVATAR_BACKGROUND_ALPHA = 0.1f
+private const val SCORE_BADGE_ALPHA = 0.08f
+private const val PROGRESS_BAR_HEIGHT = 6
+private const val EMAIL_MAX_LENGTH = 24
+private const val DELAY_AFTER_ENROLL = 500L
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeacherStudentsScreen(
@@ -53,13 +63,11 @@ fun TeacherStudentsScreen(
     val error by viewModel.error.collectAsStateWithLifecycle()
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
-    // 동적 클래스 정보 가져오기
     val className = currentClass?.name ?: "고등학교 1학년 A반"
     val subjectName = currentClass?.subject?.name ?: "과목"
     val description = currentClass?.description ?: "과목 설명"
     val teacherName = currentClass?.teacherName ?: currentUser?.name ?: "선생님"
 
-    // 학생 통계 데이터
     data class StudentStats(
         val averageScore: Float,
         val completionRate: Float,
@@ -71,16 +79,13 @@ fun TeacherStudentsScreen(
     var isLoadingStatistics by remember { mutableStateOf(true) }
     var overallCompletionRate by remember { mutableStateOf(0f) }
 
-    // Load students and class data on first composition
     LaunchedEffect(classId, currentUser?.id) {
         val actualTeacherId = teacherId ?: currentUser?.id?.toString()
         if (classId != null && actualTeacherId != null) {
-            println("TeacherStudentsScreen - Loading students for class ID: $classId, teacher ID: $actualTeacherId")
             viewModel.loadAllStudents(teacherId = actualTeacherId, classId = classId.toString())
             classViewModel.loadClassById(classId)
             classViewModel.loadClassStudents(classId)
 
-            // 학생 통계 로드
             isLoadingStatistics = true
             classViewModel.loadClassStudentsStatistics(classId) { result ->
                 result.onSuccess { stats ->
@@ -103,30 +108,23 @@ fun TeacherStudentsScreen(
         }
     }
 
-    // Handle error
-    error?.let { errorMessage ->
-        LaunchedEffect(errorMessage) {
-            // Show error message
+    error?.let {
+        LaunchedEffect(it) {
             viewModel.clearError()
         }
     }
 
-    // 학생 등록 바텀시트 상태
     var showEnrollSheet by remember { mutableStateOf(false) }
     val selectedToEnroll = remember { mutableStateListOf<Int>() }
     val allStudentsForEnroll = remember { mutableStateListOf<Student>() }
     var isLoadingAllStudents by remember { mutableStateOf(false) }
     var enrollSearchQuery by remember { mutableStateOf("") }
 
-    // 학생 삭제 바텀시트 상태
     var showDeleteSheet by remember { mutableStateOf(false) }
     val selectedToDelete = remember { mutableStateListOf<Int>() }
     var deleteSearchQuery by remember { mutableStateOf("") }
-
-    // 학생 삭제 재확인 다이얼로그 상태
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
-    // EntryPoint를 통해 ApiService 주입받기 (바텀시트 독립적 데이터 로딩용)
     val context = LocalContext.current
     val studentRepository = remember {
         val entryPoint = EntryPointAccessors.fromApplication(
@@ -145,12 +143,10 @@ fun TeacherStudentsScreen(
         com.example.voicetutor.data.repository.ClassRepository(apiService)
     }
 
-    // 바텀시트 열 때 전체 학생 목록을 별도로 로드 (viewModel.students와 완전히 독립)
     LaunchedEffect(showEnrollSheet) {
         if (showEnrollSheet) {
             isLoadingAllStudents = true
             try {
-                // teacherId = null로 전체 학생 계정 가져오기
                 val result = studentRepository.getAllStudents(teacherId = null, classId = null)
                 result.onSuccess { allStudents ->
                     withContext(Dispatchers.Main) {
@@ -163,15 +159,13 @@ fun TeacherStudentsScreen(
                         isLoadingAllStudents = false
                     }
                 }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    isLoadingAllStudents = false
-                    println("Error loading all students for enrollment: ${e.message}")
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        isLoadingAllStudents = false
+                    }
                 }
-            }
-        } else {
-            // 바텀시트가 닫히면 바텀시트용 목록만 클리어 (viewModel.students는 건드리지 않음)
-            allStudentsForEnroll.clear()
+            } else {
+                allStudentsForEnroll.clear()
             selectedToEnroll.clear()
             enrollSearchQuery = ""
         }
@@ -183,13 +177,12 @@ fun TeacherStudentsScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Class info header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = PrimaryIndigo.copy(alpha = 0.08f),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = PrimaryIndigo.copy(alpha = HEADER_ALPHA),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(HEADER_CORNER_RADIUS.dp),
                 )
                 .padding(20.dp),
         ) {
@@ -209,7 +202,6 @@ fun TeacherStudentsScreen(
             }
         }
 
-        // Class statistics
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -231,7 +223,6 @@ fun TeacherStudentsScreen(
             )
         }
 
-        // Action buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -271,7 +262,6 @@ fun TeacherStudentsScreen(
             )
         }
 
-        // Students list
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -288,7 +278,6 @@ fun TeacherStudentsScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Loading indicator
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -310,7 +299,7 @@ fun TeacherStudentsScreen(
                             imageVector = Icons.Filled.Person,
                             contentDescription = null,
                             tint = Gray400,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(EMPTY_STATE_ICON_SIZE.dp),
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
@@ -337,7 +326,6 @@ fun TeacherStudentsScreen(
         }
     }
 
-    // 학생 등록 바텀시트
     if (showEnrollSheet) {
         ModalBottomSheet(onDismissRequest = {
             showEnrollSheet = false
@@ -356,7 +344,6 @@ fun TeacherStudentsScreen(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // 검색 입력 필드
                 OutlinedTextField(
                     value = enrollSearchQuery,
                     onValueChange = { enrollSearchQuery = it },
@@ -400,7 +387,6 @@ fun TeacherStudentsScreen(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // 로딩 중일 때
                 if (isLoadingAllStudents) {
                     Box(
                         modifier = Modifier
@@ -411,11 +397,9 @@ fun TeacherStudentsScreen(
                         CircularProgressIndicator(color = PrimaryIndigo)
                     }
                 } else {
-                    // 이미 등록된 학생 제외 목록
                     val enrolledIds = classStudents.map { it.id }.toSet()
                     val allCandidates = allStudentsForEnroll.filter { it.id !in enrolledIds }
 
-                    // 검색어로 필터링 (이름 또는 이메일)
                     val searchQueryLower = enrollSearchQuery.lowercase()
                     val candidates = if (searchQueryLower.isBlank()) {
                         allCandidates
@@ -464,13 +448,10 @@ fun TeacherStudentsScreen(
                         onClick = {
                             classId?.let { id ->
                                 coroutineScope.launch {
-                                    // 모든 학생 등록 API 호출
                                     selectedToEnroll.forEach { sid ->
                                         classViewModel.enrollStudentToClass(classId = id, studentId = sid)
                                     }
-                                    // 등록 완료를 위해 잠시 대기 (API 처리 시간)
-                                    delay(500)
-                                    // 완료 후 갱신
+                                    delay(DELAY_AFTER_ENROLL)
                                     classViewModel.loadClassStudents(id)
                                     val actualTeacherId = teacherId ?: currentUser?.id?.toString()
                                     actualTeacherId?.let {
@@ -489,7 +470,6 @@ fun TeacherStudentsScreen(
         }
     }
 
-    // 학생 삭제 바텀시트
     if (showDeleteSheet) {
         ModalBottomSheet(onDismissRequest = {
             showDeleteSheet = false
@@ -508,7 +488,6 @@ fun TeacherStudentsScreen(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // 검색 입력 필드
                 OutlinedTextField(
                     value = deleteSearchQuery,
                     onValueChange = { deleteSearchQuery = it },
@@ -552,10 +531,7 @@ fun TeacherStudentsScreen(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // 이미 등록된 학생 목록
                 val enrolledStudents = classStudents
-
-                // 검색어로 필터링 (이름 또는 이메일)
                 val searchQueryLower = deleteSearchQuery.lowercase()
                 val filteredStudents = if (searchQueryLower.isBlank()) {
                     enrolledStudents
@@ -615,7 +591,6 @@ fun TeacherStudentsScreen(
         }
     }
 
-    // 학생 삭제 재확인 다이얼로그
     if (showDeleteConfirmDialog && selectedToDelete.isNotEmpty()) {
         AlertDialog(
             onDismissRequest = { showDeleteConfirmDialog = false },
@@ -653,36 +628,22 @@ fun TeacherStudentsScreen(
                                 classId?.let { id ->
                                     coroutineScope.launch {
                                         try {
-                                            println("[DELETE] Starting to remove ${selectedToDelete.size} students from class $id")
-                                            // 각 학생을 순차적으로 삭제
                                             withContext(Dispatchers.IO) {
                                                 for (studentId in selectedToDelete) {
-                                                    println("[DELETE] Removing student $studentId from class $id")
-                                                    val result = classRepository.removeStudentFromClass(id, studentId)
-                                                    result.onSuccess {
-                                                        println("[DELETE] Successfully removed student $studentId")
-                                                    }.onFailure { e ->
-                                                        println("[DELETE] Failed to remove student $studentId: ${e.message}")
-                                                        e.printStackTrace()
-                                                    }
+                                                    classRepository.removeStudentFromClass(id, studentId)
                                                 }
                                             }
-                                            println("[DELETE] All deletions completed. Refreshing lists...")
-                                            // 완료 후 갱신
                                             withContext(Dispatchers.Main) {
                                                 classViewModel.loadClassStudents(id)
                                                 val actualTeacherId = teacherId ?: currentUser?.id?.toString()
                                                 actualTeacherId?.let {
                                                     viewModel.loadAllStudents(teacherId = it, classId = id.toString())
                                                 }
-                                                // 다이얼로그와 시트 닫기
                                                 showDeleteConfirmDialog = false
                                                 showDeleteSheet = false
                                                 selectedToDelete.clear()
                                             }
                                         } catch (e: Exception) {
-                                            println("[DELETE] Error removing students: ${e.message}")
-                                            e.printStackTrace()
                                             withContext(Dispatchers.Main) {
                                                 showDeleteConfirmDialog = false
                                                 showDeleteSheet = false
@@ -740,9 +701,9 @@ fun StudentListItem(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(32.dp)
+                            .size(AVATAR_SIZE.dp)
                             .clip(androidx.compose.foundation.shape.CircleShape)
-                            .background(PrimaryIndigo.copy(alpha = 0.1f)),
+                            .background(PrimaryIndigo.copy(alpha = AVATAR_BACKGROUND_ALPHA)),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
@@ -764,8 +725,8 @@ fun StudentListItem(
                         )
                         Text(
                             text = run {
-                                val email = student.email ?: "이메일 없음"
-                                if (email.length > 24) email.take(24) + "..." else email
+                            val email = student.email ?: "이메일 없음"
+                            if (email.length > EMAIL_MAX_LENGTH) email.take(EMAIL_MAX_LENGTH) + "..." else email
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Gray600,
@@ -785,7 +746,7 @@ fun StudentListItem(
                         modifier = Modifier
                             .padding(top = 2.dp)
                             .clip(androidx.compose.foundation.shape.RoundedCornerShape(12.dp))
-                            .background(PrimaryIndigo.copy(alpha = 0.08f))
+                            .background(PrimaryIndigo.copy(alpha = SCORE_BADGE_ALPHA))
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                     ) {
                         Text(
@@ -839,7 +800,7 @@ fun StudentListItem(
                 progress = if (totalAssignments > 0) (completionRate / 100) else 0f,
                 showPercentage = false,
                 color = progressColor,
-                height = 6,
+                height = PROGRESS_BAR_HEIGHT,
             )
 
             Spacer(modifier = Modifier.height(8.dp))
