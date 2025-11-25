@@ -36,12 +36,14 @@ data class ClassAssignment(
     val averageScore: Int,
 )
 
+private const val HIGH_SCORE_THRESHOLD = 80
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeacherClassDetailScreen(
-    classId: Int? = null, // 실제 클래스 ID 사용
-    className: String? = null, // 실제 클래스 이름 사용
-    subject: String? = null, // 실제 과목명 사용
+    classId: Int? = null,
+    className: String? = null,
+    subject: String? = null,
     onNavigateToCreateAssignment: (Int?) -> Unit = { _ -> },
     onNavigateToAssignmentDetail: (Int) -> Unit = {},
 ) {
@@ -52,48 +54,34 @@ fun TeacherClassDetailScreen(
     val classStudents by classViewModel.classStudents.collectAsStateWithLifecycle()
     val currentClass by classViewModel.currentClass.collectAsStateWithLifecycle()
     val isLoading by assignmentViewModel.isLoading.collectAsStateWithLifecycle()
-
-    // 동적 클래스 정보 가져오기
-    val dynamicClassName = currentClass?.name ?: className
-    val dynamicSubject = currentClass?.subject?.name ?: subject
     val error by assignmentViewModel.error.collectAsStateWithLifecycle()
 
-    // 필터 상태
+    val dynamicClassName = currentClass?.name ?: className
+    val dynamicSubject = currentClass?.subject?.name ?: subject
     var selectedFilter by remember { mutableStateOf(AssignmentFilter.ALL) }
 
-    // Load data on first composition and when screen becomes visible
     LaunchedEffect(Unit) {
         classId?.let { id ->
-            // Load assignments for this class
-            println("TeacherClassDetail - Loading assignments for class ID: $id")
             assignmentViewModel.loadAllAssignments(classId = id.toString())
-            // Load students for this class
             classViewModel.loadClassStudents(id)
-            // Load class data
             classViewModel.loadClassById(id)
         }
     }
 
-    // Refresh assignments when assignments list changes (e.g., after creating new assignment)
     LaunchedEffect(assignments.size) {
         classId?.let { id ->
-            println("TeacherClassDetail - Refreshing assignments due to size change: ${assignments.size}")
             assignmentViewModel.loadAllAssignments(classId = id.toString())
         }
     }
 
-    // Handle error
-    error?.let { errorMessage ->
-        LaunchedEffect(errorMessage) {
-            // Show error message
+    error?.let {
+        LaunchedEffect(it) {
             assignmentViewModel.clearError()
         }
     }
 
-    // 제출 현황을 저장하는 StateMap
     val assignmentStatsMap = remember { mutableStateMapOf<Int, Triple<Int, Int, Int>>() }
 
-    // 각 과제의 제출 현황을 로드
     assignments.forEach { assignment ->
         LaunchedEffect(assignment.id) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -107,7 +95,6 @@ fun TeacherClassDetailScreen(
         }
     }
 
-    // Convert API data to ClassAssignment format with real submission stats
     val allClassAssignments = assignments.map { assignment ->
         val stats = assignmentStatsMap[assignment.id] ?: Triple(0, classStudents.size, 0)
         ClassAssignment(
@@ -126,28 +113,8 @@ fun TeacherClassDetailScreen(
         )
     }
 
-    // 필터링된 과제 목록
     val classAssignments = remember(allClassAssignments, selectedFilter) {
-        val now = ZonedDateTime.now(ZoneId.systemDefault())
-        when (selectedFilter) {
-            AssignmentFilter.ALL -> allClassAssignments
-            AssignmentFilter.IN_PROGRESS -> allClassAssignments.filter { assignment ->
-                try {
-                    val dueDate = ZonedDateTime.parse(assignment.dueDate)
-                    dueDate.isAfter(now)
-                } catch (e: Exception) {
-                    true // 파싱 실패 시 포함
-                }
-            }
-            AssignmentFilter.COMPLETED -> allClassAssignments.filter { assignment ->
-                try {
-                    val dueDate = ZonedDateTime.parse(assignment.dueDate)
-                    dueDate.isBefore(now) || dueDate.isEqual(now)
-                } catch (e: Exception) {
-                    false // 파싱 실패 시 제외
-                }
-            }
-        }
+        filterAssignmentsByStatus(allClassAssignments, selectedFilter)
     }
 
     LazyColumn(
@@ -155,13 +122,12 @@ fun TeacherClassDetailScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         color = PrimaryIndigo.copy(alpha = 0.08f),
-                        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                        shape = RoundedCornerShape(16.dp),
                     )
                     .padding(20.dp),
             ) {
@@ -183,7 +149,6 @@ fun TeacherClassDetailScreen(
         }
 
         item {
-            // Stats overview
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -211,7 +176,6 @@ fun TeacherClassDetailScreen(
         }
 
         item {
-            // Quick actions
             VTButton(
                 text = "과제 생성",
                 onClick = { onNavigateToCreateAssignment(classId) },
@@ -231,7 +195,6 @@ fun TeacherClassDetailScreen(
         }
 
         item {
-            // Assignments section header with filter
             Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -245,7 +208,6 @@ fun TeacherClassDetailScreen(
                     color = Gray800,
                 )
 
-                // Filter chips
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
@@ -277,51 +239,81 @@ fun TeacherClassDetailScreen(
             }
         }
 
-        // Loading indicator
-        if (isLoading) {
-            item {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(
-                        color = PrimaryIndigo,
-                    )
-                }
-            }
-        } else if (classAssignments.isEmpty()) {
-            item {
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
+        when {
+            isLoading -> {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Icon(
-                            imageVector = Icons.Filled.Assignment,
-                            contentDescription = null,
-                            tint = Gray400,
-                            modifier = Modifier.size(48.dp),
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "과제가 없습니다",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = Gray600,
-                        )
+                        CircularProgressIndicator(color = PrimaryIndigo)
                     }
                 }
             }
-        } else {
-            // Assignments list
-            items(classAssignments) { assignment ->
-                ClassAssignmentCard(
-                    assignment = assignment,
-                    onNavigateToAssignmentDetail = { onNavigateToAssignmentDetail(assignment.id) },
-                )
+            classAssignments.isEmpty() -> {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Assignment,
+                                contentDescription = null,
+                                tint = Gray400,
+                                modifier = Modifier.size(48.dp),
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "과제가 없습니다",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = Gray600,
+                            )
+                        }
+                    }
+                }
+            }
+            else -> {
+                items(classAssignments) { assignment ->
+                    ClassAssignmentCard(
+                        assignment = assignment,
+                        onNavigateToAssignmentDetail = { onNavigateToAssignmentDetail(assignment.id) },
+                    )
+                }
             }
         }
+    }
+}
+
+
+private fun filterAssignmentsByStatus(
+    assignments: List<ClassAssignment>,
+    filter: AssignmentFilter,
+): List<ClassAssignment> {
+    val now = ZonedDateTime.now(ZoneId.systemDefault())
+    return when (filter) {
+        AssignmentFilter.ALL -> assignments
+        AssignmentFilter.IN_PROGRESS -> assignments.filter { isAssignmentInProgress(it.dueDate, now) }
+        AssignmentFilter.COMPLETED -> assignments.filter { isAssignmentCompleted(it.dueDate, now) }
+    }
+}
+
+private fun isAssignmentInProgress(dueDate: String, now: ZonedDateTime): Boolean {
+    return try {
+        ZonedDateTime.parse(dueDate).isAfter(now)
+    } catch (e: Exception) {
+        true
+    }
+}
+
+private fun isAssignmentCompleted(dueDate: String, now: ZonedDateTime): Boolean {
+    return try {
+        val parsed = ZonedDateTime.parse(dueDate)
+        parsed.isBefore(now) || parsed.isEqual(now)
+    } catch (e: Exception) {
+        false
     }
 }
 
@@ -337,17 +329,14 @@ fun ClassAssignmentCard(
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Assignment header
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = assignment.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Gray800,
-                )
-            }
+            Text(
+                text = assignment.title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = Gray800,
+                modifier = Modifier.fillMaxWidth(),
+            )
 
-            // Progress info
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -390,18 +379,16 @@ fun ClassAssignmentCard(
                         text = "${assignment.averageScore}점",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color = if (assignment.averageScore >= 80) Success else Warning,
+                        color = if (assignment.averageScore >= HIGH_SCORE_THRESHOLD) Success else Warning,
                     )
                 }
             }
 
-            // Progress bar
             VTProgressBar(
                 progress = assignment.completionRate,
                 showPercentage = false,
             )
 
-            // Due date
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
