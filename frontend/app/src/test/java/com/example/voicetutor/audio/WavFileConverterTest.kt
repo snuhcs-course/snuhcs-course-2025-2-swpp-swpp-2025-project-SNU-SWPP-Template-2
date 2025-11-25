@@ -6,18 +6,16 @@ import java.nio.ByteBuffer
 
 class WavFileConverterTest {
 
-    private val audioConfig = AudioConfig()
-
     @Test
     fun createWavFile_header_hasCorrectRIFF() {
         val pcmData = ByteArray(100)
         val wavData = createWavFileHelper(pcmData, 16000)
 
         // RIFF 헤더 확인
-        assertEquals('R'.toByte(), wavData[0])
-        assertEquals('I'.toByte(), wavData[1])
-        assertEquals('F'.toByte(), wavData[2])
-        assertEquals('F'.toByte(), wavData[3])
+        assertEquals('R'.code.toByte(), wavData[0])
+        assertEquals('I'.code.toByte(), wavData[1])
+        assertEquals('F'.code.toByte(), wavData[2])
+        assertEquals('F'.code.toByte(), wavData[3])
     }
 
     @Test
@@ -26,10 +24,10 @@ class WavFileConverterTest {
         val wavData = createWavFileHelper(pcmData, 16000)
 
         // WAVE 형식 확인
-        assertEquals('W'.toByte(), wavData[8])
-        assertEquals('A'.toByte(), wavData[9])
-        assertEquals('V'.toByte(), wavData[10])
-        assertEquals('E'.toByte(), wavData[11])
+        assertEquals('W'.code.toByte(), wavData[8])
+        assertEquals('A'.code.toByte(), wavData[9])
+        assertEquals('V'.code.toByte(), wavData[10])
+        assertEquals('E'.code.toByte(), wavData[11])
     }
 
     @Test
@@ -38,10 +36,10 @@ class WavFileConverterTest {
         val wavData = createWavFileHelper(pcmData, 16000)
 
         // fmt 청크 확인
-        assertEquals('f'.toByte(), wavData[12])
-        assertEquals('m'.toByte(), wavData[13])
-        assertEquals('t'.toByte(), wavData[14])
-        assertEquals(' '.toByte(), wavData[15])
+        assertEquals('f'.code.toByte(), wavData[12])
+        assertEquals('m'.code.toByte(), wavData[13])
+        assertEquals('t'.code.toByte(), wavData[14])
+        assertEquals(' '.code.toByte(), wavData[15])
     }
 
     @Test
@@ -50,10 +48,10 @@ class WavFileConverterTest {
         val wavData = createWavFileHelper(pcmData, 16000)
 
         // data 청크 확인
-        assertEquals('d'.toByte(), wavData[36])
-        assertEquals('a'.toByte(), wavData[37])
-        assertEquals('t'.toByte(), wavData[38])
-        assertEquals('a'.toByte(), wavData[39])
+        assertEquals('d'.code.toByte(), wavData[36])
+        assertEquals('a'.code.toByte(), wavData[37])
+        assertEquals('t'.code.toByte(), wavData[38])
+        assertEquals('a'.code.toByte(), wavData[39])
     }
 
     @Test
@@ -148,8 +146,8 @@ class WavFileConverterTest {
         assertEquals(44, wavData.size)
 
         // RIFF 헤더 확인
-        assertEquals('R'.toByte(), wavData[0])
-        assertEquals('I'.toByte(), wavData[1])
+        assertEquals('R'.code.toByte(), wavData[0])
+        assertEquals('I'.code.toByte(), wavData[1])
     }
 
     @Test
@@ -178,10 +176,10 @@ class WavFileConverterTest {
         val fileSize = dataSize + 36
 
         // RIFF 헤더
-        wavHeader[0] = 'R'.toByte()
-        wavHeader[1] = 'I'.toByte()
-        wavHeader[2] = 'F'.toByte()
-        wavHeader[3] = 'F'.toByte()
+        wavHeader[0] = 'R'.code.toByte()
+        wavHeader[1] = 'I'.code.toByte()
+        wavHeader[2] = 'F'.code.toByte()
+        wavHeader[3] = 'F'.code.toByte()
 
         // 파일 크기
         wavHeader[4] = (fileSize and 0xFF).toByte()
@@ -190,16 +188,16 @@ class WavFileConverterTest {
         wavHeader[7] = ((fileSize shr 24) and 0xFF).toByte()
 
         // WAVE 형식
-        wavHeader[8] = 'W'.toByte()
-        wavHeader[9] = 'A'.toByte()
-        wavHeader[10] = 'V'.toByte()
-        wavHeader[11] = 'E'.toByte()
+        wavHeader[8] = 'W'.code.toByte()
+        wavHeader[9] = 'A'.code.toByte()
+        wavHeader[10] = 'V'.code.toByte()
+        wavHeader[11] = 'E'.code.toByte()
 
         // fmt 청크
-        wavHeader[12] = 'f'.toByte()
-        wavHeader[13] = 'm'.toByte()
-        wavHeader[14] = 't'.toByte()
-        wavHeader[15] = ' '.toByte()
+        wavHeader[12] = 'f'.code.toByte()
+        wavHeader[13] = 'm'.code.toByte()
+        wavHeader[14] = 't'.code.toByte()
+        wavHeader[15] = ' '.code.toByte()
 
         // fmt 청크 크기
         wavHeader[16] = 16
@@ -237,10 +235,10 @@ class WavFileConverterTest {
         wavHeader[35] = 0
 
         // data 청크
-        wavHeader[36] = 'd'.toByte()
-        wavHeader[37] = 'a'.toByte()
-        wavHeader[38] = 't'.toByte()
-        wavHeader[39] = 'a'.toByte()
+        wavHeader[36] = 'd'.code.toByte()
+        wavHeader[37] = 'a'.code.toByte()
+        wavHeader[38] = 't'.code.toByte()
+        wavHeader[39] = 'a'.code.toByte()
 
         // 데이터 크기
         wavHeader[40] = (dataSize and 0xFF).toByte()

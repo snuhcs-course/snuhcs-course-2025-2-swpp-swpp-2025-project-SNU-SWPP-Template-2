@@ -77,7 +77,7 @@ class ExtendedCoverageTests {
         }
 
         composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("리포트 보기", substring = true).performClick()
+        composeTestRule.onNodeWithText("홍길동", substring = true).performClick()
         composeTestRule.waitForIdle()
         assert(clicked)
     }

@@ -8,7 +8,7 @@ class EnumModelsTest {
     @Test
     fun assignmentStatus_values_containsAllStatuses() {
         // Act
-        val values = AssignmentStatus.values()
+        val values = AssignmentStatus.entries
 
         // Assert
         assertEquals(3, values.size)
@@ -28,7 +28,7 @@ class EnumModelsTest {
     @Test
     fun assignmentFilter_values_containsAllFilters() {
         // Act
-        val values = AssignmentFilter.values()
+        val values = AssignmentFilter.entries
 
         // Assert
         assertEquals(3, values.size)
@@ -48,7 +48,7 @@ class EnumModelsTest {
     @Test
     fun personalAssignmentStatus_values_containsAllStatuses() {
         // Act
-        val values = PersonalAssignmentStatus.values()
+        val values = PersonalAssignmentStatus.entries
 
         // Assert
         assertEquals(3, values.size)
@@ -68,7 +68,7 @@ class EnumModelsTest {
     @Test
     fun personalAssignmentFilter_values_containsAllFilters() {
         // Act
-        val values = PersonalAssignmentFilter.values()
+        val values = PersonalAssignmentFilter.entries
 
         // Assert
         assertEquals(4, values.size)
