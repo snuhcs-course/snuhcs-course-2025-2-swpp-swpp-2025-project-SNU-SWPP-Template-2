@@ -14,10 +14,6 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterUniqueTogether(
-            name="bookreview",
-            unique_together=set(),
-        ),
         migrations.AddField(
             model_name="bookreview",
             name="author_name",

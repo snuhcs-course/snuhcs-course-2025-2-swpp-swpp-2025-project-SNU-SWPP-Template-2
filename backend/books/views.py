@@ -1,28 +1,58 @@
 """
 Views for the books app.
-Handles book review API endpoints.
+Combines legacy review endpoints with the updated library/profile APIs.
 """
 
+from math import asin, cos, radians, sin, sqrt
+
+from accounts.serializers import UserBarterInfoSerializer
 from django.contrib.auth import get_user_model
+from django.shortcuts import get_object_or_404
 from drf_spectacular.utils import OpenApiResponse, extend_schema
+from notify.models import Notification
+from notify.utils import create_notification
 from rest_framework import generics, permissions, status
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
 
-from .models import Book, BookReview, BookWishlist, ReviewHelpfulVote, BookCollection, ReadingStatus
-from django.shortcuts import get_object_or_404
-from notify.models import Notification
-from rest_framework.decorators import api_view, permission_classes
-from .serializers import (
-    BookSummarySerializer,
-    CreateReviewSerializer,
-    ReviewLikeResponseSerializer,
-    ReviewSerializer, BookReview, BookSerializer, BookCollectionSerializer, ReadingStatusSerializer
+from .models import (
+    BookCollection,
+    BookCopy,
+    BookReview,
+    BookWishlist,
+    ReadingStatus,
+    ReviewHelpfulVote,
 )
-from accounts.serializers import UserSerializer
+from .serializers import (
+    BookCollectionSerializer,
+    BookSerializer,
+    CreateReviewSerializer,
+    ReadingStatusSerializer,
+    ReviewLikeResponseSerializer,
+    ReviewSerializer,
+)
+from .services.publication_categories import PublicationCategorizer
 
 User = get_user_model()
+
+
+def _build_book_card(book: BookCopy, request) -> dict:
+    """Return a lightweight payload for library/wishlist endpoints."""
+    cover_url = None
+    if book.cover_image:
+        cover_url = (
+            request.build_absolute_uri(book.cover_image.url)
+            if request
+            else book.cover_image.url
+        )
+    return {
+        "id": str(book.id),
+        "title": book.title,
+        "author": book.author_names,
+        "coverUrl": cover_url,
+    }
 
 
 class UserReviewListCreateView(generics.ListCreateAPIView):
@@ -104,8 +134,7 @@ class ReviewLikeView(APIView):
 
     @extend_schema(
         summary="Like/Unlike Review",
-        description="Toggle like on a book review. If already liked, "
-        "it will unlike. If not liked, it will like.",
+        description="Toggle like on a book review. If already liked, it will unlike.",
         responses={
             200: OpenApiResponse(
                 description="Like toggled successfully",
@@ -128,90 +157,81 @@ class ReviewLikeView(APIView):
                 status=status.HTTP_404_NOT_FOUND,
             )
 
-        # Check if user already liked this review
         existing_like = ReviewHelpfulVote.objects.filter(
             review=review, user=request.user
         ).first()
 
         if existing_like:
-            # Unlike: remove the like
             existing_like.delete()
         else:
-            # Like: add a new like
             ReviewHelpfulVote.objects.create(review=review, user=request.user)
             if request.user != review.reviewer:
-                create_notification(request,type_of_notification='review_like',review_id=review.id)
+                create_notification(
+                    request,
+                    type_of_notification="review_like",
+                    review_id=review.id,
+                )
 
-
-        # Refresh the review to get updated helpful_votes
         review.refresh_from_db()
-        review = (
-            BookReview.objects.select_related("reviewer")
-            .prefetch_related("helpful_votes")
-            .get(pk=pk)
-        )
-
-        # Return updated review data
         serializer = ReviewSerializer(review, context={"request": request})
         return Response({"review": serializer.data}, status=status.HTTP_200_OK)
 
 
-@api_view(["GET"]) 
+@api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def user_profile_detail(request, user_id: int):
     """
     Get public profile of a specific user by ID.
     Returns same structure as UserProfileMeView for consistency.
-
-    GET /library/profile/{user_id}/
     """
+
     try:
         user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
-    # Build frontend-compatible profile (same as UserProfileMeView)
     profile_url = None
     if user.profile_picture:
         profile_url = request.build_absolute_uri(user.profile_picture.url)
 
-    # Taste and preferences
     favorite_genres = []
     trade_location1 = None
     trade_spot1 = None
-    try:
-        taste = user.taste
+    taste = getattr(user, "taste", None)
+    if taste:
         favorite_genres = taste.favorite_genres or []
         trade_location1 = taste.trade_place_name or None
         trade_spot1 = taste.trade_address or None
-    except Exception:
-        pass
 
-    # Compute counts
     review_count = BookReview.objects.filter(reviewer=user).count()
     follower_count = user.follower_relationships.count()
     following_count = user.following_relationships.count()
 
-    return Response({
-        "username": user.username,
-        "bio": user.bio,
-        "profileUrl": profile_url,
-        "reviewCount": review_count,
-        "followerCount": follower_count,
-        "followingCount": following_count,
-        "favoriteGenres": favorite_genres,
-        "preferences": {
-            "tradeLocation1": trade_location1,
-            "tradeLocation2": None,
-            "tradeSpot1": trade_spot1,
-            "tradeSpot2": None,
-            "favBook": None,
-            "favBookNote": None,
-            "favAuthor": None,
-            "favAuthorNote": None,
-            "readingHabit": None,
+    return Response(
+        {
+            "username": user.username,
+            "bio": user.bio,
+            "profileUrl": profile_url,
+            "reviewCount": review_count,
+            "followerCount": follower_count,
+            "followingCount": following_count,
+            "favoriteGenres": favorite_genres,
+            "preferences": {
+                "tradeLocation1": trade_location1,
+                "tradeLocation2": None,
+                "tradeSpot1": trade_spot1,
+                "tradeSpot2": None,
+                "favBook": None,
+                "favBookNote": None,
+                "favAuthor": None,
+                "favAuthorNote": None,
+                "readingHabit": None,
+            },
         },
-    }, status=status.HTTP_200_OK)
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["GET"])
@@ -219,140 +239,104 @@ def user_profile_detail(request, user_id: int):
 def user_books_list(request):
     """
     Get list of books owned by the current user.
-    
-    GET /library/books/
-    
-    Returns list of books with id, title, author, coverUrl
+    Returns the minimal structure expected by the Android profile screens.
     """
-    books = Book.objects.filter(owner=request.user).select_related("publisher").prefetch_related("authors")
-    
-    # Map to frontend's expected Book format
-    results = []
-    for book in books:
-        results.append({
-            "id": str(book.id),
-            "title": book.title,
-            "author": book.author_names if hasattr(book, 'author_names') else ", ".join([a.name for a in book.authors.all()]),
-            "coverUrl": request.build_absolute_uri(book.cover_image.url) if book.cover_image else None,
-        })
-    
-    return Response(results, status=status.HTTP_200_OK)
+
+    books = (
+        BookCopy.objects.filter(owner=request.user)
+        .select_related("publication")
+        .prefetch_related("publication__authors")
+    )
+    return Response(
+        [_build_book_card(book, request) for book in books],
+        status=status.HTTP_200_OK,
+    )
 
 
-@api_view(["GET"]) 
+@api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def user_books_list_by_id(request, user_id: int):
-    """
-    Get list of books owned by a specific user.
+    """Get list of books owned by a specific user."""
 
-    GET /library/books/{user_id}/
-    """
     try:
         owner = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-
-    books = (
-        Book.objects.filter(owner=owner)
-        .select_related("publisher")
-        .prefetch_related("authors")
-    )
-
-    results = []
-    for book in books:
-        results.append(
-            {
-                "id": str(book.id),
-                "title": book.title,
-                "author": book.author_names if hasattr(book, "author_names") else ", ".join([a.name for a in book.authors.all()]),
-                "coverUrl": request.build_absolute_uri(book.cover_image.url) if book.cover_image else None,
-            }
+        return Response(
+            {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
         )
 
-    return Response(results, status=status.HTTP_200_OK)
+    books = (
+        BookCopy.objects.filter(owner=owner)
+        .select_related("publication")
+        .prefetch_related("publication__authors")
+    )
+    return Response(
+        [_build_book_card(book, request) for book in books],
+        status=status.HTTP_200_OK,
+    )
 
 
 @api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def user_wishlist_list(request):
-    """
-    Get list of books in the current user's wishlist.
-    
-    GET /library/wishlist/
-    
-    Returns list of books with id, title, author, coverUrl
-    """
-    wishlist_items = BookWishlist.objects.filter(user=request.user).select_related("book__publisher").prefetch_related("book__authors")
-    
-    # Map to frontend's expected Book format
-    results = []
-    for item in wishlist_items:
-        book = item.book
-        results.append({
-            "id": str(book.id),
-            "title": book.title,
-            "author": book.author_names if hasattr(book, 'author_names') else ", ".join([a.name for a in book.authors.all()]),
-            "coverUrl": request.build_absolute_uri(book.cover_image.url) if book.cover_image else None,
-        })
-    
-    return Response(results, status=status.HTTP_200_OK)
+    """Return current user's wishlist."""
+
+    wishlist_items = (
+        BookWishlist.objects.filter(user=request.user)
+        .select_related("book__publication")
+        .prefetch_related("book__publication__authors")
+    )
+    books = [item.book for item in wishlist_items]
+    return Response(
+        [_build_book_card(book, request) for book in books],
+        status=status.HTTP_200_OK,
+    )
 
 
-@api_view(["GET"]) 
+@api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def user_wishlist_by_id(request, user_id: int):
-    """
-    Get list of books in a specific user's wishlist.
+    """Return wishlist for a specific user."""
 
-    GET /library/wishlist/{user_id}/
-    """
     try:
         target_user = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     wishlist_items = (
         BookWishlist.objects.filter(user=target_user)
-        .select_related("book__publisher")
-        .prefetch_related("book__authors")
+        .select_related("book__publication")
+        .prefetch_related("book__publication__authors")
+    )
+    books = [item.book for item in wishlist_items]
+    return Response(
+        [_build_book_card(book, request) for book in books],
+        status=status.HTTP_200_OK,
     )
 
-    results = []
-    for item in wishlist_items:
-        book = item.book
-        results.append(
-            {
-                "id": str(book.id),
-                "title": book.title,
-                "author": book.author_names if hasattr(book, "author_names") else ", ".join([a.name for a in book.authors.all()]),
-                "coverUrl": request.build_absolute_uri(book.cover_image.url) if book.cover_image else None,
-            }
-        )
 
-    return Response(results, status=status.HTTP_200_OK)
-
-
-@api_view(["GET"]) 
+@api_view(["GET"])
 @permission_classes([permissions.IsAuthenticated])
 def user_reviews_by_id(request, user_id: int):
-    """
-    Get reviews written by a specific user.
+    """Get reviews written by a specific user."""
 
-    GET /library/reviews/{user_id}/
-    """
     try:
         reviewer = User.objects.get(pk=user_id)
     except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     queryset = (
         BookReview.objects.filter(reviewer=reviewer)
         .select_related("reviewer")
         .prefetch_related("helpful_votes")
     )
-
-    serializer = ReviewSerializer(queryset, many=True, context={"request": request})
-    # Return plain list to match frontend ProfileApi expectations
+    serializer = ReviewSerializer(
+        queryset, many=True, context={"request": request}
+    )
     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -361,64 +345,62 @@ def user_reviews_by_id(request, user_id: int):
 def toggle_wishlist(request, book_id):
     """
     Add or remove a book from user's wishlist.
-    
-    POST /library/books/{book_id}/wishlist/ - Add to wishlist
-    DELETE /library/books/{book_id}/wishlist/ - Remove from wishlist
-    
-    Returns status 200 on success
+    POST adds (idempotent), DELETE removes.
     """
-    try:
-        book = Book.objects.get(pk=book_id)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
-    
+
+    book = get_object_or_404(
+        BookCopy.objects.select_related("owner", "publication"), pk=book_id
+    )
+
     if request.method == "POST":
-        # Add to wishlist
         wishlist_item, created = BookWishlist.objects.get_or_create(
             user=request.user,
-            book=book
+            book=book,
         )
-        if created:
-            # Notify the book owner when their book is wishlisted
-            if getattr(book, "owner", None):
-                Notification.objects.create(
-                    recipient=book.owner,
-                    sender=request.user,
-                    notification_type="book_wishlisted",
-                    title=f"{request.user.username} wishlisted your book",
-                    message=f"{request.user.username} added '{book.title}' to their wishlist",
-                )
-        return Response({"message": "Added to wishlist"}, status=status.HTTP_200_OK)
-    
-    elif request.method == "DELETE":
-        # Remove from wishlist
-        deleted_count, _ = BookWishlist.objects.filter(
-            user=request.user,
-            book=book
-        ).delete()
-        if deleted_count > 0:
-            return Response({"message": "Removed from wishlist"}, status=status.HTTP_200_OK)
-        else:
-            return Response({"message": "Not in wishlist"}, status=status.HTTP_200_OK)
+        if created and book.owner_id and book.owner_id != request.user.id:
+            Notification.objects.create(
+                recipient=book.owner,
+                sender=request.user,
+                notification_type="book_wishlisted",
+                title=f"{request.user.username} wishlisted your book",
+                message=f"{request.user.username} added '{book.title}' to their wishlist.",
+                content_object=book,
+            )
+        return Response({"wishlisted": True}, status=status.HTTP_200_OK)
+
+    deleted_count, _ = BookWishlist.objects.filter(
+        user=request.user, book=book
+    ).delete()
+    if deleted_count > 0:
+        data = {
+            "wishlisted": False,
+            "removed": True,
+            "message": "Removed from wishlist",
+        }
+    else:
+        data = {
+            "wishlisted": False,
+            "removed": False,
+            "message": "Not in wishlist",
+        }
+    return Response(data, status=status.HTTP_200_OK)
 
 
 @api_view(["PATCH"])
 @permission_classes([permissions.IsAuthenticated])
 def toggle_book_for_barter(request, book_id):
     """
-    Toggle whether this book is available for bartering.
+    Toggle whether this book copy is available for bartering.
     Only the owner can toggle.
-
-    PATCH /books/{book_id}/toggle-barter/
-
-    Returns { "is_for_barter": true|false }
     """
-    try:
-        book = Book.objects.get(pk=book_id)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
 
-    # Only owner can toggle
+    try:
+        book = BookCopy.objects.select_related("owner").get(pk=book_id)
+    except BookCopy.DoesNotExist:
+        return Response(
+            {"error": "Book not found"},
+            status=status.HTTP_404_NOT_FOUND,
+        )
     if book.owner_id != request.user.id:
         return Response(
             {"error": "Only the owner can toggle barter availability"},
@@ -427,180 +409,272 @@ def toggle_book_for_barter(request, book_id):
 
     book.is_for_barter = not book.is_for_barter
     book.save(update_fields=["is_for_barter"])
+    return Response(
+        {"is_for_barter": book.is_for_barter}, status=status.HTTP_200_OK
+    )
 
-    return Response({"is_for_barter": book.is_for_barter}, status=status.HTTP_200_OK)
 
-
-#GET BOOK
-#UPDATE BOOK
-#DELETE BOOK
 @api_view(["GET", "PUT", "DELETE"])
 @permission_classes([IsAuthenticated])
 def book_detail(request, pk):
-    """
-    GET /books/<pk>/    - Retrieve a single book
-    PUT /books/<pk>/    - Update book details (authenticated users only)
-    DELETE /books/<pk>/ - Delete a book (authenticated users only)
-    """
-    book = get_object_or_404(Book, pk=pk)
+    """Retrieve, update, or delete a specific book copy."""
+
+    book = get_object_or_404(
+        BookCopy.objects.select_related("publication", "owner"), pk=pk
+    )
 
     if request.method == "GET":
-        serializer = BookSerializer(book)
+        serializer = BookSerializer(book, context={"request": request})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     elif request.method == "PUT":
-        data = request.data.copy()
-        data.pop("owner", None)  # Ignore owner field if sent
-        serializer = BookSerializer(book, data=request.data, partial=True)
+        serializer = BookSerializer(
+            book, data=request.data, partial=True, context={"request": request}
+        )
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    elif request.method == "DELETE":
-        book.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+    book.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def book_list(request):
-    """
-    GET /books/  - List all books
-    POST /books/ - Add a new book (owned by the authenticated user)
-    """
-    # print("book_list reached with method:", request.method)
-    
+    """List all book copies or create a new one owned by the authenticated user."""
+
     if request.method == "GET":
-        books = Book.objects.filter(owner=request.user).select_related("publisher").prefetch_related("authors")
-        serializer = BookSerializer(books, many=True)
+        books = BookCopy.objects.filter(owner=request.user).select_related(
+            "publication", "owner"
+        )
+        serializer = BookSerializer(
+            books, many=True, context={"request": request}
+        )
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
-    elif request.method == "POST":
-        serializer = BookSerializer(data=request.data)
-        if serializer.is_valid():
-            book = serializer.save(owner=request.user)
-            
-            # Re-serialize the saved book with authors prefetched
-            saved_book = Book.objects.prefetch_related('authors').get(pk=book.pk)
-            response_serializer = BookSerializer(saved_book)
-            
-            # print("Check if book added: ", response_serializer.data)
-            return Response(response_serializer.data, status=status.HTTP_201_CREATED)
-        
-        # print("Serializer errors:", serializer.errors)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    serializer = BookSerializer(
+        data=request.data, context={"request": request}
+    )
+    if serializer.is_valid():
+        serializer.save(owner=request.user)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # --- Create & List collections ---
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def collection_list_view(request):
-    user = request.user
+    """List or create collections for the authenticated user."""
 
+    user = request.user
     if request.method == "GET":
         collections = BookCollection.objects.filter(owner=user)
         serializer = BookCollectionSerializer(collections, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    elif request.method == "POST":
-        name = request.data.get("name")
-        if not name:
-            return Response({"error": "Collection name is required."}, status=status.HTTP_400_BAD_REQUEST)
-        description = request.data.get("description", "")
-        is_public = request.data.get("is_public", True)
-
-        collection = BookCollection.objects.create(
-            name=name,
-            description=description,
-            is_public=is_public,
-            owner=user
+    name = request.data.get("name")
+    if not name:
+        return Response(
+            {"error": "Collection name is required."},
+            status=status.HTTP_400_BAD_REQUEST,
         )
-        serializer = BookCollectionSerializer(collection)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-# --- Add/Remove book from a collection ---
+    collection = BookCollection.objects.create(
+        name=name,
+        description=request.data.get("description", ""),
+        is_public=request.data.get("is_public", True),
+        owner=user,
+    )
+    serializer = BookCollectionSerializer(collection)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
 @api_view(["POST", "DELETE"])
 @permission_classes([IsAuthenticated])
 def modify_collection_books(request, pk):
-    user = request.user
+    """Add or remove a book copy from a collection."""
 
+    user = request.user
     try:
         collection = BookCollection.objects.get(id=pk, owner=user)
     except BookCollection.DoesNotExist:
-        return Response({"error": "Collection not found"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Collection not found"}, status=status.HTTP_404_NOT_FOUND
+        )
 
     book_id = request.data.get("id")
     if not book_id:
-        return Response({"error": "book_id is required"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"error": "book_id is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    try:
-        book = Book.objects.get(id=book_id)
-    except Book.DoesNotExist:
-        return Response({"error": "Book not found"}, status=status.HTTP_404_NOT_FOUND)
+    book = get_object_or_404(BookCopy, id=book_id)
 
     if request.method == "POST":
         collection.books.add(book)
-        return Response({"message": f"{book.title} added to {collection.name}."})
+        return Response(
+            {"message": f"{book.title} added to {collection.name}."},
+            status=status.HTTP_200_OK,
+        )
 
-    elif request.method == "DELETE":
-        collection.books.remove(book)
-        return Response({"message": f"{book.title} removed from {collection.name}."})
+    collection.books.remove(book)
+    return Response(
+        {"message": f"{book.title} removed from {collection.name}."},
+        status=status.HTTP_200_OK,
+    )
 
-# --- Create & List reading status ---
 
 @api_view(["GET", "POST"])
 @permission_classes([IsAuthenticated])
 def reading_status_view(request):
+    """List or upsert reading status entries for the authenticated user."""
 
     user = request.user
-    # --- GET: list all reading statuses for the user ---
     if request.method == "GET":
-        statuses = ReadingStatus.objects.filter(user=user)
+        statuses = ReadingStatus.objects.filter(user=user).select_related(
+            "book"
+        )
         serializer = ReadingStatusSerializer(statuses, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    # --- POST: create or update status for a book ---
-    elif request.method == "POST":
-        book_id = request.data.get("id")
-        if not book_id:
-            return Response({"error": "book_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+    book_id = request.data.get("book_id") or request.data.get("id")
+    if not book_id:
+        return Response(
+            {"error": "book_id is required."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-        try:
-            book = Book.objects.get(id=book_id)
-        except Book.DoesNotExist:
-            return Response({"error": "Book not found."}, status=status.HTTP_404_NOT_FOUND)
-
-        reading_status, created = ReadingStatus.objects.get_or_create(user=user, book=book)
-        serializer = ReadingStatusSerializer(reading_status, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED if created else status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    book = get_object_or_404(BookCopy, id=book_id)
+    reading_status, created = ReadingStatus.objects.get_or_create(
+        user=user, book=book
+    )
+    serializer = ReadingStatusSerializer(
+        reading_status, data=request.data, partial=True
+    )
+    if serializer.is_valid():
+        serializer.save()
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED if created else status.HTTP_200_OK,
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(["PATCH", "DELETE"])
 @permission_classes([IsAuthenticated])
 def modify_reading_status(request, pk):
+    """Update or delete a specific reading status entry."""
+
     user = request.user
-    # --- PATCH: partial update (e.g., update pages_read or status) ---
     if request.method == "PATCH":
-        # Get ID from URL path (pk) instead of request.data
-        try:
-            reading_status = ReadingStatus.objects.get(id=pk, user=user)
-        except ReadingStatus.DoesNotExist:
-            return Response({"error": "Reading status not found."}, status=status.HTTP_404_NOT_FOUND)
-        serializer = ReadingStatusSerializer(reading_status, data=request.data, partial=True)
+        reading_status = get_object_or_404(ReadingStatus, id=pk, user=user)
+        serializer = ReadingStatusSerializer(
+            reading_status, data=request.data, partial=True
+        )
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # --- DELETE: remove a reading status entry ---
-    elif request.method == "DELETE":
-        # Get ID from URL path (pk)
-        try:
-            ReadingStatus.objects.filter(id=pk, user=user).delete()
-        except ReadingStatus.DoesNotExist:
-            return Response({"error": "Reading status not found."},
-                            status=status.HTTP_404_NOT_FOUND)
+    deleted, _ = ReadingStatus.objects.filter(id=pk, user=user).delete()
+    if not deleted:
+        return Response(
+            {"error": "Reading status not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+    return Response(
+        {"message": "Reading status removed."},
+        status=status.HTTP_204_NO_CONTENT,
+    )
 
-        return Response({"message": "Reading status removed."},
-                        status=status.HTTP_204_NO_CONTENT)
+
+@api_view(["GET"])
+@permission_classes([permissions.IsAuthenticated])
+def nearby_owners(request, book_id):
+    """
+    Get list of users who own this book, are willing to barter,
+    and are within a given radius (default 20 km).
+    """
+
+    book = get_object_or_404(
+        BookCopy.objects.select_related("owner", "publication"), pk=book_id
+    )
+    radius_km = float(request.query_params.get("radius", 20))
+
+    user_lat_val = getattr(request.user, "latitude", None)
+    user_lon_val = getattr(request.user, "longitude", None)
+    if not user_lat_val or not user_lon_val:
+        return Response(
+            {"error": "Your location is not set. Please update your profile."},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    user_lat = float(user_lat_val)
+    user_lon = float(user_lon_val)
+
+    potential_owners = (
+        BookCopy.objects.filter(
+            publication=book.publication,
+            is_for_barter=True,
+        )
+        .exclude(owner=request.user)
+        .select_related("owner")
+    )
+
+    def haversine(lon1, lat1, lon2, lat2):
+        """Calculate distance in km between two lat/lon points."""
+        lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+        dlon = lon2 - lon1
+        dlat = lat2 - lat1
+        a = sin(dlat / 2) ** 2 + cos(lat1) * cos(lat2) * sin(dlon / 2) ** 2
+        c = 2 * asin(sqrt(a))
+        return 6371 * c
+
+    results = []
+    for book_instance in potential_owners:
+        owner = book_instance.owner
+        owner_lat = getattr(owner, "latitude", None)
+        owner_lon = getattr(owner, "longitude", None)
+        if not owner_lat or not owner_lon:
+            continue
+
+        distance = haversine(
+            user_lon, user_lat, float(owner_lon), float(owner_lat)
+        )
+        if distance <= radius_km:
+            owner_data = UserBarterInfoSerializer(
+                owner, context={"request": request}
+            ).data
+            owner_data["distance_km"] = round(distance, 2)
+            results.append(owner_data)
+
+    results.sort(key=lambda item: item["distance_km"])
+    return Response({"owners": results}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+@permission_classes([permissions.AllowAny])
+def publication_recommendations(request):
+    """
+    Return sample publication recommendations for exploration.
+    """
+    limit = int(request.query_params.get("limit", 4))
+    classifier = PublicationCategorizer()
+    classification = classifier.classify({})
+
+    results = []
+    for idx in range(limit):
+        results.append(
+            {
+                "id": str(idx),
+                "title": f"Sample Recommendation {idx + 1}",
+                "categoryScores": classification.category_scores,
+                "tasteProfile": classification.taste_profile,
+            }
+        )
+
+    return Response({"results": results}, status=status.HTTP_200_OK)

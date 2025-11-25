@@ -174,14 +174,14 @@ make test-coverage
 
 ### 패키지 관리
 ```bash
-# uv로 의존성 설치
-uv pip install -r requirements.txt
+# uv로 백엔드 의존성 설치 (dev 포함)
+cd backend && uv sync --extra dev
 
-# 새 의존성 추가
-uv add package-name
+# 새 백엔드 의존성 추가
+cd backend && uv add package-name
 
-# 의존성 업데이트
-uv pip compile requirements.in
+# 잠금 파일 업데이트
+cd backend && uv lock --upgrade
 ```
 
 ## 📊 프로젝트 상태

@@ -132,16 +132,10 @@ which python  # Should point to venv/bin/python
 ### 2. Install Dependencies with uv
 ```bash
 # Install development dependencies using uv (faster)
-uv pip install -e ".[dev]"
+cd backend && uv sync --extra dev  # use --all-extras to pull every optional set
 
-# Or install from requirements file
-uv pip install -r backend/requirements.txt
-uv pip install -r backend/requirements-dev.txt
-
-# Alternative: Create and sync with uv
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-uv pip sync requirements.txt
+# If uv isn't available, install via pip using the pyproject
+cd backend && pip install -e ".[dev]"
 ```
 
 ### 3. Database Setup
@@ -219,15 +213,18 @@ cd frontend
 source venv/bin/activate
 
 # Install AI dependencies using uv (faster)
-uv pip install -e ".[ai]"
+cd ai-model && uv sync --extra dev
+
+# If uv isn't available, install via pip using the pyproject
+cd ai-model && pip install -e ".[dev]"
 
 # For GPU support (optional, requires CUDA)
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 
-# Alternative: Use uv to manage AI environment
+# Alternative: Use an isolated AI environment
 uv venv ai-env
 source ai-env/bin/activate
-uv pip install -r ai-model/requirements.txt
+cd ai-model && uv pip install -e .
 ```
 
 ### 2. Download Pre-trained Models

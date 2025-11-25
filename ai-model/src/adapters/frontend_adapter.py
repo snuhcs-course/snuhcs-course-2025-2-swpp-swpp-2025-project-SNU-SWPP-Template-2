@@ -144,7 +144,7 @@ class FrontendDataAdapter:
 
     @staticmethod
     def extract_location_preferences(
-        frontend_data: dict[str, Any]
+        frontend_data: dict[str, Any],
     ) -> dict[str, Any]:
         """
         Extract location and meeting spot preferences.
@@ -168,4 +168,3 @@ class FrontendDataAdapter:
             ],
             "max_distance_km": 50,  # Default, should come from backend
         }
-

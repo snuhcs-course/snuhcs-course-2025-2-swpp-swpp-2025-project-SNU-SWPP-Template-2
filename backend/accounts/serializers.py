@@ -3,6 +3,8 @@ Serializers for the accounts app.
 Handles user authentication, registration, and profile management.
 """
 
+from books.models import BookReview, BookWishlist
+from books.serializers import BookSummarySerializer, ReviewSerializer
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
@@ -20,8 +22,6 @@ from .models import (
     UserPreferences,
     UserTaste,
 )
-from books.models import BookWishlist, BookReview
-from books.serializers import BookSummarySerializer, ReviewSerializer
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -186,7 +186,6 @@ class UserSerializer(serializers.ModelSerializer):
             "successful_trades",
             "created_at",
             "has_initial_taste",
-
         )
 
 
@@ -454,13 +453,21 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
 
     def get_library(self, obj):
         # All books owned by the user (use reverse relation to avoid import ambiguity)
-        qs = obj.books.select_related("publisher").prefetch_related("authors")
+        qs = obj.book_copies.select_related("publication").prefetch_related(
+            "publication__authors"
+        )
         return BookSummarySerializer(qs, many=True, context=self.context).data
 
     def get_wishlist(self, obj):
-        qs = BookWishlist.objects.filter(user=obj).select_related("book")
+        qs = (
+            BookWishlist.objects.filter(user=obj)
+            .select_related("book__publication")
+            .prefetch_related("book__publication__authors")
+        )
         books = [item.book for item in qs]
-        return BookSummarySerializer(books, many=True, context=self.context).data
+        return BookSummarySerializer(
+            books, many=True, context=self.context
+        ).data
 
     def get_taste(self, obj):
         """Return the user's full taste profile."""
@@ -471,6 +478,40 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
 
         data = UserTasteSerializer(taste, context=self.context).data
         return data
+
+    def get_distance_km(self, obj):
+        """Compute approximate distance (km) from request.user to obj without exposing coords."""
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return None
+
+        me = request.user
+        if not (
+            me.latitude and me.longitude and obj.latitude and obj.longitude
+        ):
+            return None
+
+        from math import atan2, cos, radians, sin, sqrt
+
+        try:
+            lat1 = float(me.latitude)
+            lon1 = float(me.longitude)
+            lat2 = float(obj.latitude)
+            lon2 = float(obj.longitude)
+        except (TypeError, ValueError):
+            return None
+
+        # Haversine formula
+        earth_radius_km = 6371.0
+        dlat = radians(lat2 - lat1)
+        dlon = radians(lon2 - lon1)
+        a = (
+            sin(dlat / 2) ** 2
+            + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
+        )
+        c = 2 * atan2(sqrt(a), sqrt(1 - a))
+        km = earth_radius_km * c
+        return round(km, 2)
 
     def get_reviews(self, obj):
         """All reviews written by this user (as seen in their user tab)."""
@@ -490,8 +531,10 @@ class UserTasteSerializer(serializers.ModelSerializer):
     """
     Serializer for user's book preferences and taste information.
     """
+
     favorite_genres = serializers.ListField(
-        child=serializers.ChoiceField(choices=BookGenre.choices), required=False,
+        child=serializers.ChoiceField(choices=BookGenre.choices),
+        required=False,
     )
     favorite_authors = serializers.ListField(
         child=serializers.ChoiceField(choices=Author.choices), required=False

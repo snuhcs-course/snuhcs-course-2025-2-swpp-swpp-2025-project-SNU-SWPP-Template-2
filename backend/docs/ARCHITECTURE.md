@@ -31,7 +31,7 @@ graph TB
     end
     
     subgraph "Data Layer"
-        L[(SQLite/PostgreSQL)]
+        L[(PostgreSQL w/ SQLite fallback)]
         M[Redis Cache]
         N[File Storage]
     end
@@ -97,7 +97,8 @@ backend/
 ├── static/                 # Static files
 ├── logs/                   # Application logs
 ├── scripts/                # Utility scripts
-└── requirements.txt        # Python dependencies
+├── pyproject.toml          # Project metadata & dependencies
+└── uv.lock                 # Dependency lockfile (uv)
 ```
 
 ### Django Apps Architecture
@@ -740,7 +741,7 @@ sequenceDiagram
 | **Framework** | Django 5.2+ | Web application framework |
 | **API** | Django REST Framework | RESTful API development |
 | **Authentication** | JWT + OAuth2 | Token-based authentication |
-| **Database** | SQLite (dev) / PostgreSQL (prod) | Data persistence |
+| **Database** | PostgreSQL (default) / SQLite fallback | Data persistence |
 | **Cache** | Redis | Session storage and caching |
 | **Task Queue** | Celery | Asynchronous task processing |
 | **WebSocket** | Django Channels | Real-time communication |

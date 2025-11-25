@@ -18,6 +18,7 @@ class LLMConfig:
     # Local model settings
     local_model_path: str | None = None
     local_model_name: str = "gemma3-4b-it"
+    local_model_revision: str | None = "main"
     local_model_device: Literal["cpu", "cuda", "mps"] = "cpu"
 
     # Generation parameters
@@ -46,16 +47,12 @@ class LLMConfig:
             openai_api_key=os.getenv("OPENAI_API_KEY"),
             openai_model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
             local_model_path=local_path,
-            local_model_name=os.getenv(
-                "LOCAL_MODEL_NAME", "gemma3-4b-it"
-            ),
+            local_model_name=os.getenv("LOCAL_MODEL_NAME", "gemma3-4b-it"),
+            local_model_revision=os.getenv("LOCAL_MODEL_REVISION", "main"),
             local_model_device=os.getenv("LOCAL_MODEL_DEVICE", "cpu"),
             temperature=float(os.getenv("OPENAI_TEMPERATURE", "0.7")),
             max_tokens=int(os.getenv("OPENAI_MAX_TOKENS", "2000")),
-            enable_logging=os.getenv(
-                "ENABLE_LLM_LOGGING", "true"
-            ).lower()
+            enable_logging=os.getenv("ENABLE_LLM_LOGGING", "true").lower()
             == "true",
             log_level=os.getenv("LOG_LEVEL", "INFO"),
         )
-

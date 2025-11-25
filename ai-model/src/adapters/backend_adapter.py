@@ -3,12 +3,7 @@
 import logging
 from typing import Any
 
-from data.entities import (
-    BarterContext,
-    Item,
-    TradeRequest,
-    UserProfile,
-)
+from data.entities import BarterContext, Item, TradeRequest, UserProfile
 
 logger = logging.getLogger(__name__)
 
@@ -172,9 +167,7 @@ class BackendDataAdapter:
         )
 
     @staticmethod
-    def transform_barter_request(
-        request_data: dict[str, Any]
-    ) -> TradeRequest:
+    def transform_barter_request(request_data: dict[str, Any]) -> TradeRequest:
         """
         Transform backend barter request to TradeRequest entity.
 
@@ -204,10 +197,10 @@ class BackendDataAdapter:
 
         # Logistic preferences
         meeting_type = request_data.get("preferred_meeting_type", "")
-        meeting_location = request_data.get(
-            "proposed_meeting_location", ""
+        meeting_location = request_data.get("proposed_meeting_location", "")
+        logistics = (
+            f"{meeting_type}:{meeting_location}" if meeting_type else None
         )
-        logistics = f"{meeting_type}:{meeting_location}" if meeting_type else None
 
         return TradeRequest(
             user_id=str(request_data.get("requester", "")),
@@ -257,9 +250,7 @@ class BackendDataAdapter:
         requests = []
         if barter_requests:
             for req_data in barter_requests:
-                request = BackendDataAdapter.transform_barter_request(
-                    req_data
-                )
+                request = BackendDataAdapter.transform_barter_request(req_data)
                 requests.append(request)
 
         return BarterContext(
@@ -269,4 +260,3 @@ class BackendDataAdapter:
             distance_matrix=distance_matrix or {},
             trust_threshold=0.4,
         )
-

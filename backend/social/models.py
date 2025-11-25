@@ -33,7 +33,7 @@ class Post(models.Model):
 
     # Related Objects
     related_book = models.ForeignKey(
-        "books.Book",
+        "books.BookCopy",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -217,7 +217,7 @@ class BookClub(models.Model):
 
     # Current Book
     current_book = models.ForeignKey(
-        "books.Book",
+        "books.BookCopy",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -301,7 +301,7 @@ class BookClubDiscussion(models.Model):
 
     # Related Book (optional)
     related_book = models.ForeignKey(
-        "books.Book",
+        "books.BookCopy",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -381,7 +381,7 @@ class DirectMessage(models.Model):
 
     # Related Objects (optional)
     related_book = models.ForeignKey(
-        "books.Book",
+        "books.BookCopy",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
@@ -442,7 +442,7 @@ class UserActivity(models.Model):
 
     # Related Objects (generic foreign keys would be better, but keeping simple)
     related_book = models.ForeignKey(
-        "books.Book", on_delete=models.CASCADE, null=True, blank=True
+        "books.BookCopy", on_delete=models.CASCADE, null=True, blank=True
     )
     related_user = models.ForeignKey(
         User,
@@ -487,7 +487,9 @@ class Recommendation(models.Model):
         User, on_delete=models.CASCADE, related_name="received_recommendations"
     )
     book = models.ForeignKey(
-        "books.Book", on_delete=models.CASCADE, related_name="recommendations"
+        "books.BookCopy",
+        on_delete=models.CASCADE,
+        related_name="recommendations",
     )
 
     message = models.TextField(help_text="Why are you recommending this book?")

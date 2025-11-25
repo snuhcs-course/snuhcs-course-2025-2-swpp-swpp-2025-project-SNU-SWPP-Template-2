@@ -2,10 +2,10 @@
 
 import logging
 import os
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 
 from data.entities import Item, UserProfile
-from llm.client import ConversationTurn, LLMClient, Message
+from llm.client import ConversationTurn, LLMClient
 from llm.config import LLMConfig
 
 logger = logging.getLogger(__name__)
@@ -169,9 +169,7 @@ class ReasoningGenerator:
                 )
 
         # Generate final recommendation
-        final_rec = self._generate_final_recommendation(
-            context, conversation
-        )
+        final_rec = self._generate_final_recommendation(context, conversation)
 
         # Calculate confidence score
         confidence = self._calculate_confidence(conversation)
@@ -192,9 +190,7 @@ class ReasoningGenerator:
     ) -> str:
         """Prepare context string for LLMs."""
         prefs = user_profile.preferences
-        pref_str = ", ".join(
-            f"{k}: {', '.join(v)}" for k, v in prefs.items()
-        )
+        pref_str = ", ".join(f"{k}: {', '.join(v)}" for k, v in prefs.items())
 
         books_str = "\n".join(
             f"- {book.title} by {book.metadata.get('author', 'Unknown')}"
@@ -236,9 +232,7 @@ Candidate Books:
             self.recommender_prompt, prompt, temperature=0.7
         )
 
-    def _critic_questions(
-        self, context: str, recommender_msg: str
-    ) -> str:
+    def _critic_questions(self, context: str, recommender_msg: str) -> str:
         """Critic questions the recommendations (DM-style to expert)."""
         prompt = f"""추천 전문가의 추천:
 {recommender_msg}
@@ -356,4 +350,3 @@ Candidate Books:
         base_confidence = 0.6
         turn_bonus = min(len(conversation) * 0.1, 0.3)
         return min(base_confidence + turn_bonus, 0.95)
-
