@@ -27,6 +27,14 @@ import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 
+private const val HEADER_ALPHA = 0.08f
+private const val HEADER_CORNER_RADIUS = 16
+private const val EMPTY_STATE_ICON_SIZE = 48
+private const val BACKGROUND_ALPHA = 0.1f
+private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss"
+private const val BADGE_CORNER_RADIUS = 12
+private const val ANSWER_BOX_CORNER_RADIUS = 8
+
 private fun formatSubmittedTime(isoTime: String): String {
     return com.example.voicetutor.utils.formatSubmittedTime(isoTime)
 }
@@ -62,7 +70,7 @@ private fun parseIsoToMillis(iso: String): Long? {
             val dotIdx = raw.indexOf('.')
             if (dotIdx != -1) raw.substring(0, dotIdx) else raw
         }
-        val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")
+        val sdf = java.text.SimpleDateFormat(DATE_FORMAT_PATTERN)
         sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
         sdf.parse(cleaned)?.time
     } catch (e: Exception) {
@@ -145,17 +153,13 @@ fun TeacherStudentAssignmentDetailScreen(
             loadedCorrectnessForKey = currentDataKey
             viewModel.loadPersonalAssignmentStatsAndCorrectness(studentIdInt, resolvedAssignmentId, silent = true)
         } else {
-            if (currentDataKey == loadedStatsForKey && currentDataKey == loadedCorrectnessForKey) {
-                // Already loaded
-            } else {
-                if (currentDataKey != loadedStatsForKey && paStats == null) {
-                    loadedStatsForKey = currentDataKey
-                    viewModel.loadPersonalAssignmentStatisticsFor(studentIdInt, resolvedAssignmentId, silent = true)
-                }
-                if (currentDataKey != loadedCorrectnessForKey && correctnessData.isEmpty()) {
-                    loadedCorrectnessForKey = currentDataKey
-                    viewModel.loadAssignmentCorrectnessFor(studentIdInt, resolvedAssignmentId, silent = true)
-                }
+            if (currentDataKey != loadedStatsForKey && paStats == null) {
+                loadedStatsForKey = currentDataKey
+                viewModel.loadPersonalAssignmentStatisticsFor(studentIdInt, resolvedAssignmentId, silent = true)
+            }
+            if (currentDataKey != loadedCorrectnessForKey && correctnessData.isEmpty()) {
+                loadedCorrectnessForKey = currentDataKey
+                viewModel.loadAssignmentCorrectnessFor(studentIdInt, resolvedAssignmentId, silent = true)
             }
         }
 
@@ -203,17 +207,13 @@ fun TeacherStudentAssignmentDetailScreen(
                     loadedCorrectnessForKey = newDataKey
                     viewModel.loadPersonalAssignmentStatsAndCorrectness(studentIdInt, assignment.id, silent = true)
                 } else {
-                    if (newDataKey == loadedStatsForKey && newDataKey == loadedCorrectnessForKey) {
-                        // Already loaded
-                    } else {
-                        if (newDataKey != loadedStatsForKey && paStats == null) {
-                            loadedStatsForKey = newDataKey
-                            viewModel.loadPersonalAssignmentStatisticsFor(studentIdInt, assignment.id, silent = true)
-                        }
-                        if (newDataKey != loadedCorrectnessForKey && correctnessData.isEmpty()) {
-                            loadedCorrectnessForKey = newDataKey
-                            viewModel.loadAssignmentCorrectnessFor(studentIdInt, assignment.id, silent = true)
-                        }
+                    if (newDataKey != loadedStatsForKey && paStats == null) {
+                        loadedStatsForKey = newDataKey
+                        viewModel.loadPersonalAssignmentStatisticsFor(studentIdInt, assignment.id, silent = true)
+                    }
+                    if (newDataKey != loadedCorrectnessForKey && correctnessData.isEmpty()) {
+                        loadedCorrectnessForKey = newDataKey
+                        viewModel.loadAssignmentCorrectnessFor(studentIdInt, assignment.id, silent = true)
                     }
                 }
             }
@@ -255,8 +255,8 @@ fun TeacherStudentAssignmentDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = PrimaryIndigo.copy(alpha = 0.08f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            color = PrimaryIndigo.copy(alpha = HEADER_ALPHA),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(HEADER_CORNER_RADIUS.dp),
                         )
                         .padding(20.dp),
                 ) {
@@ -297,7 +297,7 @@ fun TeacherStudentAssignmentDetailScreen(
                         imageVector = Icons.Filled.Assignment,
                         contentDescription = null,
                         tint = Gray400,
-                        modifier = Modifier.size(48.dp),
+                        modifier = Modifier.size(EMPTY_STATE_ICON_SIZE.dp),
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
@@ -315,8 +315,8 @@ fun TeacherStudentAssignmentDetailScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            color = PrimaryIndigo.copy(alpha = 0.08f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                            color = PrimaryIndigo.copy(alpha = HEADER_ALPHA),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(HEADER_CORNER_RADIUS.dp),
                         )
                         .padding(20.dp),
                 ) {
@@ -505,8 +505,8 @@ private fun QuestionGroupCard2(
                         Box(
                             modifier = Modifier
                                 .background(
-                                    color = if (group.baseQuestion.isCorrect) Success.copy(alpha = 0.1f) else Error.copy(alpha = 0.1f),
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                                    color = if (group.baseQuestion.isCorrect) Success.copy(alpha = BACKGROUND_ALPHA) else Error.copy(alpha = BACKGROUND_ALPHA),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(BADGE_CORNER_RADIUS.dp),
                                 )
                                 .padding(horizontal = 8.dp, vertical = 4.dp),
                         ) {
@@ -523,7 +523,7 @@ private fun QuestionGroupCard2(
                         Row(
                             modifier = Modifier
                                 .background(
-                                    color = PrimaryIndigo.copy(alpha = 0.1f),
+                                    color = PrimaryIndigo.copy(alpha = BACKGROUND_ALPHA),
                                     shape = androidx.compose.foundation.shape.RoundedCornerShape(20.dp),
                                 )
                                 .padding(horizontal = 12.dp, vertical = 6.dp),
@@ -568,8 +568,8 @@ private fun QuestionGroupCard2(
                             color = Gray800,
                             modifier = Modifier
                                 .background(
-                                    color = if (group.baseQuestion.isCorrect) Success.copy(alpha = 0.1f) else Error.copy(alpha = 0.1f),
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                                    color = if (group.baseQuestion.isCorrect) Success.copy(alpha = BACKGROUND_ALPHA) else Error.copy(alpha = BACKGROUND_ALPHA),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(ANSWER_BOX_CORNER_RADIUS.dp),
                                 )
                                 .padding(12.dp),
                         )
@@ -589,8 +589,8 @@ private fun QuestionGroupCard2(
                         color = Gray800,
                         modifier = Modifier
                             .background(
-                                color = Success.copy(alpha = 0.1f),
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                                color = Success.copy(alpha = BACKGROUND_ALPHA),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(ANSWER_BOX_CORNER_RADIUS.dp),
                             )
                             .padding(12.dp),
                     )
@@ -775,8 +775,8 @@ private fun DetailedQuestionResultCard2(
                 Box(
                     modifier = Modifier
                         .background(
-                            color = if (question.isCorrect) Success.copy(alpha = 0.1f) else Error.copy(alpha = 0.1f),
-                            shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                            color = if (question.isCorrect) Success.copy(alpha = BACKGROUND_ALPHA) else Error.copy(alpha = BACKGROUND_ALPHA),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(BADGE_CORNER_RADIUS.dp),
                         )
                         .padding(horizontal = 8.dp, vertical = 4.dp),
                 ) {
@@ -810,8 +810,8 @@ private fun DetailedQuestionResultCard2(
                         color = Gray800,
                         modifier = Modifier
                             .background(
-                                color = if (question.isCorrect) Success.copy(alpha = 0.1f) else Error.copy(alpha = 0.1f),
-                                shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                                color = if (question.isCorrect) Success.copy(alpha = BACKGROUND_ALPHA) else Error.copy(alpha = BACKGROUND_ALPHA),
+                                shape = androidx.compose.foundation.shape.RoundedCornerShape(ANSWER_BOX_CORNER_RADIUS.dp),
                             )
                             .padding(12.dp),
                     )
@@ -853,8 +853,8 @@ private fun DetailedQuestionResultCard2(
                             color = Gray700,
                             modifier = Modifier
                                 .background(
-                                    color = PrimaryIndigo.copy(alpha = 0.1f),
-                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(8.dp),
+                                    color = PrimaryIndigo.copy(alpha = BACKGROUND_ALPHA),
+                                    shape = androidx.compose.foundation.shape.RoundedCornerShape(ANSWER_BOX_CORNER_RADIUS.dp),
                                 )
                                 .padding(12.dp),
                         )
