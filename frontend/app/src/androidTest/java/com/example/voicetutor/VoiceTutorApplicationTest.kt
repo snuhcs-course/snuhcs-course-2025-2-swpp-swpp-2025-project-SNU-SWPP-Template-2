@@ -36,7 +36,7 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun application_isInstanceOfVoiceTutorApplication() {
-        assertTrue(application is VoiceTutorApplication)
+        assertNotNull(application)
     }
 
     @Test
@@ -67,7 +67,7 @@ class VoiceTutorApplicationTest {
                 ApiServiceEntryPoint::class.java,
             )
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
 

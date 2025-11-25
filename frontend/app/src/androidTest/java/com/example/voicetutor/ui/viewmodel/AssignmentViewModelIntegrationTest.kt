@@ -10,7 +10,6 @@ import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.data.repository.AssignmentRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -74,7 +73,6 @@ class AssignmentViewModelIntegrationTest {
         advanceUntilIdle()
 
         assertEquals(null, viewModel.error.value)
-        assertTrue(viewModel.assignments.value.size >= 0)
         assertNotNull(viewModel.studentStats.value)
     }
 
