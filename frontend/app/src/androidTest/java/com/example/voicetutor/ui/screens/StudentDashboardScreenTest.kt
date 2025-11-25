@@ -210,7 +210,7 @@ class StudentDashboardScreenTest {
         }
 
         waitForText("5")
-        composeRule.onNodeWithText("5", substring = true).assertIsDisplayed()
+        composeRule.onAllNodesWithText("5", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
     @Test

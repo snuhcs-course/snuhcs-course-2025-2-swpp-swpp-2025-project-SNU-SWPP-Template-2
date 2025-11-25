@@ -1,7 +1,5 @@
 package com.example.voicetutor.ui.screens
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -26,7 +24,6 @@ import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.utils.ErrorMessageMapper
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateClassScreen(
@@ -185,6 +182,7 @@ fun CreateClassScreen(
                 CreateClassButton(
                     isLoading = isLoading,
                     className = className,
+                    classNameError = classNameError,
                     subject = subject,
                     description = description,
                     teacherId = teacherId,
@@ -211,6 +209,7 @@ fun CreateClassScreen(
 private fun CreateClassButton(
     isLoading: Boolean,
     className: String,
+    classNameError: String?,
     subject: String,
     description: String,
     teacherId: String?,
