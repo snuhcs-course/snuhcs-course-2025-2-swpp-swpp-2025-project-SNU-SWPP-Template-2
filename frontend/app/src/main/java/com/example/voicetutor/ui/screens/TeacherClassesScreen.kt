@@ -36,6 +36,11 @@ data class ClassRoom(
     val color: Color,
 )
 
+private const val HEADER_ALPHA = 0.08f
+private const val HEADER_CORNER_RADIUS = 16
+private const val COLOR_COUNT = 4
+private const val EMPTY_STATE_ICON_SIZE = 48
+
 @Composable
 fun TeacherClassesScreen(
     authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel? = null,
@@ -60,24 +65,14 @@ fun TeacherClassesScreen(
 
     LaunchedEffect(currentUser?.id) {
         val actualTeacherId = teacherId ?: currentUser?.id?.toString()
-
-        if (actualTeacherId == null) {
-            println("TeacherClassesScreen - Waiting for user to be loaded...")
-            return@LaunchedEffect
-        }
+        if (actualTeacherId == null) return@LaunchedEffect
 
         if (assignments.isEmpty()) {
-            println("TeacherClassesScreen - Loading assignments for teacher ID: $actualTeacherId")
             actualAssignmentViewModel.loadAllAssignments(teacherId = actualTeacherId)
-        } else {
-            println("TeacherClassesScreen - Already have ${assignments.size} assignments from login")
         }
 
         if (classes.isEmpty()) {
-            println("TeacherClassesScreen - Loading classes for teacher ID: $actualTeacherId")
             classViewModel.loadClasses(actualTeacherId)
-        } else {
-            println("TeacherClassesScreen - Already have ${classes.size} classes")
         }
     }
 
@@ -109,7 +104,7 @@ fun TeacherClassesScreen(
             studentCount = classData.actualStudentCount,
             assignmentCount = assignmentCount,
             completionRate = 0f,
-            color = when (classData.id % 4) {
+            color = when (classData.id % COLOR_COUNT) {
                 0 -> PrimaryIndigo
                 1 -> Success
                 2 -> Warning
@@ -128,8 +123,8 @@ fun TeacherClassesScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = PrimaryIndigo.copy(alpha = 0.08f),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = PrimaryIndigo.copy(alpha = HEADER_ALPHA),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(HEADER_CORNER_RADIUS.dp),
                 )
                 .padding(20.dp),
         ) {
@@ -205,7 +200,7 @@ fun TeacherClassesScreen(
                             imageVector = Icons.Filled.School,
                             contentDescription = null,
                             tint = Gray400,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(EMPTY_STATE_ICON_SIZE.dp),
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
