@@ -2,6 +2,7 @@ package com.example.voicetutor.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
@@ -10,7 +11,6 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import org.junit.Rule
@@ -235,7 +235,7 @@ class FullScreenRenderingTests {
                     VTStatsCard(
                         title = "과제",
                         value = "10개",
-                        icon = androidx.compose.material.icons.Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                 }
             }
@@ -448,13 +448,13 @@ class FullScreenRenderingTests {
                     VTStatsCard(
                         title = "Horizontal",
                         value = "100",
-                        icon = androidx.compose.material.icons.Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         layout = StatsCardLayout.Horizontal,
                     )
                     VTStatsCard(
                         title = "Vertical",
                         value = "100",
-                        icon = androidx.compose.material.icons.Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         layout = StatsCardLayout.Vertical,
                     )
                 }

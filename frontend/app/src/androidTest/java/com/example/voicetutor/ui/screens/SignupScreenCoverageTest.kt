@@ -34,8 +34,8 @@ class SignupScreenCoverageTest {
         hiltRule.inject()
     }
 
-    private fun <T> setStateFlow(viewModel: AuthViewModel, fieldName: String, value: T) {
-        val field = AuthViewModel::class.java.getDeclaredField(fieldName)
+    private fun <T> setSignupError(viewModel: AuthViewModel, value: T) {
+        val field = AuthViewModel::class.java.getDeclaredField("_signupError")
         field.isAccessible = true
         @Suppress("UNCHECKED_CAST")
         val stateFlow = field.get(viewModel) as MutableStateFlow<T>
@@ -53,7 +53,7 @@ class SignupScreenCoverageTest {
         val viewModel = ViewModelProvider(composeRule.activity)[AuthViewModel::class.java]
 
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.DuplicateEmail("이미 가입된 이메일입니다."))
+            setSignupError(viewModel, SignupError.General.DuplicateEmail("이미 가입된 이메일입니다."))
         }
         composeRule.waitForIdle()
 
@@ -63,7 +63,7 @@ class SignupScreenCoverageTest {
         }
 
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.Network("네트워크 연결을 확인해주세요."))
+            setSignupError(viewModel, SignupError.General.Network("네트워크 연결을 확인해주세요."))
         }
         composeRule.waitForIdle()
 
@@ -73,7 +73,7 @@ class SignupScreenCoverageTest {
         }
 
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.Server("서버 오류가 발생했습니다."))
+            setSignupError(viewModel, SignupError.General.Server("서버 오류가 발생했습니다."))
         }
         composeRule.waitForIdle()
         
@@ -83,7 +83,7 @@ class SignupScreenCoverageTest {
         }
 
         composeRule.runOnIdle {
-            setStateFlow(viewModel, "_signupError", SignupError.General.Unknown("알 수 없는 오류가 발생했습니다."))
+            setSignupError(viewModel, SignupError.General.Unknown("알 수 없는 오류가 발생했습니다."))
         }
         composeRule.waitForIdle()
         

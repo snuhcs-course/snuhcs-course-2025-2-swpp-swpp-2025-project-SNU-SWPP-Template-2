@@ -314,7 +314,7 @@ class EditAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("과제를 삭제하면", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -333,7 +333,7 @@ class EditAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("마감일", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -353,7 +353,7 @@ class EditAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("설명", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -373,7 +373,7 @@ class EditAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("과제 제목", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }

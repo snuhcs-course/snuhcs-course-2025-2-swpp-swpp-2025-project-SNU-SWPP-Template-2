@@ -3,6 +3,8 @@ package com.example.voicetutor.ui.screens
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
@@ -439,8 +441,8 @@ class ExtendedScreenTests {
     fun classStatItem_variousStats() {
         val stats = listOf(
             Triple("25", "학생", Icons.Filled.Person),
-            Triple("10", "과제", Icons.Filled.Assignment),
-            Triple("85", "평균", Icons.Filled.TrendingUp),
+            Triple("10", "과제", Icons.AutoMirrored.Filled.Assignment),
+            Triple("85", "평균", Icons.AutoMirrored.Filled.TrendingUp),
         )
 
         composeTestRule.setContent {

@@ -76,8 +76,8 @@ class CreateAssignmentScreenTest {
                 uploadSuccessField.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
                 val uploadSuccessFlow = uploadSuccessField.get(assignmentViewModel) as MutableStateFlow<Boolean>
-                uploadSuccessFlow.value == true
-            } catch (e: Exception) {
+                uploadSuccessFlow.value
+            } catch (_: Exception) {
                 false
             }
         }
@@ -167,7 +167,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("30%", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -200,8 +200,8 @@ class CreateAssignmentScreenTest {
                 uploadSuccessField.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
                 val uploadSuccessFlow = uploadSuccessField.get(assignmentViewModel) as MutableStateFlow<Boolean>
-                uploadSuccessFlow.value == true
-            } catch (e: Exception) {
+                uploadSuccessFlow.value
+            } catch (_: Exception) {
                 false
             }
         }
@@ -324,7 +324,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("과목", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -347,7 +347,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("학년", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -370,7 +370,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("수업 선택", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -406,8 +406,8 @@ class CreateAssignmentScreenTest {
                 uploadSuccessField.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
                 val uploadSuccessFlow = uploadSuccessField.get(assignmentViewModel) as MutableStateFlow<Boolean>
-                uploadSuccessFlow.value == true
-            } catch (e: Exception) {
+                uploadSuccessFlow.value
+            } catch (_: Exception) {
                 false
             }
         }

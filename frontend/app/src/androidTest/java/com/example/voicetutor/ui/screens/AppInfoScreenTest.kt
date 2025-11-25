@@ -91,10 +91,9 @@ class AppInfoScreenTest {
 
     @Test
     fun appInfoScreen_handlesBackNavigation() {
-        var backClicked = false
         composeRule.setContent {
             VoiceTutorTheme {
-                AppInfoScreen(onBackClick = { backClicked = true })
+                AppInfoScreen(onBackClick = {})
             }
         }
 
@@ -288,12 +287,12 @@ class AppInfoScreenTest {
         waitForText("앱 정보")
         composeRule.onNodeWithContentDescription("뒤로가기").performClick()
         composeRule.waitForIdle()
-
+        
+        assert(backClicked)
     }
 
     @Test
     fun appInfoScreen_emailContactItem_isClickable() {
-        var emailClicked = false
         composeRule.setContent {
             VoiceTutorTheme {
                 AppInfoScreen()

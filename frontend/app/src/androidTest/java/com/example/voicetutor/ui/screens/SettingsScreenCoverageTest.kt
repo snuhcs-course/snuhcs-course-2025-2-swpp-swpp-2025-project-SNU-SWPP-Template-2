@@ -1,21 +1,15 @@
 package com.example.voicetutor.ui.screens
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.filter
-import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
-import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme

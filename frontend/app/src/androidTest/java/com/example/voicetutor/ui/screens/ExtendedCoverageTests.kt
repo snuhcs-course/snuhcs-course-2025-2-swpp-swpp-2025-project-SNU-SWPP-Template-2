@@ -2,6 +2,7 @@ package com.example.voicetutor.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.test.*
@@ -75,7 +76,9 @@ class ExtendedCoverageTests {
             }
         }
 
-        composeTestRule.onNodeWithText("홍길동", substring = true).performClick()
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("리포트 보기", substring = true).performClick()
+        composeTestRule.waitForIdle()
         assert(clicked)
     }
 
@@ -285,7 +288,7 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "전체 과제",
                         value = "10",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                     VTStatsCard(
                         title = "완료 과제",
@@ -462,9 +465,9 @@ class ExtendedCoverageTests {
             }
         }
 
-        composeTestRule.onNodeWithText("홍길동", substring = true).performClick()
-
-        assert(true)
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("리포트 보기", substring = true).performClick()
+        assert(clicked)
     }
 
     @Test
@@ -480,7 +483,7 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "통계",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                 }
             }
@@ -507,7 +510,7 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "",
                         value = "",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                 }
             }
@@ -560,21 +563,21 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "통계 Up",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         trend = TrendDirection.Up,
                         trendValue = "+5",
                     )
                     VTStatsCard(
                         title = "통계 Down",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         trend = TrendDirection.Down,
                         trendValue = "-5",
                     )
                     VTStatsCard(
                         title = "통계 None",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         trend = TrendDirection.None,
                     )
                 }
@@ -667,13 +670,13 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "Horizontal 통계",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         layout = StatsCardLayout.Horizontal,
                     )
                     VTStatsCard(
                         title = "Vertical 통계",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         layout = StatsCardLayout.Vertical,
                     )
                 }

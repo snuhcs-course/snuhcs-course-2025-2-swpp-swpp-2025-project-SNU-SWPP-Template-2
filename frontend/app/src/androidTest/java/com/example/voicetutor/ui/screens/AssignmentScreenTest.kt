@@ -462,7 +462,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("5", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -528,7 +528,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("녹음", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -566,7 +566,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("중지", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -603,7 +603,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("00:10", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -648,7 +648,7 @@ class AssignmentScreenTest {
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty() ||
                     composeRule.onAllNodesWithText("맞았습니다", substring = true, useUnmergedTree = true)
                         .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -687,7 +687,7 @@ class AssignmentScreenTest {
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty() ||
                     composeRule.onAllNodesWithText("틀렸습니다", substring = true, useUnmergedTree = true)
                         .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -724,7 +724,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("%", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -836,7 +836,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("꼬리질문", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -858,7 +858,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("녹음 시작", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -881,7 +881,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("건너뛰기", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -925,7 +925,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("꼬리질문으로 넘어가기", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -961,7 +961,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("녹음 중지", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -997,7 +997,7 @@ class AssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("완료", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }

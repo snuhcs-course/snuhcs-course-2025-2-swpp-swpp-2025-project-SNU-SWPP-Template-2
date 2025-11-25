@@ -10,7 +10,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import org.junit.Rule
@@ -125,7 +124,7 @@ class LowCoverageScreenTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 ClassStatItem(
-                    icon = androidx.compose.material.icons.Icons.Filled.People,
+                    icon = Icons.Filled.People,
                     value = "30",
                     label = "학생",
                     color = Gray600,
@@ -457,17 +456,17 @@ class LowCoverageScreenTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "",
                         onValueChange = {},
                         label = { Text("수업명") },
                     )
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "",
                         onValueChange = {},
                         label = { Text("과목") },
                     )
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "",
                         onValueChange = {},
                         label = { Text("설명") },
@@ -487,12 +486,12 @@ class LowCoverageScreenTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "과제 1",
                         onValueChange = {},
                         label = { Text("과제명") },
                     )
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "설명",
                         onValueChange = {},
                         label = { Text("설명") },
@@ -558,7 +557,7 @@ class LowCoverageScreenTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Box {
-                    androidx.compose.material3.CircularProgressIndicator()
+                    CircularProgressIndicator()
                 }
             }
         }
@@ -589,7 +588,7 @@ class LowCoverageScreenTests {
         var clicked = false
         composeTestRule.setContent {
             VoiceTutorTheme {
-                androidx.compose.material3.FilterChip(
+                FilterChip(
                     selected = false,
                     onClick = { clicked = true },
                     label = { Text("전체") },
@@ -642,12 +641,12 @@ class LowCoverageScreenTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "",
                         onValueChange = {},
                         label = { Text("텍스트") },
                     )
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "",
                         onValueChange = {},
                         label = { Text("숫자") },
@@ -655,7 +654,7 @@ class LowCoverageScreenTests {
                             keyboardType = androidx.compose.ui.text.input.KeyboardType.Number,
                         ),
                     )
-                    androidx.compose.material3.OutlinedTextField(
+                    OutlinedTextField(
                         value = "",
                         onValueChange = {},
                         label = { Text("이메일") },

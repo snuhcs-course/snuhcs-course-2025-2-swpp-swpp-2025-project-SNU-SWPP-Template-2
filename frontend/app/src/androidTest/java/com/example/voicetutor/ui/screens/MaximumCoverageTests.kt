@@ -3,6 +3,9 @@ package com.example.voicetutor.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
@@ -12,7 +15,6 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import org.junit.Rule
@@ -97,7 +99,7 @@ class MaximumCoverageTests {
                     VTStatsCard(
                         title = "Horizontal",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         layout = StatsCardLayout.Horizontal,
                     )
 
@@ -111,7 +113,7 @@ class MaximumCoverageTests {
                     VTStatsCard(
                         title = "Trend Up",
                         value = "300",
-                        icon = Icons.Filled.TrendingUp,
+                        icon = Icons.AutoMirrored.Filled.TrendingUp,
                         trend = TrendDirection.Up,
                         trendValue = "+10",
                     )
@@ -119,7 +121,7 @@ class MaximumCoverageTests {
                     VTStatsCard(
                         title = "Trend Down",
                         value = "400",
-                        icon = Icons.Filled.TrendingDown,
+                        icon = Icons.AutoMirrored.Filled.TrendingDown,
                         trend = TrendDirection.Down,
                         trendValue = "-5",
                     )
@@ -301,7 +303,7 @@ class MaximumCoverageTests {
 
                     CircularProgressIndicator()
 
-                    CircularProgressIndicator(progress = 0.7f)
+                    CircularProgressIndicator(progress = { 0.7f })
                 }
             }
         }
@@ -383,7 +385,7 @@ class MaximumCoverageTests {
                         contentAlignment = Alignment.Center,
                     ) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Icon(Icons.Filled.Assignment, contentDescription = null, tint = Gray400)
+                            Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null, tint = Gray400)
                             Text("과제가 없습니다")
                             Text("새로운 과제를 생성해보세요")
                         }
@@ -429,7 +431,7 @@ class MaximumCoverageTests {
                         VTStatsCard(
                             title = "과제",
                             value = "10",
-                            icon = Icons.Filled.Assignment,
+                            icon = Icons.AutoMirrored.Filled.Assignment,
                             modifier = Modifier.weight(1f),
                         )
                         VTStatsCard(
@@ -482,13 +484,13 @@ class MaximumCoverageTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Row {
-                    Icon(Icons.Filled.Assignment, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.Assignment, contentDescription = null)
                     Icon(Icons.Filled.People, contentDescription = null)
                     Icon(Icons.Filled.Star, contentDescription = null)
                     Icon(Icons.Filled.CheckCircle, contentDescription = null)
                     Icon(Icons.Filled.School, contentDescription = null)
-                    Icon(Icons.Filled.TrendingUp, contentDescription = null)
-                    Icon(Icons.Filled.TrendingDown, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.TrendingUp, contentDescription = null)
+                    Icon(Icons.AutoMirrored.Filled.TrendingDown, contentDescription = null)
                 }
             }
         }
@@ -504,7 +506,7 @@ class MaximumCoverageTests {
                     VTStatsCard(
                         title = "0 값",
                         value = "0",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                     VTCard {
                         Text("0")
@@ -525,7 +527,7 @@ class MaximumCoverageTests {
                     VTStatsCard(
                         title = "최대 값",
                         value = "999",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                     VTCard {
                         Text("999")

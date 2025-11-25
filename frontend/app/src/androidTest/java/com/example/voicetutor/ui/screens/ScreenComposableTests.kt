@@ -1,6 +1,5 @@
 package com.example.voicetutor.ui.screens
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
@@ -324,7 +323,7 @@ class ScreenComposableTests {
 
     @Test
     fun allStudentsCard_renders_withStudentData() {
-        val student = com.example.voicetutor.data.models.AllStudentsStudent(
+        val student = AllStudentsStudent(
             id = 1,
             name = "홍길동",
             email = "hong@example.com",
@@ -651,7 +650,7 @@ class ScreenComposableTests {
                 RoleCard(
                     title = "학생",
                     description = "과제를 받고 학습합니다",
-                    icon = androidx.compose.material.icons.Icons.Filled.School,
+                    icon = Icons.Filled.School,
                     isSelected = true,
                     onClick = {},
                 )
@@ -668,7 +667,7 @@ class ScreenComposableTests {
                 RoleCard(
                     title = "선생님",
                     description = "과제를 생성하고 관리합니다",
-                    icon = androidx.compose.material.icons.Icons.Filled.Person,
+                    icon = Icons.Filled.Person,
                     isSelected = false,
                     onClick = {},
                 )
@@ -683,7 +682,7 @@ class ScreenComposableTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 ClassStatItem(
-                    icon = androidx.compose.material.icons.Icons.Filled.Person,
+                    icon = Icons.Filled.Person,
                     value = "25",
                     label = "학생",
                     color = androidx.compose.ui.graphics.Color(0xFF6200EE),

@@ -5,7 +5,6 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.data.models.*
-import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import org.junit.Rule
 import org.junit.Test
@@ -249,7 +248,6 @@ class ScreenInternalComponentsTests {
 
     @Test
     fun teacherAssignmentCard_triggersOnViewResults() {
-        var viewResultsClicked = false
         composeTestRule.setContent {
             VoiceTutorTheme {
                 TeacherAssignmentCard(
@@ -260,7 +258,7 @@ class ScreenInternalComponentsTests {
                     totalCount = 10,
                     status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onViewResults = { viewResultsClicked = true },
+                    onViewResults = {},
                     onEdit = {},
                 )
             }

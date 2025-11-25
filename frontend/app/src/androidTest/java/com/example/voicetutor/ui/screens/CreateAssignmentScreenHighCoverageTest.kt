@@ -1,6 +1,5 @@
 package com.example.voicetutor.ui.screens
 
-import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
@@ -24,11 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import javax.inject.Inject
 import java.io.File
-import android.net.Uri
 import androidx.core.net.toUri
-import com.example.voicetutor.file.FileInfo
-import com.example.voicetutor.file.FileType
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 
 @HiltAndroidTest
@@ -190,9 +185,8 @@ class CreateAssignmentScreenHighCoverageTest {
                 assert(fileInfo.name.contains("test_document.pdf") || fileInfo.name.contains(".pdf"))
                 assert(fileInfo.path.isNotEmpty())
                 assert(fileInfo.size > 0)
-            }.onFailure { exception ->
-
-                assert(exception != null)
+            }.onFailure { _ ->
+                // Failure case handled
             }
 
         } finally {

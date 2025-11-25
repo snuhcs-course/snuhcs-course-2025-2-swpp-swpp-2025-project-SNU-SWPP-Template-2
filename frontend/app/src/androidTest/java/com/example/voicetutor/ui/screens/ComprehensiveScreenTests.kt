@@ -1,8 +1,6 @@
 package com.example.voicetutor.ui.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -268,7 +266,7 @@ class ComprehensiveScreenTests {
 
     @Test
     fun classAssignmentCard_renders() {
-        val classAssignment = com.example.voicetutor.ui.screens.ClassAssignment(
+        val classAssignment = ClassAssignment(
             id = 1,
             title = "클래스 과제",
             subject = "수학",

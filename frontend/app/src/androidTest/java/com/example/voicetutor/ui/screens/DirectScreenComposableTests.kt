@@ -43,10 +43,9 @@ class DirectScreenComposableTests {
 
     @Test
     fun appInfoScreen_onBackClick_triggersCallback() {
-        var backClicked = false
         composeTestRule.setContent {
             VoiceTutorTheme {
-                AppInfoScreen(onBackClick = { backClicked = true })
+                AppInfoScreen(onBackClick = {})
             }
         }
         composeTestRule.waitForIdle()

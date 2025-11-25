@@ -4,17 +4,13 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
-import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
-import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.hasSetTextAction
-import androidx.compose.ui.test.hasImeAction
-import androidx.compose.ui.text.input.ImeAction
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
@@ -124,17 +120,11 @@ class CreateAssignmentScreenCoverageTest {
 
     @Test
     fun createAssignmentScreen_callsOnCreateAssignmentWhenComplete() {
-        var onCreateAssignmentCalled = false
-        var createdAssignmentTitle = ""
-
         composeRule.setContent {
             VoiceTutorTheme {
                 CreateAssignmentScreen(
                     teacherId = "2",
-                    onCreateAssignment = { title ->
-                        onCreateAssignmentCalled = true
-                        createdAssignmentTitle = title
-                    },
+                    onCreateAssignment = {},
                 )
             }
         }
@@ -533,7 +523,7 @@ class CreateAssignmentScreenCoverageTest {
                     .fetchSemanticsNodes().isNotEmpty() ||
                 composeRule.onAllNodesWithText("해당 반에 학생이 등록되지 않았습니다", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes().isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -588,7 +578,7 @@ class CreateAssignmentScreenCoverageTest {
                     .fetchSemanticsNodes().isNotEmpty() ||
                 composeRule.onAllNodesWithText("학생 목록을 불러오는 중", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes().isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -597,7 +587,7 @@ class CreateAssignmentScreenCoverageTest {
             composeRule.onAllNodesWithText("전체 선택", useUnmergedTree = true)
                 .onFirst()
                 .performClick()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
 
         }
 
@@ -809,7 +799,7 @@ class CreateAssignmentScreenCoverageTest {
                 val loadingMessage = composeRule.onAllNodesWithText("학생 목록을 불러오는 중", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes()
                 emptyMessage.isNotEmpty() || loadingMessage.isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -820,7 +810,7 @@ class CreateAssignmentScreenCoverageTest {
                     .onFirst()
                     .assertExists()
                 true
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }

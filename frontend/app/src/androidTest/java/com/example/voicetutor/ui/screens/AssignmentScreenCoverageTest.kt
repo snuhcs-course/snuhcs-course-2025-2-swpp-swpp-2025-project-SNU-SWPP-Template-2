@@ -5,10 +5,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
-import com.example.voicetutor.data.models.AnswerSubmissionResponse
 import com.example.voicetutor.data.models.PersonalAssignmentQuestion
 import com.example.voicetutor.data.network.ApiService
-import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
@@ -35,9 +33,6 @@ class AssignmentScreenCoverageTest {
 
     @Inject
     lateinit var apiService: ApiService
-
-    private val fakeApi: FakeApiService
-        get() = apiService as FakeApiService
 
     @Before
     fun setUp() {

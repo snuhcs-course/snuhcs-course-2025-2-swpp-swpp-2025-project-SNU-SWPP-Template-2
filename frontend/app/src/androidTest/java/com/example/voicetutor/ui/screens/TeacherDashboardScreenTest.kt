@@ -166,8 +166,6 @@ class TeacherDashboardScreenTest {
     @Test
     fun navigationButtonsAreClickable() {
         var assignmentsClicked = false
-        var studentsClicked = false
-        var classesClicked = false
 
         composeTestRule.setContent {
             VoiceTutorTheme {
@@ -175,8 +173,8 @@ class TeacherDashboardScreenTest {
                     authViewModel = mockAuthViewModel,
                     assignmentViewModel = mockAssignmentViewModel,
                     onNavigateToAllAssignments = { assignmentsClicked = true },
-                    onNavigateToAllStudents = { studentsClicked = true },
-                    onNavigateToCreateClass = { classesClicked = true },
+                    onNavigateToAllStudents = {},
+                    onNavigateToCreateClass = {},
                 )
             }
         }

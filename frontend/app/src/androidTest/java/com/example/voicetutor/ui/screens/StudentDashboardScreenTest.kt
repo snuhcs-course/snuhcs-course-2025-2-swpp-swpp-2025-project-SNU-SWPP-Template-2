@@ -9,11 +9,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.data.repository.AssignmentRepository
 import com.example.voicetutor.data.repository.AuthRepository
-import com.example.voicetutor.data.repository.DashboardRepository
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.AuthViewModel
-import com.example.voicetutor.ui.viewmodel.DashboardViewModel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,7 +36,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -64,7 +61,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -90,7 +86,6 @@ class StudentDashboardScreenTest {
         val fakeApi = FakeApiService()
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -116,7 +111,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -142,7 +136,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -168,7 +161,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -194,7 +186,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -218,7 +209,6 @@ class StudentDashboardScreenTest {
         val fakeApi = FakeApiService()
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -237,7 +227,6 @@ class StudentDashboardScreenTest {
         val fakeApi = FakeApiService()
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -263,7 +252,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -290,7 +278,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
