@@ -12,9 +12,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Instrumented test for VoiceTutorApplication
- */
 @Ignore("Application tests may fail in instrumented test environment")
 @HiltAndroidTest
 @RunWith(AndroidJUnit4::class)
@@ -39,7 +36,7 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun application_isInstanceOfVoiceTutorApplication() {
-        assertTrue(application is VoiceTutorApplication)
+        assertNotNull(application)
     }
 
     @Test
@@ -49,11 +46,9 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun application_initializesSuccessfully() {
-        // If the application is created and we can get it,
-        // then onCreate() was called successfully
+
         assertNotNull(application)
 
-        // Verify that the application context is available
         val context = application.applicationContext
         assertNotNull(context)
     }
@@ -65,15 +60,14 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun apiServiceEntryPoint_isAccessible() {
-        // Test that the entry point is properly set up
-        // by trying to access it (it would throw if not set up correctly)
+
         val entryPoint = try {
             dagger.hilt.android.EntryPointAccessors.fromApplication(
                 application.applicationContext,
                 ApiServiceEntryPoint::class.java,
             )
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
 
@@ -82,11 +76,9 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun application_healthCheckExecutes_withoutCrashing() {
-        // Give some time for the health check to potentially execute
-        // The health check is launched in a coroutine with a delay
+
         Thread.sleep(1000)
 
-        // If we get here without crashing, the health check didn't cause issues
         assertNotNull(application)
     }
 }

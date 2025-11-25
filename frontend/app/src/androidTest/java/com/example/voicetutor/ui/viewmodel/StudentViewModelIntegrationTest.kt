@@ -61,7 +61,6 @@ class StudentViewModelIntegrationTest {
         assertEquals(null, viewModel.error.value)
     }
 
-
     @Test
     fun failingLoadAllStudents_setsError() = runTest(dispatcher) {
         val failingViewModel = StudentViewModel(

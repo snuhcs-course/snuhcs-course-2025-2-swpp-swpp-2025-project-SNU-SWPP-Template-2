@@ -188,8 +188,7 @@ class TeacherStudentAssignmentDetailScreenTest {
         composeRule.onAllNodesWithText("평균 점수", useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
-        // Placeholder values are shown when statistics are unavailable
-        // There may be 3 placeholder values displayed (e.g., accuracy, average score, time spent)
+
         composeRule.onAllNodesWithText("-", useUnmergedTree = true).assertCountEquals(3)
     }
 
@@ -327,7 +326,6 @@ class TeacherStudentAssignmentDetailScreenTest {
             }
         }
 
-        // Should handle zero assignmentId gracefully
         composeRule.waitForIdle()
     }
 
@@ -348,7 +346,6 @@ class TeacherStudentAssignmentDetailScreenTest {
             }
         }
 
-        // Should handle null statistics gracefully
         composeRule.waitForIdle()
     }
 
@@ -450,7 +447,6 @@ class TeacherStudentAssignmentDetailScreenTest {
             }
         }
 
-        // Should handle empty correctness items gracefully
         composeRule.waitForIdle()
     }
 

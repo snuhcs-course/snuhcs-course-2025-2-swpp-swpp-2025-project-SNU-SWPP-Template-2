@@ -40,14 +40,12 @@ class TeacherStudentsScreenCoverageTest {
     fun setUp() {
         hiltRule.inject()
         
-        // Set up class students
         fakeApi.classStudentsResponse = listOf(
             Student(id = 1, name = "Student1", email = "s1@test.com", role = UserRole.STUDENT),
             Student(id = 2, name = "Student2", email = "s2@test.com", role = UserRole.STUDENT)
         )
     }
 
-    // Cover lines 619-706: Delete confirmation dialog
     @Test
     fun testDeleteStudentDialog() {
         composeRule.setContent {
@@ -56,21 +54,12 @@ class TeacherStudentsScreenCoverageTest {
             }
         }
 
-        // Open delete sheet
         composeRule.onNodeWithText("학생 삭제").performClick()
         composeRule.waitForIdle()
 
-        // Select a student to delete
-        // Need to find checkbox associated with student. 
-        // The structure is Row -> [Column(Name/Email), Checkbox]
-        // We can find the student name and then look for the checkbox in the same row, 
-        // or simpler: find all checkboxes and click the first one.
         composeRule.onAllNodes(isToggleable()).onFirst().performClick()
         composeRule.waitForIdle()
 
-        // Click "삭제" button in the sheet
-        // There are two "삭제" texts: one is the title "학생 삭제", one is button "삭제"
-        // Button is clickable.
         composeRule.onAllNodesWithText("삭제")
             .filter(hasClickAction())
             .onFirst()
@@ -78,13 +67,10 @@ class TeacherStudentsScreenCoverageTest {
         
         composeRule.waitForIdle()
 
-        // Verify Dialog appears (lines 619-706)
         composeRule.onNodeWithText("학생 제거").assertIsDisplayed()
         composeRule.onNodeWithText("선택한 1명의 학생을 이 반에서 제거하시겠습니까?", substring = true).assertIsDisplayed()
 
-        // Click "제거" to confirm
         composeRule.onNodeWithText("제거").performClick()
         composeRule.waitForIdle()
     }
 }
-

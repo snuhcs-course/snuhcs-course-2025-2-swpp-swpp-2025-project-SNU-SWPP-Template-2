@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.models
+﻿package com.example.voicetutor.data.models
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -299,7 +299,7 @@ class UserModelsTest {
     @Test
     fun userRole_values_containsBothRoles() {
         // When
-        val values = UserRole.values()
+        val values = UserRole.entries
 
         // Then
         assertEquals(2, values.size)

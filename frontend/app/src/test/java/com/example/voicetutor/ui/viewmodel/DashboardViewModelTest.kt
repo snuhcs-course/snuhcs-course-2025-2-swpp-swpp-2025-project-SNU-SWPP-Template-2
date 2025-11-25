@@ -1,9 +1,10 @@
-package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import app.cash.turbine.test
 import com.example.voicetutor.data.models.DashboardStats
 import com.example.voicetutor.data.repository.DashboardRepository
 import com.example.voicetutor.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -15,6 +16,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(MockitoJUnitRunner::class)
 class DashboardViewModelTest {
 

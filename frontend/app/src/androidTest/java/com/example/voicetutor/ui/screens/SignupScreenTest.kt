@@ -2,10 +2,7 @@ package com.example.voicetutor.ui.screens
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.ExperimentalTestApi
-import androidx.compose.ui.test.SemanticsNodeInteraction
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.filter
-import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
@@ -34,20 +31,6 @@ class SignupScreenTest {
         }
     }
 
-    private fun signupButton(): SemanticsNodeInteraction {
-        composeRule.waitUntil(timeoutMillis = 15_000) {
-            try {
-                composeRule.onAllNodesWithText("계정 만들기", substring = true, useUnmergedTree = true)
-                    .filter(hasClickAction())
-                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
-                false
-            }
-        }
-        return composeRule.onAllNodesWithText("계정 만들기", substring = true, useUnmergedTree = true)
-            .filter(hasClickAction())
-            .onFirst()
-    }
 
     @Test
     fun signupScreen_displaysAllFormFields() {
@@ -95,7 +78,6 @@ class SignupScreenTest {
             }
         }
 
-        // Password requirements might be displayed
         composeRule.waitForIdle()
     }
 }

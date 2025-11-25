@@ -9,9 +9,6 @@ import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
 
-/**
- * Unit tests for ApiConfig
- */
 class ApiConfigTest {
 
     @Mock

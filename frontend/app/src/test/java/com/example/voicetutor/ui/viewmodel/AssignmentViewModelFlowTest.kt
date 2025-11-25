@@ -1,9 +1,10 @@
-package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import app.cash.turbine.test
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.data.repository.AssignmentRepository
 import com.example.voicetutor.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -22,6 +23,7 @@ import org.mockito.kotlin.eq
 import org.mockito.kotlin.whenever
 import java.io.File
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(MockitoJUnitRunner::class)
 class AssignmentViewModelFlowTest {
 
@@ -58,9 +60,9 @@ class AssignmentViewModelFlowTest {
         status = status,
         solvedNum = solved,
     )
-    private fun buildAssignment(id: Int): AssignmentData = AssignmentData(
-        id = id,
-        title = "Assignment $id",
+    private fun buildAssignment(): AssignmentData = AssignmentData(
+        id = 1,
+        title = "Assignment 1",
         description = "desc",
         totalQuestions = 0,
         createdAt = null,
@@ -395,12 +397,12 @@ class AssignmentViewModelFlowTest {
         val personalAssignments = listOf(
             PersonalAssignmentData(
                 id = personalAssignmentId,
-                student = com.example.voicetutor.data.models.StudentInfo(
+                student = StudentInfo(
                     id = studentId,
                     displayName = "Test Student",
                     email = "test@test.com",
                 ),
-                assignment = com.example.voicetutor.data.models.PersonalAssignmentInfo(
+                assignment = PersonalAssignmentInfo(
                     id = 6,
                     title = "Title",
                     description = "d",
@@ -579,7 +581,7 @@ class AssignmentViewModelFlowTest {
             .thenReturn(Result.success(true))
         whenever(assignmentRepository.createQuestionsAfterUpload(10, 20, 1))
             .thenReturn(Result.success(Unit))
-        org.mockito.Mockito.lenient().`when`(assignmentRepository.getAllAssignments(null, null, null))
+        Mockito.lenient().`when`(assignmentRepository.getAllAssignments(null, null, null))
             .thenReturn(Result.success(emptyList()))
 
         vm.uploadProgress.test {
@@ -598,12 +600,12 @@ class AssignmentViewModelFlowTest {
         // end states
         vm.isUploading.test {
             val v = awaitItem()
-            assert(v == false)
+            assert(!v)
             cancelAndIgnoreRemainingEvents()
         }
         vm.uploadSuccess.test {
             val v = awaitItem()
-            assert(v == true)
+            assert(v)
             cancelAndIgnoreRemainingEvents()
         }
 
@@ -638,7 +640,7 @@ class AssignmentViewModelFlowTest {
         }
         vm.isUploading.test {
             val v = awaitItem()
-            assert(v == false)
+            assert(!v)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -1260,7 +1262,7 @@ class AssignmentViewModelFlowTest {
     @Test
     fun loadAllAssignments_withFilters_success_updatesAssignments() = runTest {
         val vm = AssignmentViewModel(assignmentRepository)
-        val items = listOf(buildAssignment(1))
+        val items = listOf(buildAssignment())
         Mockito.`when`(assignmentRepository.getAllAssignments("1", "10", AssignmentStatus.IN_PROGRESS))
             .thenReturn(Result.success(items))
 
@@ -1504,12 +1506,12 @@ class AssignmentViewModelFlowTest {
         val personalAssignments = listOf(
             PersonalAssignmentData(
                 id = personalAssignmentId,
-                student = com.example.voicetutor.data.models.StudentInfo(
+                student = StudentInfo(
                     id = studentId,
                     displayName = "Test Student",
                     email = "test@test.com",
                 ),
-                assignment = com.example.voicetutor.data.models.PersonalAssignmentInfo(
+                assignment = PersonalAssignmentInfo(
                     id = 200,
                     title = "Test Assignment",
                     description = "Description",
@@ -1918,7 +1920,7 @@ class AssignmentViewModelFlowTest {
             .grade("1")
             .description("PDF assignment")
             .build()
-        val pdfFile = java.io.File.createTempFile("test", ".pdf")
+        val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()
 
         val createResponse = com.example.voicetutor.data.network.CreateAssignmentResponse(
@@ -1958,7 +1960,7 @@ class AssignmentViewModelFlowTest {
             .grade("1")
             .description("PDF assignment")
             .build()
-        val pdfFile = java.io.File.createTempFile("test", ".pdf")
+        val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()
 
         Mockito.`when`(assignmentRepository.createAssignment(request))
@@ -1985,7 +1987,7 @@ class AssignmentViewModelFlowTest {
             .grade("1")
             .description("PDF assignment")
             .build()
-        val pdfFile = java.io.File.createTempFile("test", ".pdf")
+        val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()
 
         val createResponse = com.example.voicetutor.data.network.CreateAssignmentResponse(
@@ -2067,7 +2069,7 @@ class AssignmentViewModelFlowTest {
         val personalId = 250
         val studentId = 10
         val questionId = 5
-        val audioFile = java.io.File.createTempFile("audio", ".wav")
+        val audioFile = File.createTempFile("audio", ".wav")
         audioFile.deleteOnExit()
 
         Mockito.`when`(assignmentRepository.submitAnswer(personalId, studentId, questionId, audioFile))

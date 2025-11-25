@@ -9,11 +9,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.data.repository.AssignmentRepository
 import com.example.voicetutor.data.repository.AuthRepository
-import com.example.voicetutor.data.repository.DashboardRepository
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.AuthViewModel
-import com.example.voicetutor.ui.viewmodel.DashboardViewModel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -31,7 +29,6 @@ class StudentScreenEdgeCasesTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -63,7 +60,6 @@ class StudentScreenEdgeCasesTest {
 
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -78,13 +74,11 @@ class StudentScreenEdgeCasesTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Initially fails and shows empty state placeholder
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodes(hasText("과제가 없습니다", substring = true), useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Recover by turning off failure and re-triggering load
         composeRule.runOnIdle {
             fakeApi.shouldFailPersonalAssignments = false
             assignmentViewModel.loadPendingStudentAssignments(authViewModel.currentUser.value?.id ?: 1)

@@ -9,11 +9,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.data.repository.AssignmentRepository
 import com.example.voicetutor.data.repository.AuthRepository
-import com.example.voicetutor.data.repository.DashboardRepository
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.AuthViewModel
-import com.example.voicetutor.ui.viewmodel.DashboardViewModel
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -38,7 +36,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -64,7 +61,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -90,7 +86,6 @@ class StudentDashboardScreenTest {
         val fakeApi = FakeApiService()
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -116,7 +111,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -131,7 +125,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Statistics should be displayed
         waitForText("과제")
         composeRule.waitForIdle()
     }
@@ -143,7 +136,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -169,7 +161,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -184,7 +175,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Assignment status should be displayed
         waitForText("진행 중")
         composeRule.onAllNodesWithText("진행 중", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -196,7 +186,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -211,7 +200,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Progress should be displayed
         waitForText("5")
         composeRule.onAllNodesWithText("5", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -221,7 +209,6 @@ class StudentDashboardScreenTest {
         val fakeApi = FakeApiService()
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -232,7 +219,6 @@ class StudentDashboardScreenTest {
             }
         }
 
-        // Loading state should be handled
         composeRule.waitForIdle()
     }
 
@@ -241,7 +227,6 @@ class StudentDashboardScreenTest {
         val fakeApi = FakeApiService()
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -256,7 +241,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Navigation buttons should be displayed
         waitForText("과제")
         composeRule.onAllNodesWithText("과제", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -268,7 +252,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -283,7 +266,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Assignment count should be displayed
         waitForText("1")
         composeRule.onAllNodesWithText("1", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -296,7 +278,6 @@ class StudentDashboardScreenTest {
         }
         val assignmentViewModel = AssignmentViewModel(AssignmentRepository(fakeApi))
         val authViewModel = AuthViewModel(AuthRepository(fakeApi))
-        val dashboardViewModel = DashboardViewModel(DashboardRepository(fakeApi))
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -311,7 +292,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Error should be handled gracefully
         composeRule.waitForIdle()
     }
 }

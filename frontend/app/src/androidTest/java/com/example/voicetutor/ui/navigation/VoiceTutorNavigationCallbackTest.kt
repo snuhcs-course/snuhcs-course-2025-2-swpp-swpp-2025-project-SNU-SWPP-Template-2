@@ -11,7 +11,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.voicetutor.HiltComponentActivity
-import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
@@ -128,7 +127,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithContentDescription("뒤로가기", useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -166,7 +165,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithContentDescription("로그아웃", useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -182,7 +181,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("로그아웃", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -204,7 +203,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithContentDescription("로그아웃", useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -220,7 +219,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("취소", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -239,7 +238,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("로그아웃하시겠습니까?", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 true
             }
         }
@@ -261,7 +260,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("홈", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -286,7 +285,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("리포트", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -316,7 +315,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("홈", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -341,7 +340,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("리포트", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -373,7 +372,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithText("수업 생성", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -400,7 +399,7 @@ class VoiceTutorNavigationCallbackTest {
                     .onAllNodesWithContentDescription("뒤로가기", useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }

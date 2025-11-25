@@ -1,11 +1,9 @@
-package com.example.voicetutor.audio
+﻿package com.example.voicetutor.audio
 
 import org.junit.Assert.*
 import org.junit.Test
 
-/**
- * Unit tests for AudioRecorder data classes.
- */
+
 class AudioRecorderTest {
 
     @Test

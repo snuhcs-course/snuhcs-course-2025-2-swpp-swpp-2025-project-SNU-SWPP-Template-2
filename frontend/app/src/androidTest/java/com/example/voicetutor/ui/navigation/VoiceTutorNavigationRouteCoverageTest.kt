@@ -13,7 +13,6 @@ import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
-import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.AuthViewModel
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
@@ -83,30 +82,6 @@ class VoiceTutorNavigationRouteCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
     }
 
-    private fun loginStudent() {
-        var authViewModel: AuthViewModel? = null
-        composeRule.runOnIdle {
-            val entry = navController.getBackStackEntry(navController.graph.id)
-            authViewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
-        }
-        val viewModel = checkNotNull(authViewModel)
-        composeRule.runOnIdle {
-            viewModel.login("student@voicetutor.com", "student123")
-        }
-        composeRule.waitUntil(timeoutMillis = 10_000) {
-            viewModel.currentUser.value != null
-        }
-        waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
-    }
-
-    private fun assignmentViewModel(): AssignmentViewModel {
-        var viewModel: AssignmentViewModel? = null
-        composeRule.runOnIdle {
-            val entry = navController.getBackStackEntry(navController.graph.id)
-            viewModel = ViewModelProvider(entry)[AssignmentViewModel::class.java]
-        }
-        return checkNotNull(viewModel)
-    }
 
     private fun waitForRoutePrefix(prefix: String, timeoutMillis: Long = 15_000) {
         composeRule.waitUntil(timeoutMillis) {
@@ -123,7 +98,6 @@ class VoiceTutorNavigationRouteCoverageTest {
         val prefix = route.substringBefore("{")
         val targetRoute = prefix.ifEmpty { route }
         
-        // Check if we're already on this route
         var alreadyOnRoute = false
         composeRule.runOnIdle {
             val currentRoute = navController.currentBackStackEntry?.destination?.route
@@ -137,7 +111,6 @@ class VoiceTutorNavigationRouteCoverageTest {
             waitForRoutePrefix(targetRoute, timeoutMillis = timeoutMillis)
         }
 
-        // Wait for screen to load and display expected text
         composeRule.waitUntil(timeoutMillis = timeoutMillis) {
             try {
                 composeRule
@@ -148,34 +121,32 @@ class VoiceTutorNavigationRouteCoverageTest {
                     )
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
 
-        // Verify the text is displayed
         composeRule
             .onAllNodesWithText(expectedText, substring = substring, useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
 
-        // Wait a bit for screen to fully render
         composeRule.waitForIdle()
     }
 
     @org.junit.Test
     fun testTeacherDashboardRoute() {
-        // Already on TeacherDashboard from setUp, just verify we're on the right route
+
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
         composeRule.waitForIdle()
-        // Verify some text that should be on the dashboard - wait for it to appear
+
         composeRule.waitUntil(timeoutMillis = 15_000) {
             try {
                 composeRule
                     .onAllNodesWithText("환영", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false)
                     .isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }

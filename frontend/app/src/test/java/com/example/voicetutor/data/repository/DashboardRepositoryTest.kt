@@ -1,11 +1,11 @@
-package com.example.voicetutor.data.repository
+﻿package com.example.voicetutor.data.repository
 
 import com.example.voicetutor.data.models.DashboardStats
 import com.example.voicetutor.data.network.ApiResponse
 import com.example.voicetutor.data.network.ApiService
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -74,7 +74,7 @@ class DashboardRepositoryTest {
     fun getDashboardStats_apiFailure_returnsFailure() = runTest {
         // Arrange
         val repo = DashboardRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"error":"Failed"}""")
+        val errorBody = """{"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getDashboardStats("1")).thenReturn(Response.error(500, errorBody))
 
         // Act
@@ -90,7 +90,7 @@ class DashboardRepositoryTest {
     fun getDashboardStats_apiFailure_noErrorBody_returnsDefaultError() = runTest {
         // Arrange
         val repo = DashboardRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{}""")
+        val errorBody = """{}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getDashboardStats("1")).thenReturn(Response.error(500, errorBody))
 
         // Act

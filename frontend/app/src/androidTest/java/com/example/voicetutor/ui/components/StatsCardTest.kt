@@ -1,6 +1,7 @@
 package com.example.voicetutor.ui.components
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
@@ -23,7 +24,7 @@ class StatsCardTest {
                 VTStatsCard(
                     title = "총 과제",
                     value = "10",
-                    icon = Icons.Filled.List,
+                    icon = Icons.AutoMirrored.Filled.List,
                 )
             }
         }
@@ -38,7 +39,7 @@ class StatsCardTest {
                 VTStatsCard(
                     title = "총 과제",
                     value = "10",
-                    icon = Icons.Filled.List,
+                    icon = Icons.AutoMirrored.Filled.List,
                 )
             }
         }
@@ -87,7 +88,7 @@ class StatsCardTest {
                 VTStatsCard(
                     title = "증가",
                     value = "100",
-                    icon = Icons.Filled.TrendingUp,
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
                     trend = TrendDirection.Up,
                     trendValue = "+10",
                 )
@@ -104,7 +105,7 @@ class StatsCardTest {
                 VTStatsCard(
                     title = "감소",
                     value = "100",
-                    icon = Icons.Filled.TrendingDown,
+                    icon = Icons.AutoMirrored.Filled.TrendingDown,
                     trend = TrendDirection.Down,
                     trendValue = "-5",
                 )
@@ -128,7 +129,6 @@ class StatsCardTest {
             }
         }
 
-        // Trend should not be displayed when None
         composeTestRule.onNodeWithText("변화 없음").assertExists()
         composeTestRule.onNodeWithText("100").assertExists()
     }
@@ -154,8 +154,6 @@ class StatsCardTest {
 
     @Test
     fun statsCard_doesNotCallOnClick_whenNotClickable() {
-        var clicked = false
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 VTStatsCard(
@@ -167,7 +165,6 @@ class StatsCardTest {
             }
         }
 
-        // onClick is null, so click should not trigger
         composeTestRule.onNodeWithText("클릭 불가").assertExists()
     }
 
@@ -410,7 +407,7 @@ class StatsCardTest {
                 VTStatsCard(
                     title = "트렌드",
                     value = "100",
-                    icon = Icons.Filled.TrendingUp,
+                    icon = Icons.AutoMirrored.Filled.TrendingUp,
                     trend = TrendDirection.Up,
                     trendValue = "+5",
                 )
@@ -434,7 +431,6 @@ class StatsCardTest {
             }
         }
 
-        // Trend indicator should not be visible when trendValue is empty
         composeTestRule.onNodeWithText("트렌드 없음").assertExists()
     }
 

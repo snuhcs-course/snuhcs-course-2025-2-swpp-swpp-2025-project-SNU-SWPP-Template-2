@@ -1,6 +1,5 @@
 package com.example.voicetutor.ui.screens
 
-import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
@@ -18,10 +17,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Tests for small composable functions within screens.
- * These tests directly call composable functions to maximize coverage.
- */
 @HiltAndroidTest
 @UninstallModules(NetworkModule::class)
 @RunWith(AndroidJUnit4::class)
@@ -88,8 +83,7 @@ class ScreenComposableTests {
     fun dashboardSummaryCard_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                // DashboardSummaryCard is private, so we test it indirectly through TeacherDashboardScreen
-                // But we can test other visible cards
+
                 TeacherAssignmentCard(
                     title = "테스트",
                     className = "테스트",
@@ -329,7 +323,7 @@ class ScreenComposableTests {
 
     @Test
     fun allStudentsCard_renders_withStudentData() {
-        val student = com.example.voicetutor.data.models.AllStudentsStudent(
+        val student = AllStudentsStudent(
             id = 1,
             name = "홍길동",
             email = "hong@example.com",
@@ -499,7 +493,6 @@ class ScreenComposableTests {
         }
         composeTestRule.waitForIdle()
 
-        // Achievement card should render
         composeTestRule.waitForIdle()
     }
 
@@ -529,7 +522,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("support@voicetutor.com", substring = true).assertExists()
     }
 
-    // Test StatusBadge with all statuses
     @Test
     fun statusBadge_IN_PROGRESS_renders() {
         composeTestRule.setContent {
@@ -563,7 +555,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("임시저장", substring = true).assertExists()
     }
 
-    // Test TypeBadge with all types
     @Test
     fun typeBadge_Quiz_renders() {
         composeTestRule.setContent {
@@ -608,7 +599,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("알 수 없음", substring = true).assertExists()
     }
 
-    // Test CustomStatusBadge with all statuses
     @Test
     fun customStatusBadge_notStarted_renders() {
         composeTestRule.setContent {
@@ -653,7 +643,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("알 수 없음", substring = true).assertExists()
     }
 
-    // Test RoleCard
     @Test
     fun roleCard_student_selected_renders() {
         composeTestRule.setContent {
@@ -661,7 +650,7 @@ class ScreenComposableTests {
                 RoleCard(
                     title = "학생",
                     description = "과제를 받고 학습합니다",
-                    icon = androidx.compose.material.icons.Icons.Filled.School,
+                    icon = Icons.Filled.School,
                     isSelected = true,
                     onClick = {},
                 )
@@ -678,7 +667,7 @@ class ScreenComposableTests {
                 RoleCard(
                     title = "선생님",
                     description = "과제를 생성하고 관리합니다",
-                    icon = androidx.compose.material.icons.Icons.Filled.Person,
+                    icon = Icons.Filled.Person,
                     isSelected = false,
                     onClick = {},
                 )
@@ -688,13 +677,12 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("선생님", substring = true).assertExists()
     }
 
-    // Test ClassStatItem
     @Test
     fun classStatItem_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 ClassStatItem(
-                    icon = androidx.compose.material.icons.Icons.Filled.Person,
+                    icon = Icons.Filled.Person,
                     value = "25",
                     label = "학생",
                     color = androidx.compose.ui.graphics.Color(0xFF6200EE),
@@ -717,12 +705,4 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("앱 정보", substring = true).assertExists()
     }
 
-    // Test StudentSubmissionItem
-    // Note: StudentSubmissionItem is defined in TeacherAssignmentDetailScreen.kt
-    // but may not be accessible due to package visibility issues
-    // Skipping this test to avoid compilation errors
-    // @Test
-    // fun studentSubmissionItem_completed_renders() { ... }
-
-    // Test other composables instead
 }

@@ -1,4 +1,4 @@
-package com.example.voicetutor.file
+﻿package com.example.voicetutor.file
 
 import android.content.ContentResolver
 import android.content.Context
@@ -13,7 +13,6 @@ import org.mockito.Mockito.*
 import org.mockito.MockitoAnnotations
 import java.io.File
 import java.io.FileInputStream
-import java.io.InputStream
 
 /**
  * Unit tests for FileManager
@@ -51,11 +50,11 @@ class FileManagerTest {
 
     @Test
     fun fileType_enumValues_areCorrect() {
-        assertEquals(4, FileType.values().size)
-        assertTrue(FileType.values().contains(FileType.AUDIO))
-        assertTrue(FileType.values().contains(FileType.IMAGE))
-        assertTrue(FileType.values().contains(FileType.DOCUMENT))
-        assertTrue(FileType.values().contains(FileType.OTHER))
+        assertEquals(4, FileType.entries.size)
+        assertTrue(FileType.entries.contains(FileType.AUDIO))
+        assertTrue(FileType.entries.contains(FileType.IMAGE))
+        assertTrue(FileType.entries.contains(FileType.DOCUMENT))
+        assertTrue(FileType.entries.contains(FileType.OTHER))
     }
 
     @Test

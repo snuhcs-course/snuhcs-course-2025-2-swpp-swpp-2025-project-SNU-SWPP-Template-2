@@ -67,22 +67,17 @@ class CreateAssignmentScreenTest {
             setStateFlow(assignmentViewModel, "_isUploading", false)
         }
 
-        // Note: Success message only shows when uploadSuccess is true AND selectedFiles is not empty
-        // Since selectedFiles is local state and cannot be set in tests, this test verifies
-        // that the ViewModel state is set correctly, but the UI may not show the message
-        // if no files are selected. This is expected behavior.
         composeRule.waitForIdle()
         
-        // Verify that uploadSuccess state is set (even if UI doesn't show message without files)
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
-                // Check if upload success state is set in ViewModel
+
                 val uploadSuccessField = AssignmentViewModel::class.java.getDeclaredField("_uploadSuccess")
                 uploadSuccessField.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
                 val uploadSuccessFlow = uploadSuccessField.get(assignmentViewModel) as MutableStateFlow<Boolean>
-                uploadSuccessFlow.value == true
-            } catch (e: Exception) {
+                uploadSuccessFlow.value
+            } catch (_: Exception) {
                 false
             }
         }
@@ -117,7 +112,6 @@ class CreateAssignmentScreenTest {
             setStateFlow(assignmentViewModel, "_isCreatingAssignment", true)
         }
 
-        // CircularProgressIndicator should be displayed
         composeRule.waitForIdle()
     }
 
@@ -139,7 +133,6 @@ class CreateAssignmentScreenTest {
             errorFlow.value = "과제 생성 실패"
         }
 
-        // Error should be cleared automatically
         composeRule.waitForIdle()
     }
 
@@ -174,7 +167,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("30%", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -199,20 +192,16 @@ class CreateAssignmentScreenTest {
             setStateFlow(assignmentViewModel, "_uploadProgress", 1.0f)
         }
 
-        // Note: Success message only shows when uploadSuccess is true AND selectedFiles is not empty
-        // Since selectedFiles is local state and cannot be set in tests, this test verifies
-        // that the ViewModel state is set correctly
         composeRule.waitForIdle()
         
-        // Verify that upload states are set correctly
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 val uploadSuccessField = AssignmentViewModel::class.java.getDeclaredField("_uploadSuccess")
                 uploadSuccessField.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
                 val uploadSuccessFlow = uploadSuccessField.get(assignmentViewModel) as MutableStateFlow<Boolean>
-                uploadSuccessFlow.value == true
-            } catch (e: Exception) {
+                uploadSuccessFlow.value
+            } catch (_: Exception) {
                 false
             }
         }
@@ -238,7 +227,6 @@ class CreateAssignmentScreenTest {
             }
         }
 
-        // Should handle null teacherId gracefully
         composeRule.waitForIdle()
     }
 
@@ -250,7 +238,6 @@ class CreateAssignmentScreenTest {
             }
         }
 
-        // Should handle initialClassId
         composeRule.waitForIdle()
     }
 
@@ -262,7 +249,6 @@ class CreateAssignmentScreenTest {
             }
         }
 
-        // File selection UI should be displayed
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("PDF 파일", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -300,7 +286,7 @@ class CreateAssignmentScreenTest {
         }
 
         waitForText("마감일")
-        // Date picker should be available
+
         composeRule.waitForIdle()
     }
 
@@ -312,7 +298,6 @@ class CreateAssignmentScreenTest {
             }
         }
 
-        // Should handle empty classes list gracefully
         composeRule.waitForIdle()
     }
 
@@ -324,7 +309,6 @@ class CreateAssignmentScreenTest {
             }
         }
 
-        // Should handle empty students list gracefully
         composeRule.waitForIdle()
     }
 
@@ -340,7 +324,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("과목", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -363,7 +347,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("학년", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -386,7 +370,7 @@ class CreateAssignmentScreenTest {
             try {
                 composeRule.onAllNodesWithText("수업 선택", substring = true, useUnmergedTree = true)
                     .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 false
             }
         }
@@ -414,20 +398,16 @@ class CreateAssignmentScreenTest {
             setStateFlow(assignmentViewModel, "_isUploading", false)
         }
 
-        // Note: Success message only shows when uploadSuccess is true AND selectedFiles is not empty
-        // Since selectedFiles is local state and cannot be set in tests, this test verifies
-        // that the ViewModel state is set correctly
         composeRule.waitForIdle()
         
-        // Verify that upload success state is set
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 val uploadSuccessField = AssignmentViewModel::class.java.getDeclaredField("_uploadSuccess")
                 uploadSuccessField.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
                 val uploadSuccessFlow = uploadSuccessField.get(assignmentViewModel) as MutableStateFlow<Boolean>
-                uploadSuccessFlow.value == true
-            } catch (e: Exception) {
+                uploadSuccessFlow.value
+            } catch (_: Exception) {
                 false
             }
         }

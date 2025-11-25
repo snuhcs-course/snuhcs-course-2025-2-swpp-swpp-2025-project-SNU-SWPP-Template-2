@@ -1,9 +1,6 @@
-package com.example.voicetutor.di
+﻿package com.example.voicetutor.di
 
-import android.content.Context
 import com.example.voicetutor.data.network.ApiConfig
-import com.google.gson.Gson
-import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import org.junit.Assert.*
 import org.junit.Before
@@ -11,15 +8,11 @@ import org.junit.Test
 import org.mockito.Mock
 import org.mockito.Mockito.`when`
 import org.mockito.MockitoAnnotations
-import retrofit2.Retrofit
 
 /**
  * Unit tests for NetworkModule providers
  */
 class NetworkModuleTest {
-
-    @Mock
-    private lateinit var mockContext: Context
 
     @Mock
     private lateinit var mockApiConfig: ApiConfig
@@ -38,7 +31,6 @@ class NetworkModuleTest {
         val gson = networkModule.provideGson()
 
         assertNotNull(gson)
-        assertTrue(gson is Gson)
 
         // Test that Gson can serialize/deserialize
         val testData = mapOf("key" to "value")
@@ -51,7 +43,6 @@ class NetworkModuleTest {
         val interceptor = networkModule.provideLoggingInterceptor()
 
         assertNotNull(interceptor)
-        assertTrue(interceptor is HttpLoggingInterceptor)
         assertEquals(HttpLoggingInterceptor.Level.BODY, interceptor.level)
     }
 
@@ -62,7 +53,6 @@ class NetworkModuleTest {
         val client = networkModule.provideOkHttpClient(loggingInterceptor, cookieJar)
 
         assertNotNull(client)
-        assertTrue(client is OkHttpClient)
 
         // Verify timeouts are set correctly
         assertEquals(60_000, client.connectTimeoutMillis)
@@ -83,7 +73,6 @@ class NetworkModuleTest {
         val retrofit = networkModule.provideRetrofit(client, gson, mockApiConfig)
 
         assertNotNull(retrofit)
-        assertTrue(retrofit is Retrofit)
         assertEquals("http://test.com/api/", retrofit.baseUrl().toString())
     }
 
@@ -107,7 +96,7 @@ class NetworkModuleTest {
         val client = networkModule.provideOkHttpClient(loggingInterceptor, cookieJar)
 
         // Verify interceptors count (should have at least the logging interceptor)
-        assertTrue(client.interceptors.size >= 1)
+        assertTrue(client.interceptors.isNotEmpty())
         assertTrue(client.interceptors.contains(loggingInterceptor))
     }
 
@@ -119,7 +108,7 @@ class NetworkModuleTest {
         val result = try {
             gson.fromJson("{key: 'value'}", Map::class.java) // Single quotes are not standard JSON
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
 

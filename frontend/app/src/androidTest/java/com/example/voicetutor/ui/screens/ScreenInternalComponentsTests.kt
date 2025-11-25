@@ -5,23 +5,16 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.data.models.*
-import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Tests for internal Composable components within screen files.
- * These components can be tested directly without ViewModels.
- */
 @RunWith(AndroidJUnit4::class)
 class ScreenInternalComponentsTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
-
-    // ========== StudentDashboardScreen Components ==========
 
     @Test
     fun studentAssignmentCard_renders_withAllData() {
@@ -185,8 +178,6 @@ class ScreenInternalComponentsTests {
         assert(clicked)
     }
 
-    // ========== TeacherDashboardScreen Components ==========
-
     @Test
     fun teacherAssignmentCard_renders_withAllData() {
         composeTestRule.setContent {
@@ -257,7 +248,6 @@ class ScreenInternalComponentsTests {
 
     @Test
     fun teacherAssignmentCard_triggersOnViewResults() {
-        var viewResultsClicked = false
         composeTestRule.setContent {
             VoiceTutorTheme {
                 TeacherAssignmentCard(
@@ -268,18 +258,15 @@ class ScreenInternalComponentsTests {
                     totalCount = 10,
                     status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onViewResults = { viewResultsClicked = true },
+                    onViewResults = {},
                     onEdit = {},
                 )
             }
         }
         composeTestRule.waitForIdle()
 
-        // Find and click the view results button
         composeTestRule.onRoot().printToLog("TEACHER_ASSIGNMENT_CARD")
     }
-
-    // ========== Comprehensive Component Testing ==========
 
     @Test
     fun allDashboardCards_renderTogether() {
@@ -322,7 +309,7 @@ class ScreenInternalComponentsTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // Zero progress, zero totals
+
                     StudentAssignmentCard(
                         title = "과제",
                         subject = "수학",
@@ -334,7 +321,7 @@ class ScreenInternalComponentsTests {
                         onClick = {},
                         onStartAssignment = {},
                     )
-                    // Submitted state
+
                     StudentAssignmentCard(
                         title = "제출된 과제",
                         subject = "수학",
@@ -358,7 +345,7 @@ class ScreenInternalComponentsTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // Zero submissions
+
                     TeacherAssignmentCard(
                         title = "과제",
                         className = "수학 1반",
@@ -370,7 +357,7 @@ class ScreenInternalComponentsTests {
                         onViewResults = {},
                         onEdit = {},
                     )
-                    // All submissions completed
+
                     TeacherAssignmentCard(
                         title = "완료된 과제",
                         className = "수학 1반",

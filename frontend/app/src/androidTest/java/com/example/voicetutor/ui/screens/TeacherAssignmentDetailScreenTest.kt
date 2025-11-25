@@ -169,7 +169,6 @@ class TeacherAssignmentDetailScreenTest {
 
     @Test
     fun teacherAssignmentDetailScreen_showsLoadingState() {
-        // Simulate loading delay
 
         val assignmentId = testAssignment.id
 
@@ -181,7 +180,6 @@ class TeacherAssignmentDetailScreenTest {
             }
         }
 
-        // Loading indicator should be displayed initially
         composeRule.waitForIdle()
     }
 
@@ -195,7 +193,6 @@ class TeacherAssignmentDetailScreenTest {
             }
         }
 
-        // Should handle zero assignmentId gracefully
         composeRule.waitForIdle()
     }
 
@@ -237,7 +234,6 @@ class TeacherAssignmentDetailScreenTest {
             }
         }
 
-        // Should handle statistics loading error gracefully
         composeRule.waitForIdle()
     }
 
@@ -259,7 +255,6 @@ class TeacherAssignmentDetailScreenTest {
             assignmentViewModel.assignmentStatistics.value != null
         }
 
-        // Statistics should be displayed
         waitForText("제출률")
         waitForText("평균 점수")
         waitForText("제출 학생")
@@ -284,7 +279,6 @@ class TeacherAssignmentDetailScreenTest {
             }
         }
 
-        // Should handle null statistics gracefully
         composeRule.waitForIdle()
     }
 
@@ -313,7 +307,6 @@ class TeacherAssignmentDetailScreenTest {
             assignmentViewModel.assignmentStatistics.value != null
         }
 
-        // Zero statistics should be displayed
         composeRule.waitForIdle()
     }
 }

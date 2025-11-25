@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.models
+﻿package com.example.voicetutor.data.models
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -13,15 +13,12 @@ class StudentModelsTest {
 
     @Test
     fun student_withAllFields_containsCorrectValues() {
-        // Arrange
         val student = Student(
             id = 1,
             name = "Student1",
             email = "s1@test.com",
             role = UserRole.STUDENT,
         )
-
-        // Assert
         assertEquals(1, student.id)
         assertEquals("Student1", student.name)
         assertEquals("s1@test.com", student.email)
@@ -30,29 +27,23 @@ class StudentModelsTest {
 
     @Test
     fun student_withNullName_handlesNull() {
-        // Arrange
         val student = Student(
             id = 1,
             name = null,
             email = "s1@test.com",
             role = UserRole.STUDENT,
         )
-
-        // Assert
         assertNull(student.name)
     }
 
     @Test
     fun allStudentsStudent_withAllFields_containsCorrectValues() {
-        // Arrange
         val student = AllStudentsStudent(
             id = 1,
             name = "Student1",
             email = "s1@test.com",
             role = UserRole.STUDENT,
         )
-
-        // Assert
         assert(student.id == 1)
         assert(student.name == "Student1")
         assert(student.email == "s1@test.com")
@@ -61,7 +52,6 @@ class StudentModelsTest {
 
     @Test
     fun studentProgress_withAllFields_containsCorrectValues() {
-        // Arrange
         val progress = StudentProgress(
             studentId = 1,
             totalAssignments = 10,
@@ -79,8 +69,6 @@ class StudentModelsTest {
                 ),
             ),
         )
-
-        // Assert
         assertEquals(1, progress.studentId)
         assertEquals(10, progress.totalAssignments)
         assertEquals(7, progress.completedAssignments)
@@ -91,7 +79,6 @@ class StudentModelsTest {
 
     @Test
     fun studentProgress_withEmptyLists_handlesEmptyLists() {
-        // Arrange
         val progress = StudentProgress(
             studentId = 1,
             totalAssignments = 0,
@@ -100,22 +87,17 @@ class StudentModelsTest {
             weeklyProgress = emptyList(),
             subjectBreakdown = emptyList(),
         )
-
-        // Assert
         assertTrue(progress.weeklyProgress.isEmpty())
         assertTrue(progress.subjectBreakdown.isEmpty())
     }
 
     @Test
     fun weeklyProgress_withAllFields_containsCorrectValues() {
-        // Arrange
         val weekly = WeeklyProgress(
             week = "Week1",
             assignmentsCompleted = 5,
             averageScore = 85.5,
         )
-
-        // Assert
         assertEquals("Week1", weekly.week)
         assertEquals(5, weekly.assignmentsCompleted)
         assertEquals(85.5, weekly.averageScore, 0.01)
@@ -123,15 +105,12 @@ class StudentModelsTest {
 
     @Test
     fun subjectProgress_withAllFields_containsCorrectValues() {
-        // Arrange
         val subjectProgress = SubjectProgress(
             subject = "Math",
             completedAssignments = 5,
             totalAssignments = 8,
             averageScore = 90.0,
         )
-
-        // Assert
         assertEquals("Math", subjectProgress.subject)
         assertEquals(5, subjectProgress.completedAssignments)
         assertEquals(8, subjectProgress.totalAssignments)

@@ -10,7 +10,6 @@ import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.data.repository.AssignmentRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -74,7 +73,6 @@ class AssignmentViewModelIntegrationTest {
         advanceUntilIdle()
 
         assertEquals(null, viewModel.error.value)
-        assertTrue(viewModel.assignments.value.size >= 0)
         assertNotNull(viewModel.studentStats.value)
     }
 
@@ -83,7 +81,6 @@ class AssignmentViewModelIntegrationTest {
         viewModel.loadCompletedStudentAssignments(studentId = 1)
         advanceUntilIdle()
 
-        // Even if fake data returns empty list, the pipeline executes and stats are calculated.
         assertEquals(null, viewModel.error.value)
         assertNotNull(viewModel.studentStats.value)
     }
@@ -136,12 +133,10 @@ class AssignmentViewModelIntegrationTest {
     fun resumePersonalAssignment_afterInterruption_restoresProgress() = runTest(dispatcher) {
         val personalAssignmentId = apiService.personalAssignmentsResponse.first().id
 
-        // Initial session load
         viewModel.loadAllQuestions(personalAssignmentId = personalAssignmentId)
         advanceUntilIdle()
         assertTrue(viewModel.personalAssignmentQuestions.value.isNotEmpty())
 
-        // Simulate progress saved on the server after interruption
         val resumedStats = PersonalAssignmentStatistics(
             totalQuestions = 10,
             answeredQuestions = 6,
@@ -162,7 +157,6 @@ class AssignmentViewModelIntegrationTest {
             )
         }
 
-        // Recreate ViewModel to mimic process death / resume flow
         val resumedViewModel = AssignmentViewModel(AssignmentRepository(apiService))
 
         resumedViewModel.loadPersonalAssignmentStatistics(personalAssignmentId = personalAssignmentId)

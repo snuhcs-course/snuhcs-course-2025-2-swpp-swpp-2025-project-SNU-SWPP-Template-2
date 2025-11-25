@@ -1,4 +1,4 @@
-package com.example.voicetutor.audio
+﻿package com.example.voicetutor.audio
 
 import android.media.AudioFormat
 import android.media.MediaRecorder
@@ -11,7 +11,7 @@ class AudioConfigTest {
     fun audioConfig_defaultValues_areCorrect() {
         val config = AudioConfig()
 
-        assertEquals(16000, config.sampleRate) // Google STT 표준
+        assertEquals(16000, config.sampleRate) // Google STT ?��?
         assertEquals(AudioFormat.CHANNEL_IN_MONO, config.channelConfig)
         assertEquals(AudioFormat.ENCODING_PCM_16BIT, config.audioFormat)
         assertEquals(MediaRecorder.AudioSource.MIC, config.audioSource)
@@ -36,7 +36,7 @@ class AudioConfigTest {
     fun audioConfig_googleSTTStandard_uses16kHz() {
         val config = AudioConfig()
 
-        // Google STT 표준 샘플 레이트
+        // Google STT ?��? ?�플 ?�이??
         assertEquals(16000, config.sampleRate)
     }
 

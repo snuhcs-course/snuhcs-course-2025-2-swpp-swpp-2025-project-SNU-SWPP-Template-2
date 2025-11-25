@@ -1,21 +1,15 @@
 package com.example.voicetutor.ui.screens
 
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.filter
-import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.isEnabled
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performScrollTo
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
-import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
@@ -29,10 +23,6 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import javax.inject.Inject
 
-/**
- * Android Instrumented Tests for SettingsScreen
- * Covers SettingsScreen composable and its dialogs
- */
 @HiltAndroidTest
 @UninstallModules(NetworkModule::class)
 @RunWith(AndroidJUnit4::class)
@@ -162,8 +152,6 @@ class SettingsScreenCoverageTest {
         waitForText("계정 삭제")
         composeRule.onNodeWithText("계정 삭제", useUnmergedTree = true).performClick()
 
-        // Dialog text contains newline, so we check for substring
-        // Wait for dialog to appear after clicking the button
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("계정을 삭제하시겠습니까?", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -171,7 +159,6 @@ class SettingsScreenCoverageTest {
         composeRule.onNodeWithText("계정을 삭제하시겠습니까?", substring = true, useUnmergedTree = true).assertIsDisplayed()
         composeRule.onNodeWithText("삭제 후에는 복구할 수 없습니다.", substring = true, useUnmergedTree = true).assertIsDisplayed()
 
-        // Click the "계정 삭제" button inside the dialog
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithTag("delete_account_button", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -180,7 +167,6 @@ class SettingsScreenCoverageTest {
             .assertExists()
             .performClick()
 
-        // After clicking, dialog should close (we can verify by checking the button is no longer visible)
         composeRule.waitForIdle()
     }
 
@@ -199,7 +185,7 @@ class SettingsScreenCoverageTest {
         composeRule.onNodeWithText("취소", useUnmergedTree = true).performClick()
 
         composeRule.waitForIdle()
-        // Dialog should be dismissed
+
     }
 
     @Test
@@ -224,7 +210,7 @@ class SettingsScreenCoverageTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
         composeRule.onNodeWithText("튜토리얼 초기화", useUnmergedTree = true).assertIsDisplayed()
-        // Check for substring since the full text includes "계속하시겠습니까?"
+
         composeRule.onNodeWithText("튜토리얼을 초기화하면 다음 로그인 시 다시 볼 수 있습니다.", substring = true, useUnmergedTree = true).assertIsDisplayed()
     }
 
@@ -243,13 +229,12 @@ class SettingsScreenCoverageTest {
         composeRule.onNodeWithText("취소", useUnmergedTree = true).performClick()
 
         composeRule.waitForIdle()
-        // Dialog should be dismissed
+
     }
 
     @Test
     fun settingsScreen_displaysErrorState() {
-        // Note: Error state testing requires login failure simulation
-        // For now, we test the UI structure without forcing an error
+
         composeRule.setContent {
             VoiceTutorTheme {
                 SettingsScreen()
@@ -267,8 +252,7 @@ class SettingsScreenCoverageTest {
 
     @Test
     fun settingsScreen_errorState_showsRetryButton() {
-        // Note: Error state testing requires login failure simulation
-        // For now, we test the UI structure without forcing an error
+
         composeRule.setContent {
             VoiceTutorTheme {
                 SettingsScreen()
@@ -315,7 +299,6 @@ class SettingsScreenCoverageTest {
 
         waitForText("계정")
         composeRule.waitForIdle()
-        // Delete account button should not be displayed when viewing student info
+
     }
 }
-

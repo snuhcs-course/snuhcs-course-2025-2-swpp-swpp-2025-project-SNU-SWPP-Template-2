@@ -1,11 +1,9 @@
-package com.example.voicetutor.ui.theme
+﻿package com.example.voicetutor.ui.theme
 
 import org.junit.Assert.*
 import org.junit.Test
 
-/**
- * Unit tests for Color constants.
- */
+
 class ColorTest {
 
     @Test

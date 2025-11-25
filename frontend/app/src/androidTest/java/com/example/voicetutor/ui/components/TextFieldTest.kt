@@ -30,7 +30,7 @@ class TextFieldTest {
         }
 
         composeTestRule.onNodeWithTag("EmptyTextField").assertExists()
-        // Empty text field should exist even with empty value
+
         composeTestRule.onAllNodes(hasText("")).assertCountEquals(1)
     }
 
@@ -157,7 +157,6 @@ class TextFieldTest {
             }
         }
 
-        // Error state should be applied - check for error message
         composeTestRule.onNodeWithText("에러 메시지").assertExists()
     }
 
@@ -221,7 +220,6 @@ class TextFieldTest {
             }
         }
 
-        // Should not crash when placeholder is null - verify field exists
         composeTestRule.onNodeWithTag("EmptyPlaceholderTextField").assertExists()
     }
 
@@ -239,7 +237,6 @@ class TextFieldTest {
             }
         }
 
-        // Should not crash when errorMessage is null - verify field exists
         composeTestRule.onNodeWithTag("EmptyErrorMessageTextField").assertExists()
     }
 }

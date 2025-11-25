@@ -5,10 +5,8 @@ import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
-import com.example.voicetutor.data.models.AnswerSubmissionResponse
 import com.example.voicetutor.data.models.PersonalAssignmentQuestion
 import com.example.voicetutor.data.network.ApiService
-import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
@@ -36,9 +34,6 @@ class AssignmentScreenCoverageTest {
     @Inject
     lateinit var apiService: ApiService
 
-    private val fakeApi: FakeApiService
-        get() = apiService as FakeApiService
-
     @Before
     fun setUp() {
         hiltRule.inject()
@@ -52,7 +47,6 @@ class AssignmentScreenCoverageTest {
         stateFlow.value = value
     }
 
-    // Cover lines 97-125: Processing state UI
     @Test
     fun testProcessingStateUI() {
         composeRule.setContent {
@@ -63,18 +57,15 @@ class AssignmentScreenCoverageTest {
 
         val viewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Set isProcessing to true
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_isProcessing", true)
         }
 
         composeRule.waitForIdle()
 
-        // Verify processing UI
         composeRule.onNodeWithText("채점 중입니다. 잠시 대기하세요.").assertIsDisplayed()
     }
 
-    // Cover lines 523-657: Recording completed UI & Playback
     @Test
     fun testRecordingCompletedUI() {
         composeRule.setContent {
@@ -85,9 +76,6 @@ class AssignmentScreenCoverageTest {
 
         val viewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Set recording state to completed with a dummy file path
-        // Note: audioRecordingState is a StateFlow of AudioRecordingState data class
-        // We need to update the whole state object
         val completedState = viewModel.audioRecordingState.value.copy(
             isRecording = false,
             isRecordingComplete = true,
@@ -101,20 +89,14 @@ class AssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Verify "녹음 완료" UI
         composeRule.onNodeWithText("녹음 완료 (00:10)").assertIsDisplayed()
         
-        // Verify "다시 듣기" text
         composeRule.onNodeWithText("다시 듣기").assertIsDisplayed()
         
-        // Verify "음성 재생" icon button exists (content description "음성 재생")
         composeRule.onNodeWithContentDescription("음성 재생").assertIsDisplayed()
         
-        // Note: Actually clicking play might fail if file doesn't exist or MediaPlayer fails,
-        // but the UI logic for displaying it is covered.
     }
 
-    // Cover lines 754-777: Recording buttons logic (Stop / Restart)
     @Test
     fun testRecordingButtonsLogic() {
         composeRule.setContent {
@@ -125,7 +107,6 @@ class AssignmentScreenCoverageTest {
 
         val viewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // 1. Test "녹음 중지" button when recording
         val recordingState = viewModel.audioRecordingState.value.copy(
             isRecording = true,
             audioFilePath = null
@@ -137,7 +118,6 @@ class AssignmentScreenCoverageTest {
         
         composeRule.onNodeWithText("녹음 중지").assertIsDisplayed()
         
-        // 2. Test "다시 녹음하기" button when completed
         val completedState = viewModel.audioRecordingState.value.copy(
             isRecording = false,
             audioFilePath = "/dummy/path.wav"
@@ -149,16 +129,12 @@ class AssignmentScreenCoverageTest {
         
         composeRule.onNodeWithText("다시 녹음하기").assertIsDisplayed()
         
-        // Click "다시 녹음하기" -> should call resetAudioRecording
         composeRule.onNodeWithText("다시 녹음하기").performClick()
         composeRule.waitForIdle()
         
-        // Verify state is reset (isRecording=false, filePath=null)
-        // Since ViewModel implementation resets it, UI should update to "녹음 시작"
         composeRule.onNodeWithText("녹음 시작").assertIsDisplayed()
     }
 
-    // Cover lines 798-828: Submit Answer Button
     @Test
     fun testSubmitAnswerButton() {
         composeRule.setContent {
@@ -169,13 +145,11 @@ class AssignmentScreenCoverageTest {
 
         val viewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Set state to allow submission: file exists, not recording
         val readyToSubmitState = viewModel.audioRecordingState.value.copy(
             isRecording = false,
-            audioFilePath = "/dummy/path.wav" // File must exist for real submission logic, but button enablement depends on this string
+            audioFilePath = "/dummy/path.wav"
         )
         
-        // Ensure current question exists
         val questions = listOf(
             PersonalAssignmentQuestion(
                 id = 1, number = "1", question = "Q1", answer = "A1", explanation = "Exp1", difficulty = "Easy",
@@ -188,20 +162,13 @@ class AssignmentScreenCoverageTest {
         
         composeRule.waitForIdle()
         
-        // Button should be enabled and visible
         composeRule.onNodeWithText("음성 답안 제출하기").assertIsDisplayed()
         composeRule.onNodeWithText("음성 답안 제출하기").assertIsEnabled()
         
-        // Click submit
-        // Note: Actual submission might fail due to file not found exception in onClick,
-        // but the click handler logic is triggered.
-        // We can verify if it shows snackbar or calls viewmodel if we could mock file.
-        // For coverage, clicking it is sufficient to execute the onClick lambda.
         composeRule.onNodeWithText("음성 답안 제출하기").performClick()
         composeRule.waitForIdle()
     }
     
-    // Cover lines 710-736: Skip Button
     @Test
     fun testSkipButton() {
         composeRule.setContent {
@@ -210,15 +177,10 @@ class AssignmentScreenCoverageTest {
             }
         }
         
-        // Ensure "건너뛰기" button is visible (when not recording and no file)
         composeRule.onNodeWithText("건너뛰기").assertIsDisplayed()
         
-        // Click skip
         composeRule.onNodeWithText("건너뛰기").performClick()
         composeRule.waitForIdle()
         
-        // This triggers logic to create empty file and submit.
-        // Might fail internally but covers the UI interaction lines.
     }
 }
-

@@ -15,10 +15,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Android Instrumented Tests for AssignmentDetailedResultsScreen
- * Covers AssignmentDetailedResultsScreen composable, question groups, and tail questions
- */
 @RunWith(AndroidJUnit4::class)
 class AssignmentDetailedResultsScreenTest {
 
@@ -158,7 +154,6 @@ class AssignmentDetailedResultsScreenTest {
         waitForText("문제별 상세 결과")
         composeRule.waitForIdle()
 
-        // Try to find and click tail question toggle if available
         val tailQuestionToggle = composeRule.onAllNodesWithText("꼬리질문 펼치기", substring = true)
         if (tailQuestionToggle.fetchSemanticsNodes().isNotEmpty()) {
             tailQuestionToggle.onFirst().performClick()
@@ -169,7 +164,7 @@ class AssignmentDetailedResultsScreenTest {
     @Test
     fun assignmentDetailedResultsScreen_displaysEmptyState() {
         val emptyApi = FakeApiService().apply {
-            assignmentCorrectnessResponses = emptyList<com.example.voicetutor.data.models.AssignmentCorrectnessItem>()
+            assignmentCorrectnessResponses = emptyList()
         }
         val viewModel = AssignmentViewModel(AssignmentRepository(emptyApi))
 
@@ -207,7 +202,6 @@ class AssignmentDetailedResultsScreenTest {
             }
         }
 
-        // Wait for error state to appear (either from correctness or statistics failure)
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("오류가 발생했습니다", substring = true)
                 .fetchSemanticsNodes().isNotEmpty()

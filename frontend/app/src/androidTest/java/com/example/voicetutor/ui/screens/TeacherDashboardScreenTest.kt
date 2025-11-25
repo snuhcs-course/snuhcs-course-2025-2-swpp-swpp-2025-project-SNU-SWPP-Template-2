@@ -14,11 +14,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Espresso/Compose UI tests for TeacherDashboardScreen.
- *
- * NOTE: Disabled due to MockK incompatibility with Android Instrumentation tests.
- */
 @Ignore("MockK incompatible with Android tests - use Hilt-based tests instead")
 @RunWith(AndroidJUnit4::class)
 class TeacherDashboardScreenTest {
@@ -83,7 +78,6 @@ class TeacherDashboardScreenTest {
             }
         }
 
-        // Check for navigation buttons
         composeTestRule.onNodeWithText("과제", substring = true)
             .assertExists()
         composeTestRule.onNodeWithText("학생", substring = true)
@@ -103,7 +97,6 @@ class TeacherDashboardScreenTest {
             }
         }
 
-        // Should show empty state or assignment count
         composeTestRule.onNodeWithText("0", substring = true)
             .assertExists()
     }
@@ -165,7 +158,6 @@ class TeacherDashboardScreenTest {
             }
         }
 
-        // Loading indicator should be visible
         composeTestRule.onAllNodesWithContentDescription("Loading")
             .onFirst()
             .assertExists()
@@ -174,8 +166,6 @@ class TeacherDashboardScreenTest {
     @Test
     fun navigationButtonsAreClickable() {
         var assignmentsClicked = false
-        var studentsClicked = false
-        var classesClicked = false
 
         composeTestRule.setContent {
             VoiceTutorTheme {
@@ -183,13 +173,12 @@ class TeacherDashboardScreenTest {
                     authViewModel = mockAuthViewModel,
                     assignmentViewModel = mockAssignmentViewModel,
                     onNavigateToAllAssignments = { assignmentsClicked = true },
-                    onNavigateToAllStudents = { studentsClicked = true },
-                    onNavigateToCreateClass = { classesClicked = true },
+                    onNavigateToAllStudents = {},
+                    onNavigateToCreateClass = {},
                 )
             }
         }
 
-        // Test navigation button clicks
         composeTestRule.onNodeWithText("과제", substring = true)
             .performClick()
         assert(assignmentsClicked)

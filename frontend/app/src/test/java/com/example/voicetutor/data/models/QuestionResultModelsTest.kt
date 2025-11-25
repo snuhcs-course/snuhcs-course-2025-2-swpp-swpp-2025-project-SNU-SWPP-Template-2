@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.models
+﻿package com.example.voicetutor.data.models
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -7,7 +7,6 @@ class QuestionResultModelsTest {
 
     @Test
     fun detailedQuestionResult_createsCorrectly() {
-        // Given
         val questionResult = DetailedQuestionResult(
             questionNumber = "1",
             question = "What is 2+2?",
@@ -16,8 +15,6 @@ class QuestionResultModelsTest {
             isCorrect = true,
             explanation = "Basic addition",
         )
-
-        // Then
         assertEquals("1", questionResult.questionNumber)
         assertEquals("What is 2+2?", questionResult.question)
         assertEquals("4", questionResult.myAnswer)
@@ -28,7 +25,6 @@ class QuestionResultModelsTest {
 
     @Test
     fun detailedQuestionResult_withoutExplanation_createsCorrectly() {
-        // Given
         val questionResult = DetailedQuestionResult(
             questionNumber = "2",
             question = "What is 3+3?",
@@ -36,8 +32,6 @@ class QuestionResultModelsTest {
             correctAnswer = "6",
             isCorrect = false,
         )
-
-        // Then
         assertEquals("2", questionResult.questionNumber)
         assertFalse(questionResult.isCorrect)
         assertNull(questionResult.explanation)
@@ -45,7 +39,6 @@ class QuestionResultModelsTest {
 
     @Test
     fun questionGroup_createsCorrectly() {
-        // Given
         val baseQuestion = DetailedQuestionResult(
             questionNumber = "1",
             question = "Base question",
@@ -72,8 +65,6 @@ class QuestionResultModelsTest {
             baseQuestion = baseQuestion,
             tailQuestions = listOf(tailQuestion1, tailQuestion2),
         )
-
-        // Then
         assertEquals(baseQuestion, questionGroup.baseQuestion)
         assertEquals(2, questionGroup.tailQuestions.size)
         assertEquals(tailQuestion1, questionGroup.tailQuestions[0])
@@ -82,7 +73,6 @@ class QuestionResultModelsTest {
 
     @Test
     fun questionGroup_withEmptyTailQuestions_createsCorrectly() {
-        // Given
         val baseQuestion = DetailedQuestionResult(
             questionNumber = "1",
             question = "Base question",
@@ -95,15 +85,12 @@ class QuestionResultModelsTest {
             baseQuestion = baseQuestion,
             tailQuestions = emptyList(),
         )
-
-        // Then
         assertEquals(baseQuestion, questionGroup.baseQuestion)
         assertTrue(questionGroup.tailQuestions.isEmpty())
     }
 
     @Test
     fun questionGroup_withDefaultTailQuestions_createsCorrectly() {
-        // Given
         val baseQuestion = DetailedQuestionResult(
             questionNumber = "1",
             question = "Base question",
@@ -113,8 +100,6 @@ class QuestionResultModelsTest {
         )
 
         val questionGroup = QuestionGroup(baseQuestion = baseQuestion)
-
-        // Then
         assertEquals(baseQuestion, questionGroup.baseQuestion)
         assertTrue(questionGroup.tailQuestions.isEmpty())
     }

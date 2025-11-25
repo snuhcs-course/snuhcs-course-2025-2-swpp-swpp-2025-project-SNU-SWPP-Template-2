@@ -6,8 +6,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.example.voicetutor.HiltComponentActivity
-import com.example.voicetutor.data.models.AssignmentData
-import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule
@@ -92,7 +90,7 @@ class VoiceTutorNavigationLaunchedEffectTest {
         
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value == true
+            viewModel.isLoggedIn.value
         }
         
         // LaunchedEffect should automatically navigate to TeacherDashboard
@@ -115,7 +113,7 @@ class VoiceTutorNavigationLaunchedEffectTest {
         
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value == true
+            viewModel.isLoggedIn.value
         }
         
         // LaunchedEffect should automatically navigate to StudentDashboard
@@ -142,7 +140,7 @@ class VoiceTutorNavigationLaunchedEffectTest {
         
         composeRule.waitUntil(timeoutMillis = 10_000) {
             authVm.currentUser.value != null &&
-            authVm.isLoggedIn.value == true
+            authVm.isLoggedIn.value
         }
         
         // Wait for LaunchedEffect to set initial assignments if user has them
@@ -181,7 +179,7 @@ class VoiceTutorNavigationLaunchedEffectTest {
         
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value == true
+            viewModel.isLoggedIn.value
         }
         
         // LaunchedEffect should automatically navigate to TeacherDashboard
@@ -211,7 +209,7 @@ class VoiceTutorNavigationLaunchedEffectTest {
         
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value == true
+            viewModel.isLoggedIn.value
         }
         
         // LaunchedEffect should automatically navigate to StudentDashboard
@@ -238,7 +236,7 @@ class VoiceTutorNavigationLaunchedEffectTest {
         
         composeRule.waitUntil(timeoutMillis = 10_000) {
             authVm.currentUser.value != null &&
-            authVm.isLoggedIn.value == true
+            authVm.isLoggedIn.value
         }
         
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)

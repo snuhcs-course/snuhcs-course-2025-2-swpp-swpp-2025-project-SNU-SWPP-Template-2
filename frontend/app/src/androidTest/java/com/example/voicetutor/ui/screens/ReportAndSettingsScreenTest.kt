@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
 import com.example.voicetutor.data.models.PersonalAssignmentStatus
-import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
 import com.example.voicetutor.di.NetworkModule

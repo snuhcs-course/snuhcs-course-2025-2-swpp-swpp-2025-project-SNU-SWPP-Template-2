@@ -1,7 +1,6 @@
-package com.example.voicetutor.data.models
+﻿package com.example.voicetutor.data.models
 
 import com.example.voicetutor.R
-import com.example.voicetutor.ui.components.OnboardingPage
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull

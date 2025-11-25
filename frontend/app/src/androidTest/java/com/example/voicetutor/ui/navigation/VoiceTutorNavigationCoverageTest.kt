@@ -103,7 +103,6 @@ class VoiceTutorNavigationCoverageTest {
         return checkNotNull(viewModel)
     }
 
-    // Cover lines 34-40: LaunchedEffect for setting initial assignments on login
     @Test
     fun testLoginSetsInitialAssignments() {
         setContent()
@@ -111,7 +110,6 @@ class VoiceTutorNavigationCoverageTest {
         val authViewModel = authViewModel()
         val assignmentViewModel = assignmentViewModel()
 
-        // Create user with assignments
         val courseClass = CourseClass(
             id = 1,
             name = "수학 A반",
@@ -139,22 +137,20 @@ class VoiceTutorNavigationCoverageTest {
         )
 
         composeRule.runOnIdle {
-            // Set user directly to trigger LaunchedEffect
             val field = AuthViewModel::class.java.getDeclaredField("_currentUser")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val stateFlow = field.get(authViewModel) as MutableStateFlow<User?>
             stateFlow.value = userWithAssignments
         }
 
         composeRule.waitForIdle()
 
-        // Verify assignments were set
         composeRule.runOnIdle {
             assert(assignmentViewModel.assignments.value.isNotEmpty())
         }
     }
 
-    // Cover lines 44-60: Auto navigation after login based on role
     @Test
     fun testAutoNavigationAfterLogin_Teacher() {
         setContent()
@@ -191,7 +187,6 @@ class VoiceTutorNavigationCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
     }
 
-    // Cover lines 95-118: Signup screen auto navigation
     @Test
     fun testSignupAutoNavigation() {
         setContent()
@@ -204,7 +199,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.Signup.route)
 
-        // Simulate successful signup
         composeRule.runOnIdle {
             val user = User(
                 id = 1,
@@ -214,27 +208,25 @@ class VoiceTutorNavigationCoverageTest {
             )
             val field = AuthViewModel::class.java.getDeclaredField("_currentUser")
             field.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val stateFlow = field.get(authViewModel) as MutableStateFlow<User?>
             stateFlow.value = user
 
             val isLoggedInField = AuthViewModel::class.java.getDeclaredField("_isLoggedIn")
             isLoggedInField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val isLoggedInFlow = isLoggedInField.get(authViewModel) as MutableStateFlow<Boolean>
             isLoggedInFlow.value = true
         }
 
         composeRule.waitForIdle()
 
-        // Should navigate to student dashboard
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
     }
 
-    // Cover lines 122-128: Signup screen callbacks
     @Test
     fun testSignupScreenCallbacks() {
         setContent()
-
-        val authViewModel = authViewModel()
 
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.Signup.route)
@@ -242,15 +234,10 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.Signup.route)
 
-        // Wait for text to appear
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("로그인", substring = true).fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Test onLoginClick - should navigate back
-        // Note: SignupScreen has a text "이미 계정이 있으신가요? 로그인" where "로그인" is clickable
-        // or a Button "로그인하기" in case of error.
-        // In SignupScreen.kt:
         /*
         Row(...) {
             Text("이미 계정이 있으신가요? ")
@@ -266,7 +253,6 @@ class VoiceTutorNavigationCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Cover lines 262-276: TeacherDashboard with refresh and deleted parameters
     @Test
     fun testTeacherDashboardWithRefreshParameter() {
         setContent()
@@ -283,7 +269,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate with refresh parameter
         val timestamp = System.currentTimeMillis()
         composeRule.runOnIdle {
             navController.navigate("${VoiceTutorScreens.TeacherDashboard.route}?refresh=$timestamp&deleted=false")
@@ -309,7 +294,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate with deleted parameter
         val timestamp = System.currentTimeMillis()
         composeRule.runOnIdle {
             navController.navigate("${VoiceTutorScreens.TeacherDashboard.route}?refresh=$timestamp&deleted=true")
@@ -319,7 +303,6 @@ class VoiceTutorNavigationCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Cover lines 320-328: TeacherClasses with created parameter
     @Test
     fun testTeacherClassesWithCreatedParameter() {
         setContent()
@@ -336,7 +319,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate with created parameter
         composeRule.runOnIdle {
             navController.navigate("${VoiceTutorScreens.TeacherClasses.route}?created=true")
         }
@@ -345,7 +327,6 @@ class VoiceTutorNavigationCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Cover lines 222-230: NoRecentAssignment with null studentId
     @Test
     fun testNoRecentAssignmentWithNullStudentId() {
         setContent()
@@ -362,7 +343,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Navigate with invalid studentId (should not render)
         composeRule.runOnIdle {
             navController.navigate("no_recent_assignment/999")
         }
@@ -371,7 +351,6 @@ class VoiceTutorNavigationCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Cover lines 488-500: CreateAssignment onCreateAssignment callback
     @Test
     fun testCreateAssignmentOnCreateCallback() {
         setContent()
@@ -388,7 +367,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate to create assignment
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.CreateAssignment.createRoute(null))
         }
@@ -396,11 +374,8 @@ class VoiceTutorNavigationCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.CreateAssignment.route.substringBefore("{"))
         composeRule.waitForIdle()
 
-        // The actual creation would be tested in CreateAssignmentScreen tests
-        // Here we just verify navigation works
     }
 
-    // Cover lines 525-537: EditAssignment callbacks
     @Test
     fun testEditAssignmentNavigation() {
         setContent()
@@ -417,7 +392,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate to edit assignment
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.EditAssignment.createRoute(1))
         }
@@ -425,13 +399,11 @@ class VoiceTutorNavigationCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.EditAssignment.route.substringBefore("{"))
         composeRule.waitForIdle()
 
-        // Verify edit screen is displayed
         composeRule.onAllNodesWithText("과제 편집", substring = true, useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
     }
 
-    // Cover lines 711-717: CreateClass onClassCreated callback
     @Test
     fun testCreateClassOnClassCreatedCallback() {
         setContent()
@@ -448,7 +420,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate to create class
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.CreateClass.route)
         }
@@ -456,11 +427,8 @@ class VoiceTutorNavigationCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.CreateClass.route)
         composeRule.waitForIdle()
 
-        // The actual creation would be tested in CreateClassScreen tests
-        // Here we just verify navigation works
     }
 
-    // Cover lines 149-157: StudentDashboard navigation callbacks
     @Test
     fun testStudentDashboardNavigationCallbacks() {
         setContent()
@@ -477,7 +445,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Test navigation to assignment detail
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.AssignmentDetail.createRoute("1", "Test Assignment"))
         }
@@ -486,7 +453,6 @@ class VoiceTutorNavigationCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Cover lines 186-192: AssignmentScreen onNavigateToHome callback
     @Test
     fun testAssignmentScreenOnNavigateToHome() {
         setContent()
@@ -503,7 +469,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Navigate to assignment screen
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.Assignment.createRoute("1", "Test Assignment"))
         }
@@ -511,7 +476,5 @@ class VoiceTutorNavigationCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.Assignment.route.substringBefore("{"))
         composeRule.waitForIdle()
 
-        // The onNavigateToHome callback would be tested in AssignmentScreen tests
     }
 }
-

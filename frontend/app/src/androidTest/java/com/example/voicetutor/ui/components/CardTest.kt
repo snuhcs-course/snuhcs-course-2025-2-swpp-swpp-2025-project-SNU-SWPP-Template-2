@@ -118,8 +118,6 @@ class CardTest {
 
     @Test
     fun card_doesNotCallOnClick_whenNotClickable() {
-        var clicked = false
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 VTCard(onClick = null) {
@@ -128,7 +126,6 @@ class CardTest {
             }
         }
 
-        // onClick is null, so click should not trigger
         composeTestRule.onNodeWithText("Non-clickable Card").assertExists()
     }
 
@@ -169,13 +166,12 @@ class CardTest {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 VTCard {
-                    // Empty content - card may not render visible content, so we use a test tag
+
                     Box(modifier = Modifier.semantics { testTag = "EmptyCard" })
                 }
             }
         }
 
-        // Card should still render even with empty content
         composeTestRule.onNodeWithTag("EmptyCard").assertExists()
     }
 
@@ -218,7 +214,6 @@ class CardTest {
         composeTestRule.onNodeWithText("내부 카드").assertExists()
     }
 
-    // VTCard2 tests
     @Test
     fun card2_displaysContent() {
         composeTestRule.setContent {
@@ -283,8 +278,6 @@ class CardTest {
 
     @Test
     fun card2_doesNotCallOnClick_whenNotClickable() {
-        var clicked = false
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 VTCard2(onClick = null) {
@@ -294,12 +287,11 @@ class CardTest {
         }
 
         composeTestRule.onNodeWithText("VTCard2 Non-clickable").assertExists()
-        // onClick is null, so click should not trigger
     }
 
     @Test
     fun card2_hasDifferentPadding() {
-        // VTCard2 uses padding(5.dp) instead of padding(20.dp)
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 VTCard2 {
@@ -341,7 +333,6 @@ class CardTest {
         composeTestRule.onNodeWithTag("CustomCard2").assertExists()
     }
 
-    // Additional tests for Default variant
     @Test
     fun card_defaultVariant_isClickable() {
         var clicked = false
@@ -378,7 +369,6 @@ class CardTest {
         assert(clicked)
     }
 
-    // Additional tests for Outlined variant
     @Test
     fun card_outlinedVariant_isClickable() {
         var clicked = false
@@ -445,7 +435,6 @@ class CardTest {
         composeTestRule.onNodeWithText("Additional text").assertExists()
     }
 
-    // Additional tests for Gradient variant
     @Test
     fun card_gradientVariant_isClickable() {
         var clicked = false
@@ -512,7 +501,6 @@ class CardTest {
         composeTestRule.onNodeWithText("With gradient background").assertExists()
     }
 
-    // Additional tests for Selected variant
     @Test
     fun card_selectedVariant_isClickable() {
         var clicked = false
@@ -579,7 +567,6 @@ class CardTest {
         composeTestRule.onNodeWithText("With selected border").assertExists()
     }
 
-    // Test all variants together for VTCard
     @Test
     fun card_displaysAllVariantsTogether() {
         composeTestRule.setContent {
@@ -607,7 +594,6 @@ class CardTest {
         composeTestRule.onNodeWithText("Selected Card").assertExists()
     }
 
-    // Test variant combinations with onClick
     @Test
     fun card_defaultVariant_withOnClick_works() {
         var clicked = false
@@ -680,7 +666,6 @@ class CardTest {
         assert(clicked)
     }
 
-    // Test VTCard2 variant combinations with onClick
     @Test
     fun card2_defaultVariant_withOnClick_works() {
         var clicked = false

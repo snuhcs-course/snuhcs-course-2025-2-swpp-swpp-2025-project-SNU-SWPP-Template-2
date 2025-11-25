@@ -18,10 +18,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Android Instrumented Tests for OnboardingPager
- * Covers OnboardingPager composable, page navigation, and completion
- */
 @RunWith(AndroidJUnit4::class)
 class OnboardingPagerTest {
 
@@ -58,12 +54,11 @@ class OnboardingPagerTest {
 
     @Test
     fun onboardingPager_displaysFirstPage() {
-        var onCompleteCalled = false
         composeRule.setContent {
             VoiceTutorTheme {
                 OnboardingPager(
                     pages = testPages,
-                    onComplete = { onCompleteCalled = true },
+                    onComplete = {},
                 )
             }
         }
@@ -120,7 +115,8 @@ class OnboardingPagerTest {
         waitForText("건너뛰기")
         composeRule.onNodeWithText("건너뛰기", substring = true).performClick()
         composeRule.waitForIdle()
-        // Note: onComplete and onSkip are both called when skip is clicked
+
+        assert(onCompleteCalled || onSkipCalled)
     }
 
     @Test
@@ -137,7 +133,6 @@ class OnboardingPagerTest {
         waitForText("첫 번째 페이지")
         composeRule.onNodeWithText("첫 번째 페이지", substring = true).assertIsDisplayed()
 
-        // Swipe left to next page
         composeRule.onNodeWithText("첫 번째 페이지", substring = true).performTouchInput { swipeLeft() }
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -159,7 +154,7 @@ class OnboardingPagerTest {
         }
 
         waitForText("첫 번째 페이지")
-        // Swipe to second page first
+
         composeRule.onNodeWithText("첫 번째 페이지", substring = true).performTouchInput { swipeLeft() }
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -167,7 +162,6 @@ class OnboardingPagerTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Swipe right to go back
         composeRule.onNodeWithText("두 번째 페이지", substring = true).performTouchInput { swipeRight() }
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -190,7 +184,7 @@ class OnboardingPagerTest {
 
         waitForText("첫 번째 페이지")
         composeRule.waitForIdle()
-        // Next arrow should be visible on first page
+
         composeRule.onNodeWithContentDescription("다음").assertIsDisplayed()
     }
 
@@ -208,7 +202,6 @@ class OnboardingPagerTest {
         waitForText("첫 번째 페이지")
         composeRule.waitForIdle()
 
-        // Click next arrow
         composeRule.onNodeWithContentDescription("다음").performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -230,7 +223,7 @@ class OnboardingPagerTest {
         }
 
         waitForText("첫 번째 페이지")
-        // Navigate to second page
+
         composeRule.onNodeWithContentDescription("다음").performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -238,7 +231,6 @@ class OnboardingPagerTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Previous arrow should be visible on second page
         composeRule.onNodeWithContentDescription("이전").assertIsDisplayed()
     }
 
@@ -254,7 +246,7 @@ class OnboardingPagerTest {
         }
 
         waitForText("첫 번째 페이지")
-        // Navigate to second page first
+
         composeRule.onNodeWithContentDescription("다음").performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -262,7 +254,6 @@ class OnboardingPagerTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Click previous arrow
         composeRule.onNodeWithContentDescription("이전").performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -284,7 +275,7 @@ class OnboardingPagerTest {
         }
 
         waitForText("첫 번째 페이지")
-        // Navigate to last page
+
         composeRule.onNodeWithContentDescription("다음").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithContentDescription("다음").performClick()
@@ -311,7 +302,7 @@ class OnboardingPagerTest {
         }
 
         waitForText("첫 번째 페이지")
-        // Navigate to last page
+
         composeRule.onNodeWithContentDescription("다음").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithContentDescription("다음").performClick()
@@ -323,7 +314,8 @@ class OnboardingPagerTest {
 
         composeRule.onNodeWithText("시작하기", substring = true).performClick()
         composeRule.waitForIdle()
-        // Note: onComplete may be called asynchronously
+
+        assert(onCompleteCalled)
     }
 
     @Test
@@ -338,7 +330,7 @@ class OnboardingPagerTest {
         }
 
         waitForText("첫 번째 페이지")
-        // Navigate to last page
+
         composeRule.onNodeWithContentDescription("다음").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithContentDescription("다음").performClick()
@@ -349,8 +341,7 @@ class OnboardingPagerTest {
         }
 
         composeRule.waitForIdle()
-        // Skip button should not be visible on last page
-        // We verify by checking that "건너뛰기" is not found
+
     }
 
     @Test
@@ -367,7 +358,6 @@ class OnboardingPagerTest {
         waitForText("첫 번째 페이지")
         composeRule.onNodeWithText("첫 번째 페이지", substring = true).assertIsDisplayed()
 
-        // Navigate through all pages
         composeRule.onNodeWithContentDescription("다음").performClick()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("두 번째 페이지", substring = true)
@@ -396,7 +386,7 @@ class OnboardingPagerTest {
 
         waitForText("첫 번째 페이지")
         composeRule.onNodeWithText("첫 번째 페이지", substring = true).assertIsDisplayed()
-        // Page with icon should be displayed
+
     }
 
     @Test
@@ -410,7 +400,6 @@ class OnboardingPagerTest {
             }
         }
 
-        // Navigate to third page which has image but no icon
         composeRule.onNodeWithContentDescription("다음").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithContentDescription("다음").performClick()
@@ -436,7 +425,6 @@ class OnboardingPagerTest {
         waitForText("튜토리얼 1/3")
         composeRule.onNodeWithText("튜토리얼 1/3", substring = true).assertIsDisplayed()
 
-        // Navigate to second page
         composeRule.onNodeWithContentDescription("다음").performClick()
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -446,4 +434,3 @@ class OnboardingPagerTest {
         composeRule.onNodeWithText("튜토리얼 2/3", substring = true).assertIsDisplayed()
     }
 }
-

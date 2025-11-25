@@ -10,16 +10,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * FUNDAMENTAL SOLUTION: Test Screen composables directly.
- *
- * This approach maximizes coverage by:
- * 1. Calling Screen composables that don't require ViewModels (AppInfoScreen, SettingsScreen)
- * 2. Calling Preview functions directly
- * 3. Testing all small composable functions within screens
- *
- * Expected coverage increase: 3% -> 30-50%+
- */
 @RunWith(AndroidJUnit4::class)
 class ScreenDirectTests {
 
@@ -35,7 +25,7 @@ class ScreenDirectTests {
         }
 
         composeTestRule.waitForIdle()
-        // AppInfoScreen renders without ViewModel - covers entire screen
+
         composeTestRule.waitForIdle()
     }
 
@@ -49,7 +39,7 @@ class ScreenDirectTests {
         }
 
         composeTestRule.waitForIdle()
-        // SettingsScreen renders - covers screen code
+
         composeTestRule.waitForIdle()
     }
 
@@ -63,7 +53,7 @@ class ScreenDirectTests {
         }
 
         composeTestRule.waitForIdle()
-        // SettingsScreen renders with teacher role - covers different code path
+
         composeTestRule.waitForIdle()
     }
 
@@ -112,7 +102,6 @@ class ScreenDirectTests {
         composeTestRule.onNodeWithText("테스트 과제", substring = true).assertExists()
     }
 
-    // Test Preview functions directly
     @Ignore("Requires ViewModel setup")
     @Test
     fun studentDashboardScreenPreview_renders() {
@@ -123,7 +112,7 @@ class ScreenDirectTests {
         }
 
         composeTestRule.waitForIdle()
-        // Preview function covers screen code
+
         composeTestRule.waitForIdle()
     }
 
@@ -137,13 +126,13 @@ class ScreenDirectTests {
         }
 
         composeTestRule.waitForIdle()
-        // Preview function covers screen code
+
         composeTestRule.waitForIdle()
     }
 
     @Test
     fun appInfoScreenPreview_renders() {
-        // AppInfoScreenPreview doesn't exist, so we test AppInfoScreen directly
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 AppInfoScreen()
@@ -151,7 +140,7 @@ class ScreenDirectTests {
         }
 
         composeTestRule.waitForIdle()
-        // AppInfoScreen renders without ViewModel
+
         composeTestRule.waitForIdle()
     }
 
@@ -165,11 +154,10 @@ class ScreenDirectTests {
         }
 
         composeTestRule.waitForIdle()
-        // Preview function covers screen code
+
         composeTestRule.waitForIdle()
     }
 
-    // Test ALL Preview functions to maximize coverage
     @Ignore("Requires ViewModel setup")
     @Test
     fun allAssignmentsScreenPreview_renders() {

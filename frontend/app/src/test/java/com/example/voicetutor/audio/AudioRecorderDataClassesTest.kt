@@ -1,13 +1,11 @@
-package com.example.voicetutor.audio
+﻿package com.example.voicetutor.audio
 
 import android.media.AudioFormat
 import android.media.MediaRecorder
 import org.junit.Assert.*
 import org.junit.Test
 
-/**
- * Unit tests for AudioRecorder data classes
- */
+
 class AudioRecorderDataClassesTest {
 
     @Test
@@ -173,7 +171,7 @@ class AudioRecorderDataClassesTest {
 
     @Test
     fun recordingState_withLongRecordingTime_worksCorrectly() {
-        val state = RecordingState(recordingTime = 3600) // 1 hour
+        val state = RecordingState(recordingTime = 3600)
 
         assertEquals(3600, state.recordingTime)
     }

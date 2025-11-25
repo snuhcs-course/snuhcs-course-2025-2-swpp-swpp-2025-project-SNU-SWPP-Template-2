@@ -1,28 +1,19 @@
 package com.example.voicetutor.ui.screens
 
-import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Additional tests to maximize coverage by calling ALL Preview functions
- * and testing more Screen composables directly.
- *
- * Note: Tests that require ViewModel are @Ignore'd as they need Hilt setup.
- */
 @RunWith(AndroidJUnit4::class)
 class AdditionalScreenTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // Test ALL remaining Preview functions
     @Ignore("Requires ViewModel setup")
     @Test
     fun loginScreenPreview_renders() {
@@ -77,7 +68,6 @@ class AdditionalScreenTests {
         }
         composeTestRule.waitForIdle()
     }
-
 
     @Ignore("Requires ViewModel setup")
     @Test
@@ -134,7 +124,6 @@ class AdditionalScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test Screen composables directly (without ViewModel dependencies)
     @Ignore("Requires ViewModel setup")
     @Test
     fun createClassScreen_renders() {

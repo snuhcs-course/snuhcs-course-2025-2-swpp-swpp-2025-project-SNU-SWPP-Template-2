@@ -2,6 +2,7 @@ package com.example.voicetutor.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.test.*
@@ -14,17 +15,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Extended coverage tests for UI screens.
- * Tests more components and edge cases to maximize code coverage.
- */
 @RunWith(AndroidJUnit4::class)
 class ExtendedCoverageTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
-
-    // ========== TeacherAssignmentResultsScreen Components ==========
 
     @Test
     fun teacherAssignmentResultCard_renders_withAllData() {
@@ -81,11 +76,11 @@ class ExtendedCoverageTests {
             }
         }
 
+        composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("홍길동", substring = true).performClick()
+        composeTestRule.waitForIdle()
         assert(clicked)
     }
-
-    // ========== AssignmentDetailedResultsScreen Components ==========
 
     @Test
     fun questionGroupCard_renders_withQuestions() {
@@ -137,8 +132,6 @@ class ExtendedCoverageTests {
         composeTestRule.onNodeWithText("질문", substring = true).assertExists()
     }
 
-    // ========== TeacherStudentAssignmentDetailScreen Components ==========
-
     @Test
     fun questionGroupCard2_renders_withData() {
         composeTestRule.setContent {
@@ -154,8 +147,6 @@ class ExtendedCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("문제 그룹", substring = true).assertExists()
     }
-
-    // ========== AllAssignmentsScreen Components ==========
 
     @Test
     fun assignmentCard_allVariants_renders() {
@@ -197,8 +188,6 @@ class ExtendedCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("과제 1", substring = true).assertExists()
     }
-
-    // ========== StudentDashboardScreen Components ==========
 
     @Test
     fun studentAssignmentCard_allStatuses_renders() {
@@ -244,8 +233,6 @@ class ExtendedCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onRoot().assertExists()
     }
-
-    // ========== TeacherDashboardScreen Components ==========
 
     @Test
     fun teacherAssignmentCard_allStatuses_renders() {
@@ -294,14 +281,14 @@ class ExtendedCoverageTests {
 
     @Test
     fun dashboardSummaryCard_renders_withStats() {
-        // DashboardSummaryCard is private, so we test through TeacherDashboardScreen components
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
                     VTStatsCard(
                         title = "전체 과제",
                         value = "10",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                     VTStatsCard(
                         title = "완료 과제",
@@ -316,8 +303,6 @@ class ExtendedCoverageTests {
         composeTestRule.onAllNodesWithText("전체 과제", substring = true, useUnmergedTree = true).onFirst().assertExists()
         composeTestRule.onAllNodesWithText("10", substring = true, useUnmergedTree = true).onFirst().assertExists()
     }
-
-    // ========== TeacherStudentsScreen Components ==========
 
     @Test
     fun studentListItem_renders_withAllData() {
@@ -345,8 +330,6 @@ class ExtendedCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("홍길동", substring = true).assertExists()
     }
-
-    // ========== ReportScreen Components ==========
 
     @Test
     fun assignmentReportCard_renders_withReportData() {
@@ -423,8 +406,6 @@ class ExtendedCoverageTests {
         assert(clicked)
     }
 
-    // ========== TeacherStudentReportScreen Components ==========
-
     @Test
     fun achievementStatisticCard_renders_withStats() {
         val statistics = AchievementStatistics(
@@ -446,8 +427,6 @@ class ExtendedCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("MATH-001", substring = true).assertExists()
     }
-
-    // ========== Additional Component Tests ==========
 
     @Test
     fun allStudentsCard_renders_withStudents() {
@@ -486,13 +465,10 @@ class ExtendedCoverageTests {
             }
         }
 
-        composeTestRule.onNodeWithText("홍길동", substring = true).performClick()
-        // Note: AllStudentsCard doesn't have onClick, only onReportClick
-        // So we test the card renders correctly
-        assert(true)
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("리포트 보기", substring = true).performClick()
+        assert(clicked)
     }
-
-    // ========== Edge Cases and Multiple Renders ==========
 
     @Test
     fun multipleComponents_renderedTogether() {
@@ -507,7 +483,7 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "통계",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                 }
             }
@@ -534,14 +510,14 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "",
                         value = "",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                     )
                 }
             }
         }
 
         composeTestRule.waitForIdle()
-        // Components should render even with empty data
+
     }
 
     @Test
@@ -559,7 +535,7 @@ class ExtendedCoverageTests {
         }
 
         composeTestRule.waitForIdle()
-        // Components should handle long text
+
     }
 
     @Test
@@ -587,21 +563,21 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "통계 Up",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         trend = TrendDirection.Up,
                         trendValue = "+5",
                     )
                     VTStatsCard(
                         title = "통계 Down",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         trend = TrendDirection.Down,
                         trendValue = "-5",
                     )
                     VTStatsCard(
                         title = "통계 None",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         trend = TrendDirection.None,
                     )
                 }
@@ -694,13 +670,13 @@ class ExtendedCoverageTests {
                     VTStatsCard(
                         title = "Horizontal 통계",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         layout = StatsCardLayout.Horizontal,
                     )
                     VTStatsCard(
                         title = "Vertical 통계",
                         value = "100",
-                        icon = Icons.Filled.Assignment,
+                        icon = Icons.AutoMirrored.Filled.Assignment,
                         layout = StatsCardLayout.Vertical,
                     )
                 }
@@ -709,8 +685,6 @@ class ExtendedCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onRoot().assertExists()
     }
-
-    // ========== Interactive Components ==========
 
     @Test
     fun textField_withDifferentInputs_handlesCorrectly() {
@@ -796,8 +770,6 @@ class ExtendedCoverageTests {
         composeTestRule.onNodeWithText("카드 2", substring = true).performClick()
         assert(card2Clicked)
     }
-
-    // ========== AppInfoScreen Internal Components ==========
 
     @Test
     fun appInfoScreen_infoItem_renders_withLabelAndValue() {

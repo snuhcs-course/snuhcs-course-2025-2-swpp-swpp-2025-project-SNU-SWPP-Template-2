@@ -1,6 +1,7 @@
-package com.example.voicetutor.testing
+﻿package com.example.voicetutor.testing
 
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -11,6 +12,7 @@ import org.junit.runner.Description
 /**
  * JUnit Rule to swap the main dispatcher with a [StandardTestDispatcher].
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 class MainDispatcherRule(
     val testDispatcher: TestDispatcher = StandardTestDispatcher(),
 ) : TestWatcher() {

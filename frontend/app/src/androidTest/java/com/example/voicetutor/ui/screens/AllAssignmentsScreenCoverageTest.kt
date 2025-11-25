@@ -33,12 +33,11 @@ class AllAssignmentsScreenCoverageTest {
         hiltRule.inject()
     }
 
-    // Cover TypeBadge(String, Composer, int) - line 239 (actually line 385)
     @Test
     fun testTypeBadge() {
         composeRule.setContent {
             VoiceTutorTheme {
-                // Test all TypeBadge variants
+
                 Column {
                     TypeBadge("Quiz")
                     TypeBadge("Continuous")
@@ -48,25 +47,20 @@ class AllAssignmentsScreenCoverageTest {
             }
         }
 
-        // Verify Quiz badge
         composeRule.onNodeWithText("퀴즈").assertIsDisplayed()
         
-        // Verify Continuous badge
         composeRule.onNodeWithText("연속").assertIsDisplayed()
         
-        // Verify Discussion badge
         composeRule.onNodeWithText("토론").assertIsDisplayed()
         
-        // Verify Unknown badge
         composeRule.onNodeWithText("알 수 없음").assertIsDisplayed()
     }
 
-    // Cover CustomStatusBadge(String, Composer, int) - line 171 (actually line 338)
     @Test
     fun testCustomStatusBadge() {
         composeRule.setContent {
             VoiceTutorTheme {
-                // Test all CustomStatusBadge variants
+
                 Column {
                     CustomStatusBadge("시작 안함")
                     CustomStatusBadge("진행 중")
@@ -76,19 +70,17 @@ class AllAssignmentsScreenCoverageTest {
             }
         }
 
-        // Verify all status badges are displayed
         composeRule.onNodeWithText("시작 안함").assertIsDisplayed()
         composeRule.onNodeWithText("진행 중").assertIsDisplayed()
         composeRule.onNodeWithText("완료").assertIsDisplayed()
         composeRule.onNodeWithText("기타").assertIsDisplayed()
     }
 
-    // Cover StatusBadge(AssignmentStatus, Composer, int) - line 362
     @Test
     fun testStatusBadge() {
         composeRule.setContent {
             VoiceTutorTheme {
-                // Test all StatusBadge variants
+
                 Column {
                     StatusBadge(AssignmentStatus.IN_PROGRESS)
                     StatusBadge(AssignmentStatus.COMPLETED)
@@ -97,10 +89,8 @@ class AllAssignmentsScreenCoverageTest {
             }
         }
 
-        // Verify all status badges are displayed
         composeRule.onNodeWithText("진행중").assertIsDisplayed()
         composeRule.onNodeWithText("완료").assertIsDisplayed()
         composeRule.onNodeWithText("임시저장").assertIsDisplayed()
     }
 }
-

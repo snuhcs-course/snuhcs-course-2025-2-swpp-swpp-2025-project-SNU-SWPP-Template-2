@@ -1,4 +1,4 @@
-package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import app.cash.turbine.test
 import com.example.voicetutor.data.models.ClassData
@@ -7,6 +7,7 @@ import com.example.voicetutor.data.models.Subject
 import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.repository.ClassRepository
 import com.example.voicetutor.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -18,6 +19,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class TeacherClassViewModelTest {
 
     private val repository: ClassRepository = mock()

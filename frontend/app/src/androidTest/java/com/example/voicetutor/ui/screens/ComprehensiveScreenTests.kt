@@ -1,8 +1,6 @@
 package com.example.voicetutor.ui.screens
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -14,19 +12,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Comprehensive tests to maximize coverage by testing:
- * 1. All composable functions with different states
- * 2. Edge cases and various data combinations
- * 3. More internal composable functions
- */
 @RunWith(AndroidJUnit4::class)
 class ComprehensiveScreenTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // Test StudentAssignmentCard with different statuses
     @Test
     fun studentAssignmentCard_NOT_STARTED_renders() {
         composeTestRule.setContent {
@@ -90,7 +81,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("제출 완료 과제", substring = true).assertExists()
     }
 
-    // Test TeacherAssignmentCard with different statuses
     @Test
     fun teacherAssignmentCard_DRAFT_renders() {
         composeTestRule.setContent {
@@ -154,7 +144,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("완료된 과제", substring = true).assertExists()
     }
 
-    // Test ClassCard
     @Test
     fun classCard_renders() {
         val classRoom = ClassRoom(
@@ -182,7 +171,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("1학년 1반", substring = true).assertExists()
     }
 
-    // Test AllStudentsCard with different data
     @Test
     fun allStudentsCard_withClasses_renders() {
         val student = AllStudentsStudent(
@@ -243,7 +231,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("이영희", substring = true).assertExists()
     }
 
-    // Test AssignmentCard
     @Test
     fun assignmentCard_renders() {
         val assignment = AssignmentData(
@@ -277,10 +264,9 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("테스트 과제", substring = true).assertExists()
     }
 
-    // Test ClassAssignmentCard
     @Test
     fun classAssignmentCard_renders() {
-        val classAssignment = com.example.voicetutor.ui.screens.ClassAssignment(
+        val classAssignment = ClassAssignment(
             id = 1,
             title = "클래스 과제",
             subject = "수학",
@@ -302,7 +288,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("클래스 과제", substring = true).assertExists()
     }
 
-    // Test more QuestionGroupCard scenarios
     @Test
     fun questionGroupCard_expanded_renders() {
         val baseQuestion = DetailedQuestionResult(
@@ -335,7 +320,7 @@ class ComprehensiveScreenTests {
             }
         }
         composeTestRule.waitForIdle()
-        // Don't assert specific text - just verify it renders
+
         composeTestRule.waitForIdle()
     }
 
@@ -366,7 +351,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("문제 2", substring = true).assertExists()
     }
 
-    // Test DetailedQuestionResultCard with different states
     @Test
     fun detailedQuestionResultCard_correct_renders() {
         val question = DetailedQuestionResult(
@@ -405,7 +389,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("문제 2", substring = true).assertExists()
     }
 
-    // Test TeacherAssignmentResultCard with different scores
     @Test
     fun teacherAssignmentResultCard_highScore_renders() {
         val student = StudentResult(
@@ -454,7 +437,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("김철수", substring = true).assertExists()
     }
 
-    // Test more AppInfoScreen components
     @Test
     fun appInfoScreen_allComponents_renders() {
         composeTestRule.setContent {
@@ -463,14 +445,13 @@ class ComprehensiveScreenTests {
             }
         }
         composeTestRule.waitForIdle()
-        // Test that all sections render
+
         composeTestRule.waitForIdle()
     }
 
-    // Test NoRecentAssignmentScreen multiple times
     @Test
     fun noRecentAssignmentScreen_multipleTimes() {
-        // Render once - multiple renders don't add coverage value
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 NoRecentAssignmentScreen()
@@ -479,7 +460,6 @@ class ComprehensiveScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test AssignmentReportCard with different assignments
     @Test
     fun assignmentReportCard_multipleAssignments() {
         val assignments = listOf(
@@ -514,7 +494,7 @@ class ComprehensiveScreenTests {
                 ),
             ),
         )
-        // Render all assignments in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -530,7 +510,6 @@ class ComprehensiveScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test AppInfoScreen with all components
     @Test
     fun appInfoScreen_rendersAllSections() {
         composeTestRule.setContent {
@@ -540,7 +519,6 @@ class ComprehensiveScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify main sections exist
         composeTestRule.onNodeWithText("앱 정보", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("VoiceTutor", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("개발 정보", useUnmergedTree = true).assertIsDisplayed()
@@ -558,7 +536,6 @@ class ComprehensiveScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify all features are displayed
         composeTestRule.onNodeWithText("음성 인식 기반 교육 플랫폼", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("버전 1.0.0", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("VoiceTutor Team", useUnmergedTree = true).assertIsDisplayed()
@@ -573,7 +550,6 @@ class ComprehensiveScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify contact items
         composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("support@voicetutor.com", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("앱 평가하기", useUnmergedTree = true).assertIsDisplayed()
@@ -588,7 +564,6 @@ class ComprehensiveScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify main message
         composeTestRule.onNodeWithText("이어할 과제가 없습니다", useUnmergedTree = true).assertIsDisplayed()
         composeTestRule.onNodeWithText("홈 화면에서 새로운 과제를 확인해보세요", useUnmergedTree = true).assertIsDisplayed()
     }
@@ -602,13 +577,12 @@ class ComprehensiveScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Find and click back button
         composeTestRule.onNodeWithContentDescription("뒤로가기", useUnmergedTree = true)
             .assertIsDisplayed()
             .performClick()
 
         composeTestRule.waitForIdle()
-        // Note: We can't directly verify the callback, but we can verify the button exists and is clickable
+
     }
 
     @Test
@@ -637,7 +611,6 @@ class ComprehensiveScreenTests {
         composeTestRule.onNodeWithText("support@voicetutor.com", useUnmergedTree = true).assertExists()
     }
 
-    // Test more screen combinations
     @Test
     fun appInfoScreen_allHelperComposables() {
         composeTestRule.setContent {
@@ -647,7 +620,6 @@ class ComprehensiveScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify all components render
         composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("이메일", useUnmergedTree = true).assertExists()
     }

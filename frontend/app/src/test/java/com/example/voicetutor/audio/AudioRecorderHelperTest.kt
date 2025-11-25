@@ -1,13 +1,11 @@
-package com.example.voicetutor.audio
+﻿package com.example.voicetutor.audio
 
 import android.media.AudioFormat
 import android.media.MediaRecorder
 import org.junit.Assert.*
 import org.junit.Test
 
-/**
- * Additional unit tests for AudioRecorder helper methods and edge cases.
- */
+
 class AudioRecorderHelperTest {
 
     @Test

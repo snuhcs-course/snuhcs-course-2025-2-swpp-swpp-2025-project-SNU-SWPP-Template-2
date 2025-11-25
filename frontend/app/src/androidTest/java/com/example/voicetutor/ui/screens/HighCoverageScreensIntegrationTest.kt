@@ -40,7 +40,7 @@ class HighCoverageScreensIntegrationTest {
     }
 
     private fun resetFakeApi() {
-        // Reset all error flags to ensure clean state
+
         fakeApi.apply {
             shouldFailGetAssignmentById = false
             shouldFailPersonalAssignments = false
@@ -76,9 +76,9 @@ class HighCoverageScreensIntegrationTest {
                 content()
             }
         }
-        // Wait for initial composition and any immediate state updates
+
         composeRule.waitForIdle()
-        // Additional small delay to allow LaunchedEffect to start
+
         Thread.sleep(100)
         composeRule.waitForIdle()
     }
@@ -101,7 +101,6 @@ class HighCoverageScreensIntegrationTest {
             TeacherDashboardScreen(teacherId = "2")
         }
 
-        // Wait for data to load - dashboard loads assignments and stats asynchronously
         waitForText("빠른 실행", timeoutMillis = 20_000)
         waitForText("과제 생성", substring = true, timeoutMillis = 20_000)
         assertFirstNodeWithText("빠른 실행")
@@ -126,10 +125,8 @@ class HighCoverageScreensIntegrationTest {
             TeacherAssignmentDetailScreen(assignmentId = 1)
         }
 
-        // Wait for assignment to load - check for assignment title first
         waitForText("1단원 복습 과제", substring = true, timeoutMillis = 15_000)
         
-        // Then check for section headers
         waitForText("과제 내용", substring = true, timeoutMillis = 15_000)
         waitForText("학생별 결과", substring = true, timeoutMillis = 15_000)
         assertFirstNodeWithText("과제 내용", substring = true)

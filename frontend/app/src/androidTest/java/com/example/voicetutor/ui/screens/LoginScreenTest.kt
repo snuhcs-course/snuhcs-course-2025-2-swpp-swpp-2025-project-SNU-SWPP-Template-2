@@ -3,7 +3,6 @@ package com.example.voicetutor.ui.screens
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.AuthViewModel
@@ -15,12 +14,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Espresso/Compose UI tests for LoginScreen.
- * Tests UI interactions and state without modifying the original file.
- *
- * NOTE: Disabled due to MockK incompatibility with Android Instrumentation tests.
- */
 @Ignore("MockK incompatible with Android tests - use Hilt-based tests instead")
 @RunWith(AndroidJUnit4::class)
 class LoginScreenTest {
@@ -53,7 +46,6 @@ class LoginScreenTest {
             }
         }
 
-        // Verify login form elements exist
         composeTestRule.onNodeWithText("이메일", substring = true)
             .assertExists()
         composeTestRule.onNodeWithText("비밀번호", substring = true)
@@ -90,7 +82,6 @@ class LoginScreenTest {
             }
         }
 
-        // Loading indicator should be visible
         composeTestRule.onAllNodesWithContentDescription("Loading")
             .onFirst()
             .assertExists()
@@ -107,7 +98,6 @@ class LoginScreenTest {
             }
         }
 
-        // Find email field and type
         composeTestRule.onNodeWithText("이메일", substring = true)
             .performTextInput("test@example.com")
     }
@@ -123,7 +113,6 @@ class LoginScreenTest {
             }
         }
 
-        // Find password field and type
         composeTestRule.onNodeWithText("비밀번호", substring = true)
             .performTextInput("password123")
     }
@@ -143,7 +132,6 @@ class LoginScreenTest {
             .assertIsEnabled()
             .performClick()
 
-        // Verify login was called
         verify(exactly = 1) { mockAuthViewModel.login(any(), any()) }
     }
 

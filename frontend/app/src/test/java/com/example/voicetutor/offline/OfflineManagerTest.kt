@@ -1,4 +1,4 @@
-package com.example.voicetutor.offline
+﻿package com.example.voicetutor.offline
 
 import android.content.Context
 import kotlinx.coroutines.flow.first
@@ -148,7 +148,7 @@ class OfflineManagerTest {
         offlineManager = OfflineManager(mockContext)
 
         offlineManager.cacheData("test_key", "test data")
-        val cachedData = offlineManager.getCachedData("test_key")
+        offlineManager.getCachedData("test_key")
 
         // getCachedData returns String? and may be null if cache write failed in test
         // Just verify it doesn't throw an exception
@@ -247,7 +247,7 @@ class OfflineManagerTest {
 
         val testData = "test data"
         offlineManager.cacheData("valid_key", testData)
-        val cachedData = offlineManager.getCachedData("valid_key", maxAge = Long.MAX_VALUE)
+        offlineManager.getCachedData("valid_key", maxAge = Long.MAX_VALUE)
 
         // 파일 시스템이 제대로 작동하면 데이터가 반환됨
         assertNotNull(offlineManager)
@@ -334,13 +334,12 @@ class OfflineManagerTest {
         offlineManager = OfflineManager(mockContext)
 
         // 성공하는 액션 타입 추가
-        val actionId1 = offlineManager.addPendingAction("send_message", "data1")
-        val actionId2 = offlineManager.addPendingAction("submit_assignment", "data2")
+        offlineManager.addPendingAction("send_message", "data1")
+        offlineManager.addPendingAction("submit_assignment", "data2")
 
-        val syncedCount = offlineManager.syncPendingActions()
+        offlineManager.syncPendingActions()
 
         // executePendingAction이 true를 반환하므로 액션이 제거됨
-        assertTrue(syncedCount >= 0)
         val state = offlineManager.offlineState.first()
         // 성공한 액션들은 제거됨
         assertTrue(state.pendingActions.size <= 2)
@@ -352,8 +351,6 @@ class OfflineManagerTest {
 
         // 알 수 없는 타입의 액션 추가 (executePendingAction이 false 반환)
         val actionId = offlineManager.addPendingAction("unknown_type", "data")
-
-        val initialRetryCount = offlineManager.offlineState.first().pendingActions[0].retryCount
 
         offlineManager.syncPendingActions()
 
@@ -371,11 +368,11 @@ class OfflineManagerTest {
         // retryCount가 3 이상인 액션 추가
         val actionId = offlineManager.addPendingAction("unknown_type", "data")
         // retryCount를 3으로 증가시킴
-        for (i in 1..3) {
+        repeat(3) {
             offlineManager.retryPendingAction(actionId)
         }
 
-        val syncedCount = offlineManager.syncPendingActions()
+        offlineManager.syncPendingActions()
 
         // retryCount >= 3이면 제거됨
         val state = offlineManager.offlineState.first()
@@ -387,8 +384,7 @@ class OfflineManagerTest {
     fun syncPendingActions_withException_incrementsRetryCount() = runTest {
         offlineManager = OfflineManager(mockContext)
 
-        val actionId = offlineManager.addPendingAction("send_message", "data")
-        val initialRetryCount = offlineManager.offlineState.first().pendingActions[0].retryCount
+        offlineManager.addPendingAction("send_message", "data")
 
         // syncPendingActions는 executePendingAction에서 예외가 발생하면 retryPendingAction을 호출함
         // 하지만 executePendingAction이 항상 true를 반환하므로 예외가 발생하지 않음
@@ -504,7 +500,6 @@ class OfflineManagerTest {
         // addPendingAction이 성공적으로 ID를 반환하면 savePendingActions가 호출된 것으로 간주
         assertNotNull(actionId)
         // 파일이 생성되었는지 확인 (예외가 발생하지 않았다면 파일이 생성됨)
-        val pendingActionsFile = File(testCacheDir, "offline_cache/pending_actions.json")
         // 파일이 존재하지 않을 수도 있지만 (예외 발생 시), addPendingAction 자체는 성공함
         // 따라서 파일 존재 여부보다는 액션이 추가되었는지 확인
         val state = offlineManager.offlineState.value
@@ -540,7 +535,7 @@ class OfflineManagerTest {
         offlineManager = OfflineManager(mockContext)
 
         offlineManager.cacheData("key", "data")
-        val cachedData = offlineManager.getCachedData("key") // 기본 maxAge 사용
+        offlineManager.getCachedData("key") // 기본 maxAge 사용
 
         assertNotNull(offlineManager)
     }

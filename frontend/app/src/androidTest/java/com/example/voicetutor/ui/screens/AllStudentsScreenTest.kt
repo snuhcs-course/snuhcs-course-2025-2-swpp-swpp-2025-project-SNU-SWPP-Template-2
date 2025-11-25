@@ -144,10 +144,10 @@ class AllStudentsScreenTest {
         }
 
         waitForText("수업 선택")
-        // "수업 선택" might appear as label and placeholder
+
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true).onFirst().assertIsDisplayed()
         waitForText("수학 A반")
-        // "수학 A반" might appear in dropdown and selected value
+
         composeRule.onAllNodesWithText("수학 A반", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
@@ -209,7 +209,7 @@ class AllStudentsScreenTest {
     @Test
     fun allStudentsScreen_studentCardShowsLoadingClasses() {
         fakeApi.shouldFailStudentClasses = false
-        // Delay the response to test loading state
+
         composeRule.setContent {
             VoiceTutorTheme {
                 AllStudentsScreen(teacherId = "2")
@@ -217,13 +217,13 @@ class AllStudentsScreenTest {
         }
 
         waitForText("홍길동")
-        // The loading state might be brief, but we can check if the card is displayed
+
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
     @Test
     fun allStudentsScreen_studentCardShowsEmptyClasses() {
-        // Set up student classes to return empty list
+
         fakeApi.shouldFailStudentClasses = false
         fakeApi.studentClassesResponse = emptyList()
 
@@ -235,13 +235,13 @@ class AllStudentsScreenTest {
 
         waitForText("홍길동")
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
-        // Verify student card is displayed (classes are not currently shown in the UI)
+
         composeRule.onAllNodesWithText("리포트 보기", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
     @Test
     fun allStudentsScreen_studentCardShowsMultipleClasses() {
-        // This test verifies that when a student has multiple classes, they are displayed
+
         composeRule.setContent {
             VoiceTutorTheme {
                 AllStudentsScreen(teacherId = "2")
@@ -250,7 +250,7 @@ class AllStudentsScreenTest {
 
         waitForText("홍길동")
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
-        // The fake API returns studentClasses with multiple classes by default
+
         waitForText("수학 A반", timeoutMillis = 5_000)
     }
 
@@ -265,7 +265,6 @@ class AllStudentsScreenTest {
             }
         }
 
-        // Screen should still render, showing "수업 선택" placeholder
         waitForText("수업 선택", timeoutMillis = 5_000)
     }
 
@@ -282,7 +281,7 @@ class AllStudentsScreenTest {
 
         waitForText("홍길동")
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
-        // Error should be handled gracefully
+
     }
 
     @Test
@@ -317,7 +316,7 @@ class AllStudentsScreenTest {
 
     @Test
     fun allStudentsScreen_displaysLoadingIndicator() {
-        // Set up a delay to catch loading state
+
         fakeApi.allStudentsResponse = listOf(
             Student(id = 1, name = "홍길동", email = "hong@school.com", role = UserRole.STUDENT),
         )
@@ -328,7 +327,6 @@ class AllStudentsScreenTest {
             }
         }
 
-        // Loading indicator might appear briefly, but we verify students eventually load
         waitForText("홍길동")
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -342,8 +340,7 @@ class AllStudentsScreenTest {
         }
 
         waitForText("홍길동")
-        // The avatar should display the first letter "홍"
-        // Since it's displayed as uppercase, we check for the student name
+
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
@@ -357,14 +354,14 @@ class AllStudentsScreenTest {
 
         waitForText("홍길동")
         waitForText("이몽룡")
-        // Dividers are visual elements, but we verify both students are displayed
+
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
         composeRule.onAllNodesWithText("이몽룡", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
     @Test
     fun allStudentsScreen_showsLoadingClassesMessage() {
-        // Set up to delay student classes loading
+
         fakeApi.shouldFailStudentClasses = false
         fakeApi.studentClassesResponse = listOf(
             ClassInfo(id = 1, name = "수학 A반"),
@@ -377,7 +374,7 @@ class AllStudentsScreenTest {
         }
 
         waitForText("홍길동")
-        // Loading message might appear briefly, but classes should load eventually
+
         waitForText("수학 A반", timeoutMillis = 5_000)
     }
 
@@ -396,8 +393,7 @@ class AllStudentsScreenTest {
         }
 
         waitForText("홍길동")
-        // Verify student card is displayed with report button
-        // (Classes are not currently displayed in the student card UI)
+
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
         composeRule.onAllNodesWithText("리포트 보기", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -413,13 +409,13 @@ class AllStudentsScreenTest {
         }
 
         waitForText("수업 선택")
-        // "수업 선택" might appear as label and placeholder
+
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
     @Test
     fun allStudentsScreen_handlesNullSelectedClassId() {
-        // This tests the case where selectedClassId is null initially
+
         fakeApi.classesResponse = listOf(
             ClassData(
                 id = 1,
@@ -441,9 +437,8 @@ class AllStudentsScreenTest {
             }
         }
 
-        // Should auto-select first class
         waitForText("수학 A반")
-        // "수학 A반" might appear multiple times
+
         composeRule.onAllNodesWithText("수학 A반", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
@@ -457,7 +452,7 @@ class AllStudentsScreenTest {
 
         waitForText("학생 목록")
         waitForText("2명")
-        // Verify the count appears in the header (might appear multiple times)
+
         composeRule.onAllNodesWithText("2명", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
@@ -475,7 +470,7 @@ class AllStudentsScreenTest {
 
         waitForText("이름 없음")
         composeRule.onNodeWithText("이름 없음", useUnmergedTree = true).assertIsDisplayed()
-        // Avatar should show "?" for empty name
+
     }
 
     @Test
@@ -501,7 +496,7 @@ class AllStudentsScreenTest {
         }
 
         waitForText("수학 A반")
-        // Verify the selected class is displayed in dropdown (might appear multiple times)
+
         composeRule.onAllNodesWithText("수학 A반", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
@@ -519,6 +514,6 @@ class AllStudentsScreenTest {
 
         waitForText("홍길동")
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
-        // Single student should not have dividers (index > 0 check)
+
     }
 }
