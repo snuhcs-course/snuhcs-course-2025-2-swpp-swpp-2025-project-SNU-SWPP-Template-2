@@ -1,4 +1,4 @@
-package com.example.voicetutor.theme
+﻿package com.example.voicetutor.theme
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -51,10 +51,10 @@ class ThemeManagerTest {
 
     @Test
     fun appTheme_enumValues_areCorrect() {
-        assertEquals(3, AppTheme.values().size)
-        assertTrue(AppTheme.values().contains(AppTheme.LIGHT))
-        assertTrue(AppTheme.values().contains(AppTheme.DARK))
-        assertTrue(AppTheme.values().contains(AppTheme.AUTO))
+        assertEquals(3, AppTheme.entries.size)
+        assertTrue(AppTheme.entries.contains(AppTheme.LIGHT))
+        assertTrue(AppTheme.entries.contains(AppTheme.DARK))
+        assertTrue(AppTheme.entries.contains(AppTheme.AUTO))
     }
 
     @Test
@@ -78,7 +78,7 @@ class ThemeManagerTest {
 
     @Test
     fun appTheme_allThemes_haveUniqueNames() {
-        val names = AppTheme.values().map { it.name }
+        val names = AppTheme.entries.map { it.name }
         assertEquals(names.size, names.distinct().size)
     }
 

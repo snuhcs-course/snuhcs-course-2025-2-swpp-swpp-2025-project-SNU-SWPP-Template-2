@@ -1,4 +1,4 @@
-package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import app.cash.turbine.test
 import com.example.voicetutor.data.models.User
@@ -7,6 +7,7 @@ import com.example.voicetutor.data.repository.AuthRepository
 import com.example.voicetutor.data.repository.LoginException
 import com.example.voicetutor.data.repository.SignupException
 import com.example.voicetutor.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 import org.junit.Rule
@@ -17,6 +18,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(MockitoJUnitRunner::class)
 class AuthViewModelTest {
 

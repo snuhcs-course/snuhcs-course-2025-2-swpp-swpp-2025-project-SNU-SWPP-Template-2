@@ -1,11 +1,11 @@
-package com.example.voicetutor.data.repository
+﻿package com.example.voicetutor.data.repository
 
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.data.network.ApiResponse
 import com.example.voicetutor.data.network.ApiService
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -141,7 +141,7 @@ class StudentRepositoryTest {
     fun getAllStudents_apiFailure_returnsFailure() = runTest {
         // Arrange
         val repo = StudentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"error":"Failed"}""")
+        val errorBody = """{"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getAllStudents(null, null)).thenReturn(Response.error(500, errorBody))
 
         // Act
@@ -212,7 +212,7 @@ class StudentRepositoryTest {
     fun getStudentById_apiFailure_returnsFailure() = runTest {
         // Arrange
         val repo = StudentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"error":"Not found"}""")
+        val errorBody = """{"error":"Not found"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getStudentById(1)).thenReturn(Response.error(404, errorBody))
 
         // Act
@@ -269,7 +269,7 @@ class StudentRepositoryTest {
     fun getStudentAssignments_apiFailure_returnsFailure() = runTest {
         // Arrange
         val repo = StudentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"error":"Failed"}""")
+        val errorBody = """{"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getStudentAssignments(1)).thenReturn(Response.error(500, errorBody))
 
         // Act
@@ -331,7 +331,7 @@ class StudentRepositoryTest {
     fun getStudentProgress_apiFailure_returnsFailure() = runTest {
         // Arrange
         val repo = StudentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"error":"Failed"}""")
+        val errorBody = """{"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getStudentProgress(1)).thenReturn(Response.error(500, errorBody))
 
         // Act
@@ -403,7 +403,7 @@ class StudentRepositoryTest {
     fun getStudentClasses_apiFailure_returnsFailure() = runTest {
         // Arrange
         val repo = StudentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"error":"Failed"}""")
+        val errorBody = """{"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getStudentClasses(1)).thenReturn(Response.error(500, errorBody))
 
         // Act

@@ -1,10 +1,8 @@
-package com.example.voicetutor.data.network
+﻿package com.example.voicetutor.data.network
 
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.testing.MainDispatcherRule
 import kotlinx.coroutines.test.runTest
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith

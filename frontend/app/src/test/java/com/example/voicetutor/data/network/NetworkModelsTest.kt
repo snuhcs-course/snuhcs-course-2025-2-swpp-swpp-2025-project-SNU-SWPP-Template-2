@@ -1,7 +1,5 @@
-package com.example.voicetutor.data.network
+﻿package com.example.voicetutor.data.network
 
-import com.example.voicetutor.data.models.CourseClass
-import com.example.voicetutor.data.models.Subject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -10,18 +8,6 @@ import org.junit.runners.JUnit4
 
 @RunWith(JUnit4::class)
 class NetworkModelsTest {
-
-    private fun buildSubject() = Subject(id = 1, name = "Math")
-    private fun buildCourseClass() = CourseClass(
-        id = 1,
-        name = "Class1",
-        description = null,
-        subject = buildSubject(),
-        teacherName = "Teacher1",
-
-        studentCount = 10,
-        createdAt = "2025-01-01",
-    )
 
     @Test
     fun recentAnswerData_containsCorrectValues() {

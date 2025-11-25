@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.repository
+﻿package com.example.voicetutor.data.repository
 
 import com.example.voicetutor.data.models.AnswerSubmissionResponse
 import com.example.voicetutor.data.models.AssignmentData
@@ -13,7 +13,7 @@ import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.S3UploadStatus
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.After
@@ -53,7 +53,7 @@ class AssignmentRepositoryTest {
         // Given
         val repo = AssignmentRepository(apiService)
         val json = """{"success":false,"message":"모든 문제를 완료했습니다."}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.getNextQuestion(77)).thenReturn(Response.error(404, errorBody))
 
         // When
@@ -69,7 +69,7 @@ class AssignmentRepositoryTest {
         // Given
         val repo = AssignmentRepository(apiService)
         val json = """{"success":false,"error":"Server error"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.getNextQuestion(88)).thenReturn(Response.error(500, errorBody))
 
         // When
@@ -156,7 +156,7 @@ class AssignmentRepositoryTest {
     @Test
     fun getAllAssignments_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false}""")
+        val errorBody = """{"success":false}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getAllAssignments(null, null, AssignmentStatus.COMPLETED.name)).thenReturn(Response.error(500, errorBody))
         val r = repo.getAllAssignments(status = AssignmentStatus.COMPLETED)
         assert(r.isFailure)
@@ -165,7 +165,7 @@ class AssignmentRepositoryTest {
     @Test
     fun getAssignmentById_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false}""")
+        val errorBody = """{"success":false}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getAssignmentById(999)).thenReturn(Response.error(404, errorBody))
         val r = repo.getAssignmentById(999)
         assert(r.isFailure)
@@ -174,7 +174,7 @@ class AssignmentRepositoryTest {
     @Test
     fun getPersonalAssignmentStatistics_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false}""")
+        val errorBody = """{"success":false}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getPersonalAssignmentStatistics(5)).thenReturn(Response.error(500, errorBody))
         val r = repo.getPersonalAssignmentStatistics(5)
         assert(r.isFailure)
@@ -267,7 +267,7 @@ class AssignmentRepositoryTest {
         // Make file unreadable (if possible on the platform)
         try {
             tmp.setReadable(false)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // If we can't make it unreadable, create a directory instead
             tmp.delete()
             val dir = File.createTempFile("test", ".pdf")
@@ -343,7 +343,7 @@ class AssignmentRepositoryTest {
     @Test
     fun updateAssignment_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false}""")
+        val errorBody = """{"success":false}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.updateAssignment(eq(1), any())).thenReturn(Response.error(500, errorBody))
         val r = repo.updateAssignment(
             1,
@@ -362,7 +362,7 @@ class AssignmentRepositoryTest {
     @Test
     fun deleteAssignment_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false}""")
+        val errorBody = """{"success":false}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.deleteAssignment(2)).thenReturn(Response.error(404, errorBody))
         val r = repo.deleteAssignment(2)
         assert(r.isFailure)
@@ -373,7 +373,7 @@ class AssignmentRepositoryTest {
     @Test
     fun submitAssignment_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false}""")
+        val errorBody = """{"success":false}""".toResponseBody("application/json".toMediaType())
         val audio = File.createTempFile("ans", ".wav").apply { writeBytes(byteArrayOf(0, 1)) }
         whenever(apiService.submitAnswer(any(), any(), any(), any())).thenReturn(Response.error(400, errorBody))
         val r = repo.submitAnswer(26, 7, 21, audio)
@@ -386,7 +386,7 @@ class AssignmentRepositoryTest {
     @Test
     fun completePersonalAssignment_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false}""")
+        val errorBody = """{"success":false}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.completePersonalAssignment(42)).thenReturn(Response.error(500, errorBody))
         val r = repo.completePersonalAssignment(42)
         assert(r.isFailure)
@@ -435,7 +435,7 @@ class AssignmentRepositoryTest {
     @Test
     fun getPersonalAssignments_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false,"error":"Failed"}""")
+        val errorBody = """{"success":false,"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getPersonalAssignments(studentId = 1, assignmentId = null)).thenReturn(Response.error(500, errorBody))
         val r = repo.getPersonalAssignments(studentId = 1)
         assert(r.isFailure)
@@ -477,7 +477,7 @@ class AssignmentRepositoryTest {
             .grade("1")
             .description(null)
             .build()
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false,"error":"Failed"}""")
+        val errorBody = """{"success":false,"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.createAssignment(request)).thenReturn(Response.error(400, errorBody))
         val r = repo.createAssignment(request)
         assert(r.isFailure)
@@ -573,7 +573,7 @@ class AssignmentRepositoryTest {
     fun getRecentPersonalAssignment_noData_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getRecentPersonalAssignment(1)).thenReturn(
-            Response.success(ApiResponse<com.example.voicetutor.data.network.RecentAnswerData>(success = true, data = null, message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = null, message = null, error = null)),
         )
         val r = repo.getRecentPersonalAssignment(1)
         assert(r.isFailure)
@@ -583,7 +583,7 @@ class AssignmentRepositoryTest {
     @Test
     fun getRecentPersonalAssignment_apiFailure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false,"message":"No assignment"}""")
+        val errorBody = """{"success":false,"message":"No assignment"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getRecentPersonalAssignment(1)).thenReturn(Response.error(404, errorBody))
         val r = repo.getRecentPersonalAssignment(1)
         assert(r.isFailure)
@@ -615,7 +615,7 @@ class AssignmentRepositoryTest {
     @Test
     fun checkS3Upload_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false,"error":"Failed"}""")
+        val errorBody = """{"success":false,"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.checkS3Upload(1)).thenReturn(Response.error(500, errorBody))
         val r = repo.checkS3Upload(1)
         assert(r.isFailure)
@@ -630,7 +630,7 @@ class AssignmentRepositoryTest {
             total_number = 5,
         )
         // 백엔드는 ApiResponse 형식이 아닌 직접 JSON 응답을 반환함
-        val responseBody = ResponseBody.create("application/json".toMediaType(), """{"assignment_id":1,"material_id":10}""")
+        val responseBody = """{"assignment_id":1,"material_id":10}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.createQuestions(request)).thenReturn(
             Response.success(200, responseBody),
         )
@@ -641,7 +641,7 @@ class AssignmentRepositoryTest {
     @Test
     fun createQuestionsAfterUpload_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false,"error":"Failed"}""")
+        val errorBody = """{"success":false,"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.createQuestions(any())).thenReturn(Response.error(500, errorBody))
         val r = repo.createQuestionsAfterUpload(1, 10, 5)
         assert(r.isFailure)
@@ -663,7 +663,7 @@ class AssignmentRepositoryTest {
     fun getPersonalAssignmentQuestions_emptyList_returnsEmptyList() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getPersonalAssignmentQuestions(1)).thenReturn(
-            Response.success(ApiResponse(success = true, data = emptyList<PersonalAssignmentQuestion>(), message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = emptyList(), message = null, error = null)),
         )
         val r = repo.getPersonalAssignmentQuestions(1)
         assert(r.isSuccess)
@@ -674,7 +674,7 @@ class AssignmentRepositoryTest {
     fun getPersonalAssignmentStatistics_noData_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getPersonalAssignmentStatistics(1)).thenReturn(
-            Response.success(ApiResponse<PersonalAssignmentStatistics>(success = true, data = null, message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = null, message = null, error = null)),
         )
         val r = repo.getPersonalAssignmentStatistics(1)
         assert(r.isFailure)
@@ -697,7 +697,7 @@ class AssignmentRepositoryTest {
     fun getStudentAssignments_emptyList_returnsEmptyList() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getStudentAssignments(1)).thenReturn(
-            Response.success(ApiResponse(success = true, data = emptyList<AssignmentData>(), message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = emptyList(), message = null, error = null)),
         )
         val r = repo.getStudentAssignments(1)
         assert(r.isSuccess)
@@ -707,7 +707,7 @@ class AssignmentRepositoryTest {
     @Test
     fun getStudentAssignments_failure_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"success":false,"error":"Failed"}""")
+        val errorBody = """{"success":false,"error":"Failed"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getStudentAssignments(1)).thenReturn(Response.error(500, errorBody))
         val r = repo.getStudentAssignments(1)
         assert(r.isFailure)
@@ -738,7 +738,7 @@ class AssignmentRepositoryTest {
     fun getAssignmentById_noData_throwsException() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getAssignmentById(1)).thenReturn(
-            Response.success(ApiResponse<AssignmentData>(success = true, data = null, message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = null, message = null, error = null)),
         )
         val r = repo.getAssignmentById(1)
         assert(r.isFailure)
@@ -792,7 +792,7 @@ class AssignmentRepositoryTest {
             .build()
         whenever(apiService.createAssignment(any())).thenReturn(
             Response.success(
-                ApiResponse<com.example.voicetutor.data.network.CreateAssignmentResponse>(
+                ApiResponse(
                     success = true,
                     data = null,
                     message = null,
@@ -827,7 +827,7 @@ class AssignmentRepositoryTest {
             .title("Updated")
             .build()
         whenever(apiService.updateAssignment(eq(1), any())).thenReturn(
-            Response.success(ApiResponse<AssignmentData>(success = true, data = null, message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = null, message = null, error = null)),
         )
         val r = repo.updateAssignment(1, request)
         assert(r.isFailure)
@@ -850,7 +850,7 @@ class AssignmentRepositoryTest {
     fun getAssignmentResult_noData_throwsException() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getAssignmentResult(1)).thenReturn(
-            Response.success(ApiResponse<AssignmentResultData>(success = true, data = null, message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = null, message = null, error = null)),
         )
         val r = repo.getAssignmentResult(1)
         assert(r.isFailure)
@@ -879,7 +879,7 @@ class AssignmentRepositoryTest {
     fun checkS3Upload_noData_throwsException() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.checkS3Upload(1)).thenReturn(
-            Response.success(ApiResponse<S3UploadStatus>(success = true, data = null, message = null, error = null)),
+            Response.success(ApiResponse(success = true, data = null, message = null, error = null)),
         )
         val r = repo.checkS3Upload(1)
         assert(r.isFailure)
@@ -926,7 +926,7 @@ class AssignmentRepositoryTest {
     fun getNextQuestion_errorBodyParseException_returnsUnknownError() = runTest {
         val repo = AssignmentRepository(apiService)
         // Create an error body that will cause parsing exception
-        val errorBody = ResponseBody.create("application/json".toMediaType(), "invalid json")
+        val errorBody = "invalid json".toResponseBody("application/json".toMediaType())
         whenever(apiService.getNextQuestion(1)).thenReturn(Response.error(404, errorBody))
         val r = repo.getNextQuestion(1)
         assert(r.isFailure)
@@ -939,7 +939,7 @@ class AssignmentRepositoryTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getPersonalAssignmentStatistics(1)).thenReturn(
             Response.success(
-                ApiResponse<PersonalAssignmentStatistics>(
+                ApiResponse(
                     success = true,
                     data = null,
                     message = null,
@@ -976,7 +976,7 @@ class AssignmentRepositoryTest {
         val tmp = File.createTempFile("audio", ".wav").apply { writeBytes(byteArrayOf(1, 2, 3)) }
         whenever(apiService.submitAnswer(any(), any(), any(), any())).thenReturn(
             Response.success(
-                ApiResponse<AnswerSubmissionResponse>(
+                ApiResponse(
                     success = true,
                     data = null,
                     message = null,
@@ -1023,7 +1023,7 @@ class AssignmentRepositoryTest {
     fun getAllAssignments_responseNotSuccessful_returnsFailure() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getAllAssignments(isNull(), isNull(), isNull())).thenReturn(
-            Response.success(ApiResponse<List<AssignmentData>>(success = false, data = null, message = null, error = "API Error")),
+            Response.success(ApiResponse(success = false, data = null, message = null, error = "API Error")),
         )
         val r = repo.getAllAssignments()
         assert(r.isFailure)
@@ -1034,7 +1034,7 @@ class AssignmentRepositoryTest {
     fun getAllAssignments_responseNotSuccessful_noError_returnsUnknownError() = runTest {
         val repo = AssignmentRepository(apiService)
         whenever(apiService.getAllAssignments(isNull(), isNull(), isNull())).thenReturn(
-            Response.success(ApiResponse<List<AssignmentData>>(success = false, data = null, message = null, error = null)),
+            Response.success(ApiResponse(success = false, data = null, message = null, error = null)),
         )
         val r = repo.getAllAssignments()
         assert(r.isFailure)

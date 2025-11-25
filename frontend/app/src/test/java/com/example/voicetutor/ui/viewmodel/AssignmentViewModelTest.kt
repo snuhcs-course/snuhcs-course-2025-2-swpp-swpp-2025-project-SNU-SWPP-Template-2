@@ -1,4 +1,4 @@
-package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import app.cash.turbine.test
 import com.example.voicetutor.data.models.*
@@ -255,7 +255,7 @@ class AssignmentViewModelTest {
     fun isLoading_loadingOperation_setsTrueThenFalse() = runTest {
         // Given
         Mockito.`when`(assignmentRepository.getAllAssignments(null, null, null))
-            .thenReturn(Result.success<List<AssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         val viewModel = AssignmentViewModel(assignmentRepository)
 
@@ -277,7 +277,7 @@ class AssignmentViewModelTest {
     }
 
     @Test
-    fun StudentStats_creation_withAllParameters_createsCorrectInstance() {
+    fun studentStats_creation_withAllParameters_createsCorrectInstance() {
         // given: 모든 파라미터가 주어진 경우
         // when: StudentStats 인스턴스 생성
         val stats = StudentStats(
@@ -295,7 +295,7 @@ class AssignmentViewModelTest {
     }
 
     @Test
-    fun StudentStats_creation_withZeroValues_createsCorrectInstance() {
+    fun studentStats_creation_withZeroValues_createsCorrectInstance() {
         // given: 모든 값이 0인 경우
         // when: StudentStats 인스턴스 생성
         val stats = StudentStats(
@@ -313,7 +313,7 @@ class AssignmentViewModelTest {
     }
 
     @Test
-    fun StudentStats_copy_createsNewInstance() {
+    fun studentStats_copy_createsNewInstance() {
         val original = StudentStats(10, 5, 3, 0.5f)
         val copy = original.copy(completedAssignments = 7)
 
@@ -322,7 +322,7 @@ class AssignmentViewModelTest {
     }
 
     @Test
-    fun StudentStats_equality_worksCorrectly() {
+    fun studentStats_equality_worksCorrectly() {
         val stats1 = StudentStats(10, 5, 3, 0.5f)
         val stats2 = StudentStats(10, 5, 3, 0.5f)
         val stats3 = StudentStats(10, 6, 3, 0.5f)
@@ -332,7 +332,7 @@ class AssignmentViewModelTest {
     }
 
     @Test
-    fun StudentStats_hashCode_worksCorrectly() {
+    fun studentStats_hashCode_worksCorrectly() {
         val stats1 = StudentStats(10, 5, 3, 0.5f)
         val stats2 = StudentStats(10, 5, 3, 0.5f)
 
@@ -641,7 +641,7 @@ class AssignmentViewModelTest {
         val assignmentId = 1
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         val result = viewModel.getAssignmentSubmissionStats(assignmentId)
@@ -779,7 +779,7 @@ class AssignmentViewModelTest {
         val assignmentId = 1
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = studentId, assignmentId = assignmentId))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.loadAssignmentCorrectnessFor(studentId, assignmentId)
@@ -1250,7 +1250,7 @@ class AssignmentViewModelTest {
         val assignmentId = 1
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = studentId, assignmentId = assignmentId))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.loadPersonalAssignmentStatsAndCorrectness(studentId, assignmentId)
@@ -1564,7 +1564,7 @@ class AssignmentViewModelTest {
         val fallbackTotalStudents = 10
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.loadAssignmentStatisticsAndResults(assignmentId, fallbackTotalStudents)
@@ -1607,7 +1607,7 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.createAssignment(createRequest))
             .thenReturn(Result.success(createResponse))
         Mockito.`when`(assignmentRepository.getAllAssignments("1", null, null))
-            .thenReturn(Result.success<List<AssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.createAssignment(createRequest, "1")
@@ -1797,7 +1797,7 @@ class AssignmentViewModelTest {
 
         // Simulate a loading state by calling without completing
         Mockito.`when`(assignmentRepository.getPersonalAssignmentQuestions(1))
-            .thenReturn(Result.success<List<PersonalAssignmentQuestion>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When - call twice rapidly
         viewModel.loadPersonalAssignmentQuestions(1)
@@ -2048,7 +2048,7 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.completePersonalAssignment(1))
             .thenReturn(Result.success(Unit))
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = 1))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.completeAssignment(1)
@@ -2064,7 +2064,7 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = null))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
         Mockito.`when`(assignmentRepository.completePersonalAssignment(1))
             .thenReturn(Result.failure(Exception("Complete failed")))
 
@@ -2342,7 +2342,7 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.completePersonalAssignment(1))
             .thenReturn(Result.success(Unit))
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = null))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.loadAllQuestions(1)
@@ -2409,7 +2409,6 @@ class AssignmentViewModelTest {
         // Given (lines 265-284)
         val viewModel = AssignmentViewModel(assignmentRepository)
         val assignmentId = 1
-        val fallbackTotalStudents = 10
         val resultData = AssignmentResultData(
             submittedStudents = 5,
             totalStudents = 10,
@@ -2459,7 +2458,7 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.getAssignmentResult(assignmentId))
             .thenReturn(Result.failure(Exception("Result not found")))
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
-            .thenReturn(Result.success<List<PersonalAssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.updateAssignment(1, updateRequest)
@@ -2506,9 +2505,9 @@ class AssignmentViewModelTest {
         Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
             .thenReturn(Result.success(Unit))
         Mockito.`when`(assignmentRepository.getAllAssignments(anyString(), isNull(), isNull()))
-            .thenReturn(Result.success<List<AssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
         Mockito.`when`(assignmentRepository.getAllAssignments(isNull(), isNull(), isNull()))
-            .thenReturn(Result.success<List<AssignmentData>>(emptyList()))
+            .thenReturn(Result.success(emptyList()))
 
         // When
         viewModel.createAssignmentWithPdf(
@@ -3333,13 +3332,9 @@ class AssignmentViewModelTest {
         // Then
         viewModel.uploadSuccess.test {
             // 초기 상태 확인 후 성공 상태 확인
-            val item1 = awaitItem()
-            if (!item1) {
-                val item2 = awaitItem()
-                assertTrue(item2)
-            } else {
-                assertTrue(item1)
-            }
+            val initial = awaitItem()
+            val success = awaitItem()
+            assertTrue(success)
             cancelAndIgnoreRemainingEvents()
         }
         

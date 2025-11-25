@@ -1,11 +1,8 @@
-package com.example.voicetutor
+﻿package com.example.voicetutor
 
 import org.junit.Assert.*
 import org.junit.Test
 
-/**
- * Unit tests for MainActivity composable functions
- */
 class MainActivityUnitTest {
 
     @Test

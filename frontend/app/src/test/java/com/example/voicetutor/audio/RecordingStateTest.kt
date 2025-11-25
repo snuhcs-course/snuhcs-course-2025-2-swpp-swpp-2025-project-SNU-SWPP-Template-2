@@ -1,4 +1,4 @@
-package com.example.voicetutor.audio
+﻿package com.example.voicetutor.audio
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -68,8 +68,6 @@ class RecordingStateTest {
         assertTrue(updated.isRecording)
         assertEquals(5, updated.recordingTime)
         assertEquals("/test/path.wav", updated.audioFilePath)
-
-        // Original remains unchanged
         assertFalse(original.isRecording)
         assertEquals(0, original.recordingTime)
         assertNull(original.audioFilePath)

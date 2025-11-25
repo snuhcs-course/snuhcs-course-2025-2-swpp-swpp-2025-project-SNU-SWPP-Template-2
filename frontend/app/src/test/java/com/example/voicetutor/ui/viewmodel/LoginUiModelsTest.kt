@@ -1,4 +1,4 @@
-package com.example.voicetutor.ui.viewmodel
+﻿  package com.example.voicetutor.ui.viewmodel
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -15,7 +15,7 @@ class LoginUiModelsTest {
     @Test
     fun loginField_values_containsAllFields() {
         // When
-        val values = LoginField.values()
+        val values = LoginField.entries
 
         // Then
         assertEquals(2, values.size)
@@ -121,8 +121,8 @@ class LoginUiModelsTest {
         val inputError = LoginError.Input(LoginField.EMAIL, "Error")
         val generalError = LoginError.General.InvalidCredentials("Error")
 
-        // Then
-        assertTrue(inputError is LoginError)
-        assertTrue(generalError is LoginError)
+        // Then: sealed class의 하위 타입들이 올바르게 생성됨
+        assertNotNull(inputError)
+        assertNotNull(generalError)
     }
 }

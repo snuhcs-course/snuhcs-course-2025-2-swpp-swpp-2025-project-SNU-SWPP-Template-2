@@ -1,16 +1,13 @@
-package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import app.cash.turbine.test
-import com.example.voicetutor.data.models.AssignmentData
-import com.example.voicetutor.data.models.ClassInfo
 import com.example.voicetutor.data.models.Student
-import com.example.voicetutor.data.models.StudentProgress
 import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.repository.StudentRepository
 import com.example.voicetutor.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -20,6 +17,7 @@ import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(MockitoJUnitRunner::class)
 class StudentViewModelTest {
 

@@ -1,4 +1,4 @@
-package com.example.voicetutor.utils
+﻿package com.example.voicetutor.utils
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -270,18 +270,6 @@ class DateUtilsTest {
         assertTrue(result.contains("2025년"))
         assertTrue(result.contains("11월"))
         assertTrue(result.contains("15일"))
-    }
-
-    @Test
-    fun formatDueDate_nullString_handlesGracefully() {
-        // Given
-        val nullString: String? = null
-
-        // When
-        val result = nullString?.let { formatDueDate(it) }
-
-        // Then
-        assertNull(result)
     }
 
     @Test

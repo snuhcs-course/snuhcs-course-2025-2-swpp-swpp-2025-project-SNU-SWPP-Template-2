@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.repository
+﻿package com.example.voicetutor.data.repository
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -156,24 +156,6 @@ class AuthExceptionsTest {
     }
 
     @Test
-    fun loginException_isException() {
-        // Given
-        val exception = LoginException.InvalidCredentials("Test")
-
-        // Then
-        assertTrue(exception is Exception)
-    }
-
-    @Test
-    fun signupException_isException() {
-        // Given
-        val exception = SignupException.DuplicateEmail("Test")
-
-        // Then
-        assertTrue(exception is Exception)
-    }
-
-    @Test
     fun deleteAccountExceptionUnauthorized_hasMessage() {
         // Given
         val message = "인증이 필요합니다"
@@ -236,12 +218,4 @@ class AuthExceptionsTest {
         assertEquals(message, exception.message)
     }
 
-    @Test
-    fun deleteAccountException_isException() {
-        // Given
-        val exception = DeleteAccountException.Unauthorized("Test")
-
-        // Then
-        assertTrue(exception is Exception)
-    }
 }

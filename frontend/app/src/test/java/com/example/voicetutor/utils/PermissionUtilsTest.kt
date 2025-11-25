@@ -1,4 +1,4 @@
-package com.example.voicetutor.utils
+﻿package com.example.voicetutor.utils
 
 import android.Manifest
 import android.content.Context
@@ -7,7 +7,6 @@ import androidx.core.content.ContextCompat
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
-import org.mockito.MockedStatic
 import org.mockito.Mockito
 import org.mockito.junit.MockitoJUnitRunner
 
@@ -19,10 +18,8 @@ class PermissionUtilsTest {
 
     @Test
     fun getRequiredPermissions_returnsCorrectPermissions() {
-        // Act
         val permissions = PermissionUtils.getRequiredPermissions()
 
-        // Assert
         assert(permissions.size == 3)
         assert(permissions.contains(Manifest.permission.RECORD_AUDIO))
         assert(permissions.contains(Manifest.permission.WRITE_EXTERNAL_STORAGE))
@@ -31,73 +28,59 @@ class PermissionUtilsTest {
 
     @Test
     fun isPermissionGranted_allGranted_returnsTrue() {
-        // Arrange
         val grantResults = intArrayOf(
             PackageManager.PERMISSION_GRANTED,
             PackageManager.PERMISSION_GRANTED,
             PackageManager.PERMISSION_GRANTED,
         )
 
-        // Act
         val result = PermissionUtils.isPermissionGranted(grantResults)
 
-        // Assert
-        assert(result == true)
+        assert(result)
     }
 
     @Test
     fun isPermissionGranted_oneDenied_returnsFalse() {
-        // Arrange
         val grantResults = intArrayOf(
             PackageManager.PERMISSION_GRANTED,
             PackageManager.PERMISSION_DENIED,
             PackageManager.PERMISSION_GRANTED,
         )
 
-        // Act
         val result = PermissionUtils.isPermissionGranted(grantResults)
 
-        // Assert
-        assert(result == false)
+        assert(!result)
     }
 
     @Test
     fun isPermissionGranted_emptyArray_returnsFalse() {
-        // Arrange
         val grantResults = intArrayOf()
 
-        // Act
         val result = PermissionUtils.isPermissionGranted(grantResults)
 
-        // Assert
-        assert(result == false)
+        assert(!result)
     }
 
     @Test
     fun isPermissionGranted_allDenied_returnsFalse() {
-        // Arrange
         val grantResults = intArrayOf(
             PackageManager.PERMISSION_DENIED,
             PackageManager.PERMISSION_DENIED,
             PackageManager.PERMISSION_DENIED,
         )
 
-        // Act
         val result = PermissionUtils.isPermissionGranted(grantResults)
 
-        // Assert
-        assert(result == false)
+        assert(!result)
     }
 
     @Test
-    fun RECORD_AUDIO_PERMISSION_REQUEST_CODE_hasCorrectValue() {
-        // Assert
+    fun recordAudioPermissionRequestCode_hasCorrectValue() {
         assert(PermissionUtils.RECORD_AUDIO_PERMISSION_REQUEST_CODE == 1001)
     }
 
     @Test
     fun hasAudioPermission_whenGranted_returnsTrue() {
-        // Arrange
         Mockito.mockStatic(ContextCompat::class.java).use { mockedStatic ->
             mockedStatic.`when`<Int> {
                 ContextCompat.checkSelfPermission(
@@ -106,17 +89,14 @@ class PermissionUtilsTest {
                 )
             }.thenReturn(PackageManager.PERMISSION_GRANTED)
 
-            // Act
             val result = PermissionUtils.hasAudioPermission(context)
 
-            // Assert
-            assert(result == true)
+            assert(result)
         }
     }
 
     @Test
     fun hasAudioPermission_whenDenied_returnsFalse() {
-        // Arrange
         Mockito.mockStatic(ContextCompat::class.java).use { mockedStatic ->
             mockedStatic.`when`<Int> {
                 ContextCompat.checkSelfPermission(
@@ -125,17 +105,14 @@ class PermissionUtilsTest {
                 )
             }.thenReturn(PackageManager.PERMISSION_DENIED)
 
-            // Act
             val result = PermissionUtils.hasAudioPermission(context)
 
-            // Assert
-            assert(result == false)
+            assert(!result)
         }
     }
 
     @Test
     fun hasAllPermissions_whenAllGranted_returnsTrue() {
-        // Arrange
         Mockito.mockStatic(ContextCompat::class.java).use { mockedStatic ->
             mockedStatic.`when`<Int> {
                 ContextCompat.checkSelfPermission(
@@ -158,17 +135,14 @@ class PermissionUtilsTest {
                 )
             }.thenReturn(PackageManager.PERMISSION_GRANTED)
 
-            // Act
             val result = PermissionUtils.hasAllPermissions(context)
 
-            // Assert
-            assert(result == true)
+            assert(result)
         }
     }
 
     @Test
     fun hasAllPermissions_whenOneDenied_returnsFalse() {
-        // Arrange
         Mockito.mockStatic(ContextCompat::class.java).use { mockedStatic ->
             mockedStatic.`when`<Int> {
                 ContextCompat.checkSelfPermission(
@@ -191,17 +165,14 @@ class PermissionUtilsTest {
                 )
             }.thenReturn(PackageManager.PERMISSION_GRANTED)
 
-            // Act
             val result = PermissionUtils.hasAllPermissions(context)
 
-            // Assert
-            assert(result == false)
+            assert(!result)
         }
     }
 
     @Test
     fun hasAllPermissions_whenAllDenied_returnsFalse() {
-        // Arrange
         Mockito.mockStatic(ContextCompat::class.java).use { mockedStatic ->
             mockedStatic.`when`<Int> {
                 ContextCompat.checkSelfPermission(
@@ -210,11 +181,9 @@ class PermissionUtilsTest {
                 )
             }.thenReturn(PackageManager.PERMISSION_DENIED)
 
-            // Act
             val result = PermissionUtils.hasAllPermissions(context)
 
-            // Assert
-            assert(result == false)
+            assert(!result)
         }
     }
 }

@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.repository
+﻿package com.example.voicetutor.data.repository
 
 import com.example.voicetutor.data.models.LoginRequest
 import com.example.voicetutor.data.models.LoginResponse
@@ -8,7 +8,7 @@ import com.example.voicetutor.data.models.UserRole
 import com.example.voicetutor.data.network.ApiService
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.mockito.Mock
@@ -30,7 +30,7 @@ class AuthRepositoryTest {
         // Response.error를 사용하면 response.body()는 null이므로 parseErrorMessage가 호출됨
         // parseErrorMessage는 errorBody().string()을 파싱하므로 errorBody를 제대로 설정해야 함
         val json = """{"success":false,"error":"로그인에 실패했습니다"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.login(req)).thenReturn(Response.error(401, errorBody))
 
         // When
@@ -49,7 +49,7 @@ class AuthRepositoryTest {
         val repo = AuthRepository(apiService)
         val req = SignupRequest(name = "n", email = "a@ex.com", password = "pw", role = UserRole.STUDENT.name)
         val json = """{"success":false,"error":"회원가입에 실패했습니다"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.signup(req)).thenReturn(Response.error(400, errorBody))
 
         // When
@@ -104,7 +104,7 @@ class AuthRepositoryTest {
     fun login_apiFailure_noErrorBody_returnsDefaultMessage() = runTest {
         // Arrange
         val repo = AuthRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{}""")
+        val errorBody = """{}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.login(LoginRequest("a@ex.com", "pw"))).thenReturn(Response.error(500, errorBody))
 
         // Act
@@ -172,7 +172,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"error":"계정을 찾을 수 없습니다"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.login(LoginRequest("a@ex.com", "pw"))).thenReturn(Response.error(404, errorBody))
 
         // Act
@@ -189,7 +189,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"error":"계정이 잠겨 있습니다"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.login(LoginRequest("a@ex.com", "pw"))).thenReturn(Response.error(423, errorBody))
 
         // Act
@@ -206,7 +206,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"error":"서버 오류"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.login(LoginRequest("a@ex.com", "pw"))).thenReturn(Response.error(500, errorBody))
 
         // Act
@@ -225,7 +225,7 @@ class AuthRepositoryTest {
         // Response.error()를 사용하면 response.body()가 null이므로 parseErrorMessage가 호출됨
         // parseErrorMessage가 errorBody에서 "비밀번호" 키워드를 파싱하면 InvalidCredentials 예외 발생
         val json = """{"success":false,"error":"비밀번호가 올바르지 않습니다"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.login(LoginRequest("a@ex.com", "pw"))).thenReturn(Response.error(400, errorBody))
 
         // Act
@@ -252,7 +252,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"error":"이미 사용 중인 이메일입니다"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         val req = SignupRequest(name = "Bob", email = "b@ex.com", password = "pw", role = UserRole.TEACHER.name)
         whenever(apiService.signup(req)).thenReturn(Response.error(409, errorBody))
 
@@ -270,7 +270,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"message":"로그인 실패 메시지"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.login(LoginRequest("a@ex.com", "pw"))).thenReturn(Response.error(400, errorBody))
 
         // Act
@@ -286,7 +286,7 @@ class AuthRepositoryTest {
     fun login_responseWithEmptyErrorBody_usesDefaultMessage() = runTest {
         // Arrange
         val repo = AuthRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), "")
+        val errorBody = "".toResponseBody("application/json".toMediaType())
         whenever(apiService.login(LoginRequest("a@ex.com", "pw"))).thenReturn(Response.error(400, errorBody))
 
         // Act
@@ -372,7 +372,7 @@ class AuthRepositoryTest {
     fun deleteAccount_success_returnsUnit() = runTest {
         // Arrange
         val repo = AuthRepository(apiService)
-        val apiResponse = com.example.voicetutor.data.network.ApiResponse<Unit>(
+        val apiResponse = com.example.voicetutor.data.network.ApiResponse(
             success = true,
             data = Unit,
             message = "Success",
@@ -413,7 +413,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"error":"Unauthorized"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.deleteAccount()).thenReturn(Response.error(401, errorBody))
 
         // Act
@@ -433,7 +433,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"error":"Forbidden"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.deleteAccount()).thenReturn(Response.error(403, errorBody))
 
         // Act
@@ -453,7 +453,7 @@ class AuthRepositoryTest {
         // Arrange
         val repo = AuthRepository(apiService)
         val json = """{"success":false,"error":"Server error"}"""
-        val errorBody = ResponseBody.create("application/json".toMediaType(), json)
+        val errorBody = json.toResponseBody("application/json".toMediaType())
         whenever(apiService.deleteAccount()).thenReturn(Response.error(500, errorBody))
 
         // Act

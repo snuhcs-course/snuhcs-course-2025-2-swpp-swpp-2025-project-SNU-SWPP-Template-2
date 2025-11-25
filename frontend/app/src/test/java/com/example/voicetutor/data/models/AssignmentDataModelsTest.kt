@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.models
+﻿package com.example.voicetutor.data.models
 
 import org.junit.Assert.*
 import org.junit.Test
@@ -18,12 +18,9 @@ class AssignmentDataModelsTest {
 
     @Test
     fun assignmentData_withAllFields_initializesCorrectly() {
-        // Arrange
         val materials = listOf(
             Material(id = 1, kind = "PDF", s3Key = "key1", bytes = 1024, createdAt = "2025-01-01"),
         )
-
-        // Act
         val assignment = AssignmentData(
             id = 1,
             title = "Test Assignment",
@@ -39,8 +36,6 @@ class AssignmentDataModelsTest {
             personalAssignmentId = 100,
             submittedAt = "2025-01-02",
         )
-
-        // Assert
         assertEquals(1, assignment.id)
         assertEquals("Test Assignment", assignment.title)
         assertEquals("Test Description", assignment.description)
@@ -58,7 +53,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun assignmentData_withNullOptionalFields_initializesCorrectly() {
-        // Act
         val assignment = AssignmentData(
             id = 1,
             title = "Test Assignment",
@@ -66,8 +60,6 @@ class AssignmentDataModelsTest {
             dueAt = "2025-12-31",
             courseClass = buildCourseClass(),
         )
-
-        // Assert
         assertNull(assignment.description)
         assertNull(assignment.createdAt)
         assertNull(assignment.materials)
@@ -80,7 +72,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun material_withAllFields_initializesCorrectly() {
-        // Act
         val material = Material(
             id = 1,
             kind = "PDF",
@@ -88,8 +79,6 @@ class AssignmentDataModelsTest {
             bytes = 2048,
             createdAt = "2025-01-01T00:00:00Z",
         )
-
-        // Assert
         assertEquals(1, material.id)
         assertEquals("PDF", material.kind)
         assertEquals("assignments/1/material.pdf", material.s3Key)
@@ -99,24 +88,18 @@ class AssignmentDataModelsTest {
 
     @Test
     fun material_withNullBytes_initializesCorrectly() {
-        // Act
         val material = Material(
             id = 1,
             kind = "PDF",
             s3Key = "key",
             createdAt = "2025-01-01",
         )
-
-        // Assert
         assertNull(material.bytes)
     }
 
     @Test
     fun questionData_withAllFields_initializesCorrectly() {
-        // Arrange
         val options = listOf("A", "B", "C", "D")
-
-        // Act
         val question = QuestionData(
             id = 1,
             question = "What is 2+2?",
@@ -126,8 +109,6 @@ class AssignmentDataModelsTest {
             points = 5,
             explanation = "Basic addition",
         )
-
-        // Assert
         assertEquals(1, question.id)
         assertEquals("What is 2+2?", question.question)
         assertEquals("multiple_choice", question.type)
@@ -139,23 +120,19 @@ class AssignmentDataModelsTest {
 
     @Test
     fun questionData_withDefaultValues_initializesCorrectly() {
-        // Act
         val question = QuestionData(
             id = 1,
             question = "Test?",
             type = "short_answer",
             correctAnswer = "Answer",
         )
-
-        // Assert
         assertNull(question.options)
-        assertEquals(1, question.points) // Default value
+        assertEquals(1, question.points)
         assertNull(question.explanation)
     }
 
     @Test
     fun personalAssignmentData_withAllFields_initializesCorrectly() {
-        // Arrange
         val student = StudentInfo(id = 1, displayName = "Student1", email = "s1@test.com")
         val assignmentInfo = PersonalAssignmentInfo(
             id = 1,
@@ -165,8 +142,6 @@ class AssignmentDataModelsTest {
             dueAt = "2025-12-31",
             grade = "1학년",
         )
-
-        // Act
         val personalAssignment = PersonalAssignmentData(
             id = 1,
             student = student,
@@ -176,8 +151,6 @@ class AssignmentDataModelsTest {
             startedAt = "2025-01-01",
             submittedAt = "2025-01-02",
         )
-
-        // Assert
         assertEquals(1, personalAssignment.id)
         assertEquals(student, personalAssignment.student)
         assertEquals(assignmentInfo, personalAssignment.assignment)
@@ -189,7 +162,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun personalAssignmentData_withNullOptionalFields_initializesCorrectly() {
-        // Arrange
         val student = StudentInfo(id = 1, displayName = "Student1", email = "s1@test.com")
         val assignmentInfo = PersonalAssignmentInfo(
             id = 1,
@@ -199,8 +171,6 @@ class AssignmentDataModelsTest {
             dueAt = "2025-12-31",
             grade = "1학년",
         )
-
-        // Act
         val personalAssignment = PersonalAssignmentData(
             id = 1,
             student = student,
@@ -208,15 +178,12 @@ class AssignmentDataModelsTest {
             status = PersonalAssignmentStatus.NOT_STARTED,
             solvedNum = 0,
         )
-
-        // Assert
         assertNull(personalAssignment.startedAt)
         assertNull(personalAssignment.submittedAt)
     }
 
     @Test
     fun personalAssignmentQuestion_withAllFields_initializesCorrectly() {
-        // Act
         val question = PersonalAssignmentQuestion(
             id = 1,
             number = "2-2",
@@ -226,8 +193,6 @@ class AssignmentDataModelsTest {
             difficulty = "EASY",
             isProcessing = true,
         )
-
-        // Assert
         assertEquals(1, question.id)
         assertEquals("2-2", question.number)
         assertEquals("Test question?", question.question)
@@ -239,7 +204,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun personalAssignmentQuestion_withDefaultIsProcessing_initializesCorrectly() {
-        // Act
         val question = PersonalAssignmentQuestion(
             id = 1,
             number = "1",
@@ -248,14 +212,11 @@ class AssignmentDataModelsTest {
             explanation = "Exp",
             difficulty = "MEDIUM",
         )
-
-        // Assert
-        assertFalse(question.isProcessing) // Default value
+        assertFalse(question.isProcessing)
     }
 
     @Test
     fun answerSubmissionResponse_withAllFields_initializesCorrectly() {
-        // Arrange
         val tailQuestion = TailQuestion(
             id = 2,
             number = "2-1",
@@ -264,15 +225,11 @@ class AssignmentDataModelsTest {
             explanation = "Exp",
             difficulty = "EASY",
         )
-
-        // Act
         val response = AnswerSubmissionResponse(
             isCorrect = true,
             numberStr = "1-1",
             tailQuestion = tailQuestion,
         )
-
-        // Assert
         assertTrue(response.isCorrect)
         assertEquals("1-1", response.numberStr)
         assertEquals(tailQuestion, response.tailQuestion)
@@ -280,14 +237,11 @@ class AssignmentDataModelsTest {
 
     @Test
     fun answerSubmissionResponse_withNullOptionalFields_initializesCorrectly() {
-        // Act
         val response = AnswerSubmissionResponse(
             isCorrect = false,
             numberStr = null,
             tailQuestion = null,
         )
-
-        // Assert
         assertFalse(response.isCorrect)
         assertNull(response.numberStr)
         assertNull(response.tailQuestion)
@@ -295,7 +249,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun tailQuestion_withAllFields_initializesCorrectly() {
-        // Act
         val tailQuestion = TailQuestion(
             id = 1,
             number = "2-1",
@@ -304,8 +257,6 @@ class AssignmentDataModelsTest {
             explanation = "Explanation",
             difficulty = "HARD",
         )
-
-        // Assert
         assertEquals(1, tailQuestion.id)
         assertEquals("2-1", tailQuestion.number)
         assertEquals("Question?", tailQuestion.question)
@@ -316,15 +267,12 @@ class AssignmentDataModelsTest {
 
     @Test
     fun assignmentResultData_withAllFields_initializesCorrectly() {
-        // Act
         val result = AssignmentResultData(
             submittedStudents = 18,
             totalStudents = 25,
             averageScore = 85.5,
             completionRate = 0.72,
         )
-
-        // Assert
         assertEquals(18, result.submittedStudents)
         assertEquals(25, result.totalStudents)
         assertEquals(85.5, result.averageScore!!, 0.01)
@@ -333,10 +281,7 @@ class AssignmentDataModelsTest {
 
     @Test
     fun assignmentResultData_withNullFields_initializesCorrectly() {
-        // Act
         val result = AssignmentResultData()
-
-        // Assert
         assertNull(result.submittedStudents)
         assertNull(result.totalStudents)
         assertNull(result.averageScore)
@@ -345,7 +290,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun personalAssignmentStatistics_withAllFields_initializesCorrectly() {
-        // Act
         val stats = PersonalAssignmentStatistics(
             totalQuestions = 10,
             answeredQuestions = 8,
@@ -356,8 +300,6 @@ class AssignmentDataModelsTest {
             progress = 0.8f,
             averageScore = 87.5f,
         )
-
-        // Assert
         assertEquals(10, stats.totalQuestions)
         assertEquals(8, stats.answeredQuestions)
         assertEquals(7, stats.correctAnswers)
@@ -370,7 +312,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun assignmentCorrectnessItem_withAllFields_initializesCorrectly() {
-        // Act
         val item = AssignmentCorrectnessItem(
             questionContent = "What is 2+2?",
             questionModelAnswer = "4",
@@ -380,8 +321,6 @@ class AssignmentDataModelsTest {
             questionNum = "1",
             explanation = "Basic addition",
         )
-
-        // Assert
         assertEquals("What is 2+2?", item.questionContent)
         assertEquals("4", item.questionModelAnswer)
         assertEquals("4", item.studentAnswer)
@@ -393,7 +332,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun assignmentCorrectnessItem_withIncorrectAnswer_initializesCorrectly() {
-        // Act
         val item = AssignmentCorrectnessItem(
             questionContent = "What is 2+2?",
             questionModelAnswer = "4",
@@ -403,15 +341,12 @@ class AssignmentDataModelsTest {
             questionNum = "1",
             explanation = "Basic addition",
         )
-
-        // Assert
         assertFalse(item.isCorrect)
         assertEquals("5", item.studentAnswer)
     }
 
     @Test
     fun courseClass_withAllFields_initializesCorrectly() {
-        // Act
         val courseClass = CourseClass(
             id = 1,
             name = "Math Class",
@@ -421,8 +356,6 @@ class AssignmentDataModelsTest {
             studentCount = 25,
             createdAt = "2025-01-01",
         )
-
-        // Assert
         assertEquals(1, courseClass.id)
         assertEquals("Math Class", courseClass.name)
         assertEquals("Math Description", courseClass.description)
@@ -433,7 +366,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun courseClass_withNullDescription_initializesCorrectly() {
-        // Act
         val courseClass = CourseClass(
             id = 1,
             name = "Math Class",
@@ -443,17 +375,12 @@ class AssignmentDataModelsTest {
             studentCount = 25,
             createdAt = "2025-01-01",
         )
-
-        // Assert
         assertNull(courseClass.description)
     }
 
     @Test
     fun subject_withAllFields_initializesCorrectly() {
-        // Act
         val subject = Subject(id = 1, name = "Mathematics", code = "MATH")
-
-        // Assert
         assertEquals(1, subject.id)
         assertEquals("Mathematics", subject.name)
         assertEquals("MATH", subject.code)
@@ -461,19 +388,13 @@ class AssignmentDataModelsTest {
 
     @Test
     fun subject_withNullCode_initializesCorrectly() {
-        // Act
         val subject = Subject(id = 1, name = "Mathematics")
-
-        // Assert
         assertNull(subject.code)
     }
 
     @Test
     fun studentInfo_withAllFields_initializesCorrectly() {
-        // Act
         val student = StudentInfo(id = 1, displayName = "John Doe", email = "john@test.com")
-
-        // Assert
         assertEquals(1, student.id)
         assertEquals("John Doe", student.displayName)
         assertEquals("john@test.com", student.email)
@@ -481,7 +402,6 @@ class AssignmentDataModelsTest {
 
     @Test
     fun personalAssignmentInfo_withAllFields_initializesCorrectly() {
-        // Act
         val info = PersonalAssignmentInfo(
             id = 1,
             title = "Assignment",
@@ -490,8 +410,6 @@ class AssignmentDataModelsTest {
             dueAt = "2025-12-31",
             grade = "1학년",
         )
-
-        // Assert
         assertEquals(1, info.id)
         assertEquals("Assignment", info.title)
         assertEquals("Description", info.description)

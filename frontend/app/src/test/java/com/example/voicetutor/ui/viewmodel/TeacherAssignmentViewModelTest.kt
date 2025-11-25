@@ -1,4 +1,4 @@
-package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import app.cash.turbine.test
 import com.example.voicetutor.data.models.*
@@ -7,6 +7,7 @@ import com.example.voicetutor.data.network.CreateAssignmentResponse
 import com.example.voicetutor.data.network.S3UploadStatus
 import com.example.voicetutor.data.repository.AssignmentRepository
 import com.example.voicetutor.testing.MainDispatcherRule
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
@@ -19,6 +20,7 @@ import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.*
 import java.io.File
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(MockitoJUnitRunner::class)
 class TeacherAssignmentViewModelTest {
 
@@ -109,7 +111,7 @@ class TeacherAssignmentViewModelTest {
 
             // when: PDF 포함 과제 생성을 호출하면 (totalNumber를 명시적으로 전달)
             viewModel.isUploading.test {
-                assert(awaitItem() == false)
+                assert(!awaitItem())
                 viewModel.createAssignmentWithPdf(request, pdf, totalNumber = 1)
                 runCurrent()
                 // then: 업로드 상태 전이는 별도 테스트에서 상세 검증(여기서는 호출 여부 위주)

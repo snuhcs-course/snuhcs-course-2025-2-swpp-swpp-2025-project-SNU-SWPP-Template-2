@@ -1,4 +1,4 @@
-package com.example.voicetutor.data
+﻿package com.example.voicetutor.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
@@ -10,7 +10,7 @@ class AssignmentModelsTest {
     @Test
     fun assignmentStatus_values_containsAllStatuses() {
         // Act
-        val values = AssignmentStatus.values()
+        val values = AssignmentStatus.entries
 
         // Assert
         assertEquals(3, values.size)
@@ -46,7 +46,7 @@ class AssignmentModelsTest {
     @Test
     fun assignmentFilter_values_containsAllFilters() {
         // Act
-        val values = AssignmentFilter.values()
+        val values = AssignmentFilter.entries
 
         // Assert
         assertEquals(3, values.size)

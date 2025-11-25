@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.repository
+﻿package com.example.voicetutor.data.repository
 
 import com.example.voicetutor.data.models.AchievementStatistics
 import com.example.voicetutor.data.models.CurriculumReportData
@@ -6,7 +6,7 @@ import com.example.voicetutor.data.network.ApiResponse
 import com.example.voicetutor.data.network.ApiService
 import kotlinx.coroutines.test.runTest
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.ResponseBody
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -100,7 +100,7 @@ class ReportRepositoryTest {
     fun getCurriculumReport_responseError_returnsFailure() = runTest {
         // Arrange
         val repo = ReportRepository(apiService)
-        val errorBody = ResponseBody.create("application/json".toMediaType(), """{"error":"Server error"}""")
+        val errorBody = """{"error":"Server error"}""".toResponseBody("application/json".toMediaType())
         whenever(apiService.getCurriculumReport(1, 1)).thenReturn(Response.error(500, errorBody))
 
         // Act

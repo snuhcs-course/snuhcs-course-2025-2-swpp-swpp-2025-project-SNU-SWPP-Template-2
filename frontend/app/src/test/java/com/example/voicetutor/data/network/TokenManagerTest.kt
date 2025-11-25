@@ -1,4 +1,4 @@
-package com.example.voicetutor.data.network
+﻿package com.example.voicetutor.data.network
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -41,92 +41,59 @@ class TokenManagerTest {
 
     @Test
     fun saveAccessToken_savesToken() {
-        // Arrange
         val token = "test_access_token"
-
-        // Act
         tokenManager.saveAccessToken(token)
-
-        // Assert
         verify(editor).putString("access_token", token)
         verify(editorAfterPut).apply()
     }
 
     @Test
     fun getAccessToken_returnsSavedToken() {
-        // Arrange
         val token = "test_access_token"
         whenever(sharedPreferences.getString(eq("access_token"), isNull()))
             .thenReturn(token)
-
-        // Act
         val result = tokenManager.getAccessToken()
-
-        // Assert
         assertEquals(token, result)
         verify(sharedPreferences).getString("access_token", null)
     }
 
     @Test
     fun getAccessToken_whenNoToken_returnsNull() {
-        // Arrange
         whenever(sharedPreferences.getString(eq("access_token"), isNull()))
             .thenReturn(null)
-
-        // Act
         val result = tokenManager.getAccessToken()
-
-        // Assert
         assertNull(result)
     }
 
     @Test
     fun saveRefreshToken_savesToken() {
-        // Arrange
         val token = "test_refresh_token"
-
-        // Act
         tokenManager.saveRefreshToken(token)
-
-        // Assert
         verify(editor).putString("refresh_token", token)
         verify(editorAfterPut).apply()
     }
 
     @Test
     fun getRefreshToken_returnsSavedToken() {
-        // Arrange
         val token = "test_refresh_token"
         whenever(sharedPreferences.getString(eq("refresh_token"), isNull()))
             .thenReturn(token)
-
-        // Act
         val result = tokenManager.getRefreshToken()
-
-        // Assert
         assertEquals(token, result)
         verify(sharedPreferences).getString("refresh_token", null)
     }
 
     @Test
     fun getRefreshToken_whenNoToken_returnsNull() {
-        // Arrange
         whenever(sharedPreferences.getString(eq("refresh_token"), isNull()))
             .thenReturn(null)
-
-        // Act
         val result = tokenManager.getRefreshToken()
-
-        // Assert
         assertNull(result)
     }
 
     @Test
     fun clearTokens_removesBothTokens() {
-        // Act
         tokenManager.clearTokens()
-
-        // Assert
         verify(editor).remove("access_token")
         verify(editorAfterPut).remove("refresh_token")
         verify(editorAfterPut).apply()
@@ -134,41 +101,26 @@ class TokenManagerTest {
 
     @Test
     fun hasToken_whenTokenExists_returnsTrue() {
-        // Arrange
         whenever(sharedPreferences.getString(eq("access_token"), isNull()))
             .thenReturn("test_token")
-
-        // Act
         val result = tokenManager.hasToken()
-
-        // Assert
         assertTrue(result)
     }
 
     @Test
     fun hasToken_whenNoToken_returnsFalse() {
-        // Arrange
         whenever(sharedPreferences.getString(eq("access_token"), isNull()))
             .thenReturn(null)
-
-        // Act
         val result = tokenManager.hasToken()
-
-        // Assert
         assertFalse(result)
     }
 
     @Test
     fun hasToken_whenTokenIsEmpty_returnsTrue() {
-        // Arrange
         // Note: hasToken() checks if token is not null, not if it's empty
         whenever(sharedPreferences.getString(eq("access_token"), isNull()))
             .thenReturn("")
-
-        // Act
         val result = tokenManager.hasToken()
-
-        // Assert
         // Empty string is not null, so hasToken() returns true
         assertTrue(result)
     }
