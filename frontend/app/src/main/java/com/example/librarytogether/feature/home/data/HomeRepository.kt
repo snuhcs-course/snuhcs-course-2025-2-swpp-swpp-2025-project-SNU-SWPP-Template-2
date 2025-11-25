@@ -5,10 +5,10 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class HomeRepository @Inject constructor(
+open class HomeRepository @Inject constructor(
     private val homeApi: HomeApi
 ) {
-    suspend fun getFeed(): List<Post> {
+    open suspend fun getFeed(): List<Post> {
         return try {
             val response = homeApi.feed()
             if (response.isSuccessful) {
@@ -22,7 +22,7 @@ class HomeRepository @Inject constructor(
         }
     }
 
-    suspend fun toggleLike(postId: Int): Post {
+    open suspend fun toggleLike(postId: Int): Post {
         return try {
             val response = homeApi.togglePostLike(postId)
             if (response.isSuccessful) {
@@ -37,7 +37,7 @@ class HomeRepository @Inject constructor(
         }
     }
 
-    suspend fun createRequest(recipientId: Int, requestedBookId: String): Boolean {
+    open suspend fun createRequest(recipientId: Int, requestedBookId: String): Boolean {
         val res = homeApi.createRequest(CreateBarterRequest(recipientId, requestedBookId))
         return res.isSuccessful
     }

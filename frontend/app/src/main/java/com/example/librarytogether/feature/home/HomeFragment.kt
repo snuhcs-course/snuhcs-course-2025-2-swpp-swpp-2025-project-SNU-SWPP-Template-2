@@ -47,14 +47,19 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         setupSortButton()
         observeViewModel()
 
-        // new rv 작성 후 돌아왔을 때만 home feed refresh + scroll to top
-        findNavController().currentBackStackEntry
-            ?.savedStateHandle
-            ?.getLiveData<Boolean>("shouldRefreshHome")
-            ?.observe(viewLifecycleOwner) { shouldRefresh ->
+        observeHomeRefreshFlagSafely()
+    }
+
+    private fun observeHomeRefreshFlagSafely() {
+        val navController = runCatching { findNavController() }.getOrNull() ?: return
+        val handle = navController.currentBackStackEntry?.savedStateHandle ?: return
+
+        handle.getLiveData<Boolean>("shouldRefreshHome")
+            .observe(viewLifecycleOwner) { shouldRefresh ->
                 if (shouldRefresh == true) {
                     homeviewModel.loadFeed()
                     binding.rvFeed.scrollToPosition(0)
+                    handle.set("shouldRefreshHome", false)
                 }
             }
     }

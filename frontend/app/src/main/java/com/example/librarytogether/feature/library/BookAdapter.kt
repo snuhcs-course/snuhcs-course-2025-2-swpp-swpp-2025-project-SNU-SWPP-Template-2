@@ -82,7 +82,7 @@ class BookAdapter(
             tvTitle.text  = item.title
             tvAuthor.text = item.authors.orEmpty()
 
-            itemView.setOnClickListener { clicks.onSelect(item) }
+            itemView.setOnClickListener { clicks.onClickItem(item) }
             btnMore?.setOnClickListener { v -> clicks.onClickMore(item, v) }
         }
     }

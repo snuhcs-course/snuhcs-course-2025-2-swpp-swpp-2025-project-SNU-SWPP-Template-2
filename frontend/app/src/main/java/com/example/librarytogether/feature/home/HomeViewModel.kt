@@ -101,15 +101,6 @@ class HomeViewModel @Inject constructor(
         _barterError.value = null
     }
 
-    fun onClickAdd(post: Post) {
-
-    }
-
-    fun addPost(post: Post) {
-        viewModelScope.launch {
-        }
-    }
-
     fun onErrorShown() {
         _error.value = null
     }
