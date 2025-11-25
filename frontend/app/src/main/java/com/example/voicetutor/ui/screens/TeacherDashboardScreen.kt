@@ -34,6 +34,15 @@ import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.utils.TutorialPreferences
 
+private const val HEADER_ALPHA = 0.08f
+private const val HEADER_CORNER_RADIUS = 16
+private const val EMPTY_STATE_ICON_SIZE = 48
+private const val DATE_FORMAT_PATTERN = "yyyy-MM-dd'T'HH:mm:ss"
+private const val DATE_SUBSTRING_LENGTH = 10
+private const val FILTER_BADGE_ALPHA = 0.7f
+private const val FILTER_BADGE_CORNER_RADIUS = 10
+private const val FILTER_BADGE_HEIGHT = 20
+
 @Composable
 fun TeacherDashboardScreen(
     authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel? = null,
@@ -65,27 +74,8 @@ fun TeacherDashboardScreen(
 
     var selectedFilter by remember { mutableStateOf(AssignmentFilter.ALL) }
     
-    val filteredAssignments = remember(assignments, selectedFilter) {
-        val now = System.currentTimeMillis()
-        when (selectedFilter) {
-            AssignmentFilter.ALL -> assignments
-            AssignmentFilter.IN_PROGRESS -> assignments.filter { 
-                val dueTime = try {
-                    java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(it.dueAt)?.time ?: Long.MAX_VALUE
-                } catch (e: Exception) {
-                    Long.MAX_VALUE
-                }
-                dueTime > now
-            }
-            AssignmentFilter.COMPLETED -> assignments.filter { 
-                val dueTime = try {
-                    java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(it.dueAt)?.time ?: 0L
-                } catch (e: Exception) {
-                    0L
-                }
-                dueTime <= now
-            }
-        }
+    val filteredAssignments: List<AssignmentData> = remember(assignments, selectedFilter) {
+        filterAssignmentsByStatus(assignments, selectedFilter)
     }
     
     val allCount = remember(assignments) {
@@ -93,27 +83,11 @@ fun TeacherDashboardScreen(
     }
     
     val inProgressCount = remember(assignments) {
-        val now = System.currentTimeMillis()
-        assignments.count { 
-            val dueTime = try {
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(it.dueAt)?.time ?: Long.MAX_VALUE
-            } catch (e: Exception) {
-                Long.MAX_VALUE
-            }
-            dueTime > now
-        }
+        countAssignmentsByStatus(assignments, AssignmentFilter.IN_PROGRESS)
     }
     
     val completedCount = remember(assignments) {
-        val now = System.currentTimeMillis()
-        assignments.count { 
-            val dueTime = try {
-                java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", java.util.Locale.getDefault()).parse(it.dueAt)?.time ?: 0L
-            } catch (e: Exception) {
-                0L
-            }
-            dueTime <= now
-        }
+        countAssignmentsByStatus(assignments, AssignmentFilter.COMPLETED)
     }
 
     val context = LocalContext.current
@@ -148,10 +122,6 @@ fun TeacherDashboardScreen(
 
     val actualTeacherId = teacherId ?: currentUser?.id?.toString()
 
-    LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(100)
-    }
-
     LaunchedEffect(refreshTimestamp, actualTeacherId) {
         if (refreshTimestamp > 0L && actualTeacherId != null) {
             actualAssignmentViewModel.loadAllAssignments(teacherId = actualTeacherId)
@@ -180,7 +150,6 @@ fun TeacherDashboardScreen(
 
     LaunchedEffect(questionGenerationSuccess) {
         if (questionGenerationSuccess && actualTeacherId != null) {
-            println("TeacherDashboardScreen - 질문 생성 완료 감지, 리스트 새로고침")
             actualAssignmentViewModel.loadAllAssignments(teacherId = actualTeacherId, status = null)
             dashboardViewModel.loadDashboardData(actualTeacherId)
         }
@@ -210,13 +179,13 @@ fun TeacherDashboardScreen(
 
     val dueTodayCount = remember(assignments) {
         val todayStr = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            java.time.LocalDate.now().toString() // yyyy-MM-dd
+            java.time.LocalDate.now().toString()
         } else {
             java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
         }
         assignments.count { a ->
             val due = a.dueAt
-            due.isNotBlank() && due.length >= 10 && due.substring(0, 10) == todayStr
+            due.isNotBlank() && due.length >= DATE_SUBSTRING_LENGTH && due.substring(0, DATE_SUBSTRING_LENGTH) == todayStr
         }
     }
 
@@ -226,13 +195,12 @@ fun TeacherDashboardScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Welcome section
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = PrimaryIndigo.copy(alpha = 0.08f),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = PrimaryIndigo.copy(alpha = HEADER_ALPHA),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(HEADER_CORNER_RADIUS.dp),
                 )
                 .padding(20.dp),
         ) {
@@ -252,13 +220,12 @@ fun TeacherDashboardScreen(
             }
         }
 
-        // Quick stats
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    color = PrimaryIndigo.copy(alpha = 0.08f),
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+                    color = PrimaryIndigo.copy(alpha = HEADER_ALPHA),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(HEADER_CORNER_RADIUS.dp),
                 )
                 .padding(horizontal = 38.dp, vertical = 16.dp),
         ) {
@@ -291,7 +258,6 @@ fun TeacherDashboardScreen(
             }
         }
 
-        // Quick actions
         Column {
             Text(
                 text = "빠른 실행",
@@ -323,27 +289,8 @@ fun TeacherDashboardScreen(
                 )
             }
 
-            // Spacer(modifier = Modifier.height(12.dp))
-
-            // VTButton(
-            //     text = "전체 과제 보기",
-            //     onClick = onNavigateToAllAssignments,
-            //     variant = ButtonVariant.Primary,
-            //     size = ButtonSize.Large,
-            //     modifier = Modifier
-            //         .fillMaxWidth()
-            //         .height(56.dp),
-            //     leadingIcon = {
-            //         Icon(
-            //             imageVector = Icons.Filled.Assignment,
-            //             contentDescription = null,
-            //             modifier = Modifier.size(20.dp)
-            //         )
-            //     }
-            // )
         }
 
-        // Assignment management section
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -366,104 +313,29 @@ fun TeacherDashboardScreen(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                FilterChip(
+                AssignmentFilterChipWithCount(
+                    filter = AssignmentFilter.ALL,
+                    label = "전체",
+                    count = allCount,
                     selected = selectedFilter == AssignmentFilter.ALL,
                     onClick = { selectedFilter = AssignmentFilter.ALL },
-                    label = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Text("전체")
-                            Box(
-                                modifier = Modifier
-                                    .height(20.dp)
-                                    .widthIn(min = 20.dp)
-                                    .background(
-                                        color = PrimaryIndigo.copy(alpha = 0.7f),
-                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-                                    )
-                                    .padding(horizontal = 6.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "$allCount",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = androidx.compose.ui.graphics.Color.White,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        }
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Filled.List,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                        )
-                    },
+                    leadingIcon = Icons.Filled.List,
                 )
 
-                FilterChip(
+                AssignmentFilterChipWithCount(
+                    filter = AssignmentFilter.IN_PROGRESS,
+                    label = "진행중",
+                    count = inProgressCount,
                     selected = selectedFilter == AssignmentFilter.IN_PROGRESS,
                     onClick = { selectedFilter = AssignmentFilter.IN_PROGRESS },
-                    label = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Text("진행중")
-                            Box(
-                                modifier = Modifier
-                                    .height(20.dp)
-                                    .widthIn(min = 20.dp)
-                                    .background(
-                                        color = PrimaryIndigo.copy(alpha = 0.7f),
-                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-                                    )
-                                    .padding(horizontal = 6.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "$inProgressCount",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = androidx.compose.ui.graphics.Color.White,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        }
-                    },
                 )
 
-                FilterChip(
+                AssignmentFilterChipWithCount(
+                    filter = AssignmentFilter.COMPLETED,
+                    label = "마감",
+                    count = completedCount,
                     selected = selectedFilter == AssignmentFilter.COMPLETED,
                     onClick = { selectedFilter = AssignmentFilter.COMPLETED },
-                    label = {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        ) {
-                            Text("마감")
-                            Box(
-                                modifier = Modifier
-                                    .height(20.dp)
-                                    .widthIn(min = 20.dp)
-                                    .background(
-                                        color = PrimaryIndigo.copy(alpha = 0.7f),
-                                        shape = androidx.compose.foundation.shape.RoundedCornerShape(10.dp),
-                                    )
-                                    .padding(horizontal = 6.dp),
-                                contentAlignment = Alignment.Center,
-                            ) {
-                                Text(
-                                    text = "$completedCount",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = androidx.compose.ui.graphics.Color.White,
-                                    fontWeight = FontWeight.SemiBold,
-                                )
-                            }
-                        }
-                    },
                 )
             }
 
@@ -490,7 +362,7 @@ fun TeacherDashboardScreen(
                             imageVector = Icons.Filled.Assignment,
                             contentDescription = null,
                             tint = Gray400,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(EMPTY_STATE_ICON_SIZE.dp),
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
@@ -676,28 +548,97 @@ fun TeacherAssignmentCard(
                 height = 6,
             )
 
-//            Spacer(modifier = Modifier.height(12.dp))
-//
-//            Row(
-//                modifier = Modifier.fillMaxWidth(),
-//                horizontalArrangement = Arrangement.spacedBy(8.dp)
-//            ) {
-//                VTButton(
-//                    text = "과제 결과",
-//                    onClick = onViewResults,
-//                    variant = ButtonVariant.Primary,
-//                    size = ButtonSize.Small,
-//                    modifier = Modifier.weight(1f)
-//                )
-//
-//                VTButton(
-//                    text = "과제 편집",
-//                    onClick = onEdit,
-//                    variant = ButtonVariant.Outline,
-//                    size = ButtonSize.Small,
-//                    modifier = Modifier.weight(1f)
-//                )
-//            }
         }
     }
+}
+
+private fun filterAssignmentsByStatus(
+    assignments: List<AssignmentData>,
+    filter: AssignmentFilter,
+): List<AssignmentData> {
+    val now = System.currentTimeMillis()
+    return when (filter) {
+        AssignmentFilter.ALL -> assignments
+        AssignmentFilter.IN_PROGRESS -> assignments.filter { 
+            parseDueDate(it.dueAt) > now
+        }
+        AssignmentFilter.COMPLETED -> assignments.filter { 
+            parseDueDate(it.dueAt, defaultForError = 0L) <= now
+        }
+    }
+}
+
+private fun countAssignmentsByStatus(
+    assignments: List<AssignmentData>,
+    filter: AssignmentFilter,
+): Int {
+    val now = System.currentTimeMillis()
+    return when (filter) {
+        AssignmentFilter.ALL -> assignments.size
+        AssignmentFilter.IN_PROGRESS -> assignments.count { 
+            parseDueDate(it.dueAt) > now
+        }
+        AssignmentFilter.COMPLETED -> assignments.count { 
+            parseDueDate(it.dueAt, defaultForError = 0L) <= now
+        }
+    }
+}
+
+private fun parseDueDate(dueAt: String, defaultForError: Long = Long.MAX_VALUE): Long {
+    return try {
+        java.text.SimpleDateFormat(DATE_FORMAT_PATTERN, java.util.Locale.getDefault())
+            .parse(dueAt)?.time ?: defaultForError
+    } catch (e: Exception) {
+        defaultForError
+    }
+}
+
+@Composable
+private fun AssignmentFilterChipWithCount(
+    filter: AssignmentFilter,
+    label: String,
+    count: Int,
+    selected: Boolean,
+    onClick: () -> Unit,
+    leadingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Text(label)
+                Box(
+                    modifier = Modifier
+                        .height(FILTER_BADGE_HEIGHT.dp)
+                        .widthIn(min = FILTER_BADGE_HEIGHT.dp)
+                        .background(
+                            color = PrimaryIndigo.copy(alpha = FILTER_BADGE_ALPHA),
+                            shape = androidx.compose.foundation.shape.RoundedCornerShape(FILTER_BADGE_CORNER_RADIUS.dp),
+                        )
+                        .padding(horizontal = 6.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = "$count",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = androidx.compose.ui.graphics.Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                }
+            }
+        },
+        leadingIcon = leadingIcon?.let {
+            {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+            }
+        },
+    )
 }
