@@ -39,6 +39,26 @@ import com.example.voicetutor.ui.viewmodel.AuthViewModel
 import com.example.voicetutor.ui.viewmodel.LoginError
 import com.example.voicetutor.ui.viewmodel.LoginField
 
+/**
+ * 로그인 화면의 TextField에 사용되는 공통 색상 설정
+ */
+private fun loginTextFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedBorderColor = PrimaryIndigo,
+    focusedLabelColor = PrimaryIndigo,
+    focusedTextColor = Color.Black,
+    unfocusedTextColor = Color.Black,
+    cursorColor = Color.Black,
+)
+
+/**
+ * 로그인 화면
+ *
+ * @param authViewModel 인증 관련 ViewModel (테스트용으로 주입 가능)
+ * @param assignmentViewModel 과제 관련 ViewModel (테스트용으로 주입 가능)
+ * @param onLoginSuccess 로그인 성공 시 호출되는 콜백
+ * @param onSignupClick 회원가입 버튼 클릭 시 호출되는 콜백
+ * @param onForgotPasswordClick 비밀번호 찾기 클릭 시 호출되는 콜백 (현재 미사용)
+ */
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel? = null,
@@ -64,7 +84,8 @@ fun LoginScreen(
     val passwordErrorMessage = if (inputError?.field == LoginField.PASSWORD) inputError.message else null
     val generalError = loginError as? LoginError.General
 
-    // 로그인 로직을 함수로 분리
+    // 로그인 검증 및 실행 로직
+    // 빈 필드가 있으면 해당 필드에 에러를 설정하고, 모두 입력되었으면 로그인 요청
     val performLogin = {
         viewModelAuth.clearLoginError()
         when {
@@ -80,23 +101,21 @@ fun LoginScreen(
         }
     }
 
-    // 자동 입력 정보가 있을 때 필드에 설정
+    // 자동 입력 처리: 다른 화면에서 전달된 자격증명이 있으면 필드에 자동으로 채움
     LaunchedEffect(autoFillCredentials) {
         autoFillCredentials?.let { (autoEmail, autoPassword) ->
             email = autoEmail
             password = autoPassword
-            // 자동 입력 정보 사용 후 초기화
             viewModelAuth.clearAutoFillCredentials()
         }
     }
 
-    // Handle login success
+    // 로그인 성공 처리: 사용자 정보를 받으면 과제 데이터를 ViewModel에 저장하고 성공 콜백 호출
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             println("LoginScreen - currentUser: ${currentUser?.email}")
             println("LoginScreen - assignments: ${currentUser?.assignments?.size}")
 
-            // 로그인 시 받은 과제를 AssignmentViewModel에 저장
             currentUser?.assignments?.let { assignments ->
                 if (assignments.isNotEmpty()) {
                     println("LoginScreen - Setting ${assignments.size} assignments to ViewModel")
@@ -121,7 +140,7 @@ fun LoginScreen(
                 ),
             ),
     ) {
-        // Background decorative elements
+        // 배경 장식 요소: 그라데이션 원형 블러 효과
         Box(
             modifier = Modifier
                 .size(288.dp)
@@ -145,7 +164,7 @@ fun LoginScreen(
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color(0xFF3B82F6).copy(alpha = 0.2f),
+                            Info.copy(alpha = 0.2f),
                             PrimaryIndigo.copy(alpha = 0.2f),
                         ),
                     ),
@@ -154,7 +173,6 @@ fun LoginScreen(
                 .blur(60.dp),
         )
 
-        // Main content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -175,7 +193,6 @@ fun LoginScreen(
                 ) {
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Logo
                     Box(
                         modifier = Modifier
                             .size(80.dp)
@@ -197,7 +214,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Title
                     Text(
                         text = "VoiceTutor",
                         style = MaterialTheme.typography.headlineSmall,
@@ -217,11 +233,11 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
+                    // 로그인 입력 필드
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(0.dp),
                     ) {
-                        // Email field
                         OutlinedTextField(
                             value = email,
                             onValueChange = {
@@ -249,13 +265,7 @@ fun LoginScreen(
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth(),
                             isError = emailErrorMessage != null,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryIndigo,
-                                focusedLabelColor = PrimaryIndigo,
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black,
-                                cursorColor = Color.Black,
-                            ),
+                            colors = loginTextFieldColors(),
                             supportingText = {
                                 if (emailErrorMessage != null) {
                                     Text(
@@ -267,7 +277,6 @@ fun LoginScreen(
                             },
                         )
 
-                        // Password field
                         OutlinedTextField(
                             value = password,
                             onValueChange = {
@@ -306,13 +315,7 @@ fun LoginScreen(
                             shape = RoundedCornerShape(16.dp),
                             modifier = Modifier.fillMaxWidth(),
                             isError = passwordErrorMessage != null,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryIndigo,
-                                focusedLabelColor = PrimaryIndigo,
-                                focusedTextColor = Color.Black,
-                                unfocusedTextColor = Color.Black,
-                                cursorColor = Color.Black,
-                            ),
+                            colors = loginTextFieldColors(),
                             supportingText = {
                                 if (passwordErrorMessage != null) {
                                     Text(
@@ -325,6 +328,7 @@ fun LoginScreen(
                         )
                     }
 
+                    // 일반 에러 메시지 표시 (네트워크 오류 등)
                     if (generalError != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         VTCard(
@@ -350,7 +354,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Login button
                     VTButton(
                         text = if (isLoading) "로그인 중..." else "로그인",
                         onClick = {
@@ -365,12 +368,10 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Divider
                     HorizontalDivider(color = Gray200)
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Signup section
                     Text(
                         text = "계정이 없으신가요?",
                         style = MaterialTheme.typography.bodyMedium,
