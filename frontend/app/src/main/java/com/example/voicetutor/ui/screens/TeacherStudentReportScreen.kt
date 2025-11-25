@@ -27,6 +27,15 @@ import com.example.voicetutor.ui.viewmodel.AuthViewModel
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.ReportViewModel
 
+private const val HEADER_ALPHA = 0.08f
+private const val HEADER_CORNER_RADIUS = 16
+private const val EMPTY_STATE_ICON_SIZE = 48
+private const val HIGH_ACCURACY_THRESHOLD = 80.0
+private const val MEDIUM_ACCURACY_THRESHOLD = 50.0
+private const val PROGRESS_BAR_HEIGHT = 12
+private const val PROGRESS_BAR_CORNER_RADIUS = 6
+private const val GRADIENT_ALPHA = 0.8f
+
 @Composable
 fun TeacherStudentReportScreen(
     classId: Int,
@@ -49,7 +58,6 @@ fun TeacherStudentReportScreen(
     var completionRate by remember { mutableStateOf(0f) }
     var isLoadingCompletion by remember { mutableStateOf(true) }
 
-    // Load classes if classId is 0
     LaunchedEffect(classId, currentUser) {
         if (classId == 0) {
             currentUser?.let { user ->
@@ -60,19 +68,16 @@ fun TeacherStudentReportScreen(
         }
     }
 
-    // Auto-select first class if classId is 0 and classes are loaded
     LaunchedEffect(classes, classId) {
         if (classId == 0 && classes.isNotEmpty() && selectedClassId == 0) {
             selectedClassId = classes.first().id
         }
     }
 
-    // Load report when classId is determined
     LaunchedEffect(selectedClassId, studentId) {
         if (selectedClassId > 0 && studentId > 0) {
             reportViewModel.loadCurriculumReport(selectedClassId, studentId)
 
-            // Load completion rate
             isLoadingCompletion = true
             classViewModel.loadClassStudentsStatistics(selectedClassId) { result ->
                 result.onSuccess { stats ->
@@ -87,10 +92,8 @@ fun TeacherStudentReportScreen(
         }
     }
 
-    // Handle error
-    error?.let { errorMessage ->
-        LaunchedEffect(errorMessage) {
-            // Show error message
+    error?.let {
+        LaunchedEffect(it) {
             reportViewModel.clearError()
         }
     }
@@ -109,14 +112,13 @@ fun TeacherStudentReportScreen(
             ),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        // Header
         item {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
-                        color = PrimaryIndigo.copy(alpha = 0.08f),
-                        shape = RoundedCornerShape(16.dp),
+                        color = PrimaryIndigo.copy(alpha = HEADER_ALPHA),
+                        shape = RoundedCornerShape(HEADER_CORNER_RADIUS.dp),
                     )
                     .padding(20.dp),
             ) {
@@ -137,7 +139,6 @@ fun TeacherStudentReportScreen(
             }
         }
 
-        // Class selector (if classId was 0)
         if (classId == 0 && classes.isNotEmpty()) {
             item {
                 VTCard(
@@ -181,7 +182,6 @@ fun TeacherStudentReportScreen(
             }
         }
 
-        // Loading indicator
         if (isLoading) {
             item {
                 Box(
@@ -192,7 +192,6 @@ fun TeacherStudentReportScreen(
                 }
             }
         } else if (error != null) {
-            // Error state
             item {
                 VTCard(
                     variant = CardVariant.Elevated,
@@ -206,7 +205,7 @@ fun TeacherStudentReportScreen(
                             imageVector = Icons.Filled.Error,
                             contentDescription = null,
                             tint = Error,
-                            modifier = Modifier.size(48.dp),
+                            modifier = Modifier.size(EMPTY_STATE_ICON_SIZE.dp),
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
@@ -226,7 +225,6 @@ fun TeacherStudentReportScreen(
         } else if (report != null) {
             val reportData = report!!
 
-            // Overall statistics
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -264,7 +262,6 @@ fun TeacherStudentReportScreen(
                 }
             }
 
-            // Overall accuracy progress bar
             item {
                 VTCard(
                     variant = CardVariant.Elevated,
@@ -307,13 +304,12 @@ fun TeacherStudentReportScreen(
                             progress = ((reportData.overallAccuracy / 100.0).coerceIn(0.0, 1.0)).toFloat(),
                             showPercentage = false,
                             color = PrimaryIndigo,
-                            height = 12,
+                            height = PROGRESS_BAR_HEIGHT,
                         )
                     }
                 }
             }
 
-            // Achievement statistics header
             item {
                 Spacer(modifier = Modifier.height(6.dp))
             }
@@ -340,7 +336,6 @@ fun TeacherStudentReportScreen(
                 }
             }
 
-            // Achievement statistics list
             if (reportData.achievementStatistics.isEmpty()) {
                 item {
                     VTCard(
@@ -384,7 +379,6 @@ fun TeacherStudentReportScreen(
                 }
             }
         } else {
-            // Empty state
             item {
                 VTCard(
                     variant = CardVariant.Elevated,
@@ -426,8 +420,8 @@ fun AchievementStatisticCard(
 ) {
     val accuracy = statistics.accuracy
     val progress = ((accuracy / 100.0).coerceIn(0.0, 1.0)).toFloat()
-    val isHighAccuracy = accuracy >= 80.0
-    val isMediumAccuracy = accuracy >= 50.0 && accuracy < 80.0
+    val isHighAccuracy = accuracy >= HIGH_ACCURACY_THRESHOLD
+    val isMediumAccuracy = accuracy >= MEDIUM_ACCURACY_THRESHOLD && accuracy < HIGH_ACCURACY_THRESHOLD
 
     val progressColor = when {
         isHighAccuracy -> Success
@@ -455,7 +449,6 @@ fun AchievementStatisticCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Achievement code header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -485,7 +478,6 @@ fun AchievementStatisticCard(
                 )
             }
 
-            // Description
             Row(
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -504,7 +496,6 @@ fun AchievementStatisticCard(
                 )
             }
 
-            // Statistics row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -541,24 +532,23 @@ fun AchievementStatisticCard(
                 }
             }
 
-            // Progress bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(12.dp)
-                    .clip(RoundedCornerShape(6.dp))
+                    .height(PROGRESS_BAR_HEIGHT.dp)
+                    .clip(RoundedCornerShape(PROGRESS_BAR_CORNER_RADIUS.dp))
                     .background(Gray200),
             ) {
                 Box(
                     modifier = Modifier
                         .fillMaxHeight()
                         .fillMaxWidth(progress.coerceIn(0f, 1f))
-                        .clip(RoundedCornerShape(6.dp))
+                        .clip(RoundedCornerShape(PROGRESS_BAR_CORNER_RADIUS.dp))
                         .background(
                             brush = Brush.horizontalGradient(
                                 colors = listOf(
                                     progressColor,
-                                    progressColor.copy(alpha = 0.8f),
+                                    progressColor.copy(alpha = GRADIENT_ALPHA),
                                 ),
                             ),
                         ),
