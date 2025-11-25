@@ -212,6 +212,9 @@
     <string name="msg_barter_request_rejected">교환 신청을 거절했어요.</string>
     <string name="error_common">문제가 발생했습니다. 잠시 후 다시 시도해주세요.</string>
 
+    <string name="search_books">Search Books</string>
+    <string name="search_empty_message">검색 결과가 없습니다.</string>
+
 
 
 </resources>

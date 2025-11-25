@@ -27,8 +27,6 @@ class AddBookFragment : Fragment(R.layout.fragment_add_book) {
 
     private val viewModel: LibraryViewModel by activityViewModels()
 
-    private val args by navArgs<AddBookFragmentArgs>()
-
     private val searchAdapter by lazy {
         SearchBookAdapter(::onBookSearchResultClicked) // 클릭 시 onBookSearchResultClicked 함수 호출
     }
@@ -45,26 +43,14 @@ class AddBookFragment : Fragment(R.layout.fragment_add_book) {
     }
 
     private fun setupUiByMode() = with(binding) {
-        when (args.mode) {
-            AddBookMode.BOOKSHELF -> {
-                btnSaveBook.text = "내 책장에 저장"
-                switchBarterAvailable.visibility = View.VISIBLE
-                switchBarterAvailable.isEnabled = true
-            }
-            AddBookMode.WISHLIST -> {
-                btnSaveBook.text = "위시리스트에 추가"
-                switchBarterAvailable.isChecked = false
-                switchBarterAvailable.visibility = View.GONE
-            }
-        }
+        btnSaveBook.text = "내 책장에 저장"
+        switchBarterAvailable.visibility = View.VISIBLE
+        switchBarterAvailable.isEnabled = true
     }
 
     private fun setupClickListeners() {
         binding.btnSaveBook.setOnClickListener {
-            when (args.mode) {
-                AddBookMode.BOOKSHELF -> saveToBookshelf()
-                AddBookMode.WISHLIST -> addToWishlist()
-            }
+                saveToBookshelf()
         }
 
         binding.fabEditCover.setOnClickListener {
@@ -93,35 +79,6 @@ class AddBookFragment : Fragment(R.layout.fragment_add_book) {
             //coverUrl =
         )
         viewModel.addNewBook(postBook)
-    }
-
-    private fun addToWishlist() {
-        val title = binding.etTitle.text.toString()
-        val authors = binding.etAuthor.text.toString()
-        val publisher = binding.etPublisher.text.toString()
-        val isbn = binding.etIsbn.text.toString()
-
-        if (title.isBlank() || authors.isBlank()) {
-            Toast.makeText(requireContext(), "책 제목과 저자는 필수입니다.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        val postBook = Book(
-            id = "",
-            title = title,
-            authors = authors,
-            publisher = publisher.takeIf { it.isNotBlank() },
-            isbn = isbn.takeIf { it.isNotBlank() },
-            cover_image = ""
-        )
-
-        viewModel.addToWishlist(postBook)
-
-        findNavController().previousBackStackEntry
-            ?.savedStateHandle
-            ?.set("switch_tab", "PROFILE")
-
-        findNavController().popBackStack()
     }
 
     private fun setupSearchHandler() {

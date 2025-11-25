@@ -20,6 +20,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class HomeFragment : Fragment(R.layout.fragment_home) {
+    private var shouldScrollToTopAfterSort = false
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
     private val homeviewModel: HomeViewModel by viewModels()
@@ -80,6 +81,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
                     R.id.sort_latest -> homeviewModel.applySort(SortType.LATEST)
                     R.id.sort_popular -> homeviewModel.applySort(SortType.POPULAR)
                 }
+                shouldScrollToTopAfterSort = true
                 true
             }
             popup.show()
@@ -88,7 +90,12 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
 
     private fun observeViewModel() {
         homeviewModel.posts.observe(viewLifecycleOwner) { posts ->
-            feedAdapter.submitList(posts)
+            feedAdapter.submitList(posts) {
+                if (shouldScrollToTopAfterSort) {
+                    binding.rvFeed.scrollToPosition(0)
+                    shouldScrollToTopAfterSort = false
+                }
+            }
         }
 
         homeviewModel.error.observe(viewLifecycleOwner) { error ->
@@ -98,7 +105,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
             }
         }
         homeviewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
-//            binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
+            //binding.progressBar.visibility = if (isLoading) View.VISIBLE else View.GONE
         }
 
         homeviewModel.barterLoading.observe(viewLifecycleOwner) { loading ->
@@ -120,8 +127,17 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
         libraryViewModel.error.observe(viewLifecycleOwner) { msg ->
             if (!msg.isNullOrBlank()) {
                 Snackbar.make(requireView(), msg, Snackbar.LENGTH_SHORT).show()
+                libraryViewModel.onErrorShown()
             }
         }
+
+        libraryViewModel.snackbarMessage.observe(viewLifecycleOwner) { message ->
+            if (!message.isNullOrBlank()) {
+                Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show()
+                libraryViewModel.onSnackbarShown()
+            }
+        }
+
     }
 
     override fun onDestroyView() {
@@ -130,8 +146,7 @@ class HomeFragment : Fragment(R.layout.fragment_home) {
     }
 
     private fun onClickAddToWishlist(post: Post) {
-        libraryViewModel.toggleWishlistById(post.bookId)
-//        Snackbar.make(requireView(), "위시리스트에 추가했습니다.", Snackbar.LENGTH_SHORT).show()
+        libraryViewModel.addToWishList(post.bookId)
     }
 
     private fun navigateToReview(post: Post) {

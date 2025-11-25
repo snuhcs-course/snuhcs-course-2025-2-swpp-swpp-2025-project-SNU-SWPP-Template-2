@@ -1,10 +1,13 @@
 package com.example.librarytogether.feature.search
 
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
@@ -13,12 +16,16 @@ import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentSearchBinding
 import com.example.librarytogether.feature.bookdetail.BookDetailFragmentDirections
 import com.example.librarytogether.feature.bookdetail.EntrySource
+import com.example.librarytogether.feature.home.HomeViewModel
 import com.example.librarytogether.feature.search.data.SearchItem
+import com.google.android.material.chip.Chip
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import reactivecircus.flowbinding.android.widget.textChanges
 
@@ -27,9 +34,11 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
 
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: SearchViewModel by viewModels()
 
-    private val adapter: SearchResultAdapter by lazy {
+    private val searchViewModel: SearchViewModel by viewModels()
+    private val homeViewModel: HomeViewModel by activityViewModels()
+
+    private val searchResultAdapter: SearchResultAdapter by lazy {
         SearchResultAdapter(onClick = ::onClickResult)
     }
 
@@ -38,49 +47,112 @@ class SearchFragment : Fragment(R.layout.fragment_search) {
         _binding = FragmentSearchBinding.bind(view)
 
         setupRecyclerView()
-        setupSearchUi()
         observeViewModel()
-
-        lifecycleScope.launch {
-            binding.searchView.editText.textChanges()
-                .debounce(300)
-                .map { it.toString().trim() }
-                .distinctUntilChanged()
-                .filter { it.isNotEmpty() }
-                .collect { viewModel.search(it) }
-        }
+        setupSearchEditText()
     }
 
     private fun setupRecyclerView() = with(binding) {
         rvSearchResults.apply {
             layoutManager = LinearLayoutManager(requireContext())
-            adapter = this@SearchFragment.adapter
+            adapter = this@SearchFragment.searchResultAdapter
             setHasFixedSize(true)
         }
     }
 
-    private fun setupSearchUi() = with(binding) {
-        searchView.setupWithSearchBar(searchBar)
+    private fun setupSearchEditText() = with(binding) {
+        val edit = etSearch
 
-        searchView.editText.setOnEditorActionListener { v, actionId, _ ->
+        edit.setOnEditorActionListener { v, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH) {
-                viewModel.search(v.text.toString())
+                val query = v.text.toString().trim()
+                if (query.isNotEmpty()) {
+                    searchViewModel.search(query)
+                }
                 true
-            } else false
+            } else {
+                false
+            }
+        }
+
+        lifecycleScope.launch {
+            edit.textChanges()
+                .debounce(300)
+                .map { it.toString().trim() }
+                .distinctUntilChanged()
+                .onEach { query ->
+                    val showRecommend = query.isEmpty()
+                    tvRecommendedTitle.isVisible =
+                        showRecommend && chipGroupRecommended.childCount > 0
+                    chipGroupRecommended.isVisible =
+                        showRecommend && chipGroupRecommended.childCount > 0
+
+                    if (showRecommend) {
+                        searchViewModel.clearSearch()
+                    }
+                }
+                .filter { it.isNotEmpty() }
+                .collectLatest { query ->
+                    searchViewModel.search(query)
+                }
         }
     }
 
-    private fun observeViewModel() {
-        viewModel.results.observe(viewLifecycleOwner) { list ->
-            adapter.submitList(list)
+    private fun observeViewModel() = with(binding) {
+        searchViewModel.results.observe(viewLifecycleOwner) { list ->
+            searchResultAdapter.submitList(list)
+            rvSearchResults.isVisible = list.isNotEmpty()
+            val hasQuery = etSearch.text?.isNotBlank() == true
+            tvSearchEmpty.isVisible = list.isEmpty() && hasQuery
         }
-        viewModel.error.observe(viewLifecycleOwner) { err ->
+
+        searchViewModel.error.observe(viewLifecycleOwner) { err ->
             err?.let {
                 Toast.makeText(requireContext(), it, Toast.LENGTH_SHORT).show()
-                viewModel.onErrorShown()
+                searchViewModel.onErrorShown()
             }
         }
-        viewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+
+        homeViewModel.posts.observe(viewLifecycleOwner) { posts ->
+            val titles = posts
+                .mapNotNull { post -> post.bookTitle }  // null 제외
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }              // 공백만 있는 제목 제외
+                .distinct()
+                .shuffled()
+                .take(6)
+
+            renderRecommended(titles)
+
+            val queryEmpty = etSearch.text?.isBlank() == true
+            tvRecommendedTitle.isVisible = queryEmpty && titles.isNotEmpty()
+            chipGroupRecommended.isVisible = queryEmpty && titles.isNotEmpty()
+        }
+
+        searchViewModel.isLoading.observe(viewLifecycleOwner) { isLoading ->
+        }
+    }
+
+    private fun renderRecommended(titles: List<String>) {
+        val group = binding.chipGroupRecommended
+        group.removeAllViews()
+
+        titles.forEach { title ->
+            val chip = Chip(
+                ContextThemeWrapper(requireContext(), R.style.TextOnlyChip),
+                null,
+                0
+            ).apply {
+                text = title
+                isCheckable = false
+                isClickable = true
+
+                setOnClickListener {
+                    binding.etSearch.setText(title)
+                    binding.etSearch.setSelection(title.length)
+                    searchViewModel.search(title)
+                }
+            }
+            group.addView(chip)
         }
     }
 

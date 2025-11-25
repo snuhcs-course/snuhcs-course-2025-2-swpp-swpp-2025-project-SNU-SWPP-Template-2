@@ -25,8 +25,6 @@ import com.example.librarytogether.util.loadAvatar
 import com.google.android.material.tabs.TabLayout
 import dagger.hilt.android.AndroidEntryPoint
 
-enum class AddBookMode {BOOKSHELF, WISHLIST}
-
 @AndroidEntryPoint
 class LibraryFragment : Fragment() {
 
@@ -107,25 +105,15 @@ class LibraryFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        binding.btnAddWishlist.setOnClickListener {
-            val action = LibraryFragmentDirections
-                .actionLibraryFragmentToAddBookFragment(mode = AddBookMode.WISHLIST)
-            findNavController().navigate(action)
-        }
-
-        binding.btnManageWishlist.setOnClickListener {
-            // TODO: Adapter에 관리 모드 전달
-        }
-
         binding.btnAddLocation.setOnClickListener { onClickAddLocation() }
     }
 
     private fun render() = with(binding) {
-        rvReviews.visibility       = if (currentTab == Tab.REVIEWS && !isReviewEmpty) View.VISIBLE else View.GONE
-        tvReviewEmpty.visibility   = if (currentTab == Tab.REVIEWS &&  isReviewEmpty) View.VISIBLE else View.GONE
+        rvReviews.visibility = if (currentTab == Tab.REVIEWS && !isReviewEmpty) View.VISIBLE else View.GONE
+        tvReviewEmpty.visibility = if (currentTab == Tab.REVIEWS &&  isReviewEmpty) View.VISIBLE else View.GONE
 
-        rvBooks.visibility         = if (currentTab == Tab.BOOKS   && !isBookEmpty)   View.VISIBLE else View.GONE
-        tvBookEmpty.visibility     = if (currentTab == Tab.BOOKS   &&  isBookEmpty)   View.VISIBLE else View.GONE
+        rvBooks.visibility = if (currentTab == Tab.BOOKS   && !isBookEmpty)   View.VISIBLE else View.GONE
+        tvBookEmpty.visibility = if (currentTab == Tab.BOOKS   &&  isBookEmpty)   View.VISIBLE else View.GONE
 
         profileContainer.visibility = if (currentTab == Tab.PROFILE) View.VISIBLE else View.GONE
 
@@ -276,7 +264,7 @@ class LibraryFragment : Fragment() {
                 contentDescription = getString(R.string.fab_add_book)
                 setOnClickListener {
                     val action = LibraryFragmentDirections
-                        .actionLibraryFragmentToAddBookFragment(mode = AddBookMode.BOOKSHELF)
+                        .actionLibraryFragmentToAddBookFragment()
                     findNavController().navigate(action)
                 }
                 show()
@@ -360,7 +348,6 @@ class LibraryFragment : Fragment() {
             editViews = listOf(editReadingHabit)
         )
 
-        btnManageWishlist.visibility = if (edit) View.VISIBLE else View.GONE
         btnAddWishlist.visibility = if (edit) View.VISIBLE else View.GONE
 
         // 2) 값 동기화
