@@ -42,6 +42,7 @@ import com.example.voicetutor.ui.viewmodel.LoginField
 /**
  * 로그인 화면의 TextField에 사용되는 공통 색상 설정
  */
+@Composable
 private fun loginTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = PrimaryIndigo,
     focusedLabelColor = PrimaryIndigo,
