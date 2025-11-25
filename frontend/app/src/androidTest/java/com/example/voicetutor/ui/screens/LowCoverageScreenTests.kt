@@ -17,17 +17,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Android tests for screens with low coverage to maximize code coverage.
- * These tests render actual Compose UI components to increase coverage.
- */
 @RunWith(AndroidJUnit4::class)
 class LowCoverageScreenTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
-
-    // ========== TeacherClassesScreen Tests ==========
 
     @Test
     fun classCard_renders_withAllFields() {
@@ -204,8 +198,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("학생: 0", substring = true).assertExists()
     }
 
-    // ========== TeacherClassDetailScreen Tests ==========
-
     @Test
     fun classAssignmentCard_renders_withData() {
         val assignment = ClassAssignment(
@@ -249,8 +241,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("과제 1", substring = true).performClick()
         assert(navigated)
     }
-
-    // ========== TeacherAssignmentDetailScreen Tests ==========
 
     @Test
     fun assignmentDetailCard_renders_withData() {
@@ -327,8 +317,6 @@ class LowCoverageScreenTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== TeacherAssignmentResultsScreen Tests ==========
-
     @Test
     fun teacherAssignmentResultCard_renders_withData() {
         composeTestRule.setContent {
@@ -345,8 +333,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("과제 결과", substring = true).assertExists()
         composeTestRule.onNodeWithText("평균 점수", substring = true).assertExists()
     }
-
-    // ========== TeacherStudentsScreen Tests ==========
 
     @Test
     fun studentListItem_renders_withData() {
@@ -365,8 +351,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("2024001", substring = true).assertExists()
     }
 
-    // ========== AllAssignmentsScreen Tests ==========
-
     @Test
     fun assignmentCard_renders_withBasicInfo() {
         composeTestRule.setContent {
@@ -384,8 +368,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("수학", substring = true).assertExists()
     }
 
-    // ========== StudentDashboardScreen Tests ==========
-
     @Test
     fun studentAssignmentCard_renders_withStatus() {
         composeTestRule.setContent {
@@ -402,8 +384,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("과제 1", substring = true).assertExists()
         composeTestRule.onNodeWithText("진행률", substring = true).assertExists()
     }
-
-    // ========== TeacherDashboardScreen Tests ==========
 
     @Test
     fun teacherAssignmentCard_renders_withStats() {
@@ -423,8 +403,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("22/30명", substring = true).assertExists()
     }
 
-    // ========== ReportScreen Tests ==========
-
     @Test
     fun assignmentReportCard_renders_withReportData() {
         composeTestRule.setContent {
@@ -440,8 +418,6 @@ class LowCoverageScreenTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("과제 리포트", substring = true).assertExists()
     }
-
-    // ========== SettingsScreen Tests ==========
 
     @Test
     fun settingsItem_renders_withAction() {
@@ -461,8 +437,6 @@ class LowCoverageScreenTests {
         assert(clicked)
     }
 
-    // ========== AppInfoScreen Tests ==========
-
     @Test
     fun appInfoItem_renders_withText() {
         composeTestRule.setContent {
@@ -477,8 +451,6 @@ class LowCoverageScreenTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("앱 정보", substring = true).assertExists()
     }
-
-    // ========== CreateClassScreen Tests ==========
 
     @Test
     fun createClassForm_renders_inputFields() {
@@ -510,8 +482,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("설명", substring = true).assertExists()
     }
 
-    // ========== EditAssignmentScreen Tests ==========
-
     @Test
     fun editAssignmentForm_renders_withFields() {
         composeTestRule.setContent {
@@ -535,8 +505,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("과제명", substring = true).assertExists()
     }
 
-    // ========== AssignmentDetailScreen Tests ==========
-
     @Test
     fun assignmentDetailInfo_renders_withDetails() {
         composeTestRule.setContent {
@@ -554,8 +522,6 @@ class LowCoverageScreenTests {
         composeTestRule.onNodeWithText("과제 상세", substring = true).assertExists()
     }
 
-    // ========== TeacherStudentReportScreen Tests ==========
-
     @Test
     fun achievementStatisticCard_renders_withStats() {
         composeTestRule.setContent {
@@ -571,8 +537,6 @@ class LowCoverageScreenTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("성취 통계", substring = true).assertExists()
     }
-
-    // ========== Additional Coverage Tests ==========
 
     @Test
     fun emptyState_renders_whenNoData() {
@@ -600,7 +564,7 @@ class LowCoverageScreenTests {
         }
 
         composeTestRule.waitForIdle()
-        // Loading indicator exists
+
     }
 
     @Test

@@ -163,7 +163,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Loading indicator might appear briefly
         composeRule.waitForIdle()
     }
 
@@ -190,7 +189,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Error should be handled gracefully
         composeRule.waitForIdle()
     }
 
@@ -214,7 +212,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Should handle null/zero assignmentId gracefully
         composeRule.waitForIdle()
     }
 
@@ -226,7 +223,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Should handle null teacherId gracefully
         composeRule.waitForIdle()
     }
 
@@ -239,7 +235,7 @@ class EditAssignmentScreenTest {
         }
 
         waitForText("마감일")
-        // Date fields should be displayed
+
         composeRule.waitForIdle()
     }
 
@@ -254,7 +250,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Should handle class loading error gracefully
         composeRule.waitForIdle()
     }
 
@@ -273,7 +268,6 @@ class EditAssignmentScreenTest {
 
     @Test
     fun editAssignmentScreen_displaysLoadingState() {
-        // Simulate loading delay
 
         composeRule.setContent {
             VoiceTutorTheme {
@@ -281,7 +275,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Loading state should be displayed
         composeRule.waitForIdle()
     }
 
@@ -295,7 +288,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Should handle empty assignment data gracefully
         composeRule.waitForIdle()
     }
 
@@ -307,7 +299,6 @@ class EditAssignmentScreenTest {
             }
         }
 
-        // Material info might be displayed
         composeRule.waitForIdle()
     }
 

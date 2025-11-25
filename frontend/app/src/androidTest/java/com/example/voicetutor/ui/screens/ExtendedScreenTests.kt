@@ -19,10 +19,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Additional comprehensive tests to maximize coverage.
- * Tests various composable functions with different data combinations.
- */
 @HiltAndroidTest
 @UninstallModules(NetworkModule::class)
 @RunWith(AndroidJUnit4::class)
@@ -39,10 +35,9 @@ class ExtendedScreenTests {
         hiltRule.inject()
     }
 
-    // Test AppInfoScreen multiple times to cover all code paths
     @Test
     fun appInfoScreen_multipleRenders() {
-        // Render once - multiple renders don't add coverage value
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 AppInfoScreen()
@@ -51,10 +46,9 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test NoRecentAssignmentScreen multiple times
     @Test
     fun noRecentAssignmentScreen_multipleRenders() {
-        // Render once - multiple renders don't add coverage value
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 NoRecentAssignmentScreen()
@@ -63,7 +57,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test AssignmentReportCard with various assignments
     @Test
     fun assignmentReportCard_variousAssignments() {
         val assignments = listOf(
@@ -98,7 +91,7 @@ class ExtendedScreenTests {
                 ),
             ),
         )
-        // Render all assignments in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -114,11 +107,10 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test StudentAssignmentCard with various progress values
     @Test
     fun studentAssignmentCard_variousProgress() {
         val progressValues = listOf(0f, 0.25f, 0.5f, 0.75f, 1f)
-        // Render all progress values in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -141,7 +133,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test TeacherAssignmentCard with various statuses
     @Test
     fun teacherAssignmentCard_allStatuses() {
         val statuses = listOf(
@@ -149,7 +140,7 @@ class ExtendedScreenTests {
             AssignmentStatus.IN_PROGRESS,
             AssignmentStatus.COMPLETED,
         )
-        // Render all statuses in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -172,7 +163,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test ClassCard with various data
     @Test
     fun classCard_variousData() {
         val classes = listOf(
@@ -197,7 +187,7 @@ class ExtendedScreenTests {
                 color = androidx.compose.ui.graphics.Color(0xFF00BCD4),
             ),
         )
-        // Render all classes in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -216,7 +206,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test AllStudentsCard with various student data
     @Test
     fun allStudentsCard_variousStudents() {
         val students = listOf(
@@ -233,7 +222,7 @@ class ExtendedScreenTests {
                 role = UserRole.STUDENT,
             ),
         )
-        // Render all students in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -249,7 +238,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test QuestionGroupCard with tail questions
     @Test
     fun questionGroupCard_withTailQuestions() {
         val baseQuestion = DetailedQuestionResult(
@@ -292,11 +280,10 @@ class ExtendedScreenTests {
             }
         }
         composeTestRule.waitForIdle()
-        // Verify that the base question is rendered - the text is "문제 1"
+
         composeTestRule.onNodeWithText("문제 1", useUnmergedTree = true).assertExists()
     }
 
-    // Test DetailedQuestionResultCard with various states
     @Test
     fun detailedQuestionResultCard_variousStates() {
         val questions = listOf(
@@ -317,7 +304,7 @@ class ExtendedScreenTests {
                 explanation = "틀렸습니다",
             ),
         )
-        // Render all questions in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -330,7 +317,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test TeacherAssignmentResultCard with various scores
     @Test
     fun teacherAssignmentResultCard_variousScores() {
         val students = listOf(
@@ -355,7 +341,7 @@ class ExtendedScreenTests {
                 detailedAnswers = emptyList(),
             ),
         )
-        // Render all students in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -371,7 +357,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test StatusBadge all statuses multiple times
     @Test
     fun statusBadge_allStatuses_multipleTimes() {
         val statuses = listOf(
@@ -379,7 +364,7 @@ class ExtendedScreenTests {
             AssignmentStatus.COMPLETED,
             AssignmentStatus.DRAFT,
         )
-        // Render all statuses in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -392,11 +377,10 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test TypeBadge all types multiple times
     @Test
     fun typeBadge_allTypes_multipleTimes() {
         val types = listOf("Quiz", "Continuous", "Discussion", "Unknown")
-        // Render all types in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -409,11 +393,10 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test CustomStatusBadge all statuses multiple times
     @Test
     fun customStatusBadge_allStatuses_multipleTimes() {
         val statuses = listOf("시작 안함", "진행 중", "완료", "알 수 없음")
-        // Render all statuses in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -426,10 +409,9 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test RoleCard both roles multiple times
     @Test
     fun roleCard_bothRoles_multipleTimes() {
-        // Render both roles in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Row {
@@ -453,7 +435,6 @@ class ExtendedScreenTests {
         composeTestRule.waitForIdle()
     }
 
-    // Test ClassStatItem with various stats
     @Test
     fun classStatItem_variousStats() {
         val stats = listOf(
@@ -461,7 +442,7 @@ class ExtendedScreenTests {
             Triple("10", "과제", Icons.Filled.Assignment),
             Triple("85", "평균", Icons.Filled.TrendingUp),
         )
-        // Render all stats in one composition
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -521,7 +502,6 @@ class ExtendedScreenTests {
         composeTestRule.onNodeWithText("support@voicetutor.com", useUnmergedTree = true).assertExists()
     }
 
-    // Test NoRecentAssignmentScreen with different states
     @Test
     fun noRecentAssignmentScreen_rendersAllElements() {
         composeTestRule.setContent {
@@ -531,7 +511,6 @@ class ExtendedScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify all elements exist
         composeTestRule.onNodeWithText("이어할 과제가 없습니다", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("홈 화면에서 새로운 과제를 확인해보세요", useUnmergedTree = true).assertExists()
     }

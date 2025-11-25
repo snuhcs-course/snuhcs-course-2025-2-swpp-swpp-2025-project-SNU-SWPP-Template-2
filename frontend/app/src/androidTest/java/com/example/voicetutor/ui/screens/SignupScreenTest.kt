@@ -95,7 +95,6 @@ class SignupScreenTest {
             }
         }
 
-        // Password requirements might be displayed
         composeRule.waitForIdle()
     }
 }

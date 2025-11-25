@@ -43,14 +43,14 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_startRecording_returnsTrue() {
-        // 실제 녹음은 하드웨어가 필요하므로 권한과 마이크가 있는 환경에서만 성공
+
         val hasPermission = context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) ==
             PackageManager.PERMISSION_GRANTED
 
         if (hasPermission) {
             val result = audioRecorder.startRecording()
-            // 실제 기기에서만 성공할 수 있음 (에뮬레이터에서는 실패할 수 있음)
-            // 결과에 관계없이 상태를 확인
+            assertTrue(result)
+
             val state = audioRecorder.recordingState.value
             assertNotNull(state)
         }
@@ -63,7 +63,7 @@ class AudioRecorderInstrumentedTest {
 
         if (hasPermission) {
             val firstResult = audioRecorder.startRecording()
-            delay(100) // 짧은 딜레이
+            delay(100)
 
             if (firstResult) {
                 val secondResult = audioRecorder.startRecording()
@@ -77,7 +77,7 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_stopRecording_whenNotRecording_doesNotCrash() {
-        // 녹음 중이 아닐 때 중지해도 크래시가 나지 않아야 함
+
         audioRecorder.stopRecording()
         val state = audioRecorder.recordingState.value
 
@@ -86,16 +86,14 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_convertPcmToWav_withValidPcmFile_createsWavFile() {
-        // 테스트용 PCM 파일 생성
+
         val tempDir = File(context.cacheDir, "test_audio")
         tempDir.mkdirs()
         val pcmFile = File(tempDir, "test.pcm")
 
-        // 더미 PCM 데이터 작성 (최소 크기)
         val dummyPcmData = ByteArray(100) { it.toByte() }
         pcmFile.writeBytes(dummyPcmData)
 
-        // WAV 변환
         val wavFilePath = audioRecorder.convertPcmToWav(pcmFile.absolutePath)
 
         if (wavFilePath != null) {
@@ -104,14 +102,11 @@ class AudioRecorderInstrumentedTest {
             assertTrue(wavFile.length() > 0)
             assertTrue(wavFile.absolutePath.endsWith(".wav"))
 
-            // PCM 파일은 삭제되어야 함
             assertFalse(pcmFile.exists())
 
-            // 정리
             wavFile.delete()
         } else {
-            // 변환 실패 가능성 (권한 등)
-            // 정리만 수행
+
             pcmFile.delete()
         }
 
@@ -139,7 +134,6 @@ class AudioRecorderInstrumentedTest {
         val initialState = audioRecorder.recordingState.first()
         assertFalse(initialState.isRecording)
 
-        // 상태 변화를 관찰 (실제 녹음은 하드웨어 필요)
         val hasPermission = context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) ==
             PackageManager.PERMISSION_GRANTED
 
@@ -148,7 +142,7 @@ class AudioRecorderInstrumentedTest {
             delay(100)
 
             val recordingState = audioRecorder.recordingState.first()
-            // 상태가 변경되었는지 확인 (성공 여부와 관계없이)
+
             assertNotNull(recordingState)
 
             audioRecorder.stopRecording()
@@ -196,10 +190,7 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_withoutPermission_setsError() {
-        // 권한이 없는 경우를 테스트하려면 권한을 취소해야 하지만,
-        // 테스트 환경에서는 이미 권한이 부여되어 있으므로
-        // 이 테스트는 실제 권한이 없을 때의 동작을 검증하기 어려움
-        // 대신 상태 구조를 확인
+
         val state = audioRecorder.recordingState.value
         assertNotNull(state)
     }
@@ -218,7 +209,7 @@ class AudioRecorderInstrumentedTest {
                 val filePath = state.audioFilePath
 
                 if (filePath != null) {
-                    // 파일 경로가 올바른 형식인지 확인
+
                     assertTrue(filePath.contains("voice_recording_"))
                     assertTrue(filePath.contains(".pcm") || filePath.contains(".wav"))
                 }
@@ -231,9 +222,9 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_errorState_updatesCorrectly() {
-        // 에러 상태가 올바르게 설정되는지 확인
+
         val state = audioRecorder.recordingState.value
-        // 초기 상태에는 에러가 없어야 함
+
         assertNull(state.error)
     }
 
@@ -246,10 +237,10 @@ class AudioRecorderInstrumentedTest {
             val startResult = audioRecorder.startRecording()
 
             if (startResult) {
-                delay(1500) // 1.5초 대기
+                delay(1500)
 
                 val state = audioRecorder.recordingState.value
-                // 녹음 시간이 증가했는지 확인 (최소 1초 이상)
+
                 assertTrue(state.recordingTime >= 1)
 
                 audioRecorder.stopRecording()

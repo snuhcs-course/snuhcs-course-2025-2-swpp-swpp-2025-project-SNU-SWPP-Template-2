@@ -128,7 +128,6 @@ class StatsCardTest {
             }
         }
 
-        // Trend should not be displayed when None
         composeTestRule.onNodeWithText("변화 없음").assertExists()
         composeTestRule.onNodeWithText("100").assertExists()
     }
@@ -167,7 +166,6 @@ class StatsCardTest {
             }
         }
 
-        // onClick is null, so click should not trigger
         composeTestRule.onNodeWithText("클릭 불가").assertExists()
     }
 
@@ -434,7 +432,6 @@ class StatsCardTest {
             }
         }
 
-        // Trend indicator should not be visible when trendValue is empty
         composeTestRule.onNodeWithText("트렌드 없음").assertExists()
     }
 

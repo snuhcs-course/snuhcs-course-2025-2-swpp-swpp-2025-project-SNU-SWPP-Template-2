@@ -14,7 +14,6 @@ class ProgressBarTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // VTProgressBar Tests
     @Test
     fun progressBar_displaysProgressText() {
         composeTestRule.setContent {
@@ -83,7 +82,6 @@ class ProgressBarTest {
             }
         }
 
-        // Progress should be clamped to 0
         composeTestRule.onNodeWithText("0%", substring = true).assertExists()
     }
 
@@ -99,11 +97,9 @@ class ProgressBarTest {
             }
         }
 
-        // Verify progress bar exists by checking for percentage text
         composeTestRule.onNodeWithText("50%", substring = true).assertExists()
     }
 
-    // VTCircularProgress Tests
     @Test
     fun circularProgress_displaysProgressText() {
         composeTestRule.setContent {
@@ -172,7 +168,6 @@ class ProgressBarTest {
             }
         }
 
-        // Verify circular progress exists by checking for percentage text
         composeTestRule.onNodeWithText("50%", substring = true).assertExists()
     }
 
@@ -190,7 +185,6 @@ class ProgressBarTest {
         composeTestRule.onNodeWithText("0%", substring = true).assertExists()
     }
 
-    // VTStepProgress Tests
     @Test
     fun stepProgress_displaysSteps() {
         composeTestRule.setContent {
@@ -202,7 +196,6 @@ class ProgressBarTest {
             }
         }
 
-        // Should display step numbers
         composeTestRule.onNodeWithText("1").assertExists()
         composeTestRule.onNodeWithText("2").assertExists()
         composeTestRule.onNodeWithText("3").assertExists()
@@ -309,7 +302,6 @@ class ProgressBarTest {
             }
         }
 
-        // Should still display step numbers
         composeTestRule.onNodeWithText("1").assertExists()
     }
 
@@ -325,7 +317,6 @@ class ProgressBarTest {
             }
         }
 
-        // Should only display labels for first two steps
         composeTestRule.onNodeWithText("1").assertExists()
         composeTestRule.onNodeWithText("2").assertExists()
     }

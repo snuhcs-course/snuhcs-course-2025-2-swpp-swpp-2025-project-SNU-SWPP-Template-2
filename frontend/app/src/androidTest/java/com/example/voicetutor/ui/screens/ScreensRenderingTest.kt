@@ -17,10 +17,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Simple rendering tests for screen components without ViewModel dependencies.
- * These tests verify that UI components render without crashing.
- */
 @RunWith(AndroidJUnit4::class)
 class ScreensRenderingTest {
 
@@ -31,7 +27,7 @@ class ScreensRenderingTest {
     fun loginScreen_welcomeText_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                // Simple welcome card from login screen
+
                 VTCard {
                     Text("VoiceTutor")
                 }
@@ -103,7 +99,7 @@ class ScreensRenderingTest {
         }
 
         composeTestRule.waitForIdle()
-        // Progress indicator exists
+
         composeTestRule.onNode(hasProgressBarRangeInfo(ProgressBarRangeInfo(0.5f, 0f..1f)))
             .assertExists()
     }
@@ -192,7 +188,7 @@ class ScreensRenderingTest {
         }
 
         composeTestRule.waitForIdle()
-        // Loading indicator exists (it's a progress indicator with indeterminate state)
+
     }
 
     @Test

@@ -11,17 +11,11 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Additional tests for screen components to maximize coverage.
- * Tests more components and edge cases.
- */
 @RunWith(AndroidJUnit4::class)
 class AdditionalComponentTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
-
-    // ========== TeacherAssignmentResultCard Tests ==========
 
     @Test
     fun teacherAssignmentResultCard_renders_withAllData() {
@@ -165,8 +159,6 @@ class AdditionalComponentTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== AssignmentCard Tests (AllAssignmentsScreen) ==========
-
     @Test
     fun assignmentCard_renders_withAllData() {
         val assignment = createMockAssignmentData(
@@ -285,8 +277,6 @@ class AdditionalComponentTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== Comprehensive Component Combinations ==========
-
     @Test
     fun multipleResultCards_renderTogether() {
         val students = listOf(
@@ -319,7 +309,7 @@ class AdditionalComponentTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // StudentAssignmentCard
+
                     StudentAssignmentCard(
                         title = "학생 과제",
                         subject = "수학",
@@ -332,7 +322,6 @@ class AdditionalComponentTests {
                         onStartAssignment = {},
                     )
 
-                    // TeacherAssignmentCard
                     TeacherAssignmentCard(
                         title = "선생님 과제",
                         className = "수학 1반",
@@ -345,7 +334,6 @@ class AdditionalComponentTests {
                         onEdit = {},
                     )
 
-                    // AssignmentCard
                     AssignmentCard(
                         assignment = createMockAssignmentData(
                             id = 3,
@@ -362,7 +350,6 @@ class AdditionalComponentTests {
                         onViewResults = {},
                     )
 
-                    // TeacherAssignmentResultCard
                     TeacherAssignmentResultCard(
                         student = StudentResult("1", "학생", 85, 80, "완료", null, "2024-01-01T12:00:00Z", emptyList(), emptyList()),
                         onStudentClick = {},
@@ -372,13 +359,10 @@ class AdditionalComponentTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify at least one card renders
         composeTestRule.onAllNodesWithText("과제", substring = true, useUnmergedTree = true)
             .get(0)
             .assertExists()
     }
-
-    // ========== Edge Cases ==========
 
     @Test
     fun teacherAssignmentResultCard_edgeCases() {
@@ -446,8 +430,6 @@ class AdditionalComponentTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== Multiple Renders for Coverage ==========
-
     @Test
     fun multipleRenders_allComponents() {
         composeTestRule.setContent {
@@ -499,8 +481,6 @@ class AdditionalComponentTests {
         }
         composeTestRule.waitForIdle()
     }
-
-    // ========== Helper Functions ==========
 
     private fun createMockAssignmentData(
         id: Int,

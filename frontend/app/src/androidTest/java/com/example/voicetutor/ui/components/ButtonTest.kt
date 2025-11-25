@@ -67,6 +67,10 @@ class ButtonTest {
         composeTestRule.onNodeWithText("비활성화")
             .assertIsNotEnabled()
             .assertExists()
+        
+        // Verify that onClick was not called even if button is clicked
+        composeTestRule.onNodeWithText("비활성화").performClick()
+        assert(!clicked)
     }
 
     @Test
@@ -313,7 +317,6 @@ class ButtonTest {
             }
         }
 
-        // Button should still exist even with empty text (with icon)
         composeTestRule.onNodeWithContentDescription("Info").assertExists()
     }
 

@@ -17,22 +17,15 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Full screen rendering tests to maximize coverage.
- * These tests render entire screens with mock ViewModels to cover as much code as possible.
- */
 @RunWith(AndroidJUnit4::class)
 class FullScreenRenderingTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // ========== CreateAssignmentScreen Tests ==========
-    // Note: This screen requires ViewModels, so we'll test composable parts that don't need them
-
     @Test
     fun createAssignmentScreen_uiComponents_render() {
-        // Test UI components that can be rendered without ViewModel
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -57,8 +50,6 @@ class FullScreenRenderingTests {
         composeTestRule.onNodeWithText("과제명", substring = true).assertExists()
     }
 
-    // ========== TeacherAssignmentResultsScreen Tests ==========
-
     @Test
     fun teacherAssignmentResultsScreen_uiComponents_render() {
         composeTestRule.setContent {
@@ -77,8 +68,6 @@ class FullScreenRenderingTests {
         composeTestRule.onNodeWithText("과제 결과", substring = true).assertExists()
     }
 
-    // ========== TeacherStudentAssignmentDetailScreen Tests ==========
-
     @Test
     fun teacherStudentAssignmentDetailScreen_uiComponents_render() {
         composeTestRule.setContent {
@@ -96,8 +85,6 @@ class FullScreenRenderingTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("학생 과제 상세", substring = true).assertExists()
     }
-
-    // ========== EditAssignmentScreen Tests ==========
 
     @Test
     fun editAssignmentScreen_uiComponents_render() {
@@ -119,8 +106,6 @@ class FullScreenRenderingTests {
         composeTestRule.onNodeWithText("과제 수정", substring = true).assertExists()
     }
 
-    // ========== TeacherAssignmentDetailScreen Tests ==========
-
     @Test
     fun teacherAssignmentDetailScreen_uiComponents_render() {
         composeTestRule.setContent {
@@ -140,8 +125,6 @@ class FullScreenRenderingTests {
         composeTestRule.onNodeWithText("과제 상세", substring = true).assertExists()
     }
 
-    // ========== AssignmentDetailScreen Tests ==========
-
     @Test
     fun assignmentDetailScreen_uiComponents_render() {
         composeTestRule.setContent {
@@ -160,8 +143,6 @@ class FullScreenRenderingTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("과제 상세 정보", substring = true).assertExists()
     }
-
-    // ========== CreateClassScreen Tests ==========
 
     @Test
     fun createClassScreen_uiComponents_render() {
@@ -189,8 +170,6 @@ class FullScreenRenderingTests {
         composeTestRule.onNodeWithText("수업명", substring = true).assertExists()
     }
 
-    // ========== TeacherStudentsScreen Tests ==========
-
     @Test
     fun teacherStudentsScreen_studentList_renders() {
         composeTestRule.setContent {
@@ -209,8 +188,6 @@ class FullScreenRenderingTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("학생 목록", substring = true).assertExists()
     }
-
-    // ========== AllAssignmentsScreen Tests ==========
 
     @Test
     fun allAssignmentsScreen_assignmentList_renders() {
@@ -231,8 +208,6 @@ class FullScreenRenderingTests {
         composeTestRule.onNodeWithText("전체 과제", substring = true).assertExists()
     }
 
-    // ========== StudentDashboardScreen Tests ==========
-
     @Test
     fun studentDashboardScreen_assignmentCards_renders() {
         composeTestRule.setContent {
@@ -250,8 +225,6 @@ class FullScreenRenderingTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("학생 대시보드", substring = true).assertExists()
     }
-
-    // ========== TeacherDashboardScreen Tests ==========
 
     @Test
     fun teacherDashboardScreen_statsCards_renders() {
@@ -273,8 +246,6 @@ class FullScreenRenderingTests {
         composeTestRule.onNodeWithText("과제", substring = true).assertExists()
     }
 
-    // ========== ReportScreen Tests ==========
-
     @Test
     fun reportScreen_reportCards_renders() {
         composeTestRule.setContent {
@@ -295,8 +266,6 @@ class FullScreenRenderingTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== TeacherStudentReportScreen Tests ==========
-
     @Test
     fun teacherStudentReportScreen_statistics_renders() {
         composeTestRule.setContent {
@@ -314,8 +283,6 @@ class FullScreenRenderingTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("학생 리포트", substring = true).assertExists()
     }
-
-    // ========== SettingsScreen Tests ==========
 
     @Test
     fun settingsScreen_settingsItems_renders() {
@@ -344,8 +311,6 @@ class FullScreenRenderingTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== AppInfoScreen Tests ==========
-
     @Test
     fun appInfoScreen_infoItems_renders() {
         composeTestRule.setContent {
@@ -362,8 +327,6 @@ class FullScreenRenderingTests {
         composeTestRule.waitForIdle()
         composeTestRule.onNodeWithText("앱 정보", substring = true).assertExists()
     }
-
-    // ========== Additional Coverage Tests ==========
 
     @Test
     fun multipleScreens_renderedSequentially() {
@@ -387,23 +350,20 @@ class FullScreenRenderingTests {
 
     @Test
     fun screenComponents_withDifferentStates_render() {
-        // Test components with different states
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // Loading state
+
                     CircularProgressIndicator()
 
-                    // Empty state
                     Text("데이터가 없습니다")
 
-                    // Error state
                     Text(
                         text = "오류",
                         color = MaterialTheme.colorScheme.error,
                     )
 
-                    // Success state
                     VTCard {
                         Text("성공")
                     }

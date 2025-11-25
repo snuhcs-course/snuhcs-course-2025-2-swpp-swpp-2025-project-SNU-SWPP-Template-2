@@ -9,10 +9,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Direct tests for Screen composables that don't require ViewModel.
- * These tests directly call the Screen composables to maximize coverage.
- */
 @RunWith(AndroidJUnit4::class)
 class DirectScreenTests {
 
@@ -28,7 +24,6 @@ class DirectScreenTests {
         }
         composeTestRule.waitForIdle()
 
-        // Verify all UI elements
         composeTestRule.onNodeWithText("이어할 과제가 없습니다", substring = true).assertExists()
         composeTestRule.onNodeWithText("홈 화면에서 새로운 과제를 확인해보세요", substring = true).assertExists()
     }

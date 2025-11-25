@@ -97,7 +97,7 @@ class TeacherStudentsScreenTest {
             classStudentsResponse = defaultStudents
             shouldFailClassStudents = false
             allStudentsResponse = listOf(
-                // 등록 가능한 학생들 (기존 학생 + 추가 학생)
+
                 Student(id = 1, name = "홍길동", email = "hong@school.com", role = UserRole.STUDENT),
                 Student(id = 2, name = "이몽룡", email = "lee@school.com", role = UserRole.STUDENT),
                 Student(id = 3, name = "김영희", email = "kim@school.com", role = UserRole.STUDENT),
@@ -143,7 +143,7 @@ class TeacherStudentsScreenTest {
         fakeApi.classStudentsErrorMessage = "학생 목록 로드 실패"
         fakeApi.shouldFailAllStudents = true
         fakeApi.allStudentsErrorMessage = "전체 학생 로드 실패"
-        fakeApi.allStudentsResponse = emptyList() // Ensure empty list on error
+        fakeApi.allStudentsResponse = emptyList()
         fakeApi.shouldFailClassStudentsStatistics = true
         fakeApi.classStudentsStatisticsErrorMessage = "통계 로드 실패"
 
@@ -153,7 +153,6 @@ class TeacherStudentsScreenTest {
             }
         }
 
-        // Wait for loading to complete and error state to be displayed
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule
                 .onAllNodesWithText("학생이 없습니다", useUnmergedTree = true)
@@ -221,7 +220,6 @@ class TeacherStudentsScreenTest {
             }
         }
 
-        // Screen should handle null classId gracefully
         composeRule.waitForIdle()
     }
 
@@ -233,7 +231,6 @@ class TeacherStudentsScreenTest {
             }
         }
 
-        // Screen should handle null teacherId gracefully
         composeRule.waitForIdle()
     }
 
@@ -260,7 +257,7 @@ class TeacherStudentsScreenTest {
         }
 
         waitForText("홍길동")
-        // Assignment counts should be displayed (9/10, 9/12)
+
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("9", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -320,7 +317,7 @@ class TeacherStudentsScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Should handle empty list gracefully
+
     }
 
     @Test
@@ -461,7 +458,6 @@ class TeacherStudentsScreenTest {
         composeRule.waitForIdle()
     }
 
-    // Test enroll student bottom sheet (lines 341-490)
     @Test
     fun teacherStudentsScreen_displaysEnrollBottomSheet() {
         composeRule.setContent {
@@ -472,27 +468,23 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 등록")
 
-        // Click "학생 등록" button to open bottom sheet
         composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should display bottom sheet with title
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Should display search field
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("이름 또는 이메일로 검색", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    // Test enroll bottom sheet search functionality (lines 359-428)
     @Test
     fun teacherStudentsScreen_enrollBottomSheet_searchFiltersStudents() {
         composeRule.setContent {
@@ -503,20 +495,17 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 등록")
 
-        // Open enroll bottom sheet
         composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet to appear
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
-                .fetchSemanticsNodes().size >= 2 // Title in sheet + button
+                .fetchSemanticsNodes().size >= 2
         }
 
-        // Find search field and enter text
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 val searchFields = composeRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
@@ -535,14 +524,12 @@ class TeacherStudentsScreenTest {
 
         composeRule.waitForIdle()
 
-        // Should filter students by search query
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("김영희", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    // Test enroll bottom sheet student selection (lines 435-450)
     @Test
     fun teacherStudentsScreen_enrollBottomSheet_selectsStudents() {
         composeRule.setContent {
@@ -553,14 +540,12 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 등록")
 
-        // Open enroll bottom sheet
         composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet and students to load
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("김영희", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
@@ -568,11 +553,9 @@ class TeacherStudentsScreenTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Try to find and click a checkbox if students are available
         composeRule.waitForIdle()
     }
 
-    // Test enroll bottom sheet cancel button (lines 456-461)
     @Test
     fun teacherStudentsScreen_enrollBottomSheet_cancelsOnCancelButton() {
         composeRule.setContent {
@@ -583,34 +566,29 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 등록")
 
-        // Open enroll bottom sheet
         composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("취소", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Click cancel button
         composeRule.onAllNodesWithText("취소", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Bottom sheet should close
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
-                .fetchSemanticsNodes().size == 1 // Only the button, not the sheet title
+                .fetchSemanticsNodes().size == 1
         }
     }
 
-    // Test delete student bottom sheet (lines 492-616)
     @Test
     fun teacherStudentsScreen_displaysDeleteBottomSheet() {
         composeRule.setContent {
@@ -621,27 +599,23 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Click "학생 삭제" button to open bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should display bottom sheet with title
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
-                .fetchSemanticsNodes().size >= 2 // Title in sheet + button
+                .fetchSemanticsNodes().size >= 2
         }
 
-        // Should display search field
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("이름 또는 이메일로 검색", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    // Test delete bottom sheet search functionality (lines 511-568)
     @Test
     fun teacherStudentsScreen_deleteBottomSheet_searchFiltersStudents() {
         composeRule.setContent {
@@ -652,20 +626,17 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Open delete bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet to appear
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
                 .fetchSemanticsNodes().size >= 2
         }
 
-        // Find search field and enter text
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 val searchFields = composeRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
@@ -684,14 +655,12 @@ class TeacherStudentsScreenTest {
 
         composeRule.waitForIdle()
 
-        // Should filter students by search query
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    // Test delete bottom sheet student selection (lines 575-590)
     @Test
     fun teacherStudentsScreen_deleteBottomSheet_selectsStudents() {
         composeRule.setContent {
@@ -702,14 +671,12 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Open delete bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet and students to load
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
@@ -720,7 +687,6 @@ class TeacherStudentsScreenTest {
         composeRule.waitForIdle()
     }
 
-    // Test delete bottom sheet opens confirmation dialog (lines 601-610)
     @Test
     fun teacherStudentsScreen_deleteBottomSheet_opensConfirmationDialog() {
         composeRule.setContent {
@@ -731,20 +697,17 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Open delete bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
                 .fetchSemanticsNodes().size >= 2
         }
 
-        // Wait for students to load
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
@@ -752,10 +715,8 @@ class TeacherStudentsScreenTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Try to find and click a checkbox to select a student
         composeRule.waitForIdle()
 
-        // Click delete button (should open confirmation dialog if student is selected)
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule.onAllNodesWithText("삭제", useUnmergedTree = true)
@@ -770,7 +731,6 @@ class TeacherStudentsScreenTest {
         composeRule.waitForIdle()
     }
 
-    // Test delete confirmation dialog (lines 618-705)
     @Test
     fun teacherStudentsScreen_displaysDeleteConfirmationDialog() {
         composeRule.setContent {
@@ -781,20 +741,17 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Open delete bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
                 .fetchSemanticsNodes().size >= 2
         }
 
-        // Wait for students to load
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
@@ -804,12 +761,9 @@ class TeacherStudentsScreenTest {
 
         composeRule.waitForIdle()
 
-        // The confirmation dialog appears when delete button is clicked with selected students
-        // This is tested indirectly by verifying the dialog structure exists
         composeRule.waitForIdle()
     }
 
-    // Test delete confirmation dialog cancel button (lines 641-649)
     @Test
     fun teacherStudentsScreen_deleteConfirmationDialog_cancelsOnCancelButton() {
         composeRule.setContent {
@@ -820,14 +774,12 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Open delete bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
                 .fetchSemanticsNodes().size >= 2
@@ -835,12 +787,9 @@ class TeacherStudentsScreenTest {
 
         composeRule.waitForIdle()
 
-        // The cancel button in dialog closes the dialog
-        // This is tested by verifying the dialog can be dismissed
         composeRule.waitForIdle()
     }
 
-    // Test delete bottom sheet cancel button (lines 595-600)
     @Test
     fun teacherStudentsScreen_deleteBottomSheet_cancelsOnCancelButton() {
         composeRule.setContent {
@@ -851,34 +800,29 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Open delete bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for bottom sheet
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("취소", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Click cancel button
         composeRule.onAllNodesWithText("취소", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Bottom sheet should close
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
-                .fetchSemanticsNodes().size == 1 // Only the button, not the sheet title
+                .fetchSemanticsNodes().size == 1
         }
     }
 
-    // Test enroll bottom sheet empty state (lines 430-433)
     @Test
     fun teacherStudentsScreen_enrollBottomSheet_showsEmptyState() {
         fakeApi.allStudentsResponse = emptyList()
@@ -891,21 +835,18 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 등록")
 
-        // Open enroll bottom sheet
         composeRule.onAllNodesWithText("학생 등록", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should display empty state message
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("등록 가능한 학생이 없습니다", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    // Test delete bottom sheet empty state (lines 570-573)
     @Test
     fun teacherStudentsScreen_deleteBottomSheet_showsEmptyState() {
         fakeApi.classStudentsResponse = emptyList()
@@ -918,14 +859,12 @@ class TeacherStudentsScreenTest {
 
         waitForText("학생 삭제")
 
-        // Open delete bottom sheet
         composeRule.onAllNodesWithText("학생 삭제", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should display empty state message
         composeRule.waitUntil(timeoutMillis = 10_000) {
             composeRule.onAllNodesWithText("삭제할 학생이 없습니다", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()

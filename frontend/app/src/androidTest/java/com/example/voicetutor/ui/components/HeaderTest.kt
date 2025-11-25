@@ -86,7 +86,6 @@ class HeaderTest {
             }
         }
 
-        // Header should still render even with empty title
         composeTestRule.onNodeWithContentDescription("뒤로가기").assertExists()
     }
 
@@ -117,7 +116,6 @@ class HeaderTest {
             }
         }
 
-        // Should not crash when clicking with default callback
         composeTestRule.onNodeWithContentDescription("뒤로가기").performClick()
     }
 
@@ -132,7 +130,6 @@ class HeaderTest {
             }
         }
 
-        // Should have back button, title, and spacer
         composeTestRule.onNodeWithContentDescription("뒤로가기").assertExists()
         composeTestRule.onNodeWithText("레이아웃 테스트").assertExists()
     }

@@ -10,16 +10,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Android Instrumented Tests for VoiceTutorTheme Composable and extension functions
- * Covers lines 153-232 in ThemeManager.kt
- */
 @RunWith(AndroidJUnit4::class)
 class ThemeManagerCoverageTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<ComponentActivity>()
     
+    @Suppress("DEPRECATION")
     private fun setSystemDarkMode(isDark: Boolean): Int {
         val activity = composeTestRule.activity
         val config = activity.resources.configuration
@@ -30,6 +27,7 @@ class ThemeManagerCoverageTest {
         return originalUiMode
     }
     
+    @Suppress("DEPRECATION")
     private fun restoreSystemDarkMode(originalUiMode: Int) {
         val activity = composeTestRule.activity
         val config = activity.resources.configuration
@@ -39,7 +37,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun voiceTutorTheme_darkTheme_true_appliesDarkColorScheme() {
-        // Given - darkTheme = true (lines 158-170)
+
         var darkColorSchemeApplied = false
         composeTestRule.setContent {
             VoiceTutorTheme(darkTheme = true) {
@@ -56,7 +54,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun voiceTutorTheme_darkTheme_false_appliesLightColorScheme() {
-        // Given - darkTheme = false (lines 171-183)
+
         var lightColorSchemeApplied = false
         composeTestRule.setContent {
             VoiceTutorTheme(darkTheme = false) {
@@ -73,12 +71,13 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun voiceTutorTheme_defaultUsesSystemTheme() {
-        // Given - default parameter uses isSystemInDarkTheme() (line 155)
+
         var themeApplied = false
         composeTestRule.setContent {
             VoiceTutorTheme {
-                val colorScheme = MaterialTheme.colorScheme
-                themeApplied = (colorScheme.background != null)
+                // Theme is applied if we can access MaterialTheme
+                MaterialTheme.colorScheme
+                themeApplied = true
             }
         }
         
@@ -88,7 +87,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_success_returnsSuccessColor() {
-        // Given - ColorScheme.success extension (lines 194-195)
+
         var successColorCorrect = false
         composeTestRule.setContent {
             VoiceTutorTheme {
@@ -104,7 +103,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_warning_returnsWarningColor() {
-        // Given - ColorScheme.warning extension (lines 197-198)
+
         var warningColorCorrect = false
         composeTestRule.setContent {
             VoiceTutorTheme {
@@ -120,7 +119,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_info_returnsInfoColor() {
-        // Given - ColorScheme.info extension (lines 200-201)
+
         var infoColorCorrect = false
         composeTestRule.setContent {
             VoiceTutorTheme {
@@ -136,8 +135,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray50_darkTheme_returnsDarkGray50() {
-        // Given - ColorScheme.gray50() extension uses isSystemInDarkTheme() (line 205)
-        // Set Activity to dark mode to test the true branch
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray50Correct = false
@@ -145,7 +143,7 @@ class ThemeManagerCoverageTest {
             VoiceTutorTheme(darkTheme = true) {
                 val colorScheme = MaterialTheme.colorScheme
                 val gray50 = colorScheme.gray50()
-                // gray50() uses isSystemInDarkTheme(), which should return true now
+
                 gray50Correct = (gray50 == DarkColors.Gray50)
             }
         }
@@ -153,14 +151,12 @@ class ThemeManagerCoverageTest {
         composeTestRule.waitForIdle()
         assertTrue(gray50Correct)
         
-        // Restore original configuration
         restoreSystemDarkMode(originalUiMode)
     }
 
     @Test
     fun colorScheme_gray50_lightTheme_returnsLightGray50() {
-        // Given - ColorScheme.gray50() extension uses isSystemInDarkTheme() (line 205)
-        // Set Activity to light mode to test the false branch
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray50Correct = false
@@ -168,7 +164,7 @@ class ThemeManagerCoverageTest {
             VoiceTutorTheme(darkTheme = false) {
                 val colorScheme = MaterialTheme.colorScheme
                 val gray50 = colorScheme.gray50()
-                // gray50() uses isSystemInDarkTheme(), which should return false now
+
                 gray50Correct = (gray50 == LightColors.Gray50)
             }
         }
@@ -176,13 +172,12 @@ class ThemeManagerCoverageTest {
         composeTestRule.waitForIdle()
         assertTrue(gray50Correct)
         
-        // Restore original configuration
         restoreSystemDarkMode(originalUiMode)
     }
 
     @Test
     fun colorScheme_gray100_darkTheme_returnsDarkGray100() {
-        // Given - ColorScheme.gray100() extension uses isSystemInDarkTheme() (line 208)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray100Correct = false
@@ -202,7 +197,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray100_lightTheme_returnsLightGray100() {
-        // Given - ColorScheme.gray100() extension uses isSystemInDarkTheme() (line 208)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray100Correct = false
@@ -222,7 +217,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray200_darkTheme_returnsDarkGray200() {
-        // Given - ColorScheme.gray200() extension uses isSystemInDarkTheme() (line 211)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray200Correct = false
@@ -242,7 +237,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray200_lightTheme_returnsLightGray200() {
-        // Given - ColorScheme.gray200() extension uses isSystemInDarkTheme() (line 211)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray200Correct = false
@@ -262,7 +257,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray300_darkTheme_returnsDarkGray300() {
-        // Given - ColorScheme.gray300() extension uses isSystemInDarkTheme() (line 214)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray300Correct = false
@@ -282,7 +277,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray300_lightTheme_returnsLightGray300() {
-        // Given - ColorScheme.gray300() extension uses isSystemInDarkTheme() (line 214)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray300Correct = false
@@ -302,7 +297,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray400_darkTheme_returnsDarkGray400() {
-        // Given - ColorScheme.gray400() extension uses isSystemInDarkTheme() (line 217)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray400Correct = false
@@ -322,7 +317,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray400_lightTheme_returnsLightGray400() {
-        // Given - ColorScheme.gray400() extension uses isSystemInDarkTheme() (line 217)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray400Correct = false
@@ -342,7 +337,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray500_darkTheme_returnsDarkGray500() {
-        // Given - ColorScheme.gray500() extension uses isSystemInDarkTheme() (line 220)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray500Correct = false
@@ -362,7 +357,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray500_lightTheme_returnsLightGray500() {
-        // Given - ColorScheme.gray500() extension uses isSystemInDarkTheme() (line 220)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray500Correct = false
@@ -382,7 +377,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray600_darkTheme_returnsDarkGray600() {
-        // Given - ColorScheme.gray600() extension uses isSystemInDarkTheme() (line 223)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray600Correct = false
@@ -402,7 +397,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray600_lightTheme_returnsLightGray600() {
-        // Given - ColorScheme.gray600() extension uses isSystemInDarkTheme() (line 223)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray600Correct = false
@@ -422,7 +417,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray700_darkTheme_returnsDarkGray700() {
-        // Given - ColorScheme.gray700() extension uses isSystemInDarkTheme() (line 226)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray700Correct = false
@@ -442,7 +437,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray700_lightTheme_returnsLightGray700() {
-        // Given - ColorScheme.gray700() extension uses isSystemInDarkTheme() (line 226)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray700Correct = false
@@ -462,7 +457,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray800_darkTheme_returnsDarkGray800() {
-        // Given - ColorScheme.gray800() extension uses isSystemInDarkTheme() (line 229)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray800Correct = false
@@ -482,7 +477,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray800_lightTheme_returnsLightGray800() {
-        // Given - ColorScheme.gray800() extension uses isSystemInDarkTheme() (line 229)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray800Correct = false
@@ -502,7 +497,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray900_darkTheme_returnsDarkGray900() {
-        // Given - ColorScheme.gray900() extension uses isSystemInDarkTheme() (line 232)
+
         val originalUiMode = setSystemDarkMode(true)
         
         var gray900Correct = false
@@ -522,7 +517,7 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun colorScheme_gray900_lightTheme_returnsLightGray900() {
-        // Given - ColorScheme.gray900() extension uses isSystemInDarkTheme() (line 232)
+
         val originalUiMode = setSystemDarkMode(false)
         
         var gray900Correct = false
@@ -542,13 +537,14 @@ class ThemeManagerCoverageTest {
 
     @Test
     fun voiceTutorTheme_appliesMaterialTheme() {
-        // Given - MaterialTheme application (lines 186-190)
+
         var materialThemeApplied = false
         composeTestRule.setContent {
             VoiceTutorTheme {
-                val colorScheme = MaterialTheme.colorScheme
-                val typography = MaterialTheme.typography
-                materialThemeApplied = (colorScheme != null && typography != null)
+                // Theme is applied if we can access MaterialTheme properties
+                MaterialTheme.colorScheme
+                MaterialTheme.typography
+                materialThemeApplied = true
             }
         }
         

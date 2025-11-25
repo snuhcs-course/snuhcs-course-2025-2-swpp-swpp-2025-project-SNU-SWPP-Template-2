@@ -42,7 +42,6 @@ class SignupScreenCoverageTest {
         stateFlow.value = value
     }
 
-    // Cover lines 443-494: General Error Handling
     @Test
     fun testGeneralErrorHandling() {
         composeRule.setContent {
@@ -53,19 +52,16 @@ class SignupScreenCoverageTest {
 
         val viewModel = ViewModelProvider(composeRule.activity)[AuthViewModel::class.java]
 
-        // 1. Test Duplicate Email Error
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_signupError", SignupError.General.DuplicateEmail("이미 가입된 이메일입니다."))
         }
         composeRule.waitForIdle()
 
-        // Wait for error message to appear
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("이미 가입된 이메일입니다.", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // 2. Test Network Error
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_signupError", SignupError.General.Network("네트워크 연결을 확인해주세요."))
         }
@@ -76,7 +72,6 @@ class SignupScreenCoverageTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // 3. Test Server Error
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_signupError", SignupError.General.Server("서버 오류가 발생했습니다."))
         }
@@ -87,7 +82,6 @@ class SignupScreenCoverageTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // 4. Test Unknown Error
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_signupError", SignupError.General.Unknown("알 수 없는 오류가 발생했습니다."))
         }
@@ -99,4 +93,3 @@ class SignupScreenCoverageTest {
         }
     }
 }
-

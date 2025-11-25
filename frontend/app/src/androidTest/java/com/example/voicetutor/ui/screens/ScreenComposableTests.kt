@@ -18,10 +18,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Tests for small composable functions within screens.
- * These tests directly call composable functions to maximize coverage.
- */
 @HiltAndroidTest
 @UninstallModules(NetworkModule::class)
 @RunWith(AndroidJUnit4::class)
@@ -88,8 +84,7 @@ class ScreenComposableTests {
     fun dashboardSummaryCard_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-                // DashboardSummaryCard is private, so we test it indirectly through TeacherDashboardScreen
-                // But we can test other visible cards
+
                 TeacherAssignmentCard(
                     title = "테스트",
                     className = "테스트",
@@ -499,7 +494,6 @@ class ScreenComposableTests {
         }
         composeTestRule.waitForIdle()
 
-        // Achievement card should render
         composeTestRule.waitForIdle()
     }
 
@@ -529,7 +523,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("support@voicetutor.com", substring = true).assertExists()
     }
 
-    // Test StatusBadge with all statuses
     @Test
     fun statusBadge_IN_PROGRESS_renders() {
         composeTestRule.setContent {
@@ -563,7 +556,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("임시저장", substring = true).assertExists()
     }
 
-    // Test TypeBadge with all types
     @Test
     fun typeBadge_Quiz_renders() {
         composeTestRule.setContent {
@@ -608,7 +600,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("알 수 없음", substring = true).assertExists()
     }
 
-    // Test CustomStatusBadge with all statuses
     @Test
     fun customStatusBadge_notStarted_renders() {
         composeTestRule.setContent {
@@ -653,7 +644,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("알 수 없음", substring = true).assertExists()
     }
 
-    // Test RoleCard
     @Test
     fun roleCard_student_selected_renders() {
         composeTestRule.setContent {
@@ -688,7 +678,6 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("선생님", substring = true).assertExists()
     }
 
-    // Test ClassStatItem
     @Test
     fun classStatItem_renders() {
         composeTestRule.setContent {
@@ -717,12 +706,4 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("앱 정보", substring = true).assertExists()
     }
 
-    // Test StudentSubmissionItem
-    // Note: StudentSubmissionItem is defined in TeacherAssignmentDetailScreen.kt
-    // but may not be accessible due to package visibility issues
-    // Skipping this test to avoid compilation errors
-    // @Test
-    // fun studentSubmissionItem_completed_renders() { ... }
-
-    // Test other composables instead
 }

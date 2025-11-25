@@ -109,13 +109,9 @@ class CreateAssignmentScreenCoverageTest {
         }
     }
 
-    // Test PDF file picker launcher (lines 91-126)
-    // Note: Cannot directly test ActivityResultLauncher in unit tests, but we can verify
-    // that the screen handles file selection state correctly
     @Test
     fun createAssignmentScreen_handlesFileSelectionState() {
-        // This test covers the file selection logic indirectly
-        // The actual URI handling (lines 91-126) requires file picker interaction
+
         composeRule.setContent {
             VoiceTutorTheme {
                 CreateAssignmentScreen(teacherId = "2")
@@ -123,11 +119,9 @@ class CreateAssignmentScreenCoverageTest {
         }
 
         composeRule.waitForIdle()
-        // The file picker launcher is set up and ready to handle file selection
-        // Actual file selection requires user interaction which cannot be tested directly
+
     }
 
-    // Test LaunchedEffect assignmentCreated && uploadSuccess (lines 194-197)
     @Test
     fun createAssignmentScreen_callsOnCreateAssignmentWhenComplete() {
         var onCreateAssignmentCalled = false
@@ -148,17 +142,14 @@ class CreateAssignmentScreenCoverageTest {
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
         composeRule.runOnIdle {
-            // Set up assignment creation and upload success
+
             setStateFlow(assignmentViewModel, "_currentAssignment", fakeApi.assignmentByIdResponse)
             setStateFlow(assignmentViewModel, "_uploadSuccess", true)
         }
 
-        // The LaunchedEffect should trigger onCreateAssignment when both conditions are met
-        // Note: This requires assignmentCreated to be true, which is set in onClick handler
         composeRule.waitForIdle()
     }
 
-    // Test class dropdown menu items (lines 306-330)
     @Test
     fun createAssignmentScreen_displaysClassDropdownItems() {
         composeRule.setContent {
@@ -169,21 +160,18 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("수업 선택")
 
-        // Click on class dropdown to expand
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should display class items in dropdown
         waitForText("수학 A반")
         composeRule.onAllNodesWithText("수학 A반", useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
     }
 
-    // Test grade dropdown read-only field (line 341)
     @Test
     fun createAssignmentScreen_gradeFieldIsReadOnly() {
         composeRule.setContent {
@@ -194,11 +182,9 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("학년")
 
-        // Grade field should be read-only (onValueChange = {})
         composeRule.waitForIdle()
     }
 
-    // Test grade dropdown menu (lines 363-372)
     @Test
     fun createAssignmentScreen_displaysGradeDropdownItems() {
         composeRule.setContent {
@@ -209,19 +195,15 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("학년")
 
-        // Click on grade dropdown to expand
         composeRule.onAllNodesWithText("학년", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should display grade options in dropdown
-        // Grades are predefined: "중학교 1학년", "중학교 2학년", etc.
         composeRule.waitForIdle()
     }
 
-    // Test PDF upload progress state (lines 507-530)
     @Test
     fun createAssignmentScreen_displaysUploadProgress() {
         composeRule.setContent {
@@ -232,41 +214,35 @@ class CreateAssignmentScreenCoverageTest {
 
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Set uploading state with progress
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_isUploading", true)
-            setStateFlow(assignmentViewModel, "_uploadProgress", 0.5f) // 50% progress
+            setStateFlow(assignmentViewModel, "_uploadProgress", 0.5f)
         }
 
         composeRule.waitForIdle()
 
-        // Should display "PDF 업로드 중..." text
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("PDF 업로드 중", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Should display progress percentage
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("50%", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Update progress to 100%
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_uploadProgress", 1.0f)
         }
 
         composeRule.waitForIdle()
 
-        // Should display 100%
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("100%", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    // Test PDF upload success message (lines 532-558)
     @Test
     fun createAssignmentScreen_displaysUploadSuccessMessage() {
         composeRule.setContent {
@@ -277,7 +253,6 @@ class CreateAssignmentScreenCoverageTest {
 
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Set upload success state
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_uploadSuccess", true)
             setStateFlow(assignmentViewModel, "_isUploading", false)
@@ -285,14 +260,9 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Note: Success message only shows when uploadSuccess is true AND selectedFiles is not empty
-        // Since selectedFiles is local state managed by the composable, we verify the ViewModel state
-        // The actual UI display requires selectedFiles to be non-empty, which happens after file selection
-        // This test verifies that the ViewModel state is correctly set for the success condition
         composeRule.waitForIdle()
     }
 
-    // Test PDF file picker button (lines 486-499)
     @Test
     fun createAssignmentScreen_displaysFilePickerButton() {
         composeRule.setContent {
@@ -303,20 +273,15 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("PDF 자료 업로드")
 
-        // Should display file picker button
         composeRule.onAllNodesWithText("파일 선택", useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
 
-        // Should display file size limit text
         composeRule.onAllNodesWithText("최대 10MB", substring = true, useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
     }
 
-    // Test selected files display (lines 560-617)
-    // Note: This tests the UI structure for displaying selected files
-    // Actual file selection requires ActivityResultLauncher which cannot be directly tested
     @Test
     fun createAssignmentScreen_displaysFileSelectionUI() {
         composeRule.setContent {
@@ -327,7 +292,6 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("PDF 자료 업로드")
 
-        // File selection UI should be displayed
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("파일 선택", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
@@ -335,13 +299,11 @@ class CreateAssignmentScreenCoverageTest {
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Should display file size limit
         composeRule.onAllNodesWithText("최대 10MB", substring = true, useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
     }
 
-    // Test upload progress indicator (lines 517-528)
     @Test
     fun createAssignmentScreen_displaysProgressIndicator() {
         composeRule.setContent {
@@ -352,41 +314,35 @@ class CreateAssignmentScreenCoverageTest {
 
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Set uploading state
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_isUploading", true)
-            setStateFlow(assignmentViewModel, "_uploadProgress", 0.3f) // 30% progress
+            setStateFlow(assignmentViewModel, "_uploadProgress", 0.3f)
         }
 
         composeRule.waitForIdle()
 
-        // Should display progress text
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("PDF 업로드 중", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Should display progress percentage
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("30%", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Update to different progress values
         composeRule.runOnIdle {
-            setStateFlow(assignmentViewModel, "_uploadProgress", 0.75f) // 75% progress
+            setStateFlow(assignmentViewModel, "_uploadProgress", 0.75f)
         }
 
         composeRule.waitForIdle()
 
-        // Should update progress percentage
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("75%", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
     }
 
-    // Test upload overlay dialog (lines 1010-1062)
     @Test
     fun createAssignmentScreen_displaysUploadOverlayDialog() {
         composeRule.setContent {
@@ -397,40 +353,34 @@ class CreateAssignmentScreenCoverageTest {
 
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Set uploading state to show overlay dialog
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_isUploading", true)
-            setStateFlow(assignmentViewModel, "_uploadProgress", 0.6f) // 60% progress
+            setStateFlow(assignmentViewModel, "_uploadProgress", 0.6f)
         }
 
         composeRule.waitForIdle()
 
-        // Should display overlay dialog with "PDF 업로드 중..." text
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("PDF 업로드 중", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Should display progress percentage in overlay
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("60%", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Update progress
         composeRule.runOnIdle {
-            setStateFlow(assignmentViewModel, "_uploadProgress", 0.9f) // 90% progress
+            setStateFlow(assignmentViewModel, "_uploadProgress", 0.9f)
         }
 
         composeRule.waitForIdle()
 
-        // Should update progress percentage
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("90%", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Complete upload
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_isUploading", false)
             setStateFlow(assignmentViewModel, "_uploadProgress", 1.0f)
@@ -438,14 +388,12 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Overlay should disappear when upload completes
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("PDF 업로드 중", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isEmpty()
         }
     }
 
-    // Test upload progress from 0% to 100% (lines 507-530, 1010-1062)
     @Test
     fun createAssignmentScreen_showsCompleteUploadProgress() {
         composeRule.setContent {
@@ -456,7 +404,6 @@ class CreateAssignmentScreenCoverageTest {
 
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
-        // Start upload
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_isUploading", true)
             setStateFlow(assignmentViewModel, "_uploadProgress", 0.0f)
@@ -464,13 +411,11 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Verify initial state
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("PDF 업로드 중", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        // Simulate progress updates
         val progressSteps = listOf(0.25f, 0.5f, 0.75f, 1.0f)
         for (progress in progressSteps) {
             composeRule.runOnIdle {
@@ -485,7 +430,6 @@ class CreateAssignmentScreenCoverageTest {
             }
         }
 
-        // Complete upload
         composeRule.runOnIdle {
             setStateFlow(assignmentViewModel, "_isUploading", false)
         }
@@ -493,7 +437,6 @@ class CreateAssignmentScreenCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Test RadioButton assignToAll = false logic (lines 688-697)
     @Test
     fun createAssignmentScreen_handlesSelectiveAssignment() {
         composeRule.setContent {
@@ -504,7 +447,6 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("수업 선택")
 
-        // First select a class
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
@@ -518,7 +460,6 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Now click on "선택한 학생에게만 배정" radio button
         waitForText("선택한 학생에게만 배정")
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
@@ -527,7 +468,6 @@ class CreateAssignmentScreenCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Test class selection warning (lines 711-714)
     @Test
     fun createAssignmentScreen_showsClassSelectionWarning() {
         composeRule.setContent {
@@ -536,7 +476,6 @@ class CreateAssignmentScreenCoverageTest {
             }
         }
 
-        // Try to click "선택한 학생에게만 배정" without selecting a class
         waitForText("선택한 학생에게만 배정")
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
@@ -544,12 +483,9 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Should show warning message "⚠️ 반을 먼저 선택해주세요"
-        // Note: This may not be visible if the radio button is disabled
         composeRule.waitForIdle()
     }
 
-    // Test student selection section (lines 719-792)
     @Test
     fun createAssignmentScreen_displaysStudentSelection() {
         composeRule.setContent {
@@ -560,7 +496,6 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("수업 선택")
 
-        // Select a class first
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
@@ -574,31 +509,24 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Wait a bit for loadClassStudents to be called
         composeRule.waitForIdle()
 
-        // Scroll to "선택한 학생에게만 배정" text first to bring the RadioButton into view
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
         
         composeRule.waitForIdle()
-        Thread.sleep(500) // Give time for scroll animation to complete
+        Thread.sleep(500)
 
-        // Find and click the RadioButton (not the text!)
-        // There are 2 RadioButtons: "전체 학생에게 배정" and "선택한 학생에게만 배정"
-        // We need the second one (last)
         composeRule.onAllNodes(isSelectable() and hasClickAction(), useUnmergedTree = true)
             .onLast()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for student list to appear (may show loading or empty message)
-        // The student selection UI (lines 719-792) is covered by this interaction
         composeRule.waitUntil(timeoutMillis = 15_000) {
             try {
-                // Check if either students are displayed or empty message is shown
+
                 composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                     .fetchSemanticsNodes().isNotEmpty() ||
                 composeRule.onAllNodesWithText("학생 목록을 불러오는 중", substring = true, useUnmergedTree = true)
@@ -610,12 +538,9 @@ class CreateAssignmentScreenCoverageTest {
             }
         }
         
-        // The student selection section (lines 719-792) is now visible
-        // Whether it shows students, loading, or empty message depends on the data
         composeRule.waitForIdle()
     }
 
-    // Test student checkbox selection (lines 719-792)
     @Test
     fun createAssignmentScreen_allowsStudentCheckboxSelection() {
         composeRule.setContent {
@@ -626,7 +551,6 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("수업 선택")
 
-        // Select a class
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
@@ -640,30 +564,24 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Wait a bit for loadClassStudents to be called
         composeRule.waitForIdle()
 
-        // Scroll to "선택한 학생에게만 배정" text first to bring the RadioButton into view
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
         
         composeRule.waitForIdle()
-        Thread.sleep(500) // Give time for scroll animation to complete
+        Thread.sleep(500)
 
-        // Find and click the RadioButton (not the text!)
-        // There are 2 RadioButtons: "전체 학생에게 배정" and "선택한 학생에게만 배정"
-        // We need the second one (last)
         composeRule.onAllNodes(isSelectable() and hasClickAction(), useUnmergedTree = true)
             .onLast()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Wait for student list UI to appear (may show loading, students, or empty message)
         composeRule.waitUntil(timeoutMillis = 15_000) {
             try {
-                // Check if any of the student selection UI elements are visible
+
                 composeRule.onAllNodesWithText("전체 선택", useUnmergedTree = true)
                     .fetchSemanticsNodes().isNotEmpty() ||
                 composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
@@ -675,20 +593,17 @@ class CreateAssignmentScreenCoverageTest {
             }
         }
 
-        // Try to click "전체 선택" if it exists
         try {
             composeRule.onAllNodesWithText("전체 선택", useUnmergedTree = true)
                 .onFirst()
                 .performClick()
         } catch (e: Exception) {
-            // "전체 선택" may not be visible if students haven't loaded yet
-            // This is okay - the checkbox selection logic (lines 744-752) is still covered
+
         }
 
         composeRule.waitForIdle()
     }
 
-    // Test form validation (lines 799-801)
     @Test
     fun createAssignmentScreen_validatesFormFields() {
         composeRule.setContent {
@@ -699,32 +614,26 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("과제 제목")
 
-        // Fill in form fields to test validation logic
-        // Find all editable TextFields and access by index
         val allTextFields = composeRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
         
-        // Fill title - first TextField
         allTextFields[0].performClick()
         composeRule.waitForIdle()
         allTextFields[0].performTextReplacement("테스트 과제")
 
         composeRule.waitForIdle()
 
-        // Fill description - second TextField (after class/grade/subject dropdowns)
         allTextFields[1].performClick()
         composeRule.waitForIdle()
         allTextFields[1].performTextReplacement("테스트 설명")
 
         composeRule.waitForIdle()
 
-        // Fill question count - third TextField (has default value "5")
         allTextFields[2].performClick()
         composeRule.waitForIdle()
         allTextFields[2].performTextReplacement("10")
 
         composeRule.waitForIdle()
 
-        // Select class
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
@@ -738,26 +647,21 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Select grade
         composeRule.onAllNodesWithText("학년", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Select subject
         composeRule.onAllNodesWithText("과목", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Form validation logic (lines 799-801) is now tested with actual input
-        // isFormValid checks all required fields are filled
         composeRule.waitForIdle()
     }
 
-    // Test assignment creation button onClick (lines 807-845)
     @Test
     fun createAssignmentScreen_createsAssignmentOnButtonClick() {
         composeRule.setContent {
@@ -768,35 +672,26 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("과제 제목")
 
-        // Fill in all required form fields to make isFormValid = true
-        // This is necessary to execute the onClick handler (lines 807-845)
-        
-        // Find all editable TextFields and access by index
-        // Order: 과제 제목 (0), 설명 (1), 문제 개수 (2)
         val allTextFields = composeRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
         
-        // Fill title - first TextField (line 248)
         allTextFields[0].performClick()
         composeRule.waitForIdle()
         allTextFields[0].performTextReplacement("테스트 과제")
 
         composeRule.waitForIdle()
 
-        // Fill description - second TextField (line 417)
         allTextFields[1].performClick()
         composeRule.waitForIdle()
         allTextFields[1].performTextReplacement("테스트 설명")
 
         composeRule.waitForIdle()
 
-        // Fill question count - third TextField (line 631)
         allTextFields[2].performClick()
         composeRule.waitForIdle()
         allTextFields[2].performTextReplacement("10")
 
         composeRule.waitForIdle()
 
-        // Select class
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
@@ -810,35 +705,27 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Select grade
         composeRule.onAllNodesWithText("학년", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Select subject
         composeRule.onAllNodesWithText("과목", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Select due date
         composeRule.onAllNodesWithText("마감일", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Note: File selection (selectedFiles) is required for isFormValid
-        // Without a file, the button onClick won't execute (lines 807-845)
-        // This is a limitation - we can't easily simulate file selection in tests
-        // But we've covered the form validation and field filling logic
         composeRule.waitForIdle()
     }
 
-    // Test date picker dialog (lines 861-1006)
     @Test
     fun createAssignmentScreen_displaysDatePicker() {
         composeRule.setContent {
@@ -849,19 +736,15 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("마감일")
 
-        // Click on due date field to open date picker
         composeRule.onAllNodesWithText("마감일", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Date picker should be displayed
-        // Note: DatePickerDialog is a system dialog and may not be fully testable
         composeRule.waitForIdle()
     }
 
-    // Test time picker dialog (lines 930-1006)
     @Test
     fun createAssignmentScreen_displaysTimePicker() {
         composeRule.setContent {
@@ -872,19 +755,15 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("마감일")
 
-        // Click on due date field
         composeRule.onAllNodesWithText("마감일", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Time picker should be displayed after date selection
-        // Note: TimePickerDialog is a system dialog and may not be fully testable
         composeRule.waitForIdle()
     }
 
-    // Test empty students list (lines 730-736)
     @Test
     fun createAssignmentScreen_handlesEmptyStudentsList() {
         fakeApi.classStudentsResponse = emptyList()
@@ -897,7 +776,6 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("수업 선택")
 
-        // Select a class
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
@@ -911,25 +789,19 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Scroll to "선택한 학생에게만 배정" text first to bring the RadioButton into view
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
         
         composeRule.waitForIdle()
-        Thread.sleep(500) // Give time for scroll animation to complete
+        Thread.sleep(500)
 
-        // Find and click the RadioButton (not the text!)
-        // There are 2 RadioButtons: "전체 학생에게 배정" and "선택한 학생에게만 배정"
-        // We need the second one (last)
         composeRule.onAllNodes(isSelectable() and hasClickAction(), useUnmergedTree = true)
             .onLast()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should display "해당 반에 학생이 등록되지 않았습니다." (lines 730-736)
-        // Wait for the empty message to appear - give more time for loading to complete
         composeRule.waitUntil(timeoutMillis = 20_000) {
             try {
                 val emptyMessage = composeRule.onAllNodesWithText("해당 반에 학생이 등록되지 않았습니다", substring = true, useUnmergedTree = true)
@@ -942,9 +814,6 @@ class CreateAssignmentScreenCoverageTest {
             }
         }
         
-        // Verify empty message is displayed if students list is empty
-        // The message appears when displayStudents.isEmpty() (line 730)
-        // which happens when selectedClassId != null && classStudents.isEmpty()
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule.onAllNodesWithText("해당 반에 학생이 등록되지 않았습니다", substring = true, useUnmergedTree = true)
@@ -957,7 +826,6 @@ class CreateAssignmentScreenCoverageTest {
         }
     }
 
-    // Test loading students state (lines 723-729)
     @Test
     fun createAssignmentScreen_showsLoadingStudentsState() {
         composeRule.setContent {
@@ -968,7 +836,6 @@ class CreateAssignmentScreenCoverageTest {
 
         waitForText("수업 선택")
 
-        // Select a class
         composeRule.onAllNodesWithText("수업 선택", useUnmergedTree = true)
             .onFirst()
             .performClick()
@@ -982,24 +849,17 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Scroll to "선택한 학생에게만 배정" text first to bring the RadioButton into view
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
         
         composeRule.waitForIdle()
-        Thread.sleep(500) // Give time for scroll animation to complete
+        Thread.sleep(500)
 
-        // Find and click the RadioButton (not the text!)
-        // There are 2 RadioButtons: "전체 학생에게 배정" and "선택한 학생에게만 배정"
-        // We need the second one (last)
         composeRule.onAllNodes(isSelectable() and hasClickAction(), useUnmergedTree = true)
             .onLast()
             .performClick()
 
-        // Should show "학생 목록을 불러오는 중..." while loading (lines 723-729)
-        // This may be too fast to catch, but the logic is covered
         composeRule.waitForIdle()
     }
 }
-

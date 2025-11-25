@@ -131,7 +131,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Statistics should be displayed
         waitForText("과제")
         composeRule.waitForIdle()
     }
@@ -184,7 +183,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Assignment status should be displayed
         waitForText("진행 중")
         composeRule.onAllNodesWithText("진행 중", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -211,7 +209,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Progress should be displayed
         waitForText("5")
         composeRule.onNodeWithText("5", substring = true).assertIsDisplayed()
     }
@@ -232,7 +229,6 @@ class StudentDashboardScreenTest {
             }
         }
 
-        // Loading state should be handled
         composeRule.waitForIdle()
     }
 
@@ -256,7 +252,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Navigation buttons should be displayed
         waitForText("과제")
         composeRule.onAllNodesWithText("과제", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -283,7 +278,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Assignment count should be displayed
         waitForText("1")
         composeRule.onAllNodesWithText("1", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
@@ -311,7 +305,6 @@ class StudentDashboardScreenTest {
             authViewModel.login("student@voicetutor.com", "student123")
         }
 
-        // Error should be handled gracefully
         composeRule.waitForIdle()
     }
 }

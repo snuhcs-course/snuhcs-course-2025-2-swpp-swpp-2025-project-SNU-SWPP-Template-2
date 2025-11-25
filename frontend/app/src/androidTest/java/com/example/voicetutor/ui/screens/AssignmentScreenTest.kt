@@ -255,7 +255,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Should handle no more questions gracefully
+
         composeRule.waitForIdle()
     }
 
@@ -272,7 +272,6 @@ class AssignmentScreenTest {
             }
         }
 
-        // Should handle error gracefully
         composeRule.waitForIdle()
     }
 
@@ -287,7 +286,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Difficulty might be displayed
+
         composeRule.waitForIdle()
     }
 
@@ -308,7 +307,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Answer feedback should be displayed after submission
+
         composeRule.waitForIdle()
     }
 
@@ -329,7 +328,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Incorrect answer feedback should be displayed
+
         composeRule.waitForIdle()
     }
 
@@ -344,7 +343,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Explanation should be available
+
         composeRule.waitForIdle()
     }
 
@@ -361,7 +360,6 @@ class AssignmentScreenTest {
             }
         }
 
-        // Should handle empty questions gracefully
         composeRule.waitForIdle()
     }
 
@@ -460,7 +458,6 @@ class AssignmentScreenTest {
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
 
-        // Progress bar should be displayed
         composeRule.waitUntil(timeoutMillis = 10_000) {
             try {
                 composeRule.onAllNodesWithText("5", substring = true, useUnmergedTree = true)
@@ -482,7 +479,6 @@ class AssignmentScreenTest {
             }
         }
 
-        // Should handle null assignmentId gracefully
         composeRule.waitForIdle()
     }
 
@@ -497,7 +493,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Hint might be displayed
+
         composeRule.waitForIdle()
     }
 
@@ -512,7 +508,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Model answer might be displayed
+
         composeRule.waitForIdle()
     }
 
@@ -528,7 +524,6 @@ class AssignmentScreenTest {
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
 
-        // Recording button should be displayed
         composeRule.waitUntil(timeoutMillis = 30_000) {
             try {
                 composeRule.onAllNodesWithText("녹음", substring = true, useUnmergedTree = true)
@@ -566,7 +561,7 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Stop recording button should be displayed
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             try {
                 composeRule.onAllNodesWithText("중지", substring = true, useUnmergedTree = true)
@@ -603,7 +598,7 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Recording timer should be displayed
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             try {
                 composeRule.onAllNodesWithText("00:10", substring = true, useUnmergedTree = true)
@@ -646,7 +641,7 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Answer feedback should be displayed
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             try {
                 composeRule.onAllNodesWithText("정답", substring = true, useUnmergedTree = true)
@@ -685,7 +680,7 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Incorrect answer feedback should be displayed
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             try {
                 composeRule.onAllNodesWithText("오답", substring = true, useUnmergedTree = true)
@@ -710,7 +705,6 @@ class AssignmentScreenTest {
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
 
-        // Next question button might be displayed
         composeRule.waitForIdle()
     }
 
@@ -726,7 +720,6 @@ class AssignmentScreenTest {
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
 
-        // Progress percentage should be displayed
         composeRule.waitUntil(timeoutMillis = 30_000) {
             try {
                 composeRule.onAllNodesWithText("%", substring = true, useUnmergedTree = true)
@@ -760,7 +753,7 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Submitting state should be handled
+
     }
 
     @Test
@@ -785,7 +778,7 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Error should be handled
+
     }
 
     @Test
@@ -799,7 +792,7 @@ class AssignmentScreenTest {
         }
 
         waitForText("지구는 몇 개의 위성을 가지고 있나요?")
-        // Explanation might be displayed
+
         composeRule.waitForIdle()
     }
 
@@ -838,7 +831,7 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        // Tail question should be displayed
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             try {
                 composeRule.onAllNodesWithText("꼬리질문", substring = true, useUnmergedTree = true)

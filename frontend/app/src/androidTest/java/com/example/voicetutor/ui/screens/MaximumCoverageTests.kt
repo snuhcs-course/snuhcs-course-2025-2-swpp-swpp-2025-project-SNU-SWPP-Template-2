@@ -19,40 +19,34 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 
-/**
- * Maximum coverage tests - tests as many components and code paths as possible.
- * This file focuses on testing all possible combinations and edge cases.
- */
 @RunWith(AndroidJUnit4::class)
 class MaximumCoverageTests {
 
     @get:Rule
     val composeTestRule = createComposeRule()
 
-    // ========== Comprehensive Component Testing ==========
-
     @Test
     fun allCardVariants_withAllContentTypes_render() {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // Elevated card with text
+
                     VTCard(variant = CardVariant.Elevated) {
                         Text("Elevated Card")
                     }
-                    // Outlined card with multiple elements
+
                     VTCard(variant = CardVariant.Outlined) {
                         Text("Outlined Card")
                         Text("Subtitle")
                     }
-                    // Gradient card with icon
+
                     VTCard(variant = CardVariant.Gradient) {
                         Row {
                             Icon(Icons.Filled.Star, contentDescription = null)
                             Text("Gradient Card")
                         }
                     }
-                    // Clickable card
+
                     VTCard(variant = CardVariant.Elevated, onClick = {}) {
                         Text("Clickable Card")
                     }
@@ -72,17 +66,15 @@ class MaximumCoverageTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // Primary buttons
+
                     VTButton(text = "Primary Small", onClick = {}, variant = ButtonVariant.Primary, size = ButtonSize.Small)
                     VTButton(text = "Primary Medium", onClick = {}, variant = ButtonVariant.Primary, size = ButtonSize.Medium)
                     VTButton(text = "Primary Large", onClick = {}, variant = ButtonVariant.Primary, size = ButtonSize.Large)
 
-                    // Outline buttons
                     VTButton(text = "Outline Small", onClick = {}, variant = ButtonVariant.Outline, size = ButtonSize.Small)
                     VTButton(text = "Outline Medium", onClick = {}, variant = ButtonVariant.Outline, size = ButtonSize.Medium)
                     VTButton(text = "Outline Large", onClick = {}, variant = ButtonVariant.Outline, size = ButtonSize.Large)
 
-                    // Gradient buttons
                     VTButton(text = "Gradient Small", onClick = {}, variant = ButtonVariant.Gradient, size = ButtonSize.Small)
                     VTButton(text = "Gradient Medium", onClick = {}, variant = ButtonVariant.Gradient, size = ButtonSize.Medium)
                     VTButton(text = "Gradient Large", onClick = {}, variant = ButtonVariant.Gradient, size = ButtonSize.Large)
@@ -101,21 +93,21 @@ class MaximumCoverageTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // Horizontal layout
+
                     VTStatsCard(
                         title = "Horizontal",
                         value = "100",
                         icon = Icons.Filled.Assignment,
                         layout = StatsCardLayout.Horizontal,
                     )
-                    // Vertical layout
+
                     VTStatsCard(
                         title = "Vertical",
                         value = "200",
                         icon = Icons.Filled.People,
                         layout = StatsCardLayout.Vertical,
                     )
-                    // With trend up
+
                     VTStatsCard(
                         title = "Trend Up",
                         value = "300",
@@ -123,7 +115,7 @@ class MaximumCoverageTests {
                         trend = TrendDirection.Up,
                         trendValue = "+10",
                     )
-                    // With trend down
+
                     VTStatsCard(
                         title = "Trend Down",
                         value = "400",
@@ -131,7 +123,7 @@ class MaximumCoverageTests {
                         trend = TrendDirection.Down,
                         trendValue = "-5",
                     )
-                    // With trend neutral
+
                     VTStatsCard(
                         title = "Trend None",
                         value = "500",
@@ -148,8 +140,6 @@ class MaximumCoverageTests {
         composeTestRule.onNodeWithText("Vertical", substring = true).assertExists()
         composeTestRule.onNodeWithText("Trend Up", substring = true).assertExists()
     }
-
-    // ========== Data Class Rendering Tests ==========
 
     @Test
     fun classRoomData_withAllColorVariants_render() {
@@ -222,8 +212,6 @@ class MaximumCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onRoot().assertExists()
     }
-
-    // ========== Interactive Component Tests ==========
 
     @Test
     fun textFields_withAllKeyboardTypes_render() {
@@ -303,25 +291,23 @@ class MaximumCoverageTests {
         assert(filter3Selected)
     }
 
-    // ========== Progress and Loading States ==========
-
     @Test
     fun progressIndicators_allTypes_render() {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-                    // Linear progress
+
                     LinearProgressIndicator(progress = { 0.5f })
-                    // Circular progress
+
                     CircularProgressIndicator()
-                    // Determinate circular
+
                     CircularProgressIndicator(progress = 0.7f)
                 }
             }
         }
 
         composeTestRule.waitForIdle()
-        // Progress indicators exist
+
     }
 
     @Test
@@ -356,8 +342,6 @@ class MaximumCoverageTests {
         composeTestRule.onNodeWithText("데이터를 불러오는 중", substring = true).assertExists()
     }
 
-    // ========== Error States ==========
-
     @Test
     fun errorStates_withDifferentMessages_render() {
         composeTestRule.setContent {
@@ -388,8 +372,6 @@ class MaximumCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onRoot().assertExists()
     }
-
-    // ========== Empty States ==========
 
     @Test
     fun emptyStates_withDifferentMessages_render() {
@@ -424,8 +406,6 @@ class MaximumCoverageTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== Complex Component Combinations ==========
-
     @Test
     fun complexLayout_withAllComponents_render() {
         composeTestRule.setContent {
@@ -436,13 +416,12 @@ class MaximumCoverageTests {
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    // Header
+
                     Text(
                         text = "대시보드",
                         style = MaterialTheme.typography.headlineMedium,
                     )
 
-                    // Stats row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -461,7 +440,6 @@ class MaximumCoverageTests {
                         )
                     }
 
-                    // Cards
                     VTCard {
                         Text("카드 1")
                     }
@@ -469,7 +447,6 @@ class MaximumCoverageTests {
                         Text("카드 2")
                     }
 
-                    // Buttons
                     VTButton(text = "작업 1", onClick = {}, modifier = Modifier.fillMaxWidth())
                     VTButton(text = "작업 2", onClick = {}, variant = ButtonVariant.Outline, modifier = Modifier.fillMaxWidth())
                 }
@@ -480,11 +457,9 @@ class MaximumCoverageTests {
         composeTestRule.onRoot().assertExists()
     }
 
-    // ========== Multiple Renders for Coverage ==========
-
     @Test
     fun multipleRenders_increaseCoverage() {
-        // Render multiple components to cover initialization code
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -520,8 +495,6 @@ class MaximumCoverageTests {
         composeTestRule.waitForIdle()
         composeTestRule.onRoot().assertExists()
     }
-
-    // ========== Edge Cases ==========
 
     @Test
     fun components_withZeroValues_render() {
@@ -639,7 +612,7 @@ class MaximumCoverageTests {
 
     @Test
     fun multipleScreenRenders_increaseCoverage() {
-        // Render multiple screens/components together to increase coverage
+
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {

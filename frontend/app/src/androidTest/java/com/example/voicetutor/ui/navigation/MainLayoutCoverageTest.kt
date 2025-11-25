@@ -103,7 +103,6 @@ class MainLayoutCoverageTest {
         return checkNotNull(viewModel)
     }
 
-    // Cover lines 46-67: getPageTitle function
     @Test
     fun testGetPageTitle_Assignment() {
         val title = getPageTitle(VoiceTutorScreens.Assignment.route, UserRole.STUDENT)
@@ -112,7 +111,7 @@ class MainLayoutCoverageTest {
 
     @Test
     fun testGetPageTitle_AssignmentDetail() {
-        // Use createRoute to get a valid route string
+
         val title = getPageTitle(VoiceTutorScreens.AssignmentDetail.createRoute("1", "Test"), UserRole.STUDENT)
         assert(title == "과제 상세")
     }
@@ -131,14 +130,14 @@ class MainLayoutCoverageTest {
 
     @Test
     fun testGetPageTitle_CreateAssignment() {
-        // Use createRoute
+
         val title = getPageTitle(VoiceTutorScreens.CreateAssignment.createRoute(1), UserRole.TEACHER)
         assert(title == "과제 생성")
     }
 
     @Test
     fun testGetPageTitle_EditAssignment() {
-        // Use createRoute
+
         val title = getPageTitle(VoiceTutorScreens.EditAssignment.createRoute(1), UserRole.TEACHER)
         assert(title == "과제 편집")
     }
@@ -161,7 +160,6 @@ class MainLayoutCoverageTest {
         assert(title == "학생 페이지")
     }
 
-    // Cover lines 94-104: LaunchedEffect for teacher base route
     @Test
     fun testTeacherBaseRouteUpdate() {
         setContent()
@@ -178,7 +176,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate to teacher classes - should update base route
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.TeacherClasses.route)
         }
@@ -187,7 +184,6 @@ class MainLayoutCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Cover lines 214-220: isDashboard logic
     @Test
     fun testIsDashboard_StudentDashboard() {
         setContent()
@@ -204,7 +200,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Should show logo (dashboard)
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("VoiceTutor", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -230,15 +225,12 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Navigate to assignment detail
-        // Note: In MainLayout.kt, assignment_detail is considered a dashboard page (shows logo)
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.AssignmentDetail.createRoute("1", "Test"))
         }
 
         waitForRoutePrefix(VoiceTutorScreens.AssignmentDetail.route.substringBefore("{"))
 
-        // Should show logo, NOT back button
         composeRule.onAllNodesWithText("VoiceTutor", useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
@@ -260,18 +252,15 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate to create assignment (non-dashboard)
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.CreateAssignment.createRoute(null))
         }
 
         waitForRoutePrefix(VoiceTutorScreens.CreateAssignment.route.substringBefore("{"))
 
-        // Should show back button
         composeRule.onNodeWithContentDescription("뒤로가기").assertIsDisplayed()
     }
 
-    // Cover lines 246-297: Header logo/back button switching
     @Test
     fun testHeaderShowsLogoOnDashboard() {
         setContent()
@@ -288,7 +277,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Should show logo
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("VoiceTutor", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -314,21 +302,18 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Navigate to create assignment (non-dashboard)
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.CreateAssignment.createRoute(null))
         }
 
         waitForRoutePrefix(VoiceTutorScreens.CreateAssignment.route.substringBefore("{"))
 
-        // Should show back button and page title
         composeRule.onNodeWithContentDescription("뒤로가기").assertIsDisplayed()
         composeRule.onAllNodesWithText("과제 생성", substring = true, useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
     }
 
-    // Cover lines 305-324: User info display
     @Test
     fun testUserInfoDisplay() {
         setContent()
@@ -345,7 +330,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Should show user name and role
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("선생님", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -355,7 +339,6 @@ class MainLayoutCoverageTest {
             .assertIsDisplayed()
     }
 
-    // Cover lines 327-349: Profile button click
     @Test
     fun testProfileButtonClick() {
         setContent()
@@ -372,7 +355,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Click profile button (user initial)
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.Settings.createRoute())
         }
@@ -381,7 +363,6 @@ class MainLayoutCoverageTest {
         composeRule.waitForIdle()
     }
 
-    // Cover lines 370-446: Logout dialog
     @Test
     fun testLogoutDialog() {
         setContent()
@@ -398,26 +379,22 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Click logout button
         composeRule.onNodeWithContentDescription("로그아웃").performClick()
         composeRule.waitForIdle()
 
-        // Should show logout dialog
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("로그아웃", useUnmergedTree = true)
-                .fetchSemanticsNodes().size >= 2 // Dialog title and button
+                .fetchSemanticsNodes().size >= 2
         }
         composeRule.onAllNodesWithText("로그아웃하시겠습니까?", useUnmergedTree = true)
             .onFirst()
             .assertIsDisplayed()
 
-        // Click cancel
         composeRule.onAllNodesWithText("취소", useUnmergedTree = true)
             .onFirst()
             .performClick()
         composeRule.waitForIdle()
 
-        // Should still be on dashboard
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
     }
 
@@ -437,19 +414,14 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Click logout button
         composeRule.onNodeWithContentDescription("로그아웃").performClick()
         composeRule.waitForIdle()
 
-        // Click confirm logout
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("로그아웃", useUnmergedTree = true)
                 .fetchSemanticsNodes().size >= 2
         }
 
-        // Find and click the logout button (not the dialog title)
-        // Use onNode with hasClickAction to find clickable logout button
-        // Also wait until the node is available
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodes(
                 hasText("로그아웃") and hasClickAction()
@@ -462,11 +434,9 @@ class MainLayoutCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Should navigate to login
         waitForRoutePrefix(VoiceTutorScreens.Login.route)
     }
 
-    // Cover lines 464-516: Floating progress indicator
     @Test
     fun testFloatingProgressIndicator() {
         setContent()
@@ -484,7 +454,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Set question generation state
         composeRule.runOnIdle {
             val isGeneratingField = AssignmentViewModel::class.java.getDeclaredField("_isGeneratingQuestions")
             isGeneratingField.isAccessible = true
@@ -499,7 +468,6 @@ class MainLayoutCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Should show progress indicator
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("질문 생성 중...", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -509,7 +477,6 @@ class MainLayoutCoverageTest {
             .assertIsDisplayed()
     }
 
-    // Cover lines 519-557: Assignment created toast
     @Test
     fun testAssignmentCreatedToast() {
         setContent()
@@ -527,7 +494,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Set question generation success
         composeRule.runOnIdle {
             val successField = AssignmentViewModel::class.java.getDeclaredField("_questionGenerationSuccess")
             successField.isAccessible = true
@@ -542,7 +508,6 @@ class MainLayoutCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Should show success toast
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("과제가 성공적으로 생성되었습니다!", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -552,7 +517,6 @@ class MainLayoutCoverageTest {
             .assertIsDisplayed()
     }
 
-    // Cover lines 560-598: Cancelled toast
     @Test
     fun testCancelledToast() {
         setContent()
@@ -570,7 +534,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
 
-        // Set question generation cancelled
         composeRule.runOnIdle {
             val cancelledField = AssignmentViewModel::class.java.getDeclaredField("_questionGenerationCancelled")
             cancelledField.isAccessible = true
@@ -580,7 +543,6 @@ class MainLayoutCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Should show cancelled toast
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("과제 생성이 취소되었습니다!", substring = true, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -590,7 +552,6 @@ class MainLayoutCoverageTest {
             .assertIsDisplayed()
     }
 
-    // Cover lines 710-735: BottomNavigation recentAssignment handling
     @Test
     fun testBottomNavigationWithRecentAssignment() {
         setContent()
@@ -608,7 +569,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Set recent assignment
         composeRule.runOnIdle {
             val recentAssignmentField = AssignmentViewModel::class.java.getDeclaredField("_recentAssignment")
             recentAssignmentField.isAccessible = true
@@ -622,14 +582,12 @@ class MainLayoutCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Click "이어하기" button
         composeRule.onAllNodesWithText("이어하기", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should navigate to assignment detail
         waitForRoutePrefix(VoiceTutorScreens.AssignmentDetail.route.substringBefore("{"))
     }
 
@@ -650,7 +608,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // Ensure no recent assignment
         composeRule.runOnIdle {
             val recentAssignmentField = AssignmentViewModel::class.java.getDeclaredField("_recentAssignment")
             recentAssignmentField.isAccessible = true
@@ -660,18 +617,15 @@ class MainLayoutCoverageTest {
 
         composeRule.waitForIdle()
 
-        // Click "이어하기" button
         composeRule.onAllNodesWithText("이어하기", useUnmergedTree = true)
             .onFirst()
             .performClick()
 
         composeRule.waitForIdle()
 
-        // Should navigate to NoRecentAssignment screen
         waitForRoutePrefix(VoiceTutorScreens.NoRecentAssignment.route.substringBefore("{"))
     }
 
-    // Cover lines 204-211: Load recent assignment for students
     @Test
     fun testLoadRecentAssignmentForStudents() {
         setContent()
@@ -689,9 +643,6 @@ class MainLayoutCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
 
-        // The LaunchedEffect should trigger loadRecentAssignment
-        // We just verify it doesn't crash
         composeRule.waitForIdle()
     }
 }
-
