@@ -182,7 +182,6 @@ def create_barter_request(request):
         status="pending",
     )
 
-<<<<<<< HEAD
     # Notify sender
     Notification.objects.create(
         recipient=request.user,
@@ -192,8 +191,6 @@ def create_barter_request(request):
     )
 
     # Notify recipient
-=======
->>>>>>> origin/dev
     Notification.objects.create(
         recipient=recipient,
         sender=request.user,
