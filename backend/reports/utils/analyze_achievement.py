@@ -2,6 +2,8 @@ import csv
 import json
 import logging
 import os
+import threading
+import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
@@ -12,6 +14,71 @@ from submissions.models import Answer, PersonalAssignment
 from .achievement_inference import filter_standards_by_model
 
 logger = logging.getLogger(__name__)
+
+# Thread-safe storage for timing statistics
+_timing_stats_lock = threading.Lock()
+
+
+def _reset_timing_stats():
+    """Reset timing statistics for a new batch of questions."""
+    global _timing_stats
+    with _timing_stats_lock:
+        _timing_stats = {
+            "model_times": [],  # RoBERTa model inference times
+            "gpt_times": [],  # GPT API call times
+            "total_times": [],  # Total time per question
+        }
+
+
+def _add_timing_stat(model_time: float, gpt_time: float, total_time: float):
+    """Add timing statistics in a thread-safe manner."""
+    with _timing_stats_lock:
+        _timing_stats["model_times"].append(model_time)
+        _timing_stats["gpt_times"].append(gpt_time)
+        _timing_stats["total_times"].append(total_time)
+
+
+def _log_timing_summary():
+    """Log summary statistics for all processed questions."""
+    with _timing_stats_lock:
+        if not _timing_stats["total_times"]:
+            logger.info("[TIMING] No questions were processed.")
+            return
+
+        n = len(_timing_stats["total_times"])
+        model_times = _timing_stats["model_times"]
+        gpt_times = _timing_stats["gpt_times"]
+        total_times = _timing_stats["total_times"]
+
+        logger.info("=" * 60)
+        logger.info(f"[TIMING SUMMARY] 처리된 문제 수: {n}개")
+        logger.info("-" * 60)
+
+        if model_times:
+            logger.info(
+                f"[TIMING] RoBERTa Model: "
+                f"평균={sum(model_times) / len(model_times):.3f}s, "
+                f"최소={min(model_times):.3f}s, "
+                f"최대={max(model_times):.3f}s, "
+                f"총합={sum(model_times):.3f}s"
+            )
+
+        if gpt_times:
+            logger.info(
+                f"[TIMING] GPT API: "
+                f"평균={sum(gpt_times) / len(gpt_times):.3f}s, "
+                f"최소={min(gpt_times):.3f}s, "
+                f"최대={max(gpt_times):.3f}s, "
+                f"총합={sum(gpt_times):.3f}s"
+            )
+
+        logger.info(
+            f"[TIMING] 문제당 총 시간: "
+            f"평균={sum(total_times) / len(total_times):.3f}s, "
+            f"최소={min(total_times):.3f}s, "
+            f"최대={max(total_times):.3f}s"
+        )
+        logger.info("=" * 60)
 
 
 def parse_curriculum(student_id, class_id):
@@ -123,11 +190,17 @@ def parse_curriculum(student_id, class_id):
     questions_list = list(questions)
     logger.info(f"Processing {len(questions_list)} questions in parallel...")
 
+    # Reset timing stats before processing
+    _reset_timing_stats()
+
     with ThreadPoolExecutor(max_workers=10) as executor:
         futures = [executor.submit(process_question, question, achievement_standards) for question in questions_list]
         # 모든 작업 완료 대기
         for future in as_completed(futures):
             future.result()
+
+    # Log timing summary after all questions are processed
+    _log_timing_summary()
 
     # 4. 통계량 계산 (SUBMITTED 상태의 PersonalAssignment만 대상)
     statistics = calculate_statistics(student_id, class_id)
@@ -242,6 +315,9 @@ def find_best_achievement_code(question_content, achievement_standards, use_mode
     Returns:
         가장 적합한 성취기준의 code 또는 None
     """
+    question_start_time = time.time()
+    model_time = 0.0
+    gpt_time = 0.0
 
     # OpenAI API 키가 설정되어 있는지 확인
     api_key = getattr(settings, "OPENAI_API_KEY", None)
@@ -253,14 +329,16 @@ def find_best_achievement_code(question_content, achievement_standards, use_mode
     filtered_standards = achievement_standards
     if use_model_filtering and achievement_standards:
         try:
+            model_start_time = time.time()
             filtered_standards = filter_standards_by_model(
                 question_content=question_content,
                 achievement_standards=achievement_standards,
                 top_k=top_k,
             )
+            model_time = time.time() - model_start_time
             logger.info(
-                f"Model filtered {len(achievement_standards)} standards down to {len(filtered_standards)} "
-                f"for question: {question_content[:50]}..."
+                f"[TIMING] Model inference: {model_time:.3f}s - "
+                f"Filtered {len(achievement_standards)} → {len(filtered_standards)} standards"
             )
         except Exception as e:
             logger.warning(f"Model filtering failed, using all standards: {str(e)}")
@@ -303,9 +381,16 @@ Do not return anything other than the Code. For example, just return '2과03-01'
     }
 
     try:
+        gpt_start_time = time.time()
         response = requests.post(
             "https://api.openai.com/v1/chat/completions", headers=headers, data=json.dumps(data), timeout=30
         )
+        gpt_time = time.time() - gpt_start_time
+
+        # Record timing stats
+        total_time = time.time() - question_start_time
+        _add_timing_stat(model_time, gpt_time, total_time)
+        logger.info(f"[TIMING] GPT API: {gpt_time:.3f}s, 문제 총: {total_time:.3f}s")
 
         if response.status_code == 200:
             result = response.json()
@@ -326,9 +411,16 @@ Do not return anything other than the Code. For example, just return '2과03-01'
             return None
 
     except requests.exceptions.RequestException as e:
+        # Record timing even on failure
+        gpt_time = time.time() - gpt_start_time if "gpt_start_time" in locals() else 0.0
+        total_time = time.time() - question_start_time
+        _add_timing_stat(model_time, gpt_time, total_time)
         logger.error(f"GPT API request failed: {str(e)}")
         return None
     except Exception as e:
+        # Record timing even on failure
+        total_time = time.time() - question_start_time
+        _add_timing_stat(model_time, gpt_time, total_time)
         logger.error(f"Error processing GPT response: {str(e)}")
         return None
 
