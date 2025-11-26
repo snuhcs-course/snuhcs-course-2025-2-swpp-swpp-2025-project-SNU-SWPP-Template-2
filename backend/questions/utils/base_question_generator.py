@@ -161,8 +161,7 @@ def generate_base_quizzes(material_text: str, n: int = 3, achievement_codes: Opt
             achievement_context = f"""
 - The questions should align with the following educational achievement standards:
 {standards_list}
-- Each question should relate to at least one of these achievement standards.
-- Consider the educational goals and objectives represented by these standards when creating questions.
+- While the questions should reflect the goals and objectives represented by these standards, it's not required for every single question to match them.
 """
         else:
             # 기존 리스트 형식 호환성 유지
