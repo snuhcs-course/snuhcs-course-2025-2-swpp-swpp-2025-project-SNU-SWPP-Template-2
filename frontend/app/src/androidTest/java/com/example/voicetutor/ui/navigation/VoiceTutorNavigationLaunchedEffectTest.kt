@@ -83,16 +83,16 @@ class VoiceTutorNavigationLaunchedEffectTest {
             authViewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
         }
         val viewModel = checkNotNull(authViewModel)
-        
+
         composeRule.runOnIdle {
             viewModel.login("teacher@voicetutor.com", "teacher123")
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value
+                viewModel.isLoggedIn.value
         }
-        
+
         // LaunchedEffect should automatically navigate to TeacherDashboard
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
         composeRule.waitForIdle()
@@ -106,16 +106,16 @@ class VoiceTutorNavigationLaunchedEffectTest {
             authViewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
         }
         val viewModel = checkNotNull(authViewModel)
-        
+
         composeRule.runOnIdle {
             viewModel.login("student@voicetutor.com", "student123")
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value
+                viewModel.isLoggedIn.value
         }
-        
+
         // LaunchedEffect should automatically navigate to StudentDashboard
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
         composeRule.waitForIdle()
@@ -132,17 +132,17 @@ class VoiceTutorNavigationLaunchedEffectTest {
         }
         val authVm = checkNotNull(authViewModel)
         val assignmentVm = checkNotNull(assignmentViewModel)
-        
+
         // Login with a user that has assignments (from FakeApiService)
         composeRule.runOnIdle {
             authVm.login("teacher@voicetutor.com", "teacher123")
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             authVm.currentUser.value != null &&
-            authVm.isLoggedIn.value
+                authVm.isLoggedIn.value
         }
-        
+
         // Wait for LaunchedEffect to set initial assignments if user has them
         composeRule.waitUntil(timeoutMillis = 5_000) {
             val user = authVm.currentUser.value
@@ -153,7 +153,7 @@ class VoiceTutorNavigationLaunchedEffectTest {
                 true // No assignments to set
             }
         }
-        
+
         composeRule.waitForIdle()
     }
 
@@ -164,24 +164,24 @@ class VoiceTutorNavigationLaunchedEffectTest {
         }
         waitForRoutePrefix(VoiceTutorScreens.Signup.route)
         composeRule.waitForIdle()
-        
+
         var authViewModel: AuthViewModel? = null
         composeRule.runOnIdle {
             val entry = navController.getBackStackEntry(navController.graph.id)
             authViewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
         }
         val viewModel = checkNotNull(authViewModel)
-        
+
         // Simulate signup success by logging in
         composeRule.runOnIdle {
             viewModel.login("teacher@voicetutor.com", "teacher123")
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value
+                viewModel.isLoggedIn.value
         }
-        
+
         // LaunchedEffect should automatically navigate to TeacherDashboard
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
         composeRule.waitForIdle()
@@ -194,24 +194,24 @@ class VoiceTutorNavigationLaunchedEffectTest {
         }
         waitForRoutePrefix(VoiceTutorScreens.Signup.route)
         composeRule.waitForIdle()
-        
+
         var authViewModel: AuthViewModel? = null
         composeRule.runOnIdle {
             val entry = navController.getBackStackEntry(navController.graph.id)
             authViewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
         }
         val viewModel = checkNotNull(authViewModel)
-        
+
         // Simulate signup success by logging in
         composeRule.runOnIdle {
             viewModel.login("student@voicetutor.com", "student123")
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null &&
-            viewModel.isLoggedIn.value
+                viewModel.isLoggedIn.value
         }
-        
+
         // LaunchedEffect should automatically navigate to StudentDashboard
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
         composeRule.waitForIdle()
@@ -228,27 +228,27 @@ class VoiceTutorNavigationLaunchedEffectTest {
         }
         val authVm = checkNotNull(authViewModel)
         val assignmentVm = checkNotNull(assignmentViewModel)
-        
+
         // Login as student
         composeRule.runOnIdle {
             authVm.login("student@voicetutor.com", "student123")
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             authVm.currentUser.value != null &&
-            authVm.isLoggedIn.value
+                authVm.isLoggedIn.value
         }
-        
+
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
         composeRule.waitForIdle()
-        
+
         // LaunchedEffect should load recent assignment
         // Wait a bit for the effect to run
         composeRule.waitUntil(timeoutMillis = 5_000) {
-            assignmentVm.recentAssignment.value != null || 
-            assignmentVm.recentAssignment.value == null // Either loaded or no assignment exists
+            assignmentVm.recentAssignment.value != null ||
+                assignmentVm.recentAssignment.value == null // Either loaded or no assignment exists
         }
-        
+
         composeRule.waitForIdle()
     }
 
@@ -260,25 +260,25 @@ class VoiceTutorNavigationLaunchedEffectTest {
             authViewModel = ViewModelProvider(entry)[AuthViewModel::class.java]
         }
         val viewModel = checkNotNull(authViewModel)
-        
+
         composeRule.runOnIdle {
             viewModel.login("teacher@voicetutor.com", "teacher123")
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 10_000) {
             viewModel.currentUser.value != null
         }
-        
+
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
         composeRule.waitForIdle()
-        
+
         // Navigate to TeacherClasses to trigger route update
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.TeacherClasses.route)
         }
         waitForRoutePrefix(VoiceTutorScreens.TeacherClasses.route)
         composeRule.waitForIdle()
-        
+
         // LaunchedEffect should update teacher base route
         // This is tested implicitly by navigation working correctly
         composeRule.waitForIdle()

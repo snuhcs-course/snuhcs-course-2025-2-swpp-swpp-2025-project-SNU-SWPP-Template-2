@@ -80,9 +80,9 @@ class AssignmentScreenCoverageTest {
             isRecording = false,
             isRecordingComplete = true,
             audioFilePath = "/dummy/path/audio.wav",
-            recordingTime = 10
+            recordingTime = 10,
         )
-        
+
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_audioRecordingState", completedState)
         }
@@ -90,11 +90,10 @@ class AssignmentScreenCoverageTest {
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("녹음 완료 (00:10)").assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("다시 듣기").assertIsDisplayed()
-        
+
         composeRule.onNodeWithContentDescription("음성 재생").assertIsDisplayed()
-        
     }
 
     @Test
@@ -109,29 +108,29 @@ class AssignmentScreenCoverageTest {
 
         val recordingState = viewModel.audioRecordingState.value.copy(
             isRecording = true,
-            audioFilePath = null
+            audioFilePath = null,
         )
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_audioRecordingState", recordingState)
         }
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("녹음 중지").assertIsDisplayed()
-        
+
         val completedState = viewModel.audioRecordingState.value.copy(
             isRecording = false,
-            audioFilePath = "/dummy/path.wav"
+            audioFilePath = "/dummy/path.wav",
         )
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_audioRecordingState", completedState)
         }
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("다시 녹음하기").assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("다시 녹음하기").performClick()
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("녹음 시작").assertIsDisplayed()
     }
 
@@ -147,28 +146,33 @@ class AssignmentScreenCoverageTest {
 
         val readyToSubmitState = viewModel.audioRecordingState.value.copy(
             isRecording = false,
-            audioFilePath = "/dummy/path.wav"
+            audioFilePath = "/dummy/path.wav",
         )
-        
+
         val questions = listOf(
             PersonalAssignmentQuestion(
-                id = 1, number = "1", question = "Q1", answer = "A1", explanation = "Exp1", difficulty = "Easy",
-            )
+                id = 1,
+                number = "1",
+                question = "Q1",
+                answer = "A1",
+                explanation = "Exp1",
+                difficulty = "Easy",
+            ),
         )
         composeRule.runOnIdle {
             setStateFlow(viewModel, "_audioRecordingState", readyToSubmitState)
             setStateFlow(viewModel, "_personalAssignmentQuestions", questions)
         }
-        
+
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("음성 답안 제출하기").assertIsDisplayed()
         composeRule.onNodeWithText("음성 답안 제출하기").assertIsEnabled()
-        
+
         composeRule.onNodeWithText("음성 답안 제출하기").performClick()
         composeRule.waitForIdle()
     }
-    
+
     @Test
     fun testSkipButton() {
         composeRule.setContent {
@@ -176,11 +180,10 @@ class AssignmentScreenCoverageTest {
                 AssignmentScreen(assignmentId = 1)
             }
         }
-        
+
         composeRule.onNodeWithText("건너뛰기").assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("건너뛰기").performClick()
         composeRule.waitForIdle()
-        
     }
 }

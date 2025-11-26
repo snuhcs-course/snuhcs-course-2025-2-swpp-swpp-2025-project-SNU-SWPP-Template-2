@@ -287,7 +287,7 @@ class AppInfoScreenTest {
         waitForText("앱 정보")
         composeRule.onNodeWithContentDescription("뒤로가기").performClick()
         composeRule.waitForIdle()
-        
+
         assert(backClicked)
     }
 
@@ -328,16 +328,16 @@ class AppInfoScreenTest {
         }
 
         waitForText("개발 정보")
-        
+
         composeRule.onNodeWithText("개발사", substring = true).assertIsDisplayed()
         composeRule.onAllNodesWithText("VoiceTutor Team", substring = true).onFirst().assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("빌드 번호", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("1.0.0 (100)", substring = true).assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("최종 업데이트", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("2025년 12월 7일", substring = true).assertIsDisplayed()
-        
+
         composeRule.onAllNodesWithText("플랫폼", substring = true).onFirst().assertIsDisplayed()
         composeRule.onNodeWithText("Android", substring = true).assertIsDisplayed()
     }
@@ -364,11 +364,11 @@ class AppInfoScreenTest {
         }
 
         waitForText("앱 정보")
-        
+
         composeRule.onAllNodesWithText("VoiceTutor", substring = true).onFirst().assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("© 2025 VoiceTutor Team. All rights reserved.", substring = true).assertIsDisplayed()
-        
+
         composeRule.waitForIdle()
     }
 
@@ -381,10 +381,10 @@ class AppInfoScreenTest {
         }
 
         waitForText("문의 및 지원")
-        
+
         composeRule.onNodeWithText("이메일", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("support@voicetutor.com", substring = true).assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("앱 평가하기", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("Google Play Store", substring = true).assertIsDisplayed()
     }
@@ -398,17 +398,17 @@ class AppInfoScreenTest {
         }
 
         waitForText("앱 정보")
-        
+
         composeRule.onNodeWithText("앱 정보", substring = true).assertIsDisplayed()
-        
+
         composeRule.onAllNodesWithText("VoiceTutor", substring = true).onFirst().assertIsDisplayed()
         composeRule.onNodeWithText("음성 인식 기반 교육 플랫폼", substring = true).assertIsDisplayed()
         composeRule.onNodeWithText("버전 1.0.0", substring = true).assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("개발 정보", substring = true).assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("문의 및 지원", substring = true).assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("© 2025 VoiceTutor Team. All rights reserved.", substring = true).assertIsDisplayed()
     }
 }

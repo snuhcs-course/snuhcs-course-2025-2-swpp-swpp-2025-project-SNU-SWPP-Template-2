@@ -10,7 +10,6 @@ import org.junit.runner.RunWith
 class ExampleInstrumentedTest {
     @Test
     fun useAppContext() {
-
         val appContext = InstrumentationRegistry.getInstrumentation().targetContext
         assertEquals("com.example.voicetutor", appContext.packageName)
     }

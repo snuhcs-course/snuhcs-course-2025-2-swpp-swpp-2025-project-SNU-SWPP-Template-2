@@ -29,7 +29,7 @@ class FakeAuthRepositoryWrapper @Inject constructor(
 
     @Suppress("unused")
     fun clearAll() = fakeRepo.clearAll()
-    
+
     @Suppress("unused")
     fun reset() = fakeRepo.reset()
 }

@@ -174,7 +174,6 @@ interface ApiService {
     suspend fun getDashboardStats(
         @Query("teacherId") teacherId: String,
     ): Response<ApiResponse<com.example.voicetutor.data.models.DashboardStats>>
-
 }
 
 // Minimal response model for recent personal assignment lookup
@@ -201,34 +200,34 @@ data class CreateAssignmentRequest(
     class Builder {
         private var title: String? = null
         private var subject: String? = null
-        private var class_id: Int? = null
-        private var due_at: String? = null
+        private var classId: Int? = null
+        private var dueAt: String? = null
         private var grade: String? = null
         private var description: String? = null
-        private var total_questions: Int? = null
+        private var totalQuestions: Int? = null
 
         fun title(value: String) = apply { title = value }
         fun subject(value: String) = apply { subject = value }
-        fun classId(value: Int) = apply { class_id = value }
-        fun dueAt(value: String) = apply { due_at = value }
+        fun classId(value: Int) = apply { classId = value }
+        fun dueAt(value: String) = apply { dueAt = value }
         fun grade(value: String?) = apply { grade = value }
         fun description(value: String?) = apply { description = value }
-        fun totalQuestions(value: Int?) = apply { total_questions = value }
+        fun totalQuestions(value: Int?) = apply { totalQuestions = value }
 
         fun build(): CreateAssignmentRequest {
             require(title != null) { "title은 필수입니다." }
             require(subject != null) { "subject는 필수입니다." }
-            require(class_id != null) { "class_id는 필수입니다." }
-            require(due_at != null) { "due_at은 필수입니다." }
+            require(classId != null) { "class_id는 필수입니다." }
+            require(dueAt != null) { "due_at은 필수입니다." }
 
             return CreateAssignmentRequest(
                 title = title!!,
                 subject = subject!!,
-                class_id = class_id!!,
-                due_at = due_at!!,
+                class_id = classId!!,
+                due_at = dueAt!!,
                 grade = grade,
                 description = description,
-                total_questions = total_questions,
+                total_questions = totalQuestions,
             )
         }
     }
@@ -272,24 +271,24 @@ data class CreateClassRequest(
     class Builder {
         private var name: String? = null
         private var description: String? = null
-        private var subject_name: String? = null
-        private var teacher_id: Int? = null
+        private var subjectName: String? = null
+        private var teacherId: Int? = null
 
         fun name(value: String) = apply { name = value }
         fun description(value: String?) = apply { description = value }
-        fun subjectName(value: String) = apply { subject_name = value }
-        fun teacherId(value: Int) = apply { teacher_id = value }
+        fun subjectName(value: String) = apply { subjectName = value }
+        fun teacherId(value: Int) = apply { teacherId = value }
 
         fun build(): CreateClassRequest {
             require(name != null) { "name은 필수입니다." }
-            require(subject_name != null) { "subject_name은 필수입니다." }
-            require(teacher_id != null) { "teacher_id는 필수입니다." }
+            require(subjectName != null) { "subject_name은 필수입니다." }
+            require(teacherId != null) { "teacher_id는 필수입니다." }
 
             return CreateClassRequest(
                 name = name!!,
                 description = description,
-                subject_name = subject_name!!,
-                teacher_id = teacher_id!!,
+                subject_name = subjectName!!,
+                teacher_id = teacherId!!,
             )
         }
     }

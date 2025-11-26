@@ -1,8 +1,8 @@
+import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.testing.Test
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 import org.gradle.testing.jacoco.tasks.JacocoCoverageVerification
 import org.gradle.testing.jacoco.tasks.JacocoReport
-import org.gradle.api.tasks.Exec
 
 plugins {
     alias(libs.plugins.android.application)
@@ -179,11 +179,11 @@ tasks.withType<Test> {
 tasks.register("findExcludedClasses") {
     group = "verification"
     description = "Finds classes annotated with @ExcludeFromJacocoGeneratedReport"
-    
+
     doLast {
         val sourceDir = file("${project.projectDir}/src/main/java")
         val excludedClasses = mutableListOf<String>()
-        
+
         if (sourceDir.exists()) {
             sourceDir.walkTopDown()
                 .filter { it.isFile && it.extension == "kt" }
@@ -194,22 +194,23 @@ tasks.register("findExcludedClasses") {
                         // Extract class/function names from the file
                         val packageMatch = Regex("package\\s+([\\w.]+)").find(content)
                         val packageName = packageMatch?.groupValues?.get(1) ?: ""
-                        
+
                         // Find class names
                         val classMatches = Regex("(?:class|object|interface|fun)\\s+(\\w+)").findAll(content)
                         classMatches.forEach { match ->
                             val className = match.groupValues[1]
-                            val fullName = if (packageName.isNotEmpty()) {
-                                "$packageName.$className"
-                            } else {
-                                className
-                            }
+                            val fullName =
+                                if (packageName.isNotEmpty()) {
+                                    "$packageName.$className"
+                                } else {
+                                    className
+                                }
                             excludedClasses.add(fullName.replace(".", "/"))
                         }
                     }
                 }
         }
-        
+
         if (excludedClasses.isNotEmpty()) {
             println("Found ${excludedClasses.size} excluded classes:")
             excludedClasses.forEach { println("  - $it") }
@@ -233,7 +234,7 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
     val connectedDebug2Task = tasks.findByName("connectedDebug2")
     val connectedDebug3Task = tasks.findByName("connectedDebug3")
     val connectedDebug4Task = tasks.findByName("connectedDebug4")
-    
+
     if (uiTestTask != null) {
         mustRunAfter(uiTestTask)
     }
@@ -279,16 +280,17 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
                     // Extract package name
                     val packageMatch = Regex("package\\s+([\\w.]+)").find(content)
                     val packageName = packageMatch?.groupValues?.get(1) ?: ""
-                    
+
                     // Find class/object/interface names
                     val classMatches = Regex("(?:class|object|interface|fun|val|var)\\s+(\\w+)").findAll(content)
                     classMatches.forEach { match ->
                         val className = match.groupValues[1]
-                        val fullName = if (packageName.isNotEmpty()) {
-                            "$packageName.$className"
-                        } else {
-                            className
-                        }
+                        val fullName =
+                            if (packageName.isNotEmpty()) {
+                                "$packageName.$className"
+                            } else {
+                                className
+                            }
                         // Convert to class file pattern (e.g., com/example/voicetutor/MyClass)
                         val classPattern = fullName.replace(".", "/")
                         excludedClassesPatterns.add("**/$classPattern*")
@@ -320,7 +322,7 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
             "**/LazyDsl*",
             "**/Comparisons*",
             // Add classes annotated with @ExcludeFromJacocoGeneratedReport
-            *excludedClassesPatterns.toTypedArray()
+            *excludedClassesPatterns.toTypedArray(),
         )
 
     // Android projects use multiple class output directories
@@ -387,96 +389,103 @@ tasks.register("jacocoTestReport", JacocoReport::class) {
 }
 
 // Split connectedDebugAndroidTest into 3 groups
-val testClassGroup1 = listOf(
-    "com.example.voicetutor.ExampleInstrumentedTest",
-    "com.example.voicetutor.MainActivityTest",
-    "com.example.voicetutor.VoiceTutorApplicationTest",
-    "com.example.voicetutor.audio.AudioRecorderInstrumentedTest",
-    "com.example.voicetutor.ui.components.ButtonTest",
-    "com.example.voicetutor.ui.components.CardTest",
-    "com.example.voicetutor.ui.components.HeaderTest",
-    "com.example.voicetutor.ui.components.ProgressBarTest",
-    "com.example.voicetutor.ui.components.StatsCardTest",
-    "com.example.voicetutor.ui.components.TextFieldTest",
-    "com.example.voicetutor.ui.navigation.MainLayoutStudentNavigationTest",
-    "com.example.voicetutor.ui.navigation.MainLayoutTeacherNavigationTest",
-    "com.example.voicetutor.ui.navigation.NavigationFlowTest",
-    "com.example.voicetutor.ui.navigation.VoiceTutorNavigationRouteCoverageTest"
-)
+val testClassGroup1 =
+    listOf(
+        "com.example.voicetutor.ExampleInstrumentedTest",
+        "com.example.voicetutor.MainActivityTest",
+        "com.example.voicetutor.VoiceTutorApplicationTest",
+        "com.example.voicetutor.audio.AudioRecorderInstrumentedTest",
+        "com.example.voicetutor.ui.components.ButtonTest",
+        "com.example.voicetutor.ui.components.CardTest",
+        "com.example.voicetutor.ui.components.HeaderTest",
+        "com.example.voicetutor.ui.components.ProgressBarTest",
+        "com.example.voicetutor.ui.components.StatsCardTest",
+        "com.example.voicetutor.ui.components.TextFieldTest",
+        "com.example.voicetutor.ui.navigation.MainLayoutStudentNavigationTest",
+        "com.example.voicetutor.ui.navigation.MainLayoutTeacherNavigationTest",
+        "com.example.voicetutor.ui.navigation.NavigationFlowTest",
+        "com.example.voicetutor.ui.navigation.VoiceTutorNavigationRouteCoverageTest",
+    )
 
-val testClassGroup2 = listOf(
-    "com.example.voicetutor.ui.navigation.VoiceTutorNavigationTest",
-    "com.example.voicetutor.ui.screens.AllStudentsScreenTest",
-    "com.example.voicetutor.ui.screens.AppInfoScreenTest",
-    "com.example.voicetutor.ui.screens.AssignmentDetailScreenTest",
-    "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenTest",
-    "com.example.voicetutor.ui.screens.AssignmentScreenTest",
-    "com.example.voicetutor.ui.screens.AuthIntegrationTest",
-    "com.example.voicetutor.ui.screens.CreateAssignmentScreenTest",
-    "com.example.voicetutor.ui.screens.EditAssignmentScreenTest",
-    "com.example.voicetutor.ui.screens.LoginScreenTest",
-    "com.example.voicetutor.ui.screens.NoRecentAssignmentScreenTest",
-    "com.example.voicetutor.ui.screens.ReportAndSettingsScreenTest",
-    "com.example.voicetutor.ui.screens.ScreenCoverageExpansionTest"
-)
+val testClassGroup2 =
+    listOf(
+        "com.example.voicetutor.ui.navigation.VoiceTutorNavigationTest",
+        "com.example.voicetutor.ui.screens.AllStudentsScreenTest",
+        "com.example.voicetutor.ui.screens.AppInfoScreenTest",
+        "com.example.voicetutor.ui.screens.AssignmentDetailScreenTest",
+        "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenTest",
+        "com.example.voicetutor.ui.screens.AssignmentScreenTest",
+        "com.example.voicetutor.ui.screens.AuthIntegrationTest",
+        "com.example.voicetutor.ui.screens.CreateAssignmentScreenTest",
+        "com.example.voicetutor.ui.screens.EditAssignmentScreenTest",
+        "com.example.voicetutor.ui.screens.LoginScreenTest",
+        "com.example.voicetutor.ui.screens.NoRecentAssignmentScreenTest",
+        "com.example.voicetutor.ui.screens.ReportAndSettingsScreenTest",
+        "com.example.voicetutor.ui.screens.ScreenCoverageExpansionTest",
+    )
 
-val testClassGroup3 = listOf(
-    "com.example.voicetutor.ui.screens.HighCoverageScreensIntegrationTest",
-    "com.example.voicetutor.ui.screens.ScreensRenderingTest",
-    "com.example.voicetutor.ui.screens.SimpleLoginScreenTest",
-    "com.example.voicetutor.ui.screens.SignupScreenTest",
-    "com.example.voicetutor.ui.screens.StudentDashboardScreenTest",
-    "com.example.voicetutor.ui.screens.StudentScreenEdgeCasesTest",
-    "com.example.voicetutor.ui.screens.TeacherAssignmentDetailScreenTest",
-    "com.example.voicetutor.ui.screens.TeacherAssignmentResultsScreenTest",
-    "com.example.voicetutor.ui.screens.TeacherClassesScreenTest",
-    "com.example.voicetutor.ui.screens.TeacherDashboardScreenTest",
-    "com.example.voicetutor.ui.screens.TeacherStudentAssignmentDetailScreenTest",
-    "com.example.voicetutor.ui.screens.TeacherStudentsScreenTest",
-    "com.example.voicetutor.ui.viewmodel.AssignmentViewModelIntegrationTest",
-    "com.example.voicetutor.ui.viewmodel.SupportingViewModelIntegrationTest",
-    "com.example.voicetutor.ui.viewmodel.StudentViewModelIntegrationTest"
-)
+val testClassGroup3 =
+    listOf(
+        "com.example.voicetutor.ui.screens.HighCoverageScreensIntegrationTest",
+        "com.example.voicetutor.ui.screens.ScreensRenderingTest",
+        "com.example.voicetutor.ui.screens.SimpleLoginScreenTest",
+        "com.example.voicetutor.ui.screens.SignupScreenTest",
+        "com.example.voicetutor.ui.screens.StudentDashboardScreenTest",
+        "com.example.voicetutor.ui.screens.StudentScreenEdgeCasesTest",
+        "com.example.voicetutor.ui.screens.TeacherAssignmentDetailScreenTest",
+        "com.example.voicetutor.ui.screens.TeacherAssignmentResultsScreenTest",
+        "com.example.voicetutor.ui.screens.TeacherClassesScreenTest",
+        "com.example.voicetutor.ui.screens.TeacherDashboardScreenTest",
+        "com.example.voicetutor.ui.screens.TeacherStudentAssignmentDetailScreenTest",
+        "com.example.voicetutor.ui.screens.TeacherStudentsScreenTest",
+        "com.example.voicetutor.ui.viewmodel.AssignmentViewModelIntegrationTest",
+        "com.example.voicetutor.ui.viewmodel.SupportingViewModelIntegrationTest",
+        "com.example.voicetutor.ui.viewmodel.StudentViewModelIntegrationTest",
+    )
 
-val testClassGroup4 = listOf(
-    "com.example.voicetutor.ui.screens.TeacherStudentAssignmentDetailScreenCoverageTest",
-    "com.example.voicetutor.ui.screens.CreateAssignmentScreenCoverageTest",
-    "com.example.voicetutor.ui.screens.TeacherStudentsScreenTest",
-    "com.example.voicetutor.theme.ThemeManagerCoverageTest",
-    "com.example.voicetutor.ui.screens.SettingsScreenCoverageTest",
-    "com.example.voicetutor.ui.screens.AppInfoScreenTest",
-    "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenTest",
-    "com.example.voicetutor.ui.components.OnboardingPagerTest"
-)
+val testClassGroup4 =
+    listOf(
+        "com.example.voicetutor.ui.screens.TeacherStudentAssignmentDetailScreenCoverageTest",
+        "com.example.voicetutor.ui.screens.CreateAssignmentScreenCoverageTest",
+        "com.example.voicetutor.ui.screens.TeacherStudentsScreenTest",
+        "com.example.voicetutor.theme.ThemeManagerCoverageTest",
+        "com.example.voicetutor.ui.screens.SettingsScreenCoverageTest",
+        "com.example.voicetutor.ui.screens.AppInfoScreenTest",
+        "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenTest",
+        "com.example.voicetutor.ui.components.OnboardingPagerTest",
+    )
 
-val testClassGroup5 = listOf(
-    "com.example.voicetutor.ui.screens.CreateAssignmentScreenHighCoverageTest",
-    "com.example.voicetutor.ui.screens.EditAssignmentScreenHighCoverageTest",
-    "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenHighCoverageTest",
-    "com.example.voicetutor.ui.screens.AssignmentScreenCoverageTest",
-    "com.example.voicetutor.ui.screens.TeacherStudentsScreenCoverageTest",
-    "com.example.voicetutor.ui.screens.SignupScreenCoverageTest",
-    "com.example.voicetutor.ui.navigation.VoiceTutorNavigationCoverageTest",
-    "com.example.voicetutor.ui.navigation.MainLayoutCoverageTest",
-    "com.example.voicetutor.ui.screens.AllAssignmentsScreenCoverageTest",
-)
+val testClassGroup5 =
+    listOf(
+        "com.example.voicetutor.ui.screens.CreateAssignmentScreenHighCoverageTest",
+        "com.example.voicetutor.ui.screens.EditAssignmentScreenHighCoverageTest",
+        "com.example.voicetutor.ui.screens.AssignmentDetailedResultsScreenHighCoverageTest",
+        "com.example.voicetutor.ui.screens.AssignmentScreenCoverageTest",
+        "com.example.voicetutor.ui.screens.TeacherStudentsScreenCoverageTest",
+        "com.example.voicetutor.ui.screens.SignupScreenCoverageTest",
+        "com.example.voicetutor.ui.navigation.VoiceTutorNavigationCoverageTest",
+        "com.example.voicetutor.ui.navigation.MainLayoutCoverageTest",
+        "com.example.voicetutor.ui.screens.AllAssignmentsScreenCoverageTest",
+    )
 
 tasks.register("connectedDebug1", Exec::class) {
     group = "verification"
     description = "Run first group of Android instrumentation tests (14 test classes)"
-    
+
     val classArg = testClassGroup1.joinToString(",")
-    val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "gradlew.bat"
-    } else {
-        "./gradlew"
-    }
-    
-    commandLine = listOf(
-        gradlew,
-        "connectedDebugAndroidTest",
-        "-Pandroid.testInstrumentationRunnerArguments.class=$classArg"
-    )
+    val gradlew =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "gradlew.bat"
+        } else {
+            "./gradlew"
+        }
+
+    commandLine =
+        listOf(
+            gradlew,
+            "connectedDebugAndroidTest",
+            "-Pandroid.testInstrumentationRunnerArguments.class=$classArg",
+        )
     workingDir = project.rootDir
     isIgnoreExitValue = false
 }
@@ -484,19 +493,21 @@ tasks.register("connectedDebug1", Exec::class) {
 tasks.register("connectedDebug2", Exec::class) {
     group = "verification"
     description = "Run second group of Android instrumentation tests (14 test classes)"
-    
+
     val classArg = testClassGroup2.joinToString(",")
-    val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "gradlew.bat"
-    } else {
-        "./gradlew"
-    }
-    
-    commandLine = listOf(
-        gradlew,
-        "connectedDebugAndroidTest",
-        "-Pandroid.testInstrumentationRunnerArguments.class=$classArg"
-    )
+    val gradlew =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "gradlew.bat"
+        } else {
+            "./gradlew"
+        }
+
+    commandLine =
+        listOf(
+            gradlew,
+            "connectedDebugAndroidTest",
+            "-Pandroid.testInstrumentationRunnerArguments.class=$classArg",
+        )
     workingDir = project.rootDir
     isIgnoreExitValue = false
 }
@@ -504,59 +515,72 @@ tasks.register("connectedDebug2", Exec::class) {
 tasks.register("connectedDebug3", Exec::class) {
     group = "verification"
     description = "Run third group of Android instrumentation tests (14 test classes)"
-    
+
     val classArg = testClassGroup3.joinToString(",")
-    val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "gradlew.bat"
-    } else {
-        "./gradlew"
-    }
-    
-    commandLine = listOf(
-        gradlew,
-        "connectedDebugAndroidTest",
-        "-Pandroid.testInstrumentationRunnerArguments.class=$classArg"
-    )
+    val gradlew =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "gradlew.bat"
+        } else {
+            "./gradlew"
+        }
+
+    commandLine =
+        listOf(
+            gradlew,
+            "connectedDebugAndroidTest",
+            "-Pandroid.testInstrumentationRunnerArguments.class=$classArg",
+        )
     workingDir = project.rootDir
     isIgnoreExitValue = false
 }
 
 tasks.register("connectedDebug4", Exec::class) {
     group = "verification"
-    description = "Run fourth group of Android instrumentation tests (TeacherStudentAssignmentDetailScreenCoverageTest, CreateAssignmentScreenCoverageTest, TeacherStudentsScreenTest, ThemeManagerCoverageTest, SettingsScreenCoverageTest, AppInfoScreenTest, AssignmentDetailedResultsScreenTest, OnboardingPagerTest)"
-    
+    description = "Run fourth group of Android instrumentation tests " +
+        "(TeacherStudentAssignmentDetailScreenCoverageTest, CreateAssignmentScreenCoverageTest, " +
+        "TeacherStudentsScreenTest, ThemeManagerCoverageTest, SettingsScreenCoverageTest, " +
+        "AppInfoScreenTest, AssignmentDetailedResultsScreenTest, OnboardingPagerTest)"
+
     val classArg = testClassGroup4.joinToString(",")
-    val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "gradlew.bat"
-    } else {
-        "./gradlew"
-    }
-    
-    commandLine = listOf(
-        gradlew,
-        "connectedDebugAndroidTest",
-        "-Pandroid.testInstrumentationRunnerArguments.class=$classArg"
-    )
+    val gradlew =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "gradlew.bat"
+        } else {
+            "./gradlew"
+        }
+
+    commandLine =
+        listOf(
+            gradlew,
+            "connectedDebugAndroidTest",
+            "-Pandroid.testInstrumentationRunnerArguments.class=$classArg",
+        )
     workingDir = project.rootDir
     isIgnoreExitValue = false
 }
 
 tasks.register("connectedDebug5", Exec::class) {
     group = "verification"
-    description = "Run fifth group of Android instrumentation tests (CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest, AssignmentDetailedResultsScreenHighCoverageTest, AssignmentScreenCoverageTest, TeacherStudentsScreenCoverageTest, SignupScreenCoverageTest, VoiceTutorNavigationCoverageTest, MainLayoutCoverageTest, AllAssignmentsScreenCoverageTest)"
-    
+    description = "Run fifth group of Android instrumentation tests " +
+        "(CreateAssignmentScreenHighCoverageTest, EditAssignmentScreenHighCoverageTest, " +
+        "AssignmentDetailedResultsScreenHighCoverageTest, AssignmentScreenCoverageTest, " +
+        "TeacherStudentsScreenCoverageTest, SignupScreenCoverageTest, " +
+        "VoiceTutorNavigationCoverageTest, MainLayoutCoverageTest, AllAssignmentsScreenCoverageTest)"
+
     val classArg = testClassGroup5.joinToString(",")
-    val gradlew = if (System.getProperty("os.name").lowercase().contains("windows")) {
-        "gradlew.bat"
-    } else {
-        "./gradlew"
-    }
-    
-    commandLine = listOf(
-        gradlew,
-        "connectedDebugAndroidTest",
-        "-Pandroid.testInstrumentationRunnerArguments.class=$classArg"
-    )
+    val gradlew =
+        if (System.getProperty("os.name").lowercase().contains("windows")) {
+            "gradlew.bat"
+        } else {
+            "./gradlew"
+        }
+
+    commandLine =
+        listOf(
+            gradlew,
+            "connectedDebugAndroidTest",
+            "-Pandroid.testInstrumentationRunnerArguments.class=$classArg",
+        )
     workingDir = project.rootDir
     isIgnoreExitValue = false
 }

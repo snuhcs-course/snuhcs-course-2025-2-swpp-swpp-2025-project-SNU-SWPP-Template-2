@@ -122,7 +122,6 @@ class NavigationHelperTest {
 
     @Test
     fun getPageTitle_withAssignmentDetailRouteStartsWith_returnsCorrectTitle() {
-
         val title = getPageTitle("assignment_detail/123/과제명", UserRole.STUDENT)
         assertEquals("과제 상세", title)
     }

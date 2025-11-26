@@ -268,7 +268,6 @@ class EditAssignmentScreenTest {
 
     @Test
     fun editAssignmentScreen_displaysLoadingState() {
-
         composeRule.setContent {
             VoiceTutorTheme {
                 EditAssignmentScreen(assignmentId = 1, teacherId = "2")

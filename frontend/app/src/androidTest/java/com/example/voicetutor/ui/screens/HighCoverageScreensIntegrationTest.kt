@@ -40,7 +40,6 @@ class HighCoverageScreensIntegrationTest {
     }
 
     private fun resetFakeApi() {
-
         fakeApi.apply {
             shouldFailGetAssignmentById = false
             shouldFailPersonalAssignments = false
@@ -126,7 +125,7 @@ class HighCoverageScreensIntegrationTest {
         }
 
         waitForText("1단원 복습 과제", substring = true, timeoutMillis = 15_000)
-        
+
         waitForText("과제 내용", substring = true, timeoutMillis = 15_000)
         waitForText("학생별 결과", substring = true, timeoutMillis = 15_000)
         assertFirstNodeWithText("과제 내용", substring = true)

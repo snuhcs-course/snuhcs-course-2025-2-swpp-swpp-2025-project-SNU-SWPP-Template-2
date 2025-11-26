@@ -233,7 +233,7 @@ class AssignmentModelsTest {
         assertEquals(10, copied.submittedCount)
         assertEquals(20, copied.totalCount)
         assertEquals(AssignmentStatus.COMPLETED, copied.status)
-        
+
         // Original should remain unchanged
         assertEquals("Test Assignment", original.title)
         assertEquals(AssignmentStatus.IN_PROGRESS, original.status)
@@ -352,4 +352,3 @@ class AssignmentModelsTest {
         assertEquals(AssignmentStatus.DRAFT, draft.status)
     }
 }
-

@@ -132,7 +132,6 @@ class ScreenDirectTests {
 
     @Test
     fun appInfoScreenPreview_renders() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 AppInfoScreen()

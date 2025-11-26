@@ -522,4 +522,3 @@ class BuilderPatternTest {
         assertTrue(toString.contains("1"))
     }
 }
-

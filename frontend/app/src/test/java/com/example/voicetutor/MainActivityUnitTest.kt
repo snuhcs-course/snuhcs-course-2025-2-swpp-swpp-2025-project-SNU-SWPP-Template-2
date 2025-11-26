@@ -12,7 +12,6 @@ class MainActivityUnitTest {
         assertTrue(true)
     }
 
-
     @Test
     fun mainActivity_hasRequiredAnnotations() {
         val mainActivity = MainActivity::class.java

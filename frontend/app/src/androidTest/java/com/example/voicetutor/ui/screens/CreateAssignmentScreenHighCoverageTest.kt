@@ -2,6 +2,7 @@ package com.example.voicetutor.ui.screens
 
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
@@ -17,14 +18,13 @@ import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.UninstallModules
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import javax.inject.Inject
 import java.io.File
-import androidx.core.net.toUri
-import kotlinx.coroutines.test.runTest
+import javax.inject.Inject
 
 @HiltAndroidTest
 @UninstallModules(NetworkModule::class)
@@ -153,7 +153,6 @@ class CreateAssignmentScreenHighCoverageTest {
         composeRule.onNodeWithText("마감일").performClick()
 
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -175,7 +174,6 @@ class CreateAssignmentScreenHighCoverageTest {
         testFile.writeText("Test PDF content")
 
         try {
-
             val fileUri = testFile.toUri()
 
             val fileManager = com.example.voicetutor.file.FileManager(composeRule.activity)
@@ -188,9 +186,7 @@ class CreateAssignmentScreenHighCoverageTest {
             }.onFailure { _ ->
                 // Failure case handled
             }
-
         } finally {
-
             if (testFile.exists()) {
                 testFile.delete()
             }
@@ -199,7 +195,6 @@ class CreateAssignmentScreenHighCoverageTest {
 
     @Test
     fun testTimePickerFlow() {
-
         composeRule.setContent {
             VoiceTutorTheme {
                 CreateAssignmentScreen(teacherId = "2")

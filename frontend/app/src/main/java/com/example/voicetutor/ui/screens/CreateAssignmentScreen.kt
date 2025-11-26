@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.voicetutor.data.network.CreateAssignmentRequest
 import com.example.voicetutor.file.FileInfo
 import com.example.voicetutor.file.FileManager
 import com.example.voicetutor.file.FileType
@@ -37,7 +38,6 @@ import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.StudentViewModel
-import com.example.voicetutor.data.network.CreateAssignmentRequest
 import kotlinx.coroutines.launch
 import java.io.File
 import java.time.Instant
@@ -807,8 +807,8 @@ fun CreateAssignmentScreen(
                                 }
                             }
                         }
+                    }
                 }
-            }
 
                 val isFormValid = assignmentTitle.isNotBlank() && assignmentDescription.isNotBlank() &&
                     selectedClass.isNotBlank() && selectedClassId != null &&
@@ -879,13 +879,13 @@ fun CreateAssignmentScreen(
                 ?.toInstant()
                 ?.toEpochMilli()
                 ?: Instant.now().toEpochMilli()
-            
+
             // 오늘 날짜를 밀리초로 계산
             val todayMillis = LocalDate.now()
                 .atStartOfDay(zoneId)
                 .toInstant()
                 .toEpochMilli()
-            
+
             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
             DatePickerDialog(
@@ -908,7 +908,7 @@ fun CreateAssignmentScreen(
                                 }
                             }
                         },
-                        enabled = datePickerState.selectedDateMillis != null && 
+                        enabled = datePickerState.selectedDateMillis != null &&
                             (datePickerState.selectedDateMillis ?: 0) >= todayMillis,
                         colors = ButtonDefaults.textButtonColors(contentColor = PrimaryIndigo),
                     ) {
@@ -947,7 +947,7 @@ fun CreateAssignmentScreen(
             val selectedDate = duePendingDate ?: dueDateTime?.toLocalDate() ?: LocalDate.now()
             val isToday = selectedDate == LocalDate.now()
             val now = LocalTime.now()
-            
+
             val initialHour = if (isToday && dueDateTime == null) {
                 now.hour
             } else {
@@ -958,7 +958,7 @@ fun CreateAssignmentScreen(
             } else {
                 dueDateTime?.minute ?: now.minute
             }
-            
+
             val timePickerState = rememberTimePickerState(
                 initialHour = initialHour,
                 initialMinute = initialMinute,
@@ -975,14 +975,14 @@ fun CreateAssignmentScreen(
                         onClick = {
                             val selectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
                             val finalDateTime = LocalDateTime.of(selectedDate, selectedTime)
-                            
+
                             // 오늘 날짜인 경우 현재 시간 이후인지 확인
                             val isValid = if (isToday) {
                                 finalDateTime.isAfter(LocalDateTime.now())
                             } else {
                                 true
                             }
-                            
+
                             if (isValid) {
                                 dueDateTime = finalDateTime
                                 dueDateText = finalDateTime.format(displayDateFormatter)

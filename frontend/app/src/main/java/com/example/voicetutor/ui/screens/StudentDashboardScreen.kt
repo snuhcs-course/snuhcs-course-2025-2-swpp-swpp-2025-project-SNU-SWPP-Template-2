@@ -492,7 +492,7 @@ fun StudentAssignmentCard(
                             }
                         }
 
-                        Spacer(modifier = Modifier.width(0.dp))  // ← 우측 "문제수" 텍스트 보호
+                        Spacer(modifier = Modifier.width(0.dp)) // ← 우측 "문제수" 텍스트 보호
                     }
 
                     Spacer(modifier = Modifier.height(6.dp))

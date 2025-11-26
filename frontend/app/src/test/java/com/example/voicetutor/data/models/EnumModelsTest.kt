@@ -87,4 +87,3 @@ class EnumModelsTest {
         assertEquals(PersonalAssignmentFilter.SUBMITTED, PersonalAssignmentFilter.valueOf("SUBMITTED"))
     }
 }
-

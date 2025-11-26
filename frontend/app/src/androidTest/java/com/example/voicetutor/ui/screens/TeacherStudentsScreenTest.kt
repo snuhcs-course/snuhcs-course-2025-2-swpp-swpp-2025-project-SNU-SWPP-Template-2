@@ -316,7 +316,6 @@ class TeacherStudentsScreenTest {
         }
 
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -548,8 +547,8 @@ class TeacherStudentsScreenTest {
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("김영희", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
-            composeRule.onAllNodesWithText("등록 가능한 학생이 없습니다", substring = true, useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText("등록 가능한 학생이 없습니다", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.waitForIdle()
@@ -679,8 +678,8 @@ class TeacherStudentsScreenTest {
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
-            composeRule.onAllNodesWithText("삭제할 학생이 없습니다", substring = true, useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText("삭제할 학생이 없습니다", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.waitForIdle()
@@ -710,8 +709,8 @@ class TeacherStudentsScreenTest {
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
-            composeRule.onAllNodesWithText("삭제할 학생이 없습니다", substring = true, useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText("삭제할 학생이 없습니다", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.waitForIdle()
@@ -754,8 +753,8 @@ class TeacherStudentsScreenTest {
         composeRule.waitUntil(timeoutMillis = 15_000) {
             composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
-            composeRule.onAllNodesWithText("삭제할 학생이 없습니다", substring = true, useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText("삭제할 학생이 없습니다", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.waitForIdle()

@@ -314,7 +314,6 @@ class ClassViewModelTest {
         }
     }
 
-
     @Test
     fun clearError_clearsError() = runTest {
         // Given

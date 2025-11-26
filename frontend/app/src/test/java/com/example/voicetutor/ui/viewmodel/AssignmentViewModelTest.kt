@@ -12,6 +12,7 @@ import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.*
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -20,9 +21,8 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.Mockito.times
 import org.mockito.junit.MockitoJUnitRunner
-import org.mockito.kotlin.any as kotlinAny
 import java.io.File
-import org.junit.Ignore
+import org.mockito.kotlin.any as kotlinAny
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(MockitoJUnitRunner::class)
@@ -599,13 +599,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
-            )
+                submittedAt = "2025-01-02",
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -615,7 +620,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -701,13 +706,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val correctness = listOf(
             AssignmentCorrectnessItem(
@@ -717,8 +727,8 @@ class AssignmentViewModelTest {
                 isCorrect = true,
                 answeredAt = "2025-01-01",
                 questionNum = "1",
-                explanation = "Explanation"
-            )
+                explanation = "Explanation",
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = studentId, assignmentId = assignmentId))
@@ -748,13 +758,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val correctness = emptyList<AssignmentCorrectnessItem>()
 
@@ -833,13 +848,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
-            )
+                submittedAt = "2025-01-02",
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -849,7 +869,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -913,7 +933,7 @@ class AssignmentViewModelTest {
             answer = "Answer 1",
             explanation = "Explanation",
             difficulty = "easy",
-            isProcessing = false
+            isProcessing = false,
         )
 
         Mockito.`when`(assignmentRepository.getNextQuestion(personalAssignmentId))
@@ -984,13 +1004,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.NOT_STARTED,
                 solvedNum = 0,
                 startedAt = null,
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1000,7 +1025,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 0,
             progress = 0.0f,
-            averageScore = 0.0f
+            averageScore = 0.0f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -1066,24 +1091,34 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
+                submittedAt = "2025-01-02",
             ),
             PersonalAssignmentData(
                 id = 2,
                 student = StudentInfo(2, "Student2", "s2@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
-            )
+                submittedAt = "2025-01-02",
+            ),
         )
         val statistics1 = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1093,7 +1128,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
         val statistics2 = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1103,7 +1138,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.9f
+            averageScore = 0.9f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -1144,13 +1179,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1160,7 +1200,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 5,
             progress = 0.5f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
         val correctness = listOf(
             AssignmentCorrectnessItem(
@@ -1170,8 +1210,8 @@ class AssignmentViewModelTest {
                 isCorrect = true,
                 answeredAt = "2025-01-01",
                 questionNum = "1",
-                explanation = "Explanation"
-            )
+                explanation = "Explanation",
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = studentId, assignmentId = assignmentId))
@@ -1207,13 +1247,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1223,7 +1268,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 5,
             progress = 0.5f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
         val correctness = emptyList<AssignmentCorrectnessItem>()
 
@@ -1276,13 +1321,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val correctness = emptyList<AssignmentCorrectnessItem>()
 
@@ -1317,13 +1367,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1333,7 +1388,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 5,
             progress = 0.5f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = studentId, assignmentId = assignmentId))
@@ -1367,13 +1422,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02" // Completed by submittedAt
-            )
+                submittedAt = "2025-01-02", // Completed by submittedAt
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1383,7 +1443,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -1417,13 +1477,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 10, // Completed by solvedNum >= totalQuestions
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1433,7 +1498,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -1467,13 +1532,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1483,7 +1553,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10, // Completed by totalProblem == solvedProblem
             progress = 1.0f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -1517,13 +1587,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -1533,7 +1608,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 5,
             progress = 0.5f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -1595,13 +1670,13 @@ class AssignmentViewModelTest {
             due_at = "2025-01-01",
             class_id = 1,
             grade = "Grade 1",
-            subject = "Math"
+            subject = "Math",
         )
         val createResponse = CreateAssignmentResponse(
             assignment_id = 100,
             material_id = 200,
             s3_key = "test-key",
-            upload_url = "https://example.com"
+            upload_url = "https://example.com",
         )
 
         Mockito.`when`(assignmentRepository.createAssignment(createRequest))
@@ -1636,7 +1711,7 @@ class AssignmentViewModelTest {
             due_at = "2025-01-01",
             class_id = 1,
             grade = "Grade 1",
-            subject = "Math"
+            subject = "Math",
         )
 
         Mockito.`when`(assignmentRepository.createAssignment(createRequest))
@@ -1690,13 +1765,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
 
         // getRecentPersonalAssignment returns ID 2, but personalAssignments only has ID 1
@@ -1772,8 +1852,8 @@ class AssignmentViewModelTest {
                 answer = "Answer 1",
                 explanation = "Explanation",
                 difficulty = "easy",
-                isProcessing = false
-            )
+                isProcessing = false,
+            ),
         )
 
         // First load
@@ -1815,18 +1895,32 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val baseQuestions = listOf(
             PersonalAssignmentQuestion(
-                1, "1", "Q1", "A1", "E1", "easy", false
-            )
+                1,
+                "1",
+                "Q1",
+                "A1",
+                "E1",
+                "easy",
+                false,
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignmentQuestions(1))
             .thenReturn(Result.success(baseQuestions))
         Mockito.`when`(assignmentRepository.getNextQuestion(1))
-            .thenReturn(Result.success(
-                PersonalAssignmentQuestion(
-                    1, "1", "Q1", "A1", "E1", "easy", false
-                )
-            ))
+            .thenReturn(
+                Result.success(
+                    PersonalAssignmentQuestion(
+                        1,
+                        "1",
+                        "Q1",
+                        "A1",
+                        "E1",
+                        "easy",
+                        false,
+                    ),
+                ),
+            )
 
         // When - call twice rapidly
         viewModel.loadAllQuestions(1)
@@ -1842,7 +1936,13 @@ class AssignmentViewModelTest {
         // Given (lines 1411-1412)
         val viewModel = AssignmentViewModel(assignmentRepository)
         val question = PersonalAssignmentQuestion(
-            1, "1", "Q1", "A1", "E1", "easy", false
+            1,
+            "1",
+            "Q1",
+            "A1",
+            "E1",
+            "easy",
+            false,
         )
 
         Mockito.`when`(assignmentRepository.getNextQuestion(1))
@@ -1868,7 +1968,7 @@ class AssignmentViewModelTest {
             answer = "Answer 1",
             explanation = "Explanation",
             difficulty = "easy",
-            isProcessing = true // Processing
+            isProcessing = true, // Processing
         )
 
         Mockito.`when`(assignmentRepository.getNextQuestion(1))
@@ -1894,7 +1994,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getNextQuestion(1))
@@ -1979,13 +2079,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = 1, assignmentId = 1))
@@ -2026,12 +2131,17 @@ class AssignmentViewModelTest {
             id = 1,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                1,
+                "Assignment 1",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.SUBMITTED,
             solvedNum = 10,
             startedAt = "2025-01-01",
-            submittedAt = "2025-01-02"
+            submittedAt = "2025-01-02",
         )
 
         viewModel.setInitialAssignments(listOf(assignment))
@@ -2089,13 +2199,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
-            )
+                submittedAt = "2025-01-02",
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = 1))
@@ -2148,13 +2263,18 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.NOT_STARTED,
                 solvedNum = 0,
                 startedAt = null, // NOT_STARTED
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = 1))
@@ -2248,24 +2368,34 @@ class AssignmentViewModelTest {
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
+                submittedAt = "2025-01-02",
             ),
             PersonalAssignmentData(
                 id = 2,
                 student = StudentInfo(2, "Student2", "s2@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
-            )
+                submittedAt = "2025-01-02",
+            ),
         )
         val statistics1 = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -2275,7 +2405,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.9f
+            averageScore = 0.9f,
         )
         val statistics2 = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -2285,7 +2415,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.7f
+            averageScore = 0.7f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -2319,8 +2449,14 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val baseQuestions = listOf(
             PersonalAssignmentQuestion(
-                1, "1", "Q1", "A1", "E1", "easy", false
-            )
+                1,
+                "1",
+                "Q1",
+                "A1",
+                "E1",
+                "easy",
+                false,
+            ),
         )
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -2330,7 +2466,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 1.0f
+            averageScore = 1.0f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignmentQuestions(1))
@@ -2360,7 +2496,7 @@ class AssignmentViewModelTest {
         val response = AnswerSubmissionResponse(
             isCorrect = true,
             numberStr = "Correct",
-            tailQuestion = null
+            tailQuestion = null,
         )
 
         Mockito.`when`(assignmentRepository.submitAnswer(1, 1, 1, audioFile))
@@ -2388,7 +2524,7 @@ class AssignmentViewModelTest {
         val response = AnswerSubmissionResponse(
             isCorrect = true,
             numberStr = "Correct",
-            tailQuestion = null
+            tailQuestion = null,
         )
 
         Mockito.`when`(assignmentRepository.submitAnswer(1, 1, 1, audioFile))
@@ -2413,7 +2549,7 @@ class AssignmentViewModelTest {
             submittedStudents = 5,
             totalStudents = 10,
             averageScore = 85.5,
-            completionRate = 50.0
+            completionRate = 50.0,
         )
 
         // When - loadAssignmentResult is private, but called by updateAssignment
@@ -2487,13 +2623,13 @@ class AssignmentViewModelTest {
             due_at = "2025-01-01",
             class_id = 1,
             grade = "Grade 1",
-            subject = "Math"
+            subject = "Math",
         )
         val createResponse = CreateAssignmentResponse(
             assignment_id = 1,
             material_id = 10,
             s3_key = "some-key",
-            upload_url = "https://dummy-upload"
+            upload_url = "https://dummy-upload",
         )
         val pdfFile = File.createTempFile("test", ".pdf")
         val viewModel = AssignmentViewModel(assignmentRepository)
@@ -2514,7 +2650,7 @@ class AssignmentViewModelTest {
             assignment = createRequest,
             pdfFile = pdfFile,
             totalNumber = 10,
-            teacherId = "123"
+            teacherId = "123",
         )
 
         // Then - uploadPdfToS3 성공 후 onSuccess 블록에서 설정된 상태 확인
@@ -2525,14 +2661,14 @@ class AssignmentViewModelTest {
             assertTrue(success)
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         // 추가 상태 확인을 위해 잠시 대기
         runCurrent()
         advanceUntilIdle()
-        
+
         assertFalse(viewModel.isUploading.value)
         assertFalse(viewModel.isCreatingAssignment.value)
-        
+
         // questionGenerationSuccess는 GlobalScope에서 설정되므로 별도로 확인
         viewModel.questionGenerationSuccess.test {
             awaitItem() // initial false
@@ -2540,7 +2676,7 @@ class AssignmentViewModelTest {
             assertTrue(success)
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         runCurrent()
         advanceUntilIdle()
     }
@@ -2551,23 +2687,28 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val studentId = 1
         val assignmentId = 100
-        
+
         val pendingPersonalAssignment = PersonalAssignmentData(
             id = 1,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                assignmentId, "Pending Assignment", "Description", 10, "2025-01-01", "Grade 1"
+                assignmentId,
+                "Pending Assignment",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.IN_PROGRESS,
             solvedNum = 5,
             startedAt = "2025-01-01",
-            submittedAt = null
+            submittedAt = null,
         )
 
         // getPersonalAssignments succeeds
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId))
             .thenReturn(Result.success(listOf(pendingPersonalAssignment)))
-        
+
         // getAssignmentById fails - this triggers lines 851-879
         Mockito.`when`(assignmentRepository.getAssignmentById(assignmentId))
             .thenReturn(Result.failure(Exception("Assignment not found")))
@@ -2580,7 +2721,7 @@ class AssignmentViewModelTest {
         viewModel.assignments.test {
             val assignments = awaitItem()
             assertTrue(assignments.isNotEmpty())
-            
+
             // Verify the assignment has default CourseClass values (lines 859-867)
             val assignment = assignments.first()
             assertEquals(assignmentId, assignment.id)
@@ -2596,17 +2737,17 @@ class AssignmentViewModelTest {
                     studentCount = 0,
                     createdAt = "",
                 ),
-                assignment.courseClass
+                assignment.courseClass,
             ) // Lines 859-867
             assertEquals(null, assignment.materials) // Line 868
             assertEquals(pendingPersonalAssignment.assignment.grade, assignment.grade) // Line 869
             assertEquals(pendingPersonalAssignment.status, assignment.personalAssignmentStatus) // Line 870
             assertEquals(pendingPersonalAssignment.solvedNum, assignment.solvedNum) // Line 871
             assertEquals(pendingPersonalAssignment.id, assignment.personalAssignmentId) // Line 872
-            
+
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         // Verify getAssignmentById was called
         Mockito.verify(assignmentRepository, times(1)).getAssignmentById(assignmentId)
     }
@@ -2617,23 +2758,28 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val studentId = 1
         val assignmentId = 200
-        
+
         val completedPersonalAssignment = PersonalAssignmentData(
             id = 2,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                assignmentId, "Completed Assignment", "Description", 10, "2025-01-01", "Grade 1"
+                assignmentId,
+                "Completed Assignment",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.SUBMITTED,
             solvedNum = 10,
             startedAt = "2025-01-01",
-            submittedAt = "2025-01-02"
+            submittedAt = "2025-01-02",
         )
 
         // getPersonalAssignments succeeds
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId))
             .thenReturn(Result.success(listOf(completedPersonalAssignment)))
-        
+
         // getAssignmentById fails - this triggers lines 942-971
         Mockito.`when`(assignmentRepository.getAssignmentById(assignmentId))
             .thenReturn(Result.failure(Exception("Assignment not found")))
@@ -2646,7 +2792,7 @@ class AssignmentViewModelTest {
         viewModel.assignments.test {
             val assignments = awaitItem()
             assertTrue(assignments.isNotEmpty())
-            
+
             // Verify the assignment has default CourseClass values (lines 950-958)
             val assignment = assignments.first()
             assertEquals(assignmentId, assignment.id)
@@ -2662,7 +2808,7 @@ class AssignmentViewModelTest {
                     studentCount = 0,
                     createdAt = "",
                 ),
-                assignment.courseClass
+                assignment.courseClass,
             ) // Lines 950-958
             assertEquals(null, assignment.materials) // Line 959
             assertEquals(completedPersonalAssignment.assignment.grade, assignment.grade) // Line 960
@@ -2670,10 +2816,10 @@ class AssignmentViewModelTest {
             assertEquals(completedPersonalAssignment.solvedNum, assignment.solvedNum) // Line 962
             assertEquals(completedPersonalAssignment.id, assignment.personalAssignmentId) // Line 963
             assertEquals(completedPersonalAssignment.submittedAt, assignment.submittedAt) // Line 964 - this is the key difference from pending
-            
+
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         // Verify getAssignmentById was called
         Mockito.verify(assignmentRepository, times(1)).getAssignmentById(assignmentId)
     }
@@ -2684,32 +2830,42 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val assignmentId = 1
         val totalStudents = 10
-        
+
         val personalAssignments = listOf(
             PersonalAssignmentData(
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
+                submittedAt = "2025-01-02",
             ),
             PersonalAssignmentData(
                 id = 2,
                 student = StudentInfo(2, "Student2", "s2@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Assignment 1",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
-            )
+                submittedAt = "2025-01-02",
+            ),
         )
-        
+
         val statistics1 = PersonalAssignmentStatistics(
             totalQuestions = 10,
             answeredQuestions = 10,
@@ -2718,7 +2874,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.9f
+            averageScore = 0.9f,
         )
         val statistics2 = PersonalAssignmentStatistics(
             totalQuestions = 10,
@@ -2728,7 +2884,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10,
             progress = 1.0f,
-            averageScore = 0.7f
+            averageScore = 0.7f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -2778,13 +2934,13 @@ class AssignmentViewModelTest {
             assertNotNull(error) // Line 543
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         viewModel.assignmentResults.test {
             val results = awaitItem()
             assertTrue(results.isEmpty()) // Line 544
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         viewModel.assignmentStatistics.test {
             val stats = awaitItem()
             assertNotNull(stats)
@@ -2819,13 +2975,13 @@ class AssignmentViewModelTest {
             assertNotNull(error) // Line 555
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         viewModel.assignmentResults.test {
             val results = awaitItem()
             assertTrue(results.isEmpty()) // Line 556
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         viewModel.assignmentStatistics.test {
             val stats = awaitItem()
             assertNotNull(stats)
@@ -2845,34 +3001,41 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val assignmentId = 1
         val totalStudents = 10
-        
+
         val personalAssignment = PersonalAssignmentData(
             id = 1,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                1,
+                "Assignment 1",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.NOT_STARTED,
             solvedNum = 0,
             startedAt = null, // NOT_STARTED - triggers line 452
-            submittedAt = null
+            submittedAt = null,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
             .thenReturn(Result.success(listOf(personalAssignment)))
         Mockito.`when`(assignmentRepository.getPersonalAssignmentStatistics(1))
-            .thenReturn(Result.success(
-                PersonalAssignmentStatistics(
-                    totalQuestions = 10,
-                    answeredQuestions = 0,
-                    correctAnswers = 0,
-                    accuracy = 0f,
-                    totalProblem = 10,
-                    solvedProblem = 0,
-                    progress = 0f,
-                    averageScore = 0f
-                )
-            ))
+            .thenReturn(
+                Result.success(
+                    PersonalAssignmentStatistics(
+                        totalQuestions = 10,
+                        answeredQuestions = 0,
+                        correctAnswers = 0,
+                        accuracy = 0f,
+                        totalProblem = 10,
+                        solvedProblem = 0,
+                        progress = 0f,
+                        averageScore = 0f,
+                    ),
+                ),
+            )
 
         // When
         viewModel.loadAssignmentStatisticsAndResults(assignmentId, totalStudents)
@@ -2893,17 +3056,22 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val assignmentId = 1
         val totalStudents = 10
-        
+
         val personalAssignment = PersonalAssignmentData(
             id = 1,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                1,
+                "Assignment 1",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.IN_PROGRESS,
             solvedNum = 5, // Not completed by solvedNum
             startedAt = "2025-01-01",
-            submittedAt = "2025-01-02" // This triggers line 471-474
+            submittedAt = "2025-01-02", // This triggers line 471-474
         )
 
         val statistics = PersonalAssignmentStatistics(
@@ -2914,7 +3082,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 5, // Not all solved
             progress = 0.5f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -2943,17 +3111,22 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val assignmentId = 1
         val totalStudents = 10
-        
+
         val personalAssignment = PersonalAssignmentData(
             id = 1,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                1,
+                "Assignment 1",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.IN_PROGRESS,
             solvedNum = 10, // Completed by solvedNum (line 475-478)
             startedAt = "2025-01-01",
-            submittedAt = null // Not submitted
+            submittedAt = null, // Not submitted
         )
 
         val statistics = PersonalAssignmentStatistics(
@@ -2964,7 +3137,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 9, // Not all solved in stats
             progress = 0.9f,
-            averageScore = 0.9f
+            averageScore = 0.9f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -2993,17 +3166,22 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val assignmentId = 1
         val totalStudents = 10
-        
+
         val personalAssignment = PersonalAssignmentData(
             id = 1,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                1,
+                "Assignment 1",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.IN_PROGRESS,
             solvedNum = 9, // Not completed by solvedNum
             startedAt = "2025-01-01",
-            submittedAt = null // Not submitted
+            submittedAt = null, // Not submitted
         )
 
         val statistics = PersonalAssignmentStatistics(
@@ -3014,7 +3192,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 10, // Completed by totalProblem == solvedProblem (line 479-482)
             progress = 1.0f,
-            averageScore = 0.9f
+            averageScore = 0.9f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -3043,17 +3221,22 @@ class AssignmentViewModelTest {
         val viewModel = AssignmentViewModel(assignmentRepository)
         val assignmentId = 1
         val totalStudents = 10
-        
+
         val personalAssignment = PersonalAssignmentData(
             id = 1,
             student = StudentInfo(1, "Student1", "s1@test.com"),
             assignment = PersonalAssignmentInfo(
-                1, "Assignment 1", "Description", 10, "2025-01-01", "Grade 1"
+                1,
+                "Assignment 1",
+                "Description",
+                10,
+                "2025-01-01",
+                "Grade 1",
             ),
             status = PersonalAssignmentStatus.IN_PROGRESS,
             solvedNum = 8, // Not completed by solvedNum
             startedAt = "2025-01-01",
-            submittedAt = null // Not submitted
+            submittedAt = null, // Not submitted
         )
 
         val statistics = PersonalAssignmentStatistics(
@@ -3064,7 +3247,7 @@ class AssignmentViewModelTest {
             totalProblem = 10,
             solvedProblem = 8, // Not all solved
             progress = 0.8f,
-            averageScore = 0.8f
+            averageScore = 0.8f,
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(assignmentId = assignmentId))
@@ -3092,30 +3275,40 @@ class AssignmentViewModelTest {
         // Given - lines 752-756: SUBMITTED filter
         val viewModel = AssignmentViewModel(assignmentRepository)
         val studentId = 1
-        
+
         val personalAssignments = listOf(
             PersonalAssignmentData(
                 id = 1,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    1, "Submitted Assignment", "Description", 10, "2025-01-01", "Grade 1"
+                    1,
+                    "Submitted Assignment",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.SUBMITTED,
                 solvedNum = 10,
                 startedAt = "2025-01-01",
-                submittedAt = "2025-01-02"
+                submittedAt = "2025-01-02",
             ),
             PersonalAssignmentData(
                 id = 2,
                 student = StudentInfo(1, "Student1", "s1@test.com"),
                 assignment = PersonalAssignmentInfo(
-                    2, "In Progress Assignment", "Description", 10, "2025-01-01", "Grade 1"
+                    2,
+                    "In Progress Assignment",
+                    "Description",
+                    10,
+                    "2025-01-01",
+                    "Grade 1",
                 ),
                 status = PersonalAssignmentStatus.IN_PROGRESS,
                 solvedNum = 5,
                 startedAt = "2025-01-01",
-                submittedAt = null
-            )
+                submittedAt = null,
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId))
@@ -3136,29 +3329,29 @@ class AssignmentViewModelTest {
     }
 
     @Test
-        fun cancelQuestionGeneration_updateAssignmentFailure_setsGeneratingAssignmentIdToNull() = runTest {
-            // Given
-            val viewModel = AssignmentViewModel(assignmentRepository)
-            val assignmentId = 1
-            
-            // Reflection으로 generatingAssignmentId 강제 설정 (private 필드 접근)
-            val field = AssignmentViewModel::class.java.getDeclaredField("generatingAssignmentId")
-            field.isAccessible = true
-            field.set(viewModel, assignmentId)
-            
-            Mockito.`when`(assignmentRepository.updateAssignment(eq(assignmentId), kotlinAny()))
-                .thenReturn(Result.failure(Exception("Update failed")))
+    fun cancelQuestionGeneration_updateAssignmentFailure_setsGeneratingAssignmentIdToNull() = runTest {
+        // Given
+        val viewModel = AssignmentViewModel(assignmentRepository)
+        val assignmentId = 1
 
-            // When
-            viewModel.cancelQuestionGeneration()
-            advanceUntilIdle()
-            
-            // Then
-            viewModel.questionGenerationCancelled.test {
-                assertTrue(awaitItem())
-                cancelAndIgnoreRemainingEvents()
-            }
+        // Reflection으로 generatingAssignmentId 강제 설정 (private 필드 접근)
+        val field = AssignmentViewModel::class.java.getDeclaredField("generatingAssignmentId")
+        field.isAccessible = true
+        field.set(viewModel, assignmentId)
+
+        Mockito.`when`(assignmentRepository.updateAssignment(eq(assignmentId), kotlinAny()))
+            .thenReturn(Result.failure(Exception("Update failed")))
+
+        // When
+        viewModel.cancelQuestionGeneration()
+        advanceUntilIdle()
+
+        // Then
+        viewModel.questionGenerationCancelled.test {
+            assertTrue(awaitItem())
+            cancelAndIgnoreRemainingEvents()
         }
+    }
 
     @Test
     fun cancelQuestionGeneration_updateAssignmentThrowsException_setsGeneratingAssignmentIdToNull() = runTest {
@@ -3177,7 +3370,7 @@ class AssignmentViewModelTest {
         // When
         viewModel.cancelQuestionGeneration()
         advanceUntilIdle()
-        
+
         // Then
         viewModel.questionGenerationCancelled.test {
             assertTrue(awaitItem())
@@ -3222,8 +3415,8 @@ class AssignmentViewModelTest {
                 answer = "Answer 1",
                 explanation = "Explanation 1",
                 isProcessing = false,
-                difficulty = "Easy"
-            )
+                difficulty = "Easy",
+            ),
         )
 
         Mockito.`when`(assignmentRepository.getPersonalAssignmentQuestions(personalAssignmentId))
@@ -3301,7 +3494,7 @@ class AssignmentViewModelTest {
             due_at = "2025-12-31T23:59:59Z",
             grade = "1학년",
             description = "Test",
-            total_questions = 5
+            total_questions = 5,
         )
         val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()
@@ -3310,18 +3503,18 @@ class AssignmentViewModelTest {
             assignment_id = 1,
             material_id = 1,
             s3_key = "test-key",
-            upload_url = "https://example.com/upload"
+            upload_url = "https://example.com/upload",
         )
 
         Mockito.`when`(assignmentRepository.createAssignment(assignment))
             .thenReturn(Result.success(createResponse))
-        
+
         Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
             .thenReturn(Result.success(true))
-            
+
         Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
             .thenReturn(Result.success(Unit))
-        
+
         Mockito.`when`(assignmentRepository.getAllAssignments(nullable(String::class.java), isNull(), isNull()))
             .thenReturn(Result.failure(RuntimeException("Refresh failed")))
 
@@ -3337,17 +3530,17 @@ class AssignmentViewModelTest {
             assertTrue(success)
             cancelAndIgnoreRemainingEvents()
         }
-        
+
         // 에러 상태 확인 (Repository가 Result.failure를 반환했으므로 error state가 업데이트 되었는지 확인)
         // loadAllAssignments 실패 시 _error.value가 세팅됨
         viewModel.error.test {
             val error = awaitItem()
             if (error == null) {
                 // 에러가 아직 방출되지 않았을 수 있으므로 다음 이벤트 대기
-                val nextError = awaitItem() 
+                val nextError = awaitItem()
                 assertNotNull(nextError)
             } else {
-                 // assertNotNull(error) // 테스트 시나리오에 따라 다름
+                // assertNotNull(error) // 테스트 시나리오에 따라 다름
             }
             cancelAndIgnoreRemainingEvents()
         }
@@ -3364,7 +3557,7 @@ class AssignmentViewModelTest {
             due_at = "2025-12-31T23:59:59Z",
             grade = "1학년",
             description = "Test",
-            total_questions = 5
+            total_questions = 5,
         )
         val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()
@@ -3373,15 +3566,15 @@ class AssignmentViewModelTest {
             assignment_id = 1,
             material_id = 1,
             s3_key = "test-key",
-            upload_url = "https://example.com/upload"
+            upload_url = "https://example.com/upload",
         )
 
         Mockito.`when`(assignmentRepository.createAssignment(assignment))
             .thenReturn(Result.success(createResponse))
-            
+
         Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
             .thenReturn(Result.success(true))
-            
+
         Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
             .thenReturn(Result.failure(Exception("Question generation failed")))
 
@@ -3417,7 +3610,7 @@ class AssignmentViewModelTest {
             due_at = "2025-12-31T23:59:59Z",
             grade = "1학년",
             description = "Test",
-            total_questions = 5
+            total_questions = 5,
         )
         val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()
@@ -3426,15 +3619,15 @@ class AssignmentViewModelTest {
             assignment_id = 1,
             material_id = 1,
             s3_key = "test-key",
-            upload_url = "https://example.com/upload"
+            upload_url = "https://example.com/upload",
         )
 
         Mockito.`when`(assignmentRepository.createAssignment(assignment))
             .thenReturn(Result.success(createResponse))
-            
+
         Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
             .thenReturn(Result.success(true))
-            
+
         Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
             .thenThrow(RuntimeException("Question generation exception"))
 
@@ -3469,7 +3662,7 @@ class AssignmentViewModelTest {
             due_at = "2025-12-31T23:59:59Z",
             grade = "1학년",
             description = "Test",
-            total_questions = 5
+            total_questions = 5,
         )
         val pdfFile = File.createTempFile("test", ".pdf")
         pdfFile.deleteOnExit()

@@ -169,7 +169,6 @@ class TeacherAssignmentDetailScreenTest {
 
     @Test
     fun teacherAssignmentDetailScreen_showsLoadingState() {
-
         val assignmentId = testAssignment.id
 
         composeRule.setContent {

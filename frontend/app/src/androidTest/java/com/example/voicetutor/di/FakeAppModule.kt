@@ -26,7 +26,6 @@ object FakeNetworkModule {
     @Provides
     @Singleton
     fun provideAuthRepository(apiService: ApiService): AuthRepository {
-
         return FakeAuthRepositoryWrapper(apiService)
     }
 }

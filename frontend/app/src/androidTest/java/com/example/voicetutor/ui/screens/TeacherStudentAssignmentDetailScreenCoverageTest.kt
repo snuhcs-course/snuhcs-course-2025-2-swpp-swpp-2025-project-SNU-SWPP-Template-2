@@ -115,7 +115,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_formatDuration_nullOrEmpty_returnsDash() {
-
         fakeApi.personalAssignmentsResponse = listOf(
             fakeApi.personalAssignmentData.copy(
                 startedAt = null,
@@ -150,7 +149,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_formatDuration_validTimes_calculatesCorrectly() {
-
         fakeApi.personalAssignmentsResponse = listOf(
             fakeApi.personalAssignmentData.copy(
                 startedAt = "2024-01-02T09:00:00Z",
@@ -186,7 +184,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_formatDuration_invalidTimes_returnsDash() {
-
         fakeApi.personalAssignmentsResponse = listOf(
             fakeApi.personalAssignmentData.copy(
                 startedAt = "2024-01-02T10:00:00Z",
@@ -216,7 +213,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_parseIsoToMillis_invalidFormat_handlesGracefully() {
-
         fakeApi.personalAssignmentsResponse = listOf(
             fakeApi.personalAssignmentData.copy(
                 startedAt = "invalid-iso-format",
@@ -246,7 +242,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_findsAssignmentByTitle() {
-
         val testAssignment = AssignmentData(
             id = 999,
             title = "특별한 과제 제목",
@@ -320,7 +315,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_alreadyLoaded_skipsReload() {
-
         val studentId = fakeApi.personalAssignmentData.student.id.toString()
         val assignmentId = fakeApi.personalAssignmentData.assignment.id
 
@@ -341,12 +335,10 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
         }
 
         composeRule.waitForIdle()
-
     }
 
     @Test
     fun teacherStudentAssignmentDetailScreen_loadsStatsAndCorrectnessSeparately() {
-
         fakeApi.personalAssignmentStatisticsResponses.clear()
         fakeApi.assignmentCorrectnessResponses = emptyList()
 
@@ -387,7 +379,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_withAssignmentId_skipsTitleSearch() {
-
         val studentId = fakeApi.personalAssignmentData.student.id.toString()
         val assignmentId = fakeApi.personalAssignmentData.assignment.id
 
@@ -406,7 +397,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_findsAndLoadsAssignmentByTitle() {
-
         val testAssignment = AssignmentData(
             id = 777,
             title = "동적 로딩 과제",
@@ -444,7 +434,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_showsLoadingStates() {
-
         fakeApi.personalAssignmentsDelayMillis = 1000
 
         val studentId = fakeApi.personalAssignmentData.student.id.toString()
@@ -471,7 +460,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_togglesQuestionGroup() {
-
         val studentId = fakeApi.personalAssignmentData.student.id.toString()
         val assignmentId = fakeApi.personalAssignmentData.assignment.id
 
@@ -506,7 +494,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_displaysTailQuestionToggle() {
-
         val studentId = fakeApi.personalAssignmentData.student.id.toString()
         val assignmentId = fakeApi.personalAssignmentData.assignment.id
 
@@ -535,7 +522,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_expandsAndCollapsesTailQuestions() {
-
         val studentId = fakeApi.personalAssignmentData.student.id.toString()
         val assignmentId = fakeApi.personalAssignmentData.assignment.id
 
@@ -580,7 +566,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
 
     @Test
     fun teacherStudentAssignmentDetailScreen_displaysDetailedQuestionResultCard() {
-
         val studentId = fakeApi.personalAssignmentData.student.id.toString()
         val assignmentId = fakeApi.personalAssignmentData.assignment.id
 
@@ -609,7 +594,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
         composeRule.waitForIdle()
 
         composeRule.waitForIdle()
-        
     }
 
     @Test
@@ -679,7 +663,6 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
         }
 
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -716,6 +699,5 @@ class TeacherStudentAssignmentDetailScreenCoverageTest {
         }
 
         composeRule.waitForIdle()
-
     }
 }

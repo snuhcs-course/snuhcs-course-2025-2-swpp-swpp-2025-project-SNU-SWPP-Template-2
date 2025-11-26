@@ -217,5 +217,4 @@ class AuthExceptionsTest {
         // Then
         assertEquals(message, exception.message)
     }
-
 }

@@ -4,7 +4,6 @@ import androidx.compose.ui.text.font.FontWeight
 import org.junit.Assert.*
 import org.junit.Test
 
-
 class TypeTest {
 
     @Test

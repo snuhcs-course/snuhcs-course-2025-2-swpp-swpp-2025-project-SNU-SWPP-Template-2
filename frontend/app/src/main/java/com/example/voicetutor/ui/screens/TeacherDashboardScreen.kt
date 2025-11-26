@@ -73,19 +73,19 @@ fun TeacherDashboardScreen(
     val questionGenerationSuccess by actualAssignmentViewModel.questionGenerationSuccess.collectAsStateWithLifecycle()
 
     var selectedFilter by remember { mutableStateOf(AssignmentFilter.ALL) }
-    
+
     val filteredAssignments: List<AssignmentData> = remember(assignments, selectedFilter) {
         filterAssignmentsByStatus(assignments, selectedFilter)
     }
-    
+
     val allCount = remember(assignments) {
         assignments.size
     }
-    
+
     val inProgressCount = remember(assignments) {
         countAssignmentsByStatus(assignments, AssignmentFilter.IN_PROGRESS)
     }
-    
+
     val completedCount = remember(assignments) {
         countAssignmentsByStatus(assignments, AssignmentFilter.COMPLETED)
     }
@@ -288,7 +288,6 @@ fun TeacherDashboardScreen(
                     modifier = Modifier.weight(1f),
                 )
             }
-
         }
 
         Column {
@@ -547,7 +546,6 @@ fun TeacherAssignmentCard(
                 color = PrimaryIndigo,
                 height = 6,
             )
-
         }
     }
 }
@@ -559,10 +557,10 @@ private fun filterAssignmentsByStatus(
     val now = System.currentTimeMillis()
     return when (filter) {
         AssignmentFilter.ALL -> assignments
-        AssignmentFilter.IN_PROGRESS -> assignments.filter { 
+        AssignmentFilter.IN_PROGRESS -> assignments.filter {
             parseDueDate(it.dueAt) > now
         }
-        AssignmentFilter.COMPLETED -> assignments.filter { 
+        AssignmentFilter.COMPLETED -> assignments.filter {
             parseDueDate(it.dueAt, defaultForError = 0L) <= now
         }
     }
@@ -575,10 +573,10 @@ private fun countAssignmentsByStatus(
     val now = System.currentTimeMillis()
     return when (filter) {
         AssignmentFilter.ALL -> assignments.size
-        AssignmentFilter.IN_PROGRESS -> assignments.count { 
+        AssignmentFilter.IN_PROGRESS -> assignments.count {
             parseDueDate(it.dueAt) > now
         }
-        AssignmentFilter.COMPLETED -> assignments.count { 
+        AssignmentFilter.COMPLETED -> assignments.count {
             parseDueDate(it.dueAt, defaultForError = 0L) <= now
         }
     }

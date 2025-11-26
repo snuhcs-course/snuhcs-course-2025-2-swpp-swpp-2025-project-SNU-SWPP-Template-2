@@ -287,7 +287,6 @@ class AdditionalComponentTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     StudentAssignmentCard(
                         title = "학생 과제",
                         subject = "수학",

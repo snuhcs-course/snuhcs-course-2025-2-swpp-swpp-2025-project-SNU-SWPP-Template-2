@@ -43,7 +43,6 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_startRecording_returnsTrue() {
-
         val hasPermission = context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) ==
             PackageManager.PERMISSION_GRANTED
 
@@ -77,7 +76,6 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_stopRecording_whenNotRecording_doesNotCrash() {
-
         audioRecorder.stopRecording()
         val state = audioRecorder.recordingState.value
 
@@ -86,7 +84,6 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_convertPcmToWav_withValidPcmFile_createsWavFile() {
-
         val tempDir = File(context.cacheDir, "test_audio")
         tempDir.mkdirs()
         val pcmFile = File(tempDir, "test.pcm")
@@ -106,7 +103,6 @@ class AudioRecorderInstrumentedTest {
 
             wavFile.delete()
         } else {
-
             pcmFile.delete()
         }
 
@@ -190,7 +186,6 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_withoutPermission_setsError() {
-
         val state = audioRecorder.recordingState.value
         assertNotNull(state)
     }
@@ -209,7 +204,6 @@ class AudioRecorderInstrumentedTest {
                 val filePath = state.audioFilePath
 
                 if (filePath != null) {
-
                     assertTrue(filePath.contains("voice_recording_"))
                     assertTrue(filePath.contains(".pcm") || filePath.contains(".wav"))
                 }
@@ -222,7 +216,6 @@ class AudioRecorderInstrumentedTest {
 
     @Test
     fun audioRecorder_errorState_updatesCorrectly() {
-
         val state = audioRecorder.recordingState.value
 
         assertNull(state.error)

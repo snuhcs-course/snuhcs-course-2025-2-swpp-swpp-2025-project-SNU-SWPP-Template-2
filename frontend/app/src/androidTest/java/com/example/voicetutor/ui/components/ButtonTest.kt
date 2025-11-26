@@ -67,7 +67,7 @@ class ButtonTest {
         composeTestRule.onNodeWithText("비활성화")
             .assertIsNotEnabled()
             .assertExists()
-        
+
         // Verify that onClick was not called even if button is clicked
         composeTestRule.onNodeWithText("비활성화").performClick()
         assert(!clicked)

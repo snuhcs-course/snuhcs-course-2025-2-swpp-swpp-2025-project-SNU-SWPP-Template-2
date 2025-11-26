@@ -1,5 +1,6 @@
 package com.example.voicetutor.ui.screens
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -19,7 +20,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import android.widget.Toast
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
@@ -146,134 +146,134 @@ fun TeacherAssignmentDetailScreen(
             }
             else -> {
                 assignmentDetail?.let { detail ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = PrimaryIndigo.copy(alpha = 0.08f),
-                            shape = RoundedCornerShape(16.dp),
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = PrimaryIndigo.copy(alpha = 0.08f),
+                                shape = RoundedCornerShape(16.dp),
+                            )
+                            .padding(16.dp),
+                    ) {
+                        Column {
+                            Text(
+                                text = detail.title,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Gray800,
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "${detail.subject} • ${detail.className}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Gray600,
+                            )
+                        }
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        VTStatsCard(
+                            title = "제출률",
+                            value = "${detail.completionRate}%",
+                            icon = Icons.Filled.Assignment,
+                            iconColor = PrimaryIndigo,
+                            variant = CardVariant.Elevated,
+                            modifier = Modifier.weight(1f),
+                            layout = StatsCardLayout.Vertical,
                         )
-                        .padding(16.dp),
-                ) {
-                    Column {
+
+                        VTStatsCard(
+                            title = "평균 점수",
+                            value = "${detail.averageScore}점",
+                            icon = Icons.Filled.Grade,
+                            iconColor = Success,
+                            variant = CardVariant.Elevated,
+                            modifier = Modifier.weight(1f),
+                            layout = StatsCardLayout.Vertical,
+                        )
+
+                        VTStatsCard(
+                            title = "제출 학생",
+                            value = "${detail.submittedStudents}/${detail.totalStudents}",
+                            icon = Icons.Filled.People,
+                            iconColor = Warning,
+                            variant = CardVariant.Elevated,
+                            modifier = Modifier.weight(1f),
+                            layout = StatsCardLayout.Vertical,
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
                         Text(
-                            text = detail.title,
-                            style = MaterialTheme.typography.titleLarge,
+                            text = "과제 내용",
+                            style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                             color = Gray800,
                         )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Text(
-                            text = "${detail.subject} • ${detail.className}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Gray600,
-                        )
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            VTButton(
+                                text = "과제 편집",
+                                onClick = {
+                                    val assignmentId = assignment?.id ?: targetAssignment?.id ?: 0
+                                    if (assignmentId > 0) {
+                                        onNavigateToEditAssignment(assignmentId)
+                                    }
+                                },
+                                variant = ButtonVariant.Outline,
+                                size = ButtonSize.Small,
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Filled.Edit,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                },
+                            )
+                        }
                     }
-                }
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    VTStatsCard(
-                        title = "제출률",
-                        value = "${detail.completionRate}%",
-                        icon = Icons.Filled.Assignment,
-                        iconColor = PrimaryIndigo,
-                        variant = CardVariant.Elevated,
-                        modifier = Modifier.weight(1f),
-                        layout = StatsCardLayout.Vertical,
-                    )
-
-                    VTStatsCard(
-                        title = "평균 점수",
-                        value = "${detail.averageScore}점",
-                        icon = Icons.Filled.Grade,
-                        iconColor = Success,
-                        variant = CardVariant.Elevated,
-                        modifier = Modifier.weight(1f),
-                        layout = StatsCardLayout.Vertical,
-                    )
-
-                    VTStatsCard(
-                        title = "제출 학생",
-                        value = "${detail.submittedStudents}/${detail.totalStudents}",
-                        icon = Icons.Filled.People,
-                        iconColor = Warning,
-                        variant = CardVariant.Elevated,
-                        modifier = Modifier.weight(1f),
-                        layout = StatsCardLayout.Vertical,
-                    )
-                }
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "과제 내용",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Gray800,
-                    )
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        VTButton(
-                            text = "과제 편집",
-                            onClick = {
-                                val assignmentId = assignment?.id ?: targetAssignment?.id ?: 0
-                                if (assignmentId > 0) {
-                                    onNavigateToEditAssignment(assignmentId)
-                                }
-                            },
-                            variant = ButtonVariant.Outline,
-                            size = ButtonSize.Small,
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Filled.Edit,
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp),
-                                )
-                            },
-                        )
+                    VTCard(variant = CardVariant.Elevated) {
+                        Column {
+                            Text(
+                                text = detail.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Gray700,
+                                lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.5,
+                            )
+                        }
                     }
-                }
-
-                VTCard(variant = CardVariant.Elevated) {
-                    Column {
-                        Text(
-                            text = detail.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = Gray700,
-                            lineHeight = MaterialTheme.typography.bodyMedium.lineHeight * 1.5,
-                        )
-                    }
-                }
                 }
 
                 Column {
                     Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = "학생별 결과",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Gray800,
-                    )
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = "학생별 결과",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Gray800,
+                        )
 
-                    Text(
-                        text = "총 ${students.size}명",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = PrimaryIndigo,
-                        fontWeight = FontWeight.Medium,
-                    )
+                        Text(
+                            text = "총 ${students.size}명",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = PrimaryIndigo,
+                            fontWeight = FontWeight.Medium,
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
