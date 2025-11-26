@@ -16,8 +16,8 @@ object LibraryFixtures {
     fun userPrefs() = UserPreferences(
         tradeLocation1 = "L1", tradeLocation2 = "L2",
         tradeSpot1 = "S1", tradeSpot2 = "S2",
-        favBook = "FB", favBookNote = "FBN",
-        favAuthor = "FA", favAuthorNote = "FAN",
+        favBooks = "FB", favBookNotes = "FBN",
+        favAuthors = "FA", favAuthorNotes = "FAN",
         readingHabit = "Night"
     )
 

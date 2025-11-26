@@ -17,9 +17,6 @@ import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FragmentLibraryBinding
 import com.example.librarytogether.feature.bookdetail.BookDetailFragmentDirections
 import com.example.librarytogether.feature.bookdetail.EntrySource
-import com.example.librarytogether.feature.library.BookAdapter
-import com.example.librarytogether.feature.library.data.Book
-import com.example.librarytogether.feature.library.data.PostBook
 import com.example.librarytogether.feature.library.data.UserProfile
 import com.example.librarytogether.util.loadAvatar
 import com.google.android.material.tabs.TabLayout
@@ -180,10 +177,10 @@ class LibraryFragment : Fragment() {
             binding.tvTradeLocation2.text = profile.preferences.tradeLocation2
             binding.tvTradeSpot1.text = profile.preferences.tradeSpot1
             binding.tvTradeSpot2.text = profile.preferences.tradeSpot2
-            binding.tvFavBook.text = profile.preferences.favBook
-            binding.tvFavBookNote.text = profile.preferences.favBookNote
-            binding.tvFavAuthor.text = profile.preferences.favAuthor
-            binding.tvFavAuthorNote.text = profile.preferences.favAuthorNote
+            binding.tvFavBook.text = profile.preferences.favBooks
+            binding.tvFavBookNote.text = profile.preferences.favBookNotes
+            binding.tvFavAuthor.text = profile.preferences.favAuthors
+            binding.tvFavAuthorNote.text = profile.preferences.favAuthorNotes
             binding.tvReadingHabit.text = profile.preferences.readingHabit
             isGenreEmpty = profile.favoriteGenres.isEmpty()
 
@@ -298,10 +295,10 @@ class LibraryFragment : Fragment() {
                             tradeLocation2 = location2,
                             tradeSpot1 = binding.editTradeSpot1.text.toString(),
                             tradeSpot2 = binding.editTradeSpot2.text.toString(),
-                            favBook = binding.editFavBook.text.toString(),
-                            favBookNote = binding.editFavBookNote.text.toString(),
-                            favAuthor = binding.editFavAuthor.text.toString(),
-                            favAuthorNote = binding.editFavAuthorNote.text.toString(),
+                            favBooks = binding.editFavBook.text.toString(),
+                            favBookNotes = binding.editFavBookNote.text.toString(),
+                            favAuthors = binding.editFavAuthor.text.toString(),
+                            favAuthorNotes = binding.editFavAuthorNote.text.toString(),
                             readingHabit = binding.editReadingHabit.text.toString()
                         )
 
@@ -372,10 +369,10 @@ class LibraryFragment : Fragment() {
             syncChipsFromProfile(profile)
             editTradeSpot1.setText(profile.preferences.tradeSpot1)
             editTradeSpot2.setText(profile.preferences.tradeSpot2)
-            editFavBook.setText(profile.preferences.favBook)
-            editFavBookNote.setText(profile.preferences.favBookNote)
-            editFavAuthor.setText(profile.preferences.favAuthor)
-            editFavAuthorNote.setText(profile.preferences.favAuthorNote)
+            editFavBook.setText(profile.preferences.favBooks)
+            editFavBookNote.setText(profile.preferences.favBookNotes)
+            editFavAuthor.setText(profile.preferences.favAuthors)
+            editFavAuthorNote.setText(profile.preferences.favAuthorNotes)
             editReadingHabit.setText(profile.preferences.readingHabit)
             syncEditChipsFromViewModel(profile.favoriteGenres)
 
