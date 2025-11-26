@@ -691,16 +691,23 @@ class UserProfileMeView(APIView):
         fav_author_notes = prefs.get("favAuthorNotes")  # List of notes
         reading_habit = prefs.get("readingHabit")  # Single string
 
-        # Update UserTaste fields
+        # Update UserTaste fields (source of truth for favorites)
         if trade_location1 is not None:
             taste.trade_place_name = trade_location1
         if trade_spot1 is not None:
             taste.trade_address = trade_spot1
-
-        # Save favorite genres if provided
         if favorite_genres is not None and isinstance(favorite_genres, list):
             taste.favorite_genres = favorite_genres
-
+        if fav_books is not None:
+            if isinstance(fav_books, list):
+                taste.favorite_books = fav_books
+            elif isinstance(fav_books, str):
+                taste.favorite_books = [fav_books] if fav_books else []
+        if fav_authors is not None:
+            if isinstance(fav_authors, list):
+                taste.favorite_authors = fav_authors
+            elif isinstance(fav_authors, str):
+                taste.favorite_authors = [fav_authors] if fav_authors else []
         taste.save()
 
         # Update UserPreferences fields (store additional fields here)
@@ -726,60 +733,31 @@ class UserProfileMeView(APIView):
             existing.update(meeting_locs)
             user_prefs.preferred_meeting_locations = json.dumps(existing)
         
-        # Store book/author preferences as metadata (we'll use a JSON approach)
+        # Store only notes & reading habit as metadata (favorites kept in taste)
         metadata = {}
-        if fav_books is not None:
-            # Ensure it's a list
-            if isinstance(fav_books, list):
-                metadata["favBooks"] = fav_books
-            elif isinstance(fav_books, str):
-                metadata["favBooks"] = [fav_books] if fav_books else []
-            else:
-                metadata["favBooks"] = []
-        
         if fav_book_notes is not None:
-            # Ensure it's a list
             if isinstance(fav_book_notes, list):
                 metadata["favBookNotes"] = fav_book_notes
             elif isinstance(fav_book_notes, str):
                 metadata["favBookNotes"] = [fav_book_notes] if fav_book_notes else []
-            else:
-                metadata["favBookNotes"] = []
-        
-        if fav_authors is not None:
-            # Ensure it's a list
-            if isinstance(fav_authors, list):
-                metadata["favAuthors"] = fav_authors
-            elif isinstance(fav_authors, str):
-                metadata["favAuthors"] = [fav_authors] if fav_authors else []
-            else:
-                metadata["favAuthors"] = []
-        
         if fav_author_notes is not None:
-            # Ensure it's a list
             if isinstance(fav_author_notes, list):
                 metadata["favAuthorNotes"] = fav_author_notes
             elif isinstance(fav_author_notes, str):
                 metadata["favAuthorNotes"] = [fav_author_notes] if fav_author_notes else []
-            else:
-                metadata["favAuthorNotes"] = []
-        
         if reading_habit is not None:
-            # Keep as string (not list)
             if isinstance(reading_habit, str):
                 metadata["readingHabit"] = reading_habit
             else:
                 metadata["readingHabit"] = str(reading_habit) if reading_habit else ""
-        
         if metadata:
             import json
-            # Store in preferred_meeting_locations as it's a TextField
             existing = {}
             if user_prefs.preferred_meeting_locations:
                 try:
                     existing = json.loads(user_prefs.preferred_meeting_locations)
-                except:
-                    pass
+                except Exception:
+                    existing = {}
             existing.update(metadata)
             user_prefs.preferred_meeting_locations = json.dumps(existing)
             update_fields.append("preferred_meeting_locations")
@@ -823,15 +801,14 @@ class UserProfileMeView(APIView):
         except Exception:
             pass
 
-        # Get additional preferences from UserPreferences
+        # Additional preferences & metadata (only notes & meeting locations; favorites from taste)
         trade_location2 = None
         trade_spot2 = None
-        fav_books = []
+        fav_books = favorite_books
         fav_book_notes = []
-        fav_authors = []
+        fav_authors = favorite_authors
         fav_author_notes = []
         reading_habit = None
-        
         try:
             import json
             user_prefs = user.preferences
@@ -839,20 +816,11 @@ class UserProfileMeView(APIView):
                 metadata = json.loads(user_prefs.preferred_meeting_locations)
                 trade_location2 = metadata.get("tradeLocation2")
                 trade_spot2 = metadata.get("tradeSpot2")
-                fav_books = metadata.get("favBooks", [])
                 fav_book_notes = metadata.get("favBookNotes", [])
-                fav_authors = metadata.get("favAuthors", [])
                 fav_author_notes = metadata.get("favAuthorNotes", [])
                 reading_habit = metadata.get("readingHabit")
         except Exception:
             pass
-
-        # Use onboarding data if user-entered data is not available
-        if not fav_books and isinstance(favorite_books, list) and favorite_books:
-            fav_books = favorite_books
-        
-        if not fav_authors and isinstance(favorite_authors, list) and favorite_authors:
-            fav_authors = favorite_authors
 
         # Compute counts
         from books.models import BookReview
@@ -872,16 +840,16 @@ class UserProfileMeView(APIView):
             "reviewCount": review_count,
             "followerCount": follower_count,
             "followingCount": following_count,
-            "favoriteGenres": favorite_genres,
+            "favoriteGenres": favorite_genres or [],
             "preferences": {
                 "tradeLocation1": trade_location1,
                 "tradeLocation2": trade_location2,
                 "tradeSpot1": trade_spot1,
                 "tradeSpot2": trade_spot2,
-                "favBooks": fav_books,
-                "favBookNotes": fav_book_notes,
-                "favAuthors": fav_authors,
-                "favAuthorNotes": fav_author_notes,
+                "favBooks": fav_books or [],
+                "favBookNotes": fav_book_notes or [],
+                "favAuthors": fav_authors or [],
+                "favAuthorNotes": fav_author_notes or [],
                 "readingHabit": reading_habit,
             },
         }
