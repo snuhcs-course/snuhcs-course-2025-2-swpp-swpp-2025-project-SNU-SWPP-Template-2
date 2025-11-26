@@ -240,18 +240,27 @@ class AssignmentViewModelTest {
 
     @Test
     fun setAssignmentCompleted_setsCompletedState() = runTest {
-        // Given
-        val viewModel = AssignmentViewModel(assignmentRepository)
+        val standardDispatcher = StandardTestDispatcher()
+        val originalDispatcher = mainDispatcherRule.testDispatcher
+        try {
+            Dispatchers.setMain(standardDispatcher)
+            
+            // Given
+            val viewModel = AssignmentViewModel(assignmentRepository)
 
-        // When
-        viewModel.isAssignmentCompleted.test {
-            assert(!awaitItem()) // initial false
+            // When
+            viewModel.isAssignmentCompleted.test {
+                assert(!awaitItem()) // initial false
 
-            viewModel.setAssignmentCompleted(true)
+                viewModel.setAssignmentCompleted(true)
+                runCurrent()
 
-            // Then
-            assert(awaitItem())
-            cancelAndIgnoreRemainingEvents()
+                // Then
+                assert(awaitItem())
+                cancelAndIgnoreRemainingEvents()
+            }
+        } finally {
+            Dispatchers.setMain(originalDispatcher)
         }
     }
 
@@ -3361,7 +3370,7 @@ class AssignmentViewModelTest {
             // Then
             viewModel.uploadSuccess.test {
                 // 초기 상태 확인 후 성공 상태 확인
-                val initial = awaitItem()
+                skipItems(1)
                 runCurrent()
                 val success = awaitItem()
                 assertTrue(success)
