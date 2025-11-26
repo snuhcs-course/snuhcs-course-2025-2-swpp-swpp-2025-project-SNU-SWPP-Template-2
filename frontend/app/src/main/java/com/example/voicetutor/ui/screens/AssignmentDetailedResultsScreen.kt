@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.voicetutor.data.models.DetailedQuestionResult
 import com.example.voicetutor.data.models.QuestionGroup
+import com.example.voicetutor.data.models.QuestionGroupFactory
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.utils.ErrorMessageMapper
@@ -56,34 +57,9 @@ fun AssignmentDetailedResultsScreen(
         }
     }
 
-    // base question과 tail question으로 그룹화
+    // base question과 tail question으로 그룹화 (Factory pattern 사용)
     val questionGroups = remember(detailedResults) {
-        val grouped = mutableMapOf<String, MutableList<DetailedQuestionResult>>()
-
-        detailedResults.forEach { result ->
-            val baseNum = if (result.questionNumber.contains("-")) {
-                result.questionNumber.substringBefore("-")
-            } else {
-                result.questionNumber
-            }
-
-            if (!grouped.containsKey(baseNum)) {
-                grouped[baseNum] = mutableListOf()
-            }
-            grouped[baseNum]?.add(result)
-        }
-
-        // QuestionGroup 리스트로 변환
-        grouped.entries.sortedBy { it.key.toIntOrNull() ?: 0 }.map { (baseNum, questions) ->
-            val base = questions.find { it.questionNumber == baseNum }
-            val tails = questions.filter { it.questionNumber != baseNum }
-                .sortedBy { it.questionNumber }
-
-            QuestionGroup(
-                baseQuestion = base ?: questions.first(),
-                tailQuestions = tails,
-            )
-        }
+        QuestionGroupFactory.createQuestionGroups(detailedResults)
     }
 
     // 각 그룹의 토글 상태 관리
