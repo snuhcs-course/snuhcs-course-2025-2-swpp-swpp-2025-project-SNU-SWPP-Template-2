@@ -39,9 +39,6 @@ import com.example.voicetutor.ui.viewmodel.AuthViewModel
 import com.example.voicetutor.ui.viewmodel.LoginError
 import com.example.voicetutor.ui.viewmodel.LoginField
 
-/**
- * 로그인 화면의 TextField에 사용되는 공통 색상 설정
- */
 @Composable
 private fun loginTextFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedBorderColor = PrimaryIndigo,
@@ -51,22 +48,12 @@ private fun loginTextFieldColors() = OutlinedTextFieldDefaults.colors(
     cursorColor = Color.Black,
 )
 
-/**
- * 로그인 화면
- *
- * @param authViewModel 인증 관련 ViewModel (테스트용으로 주입 가능)
- * @param assignmentViewModel 과제 관련 ViewModel (테스트용으로 주입 가능)
- * @param onLoginSuccess 로그인 성공 시 호출되는 콜백
- * @param onSignupClick 회원가입 버튼 클릭 시 호출되는 콜백
- * @param onForgotPasswordClick 비밀번호 찾기 클릭 시 호출되는 콜백 (현재 미사용)
- */
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel? = null,
     assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel? = null,
     onLoginSuccess: () -> Unit = {},
     onSignupClick: () -> Unit = {},
-    onForgotPasswordClick: () -> Unit = {},
 ) {
     val viewModelAuth = authViewModel ?: hiltViewModel()
     val viewModelAssignment = assignmentViewModel ?: hiltViewModel()
@@ -85,8 +72,6 @@ fun LoginScreen(
     val passwordErrorMessage = if (inputError?.field == LoginField.PASSWORD) inputError.message else null
     val generalError = loginError as? LoginError.General
 
-    // 로그인 검증 및 실행 로직
-    // 빈 필드가 있으면 해당 필드에 에러를 설정하고, 모두 입력되었으면 로그인 요청
     val performLogin = {
         viewModelAuth.clearLoginError()
         when {
@@ -102,7 +87,6 @@ fun LoginScreen(
         }
     }
 
-    // 자동 입력 처리: 다른 화면에서 전달된 자격증명이 있으면 필드에 자동으로 채움
     LaunchedEffect(autoFillCredentials) {
         autoFillCredentials?.let { (autoEmail, autoPassword) ->
             email = autoEmail
@@ -111,7 +95,6 @@ fun LoginScreen(
         }
     }
 
-    // 로그인 성공 처리: 사용자 정보를 받으면 과제 데이터를 ViewModel에 저장하고 성공 콜백 호출
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
             println("LoginScreen - currentUser: ${currentUser?.email}")
@@ -140,8 +123,7 @@ fun LoginScreen(
                     ),
                 ),
             ),
-    ) {
-        // 배경 장식 요소: 그라데이션 원형 블러 효과
+        ) {
         Box(
             modifier = Modifier
                 .size(288.dp)
@@ -234,7 +216,6 @@ fun LoginScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // 로그인 입력 필드
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(0.dp),
@@ -329,7 +310,6 @@ fun LoginScreen(
                         )
                     }
 
-                    // 일반 에러 메시지 표시 (네트워크 오류 등)
                     if (generalError != null) {
                         Spacer(modifier = Modifier.height(8.dp))
                         VTCard(

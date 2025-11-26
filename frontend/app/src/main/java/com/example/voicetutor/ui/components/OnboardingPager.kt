@@ -40,19 +40,13 @@ import androidx.compose.ui.window.DialogProperties
 import com.example.voicetutor.ui.theme.*
 import kotlinx.coroutines.launch
 
-/**
- * 온보딩 페이지 데이터 모델
- */
 data class OnboardingPage(
     val title: String,
     val description: String,
-    val imageRes: Int, // drawable 리소스 ID (임시로 android.R.drawable 사용 가능)
-    val icon: androidx.compose.ui.graphics.vector.ImageVector? = null, // 아이콘 (이미지 대신 사용 가능)
+    val imageRes: Int,
+    val icon: androidx.compose.ui.graphics.vector.ImageVector? = null,
 )
 
-/**
- * 재사용 가능한 온보딩 Pager 컴포넌트
- */
 @Composable
 fun OnboardingPager(
     pages: List<OnboardingPage>,
@@ -64,7 +58,7 @@ fun OnboardingPager(
     val coroutineScope = rememberCoroutineScope()
 
     Dialog(
-        onDismissRequest = { /* 배경 클릭으로 닫히지 않도록 */ },
+        onDismissRequest = { },
         properties = DialogProperties(
             dismissOnBackPress = false,
             dismissOnClickOutside = false,
@@ -99,12 +93,11 @@ fun OnboardingPager(
                         .verticalScroll(scrollState),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    // 상단 헤더 (건너뛰기 버튼)
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = 20.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
-                            .height(40.dp), // 고정 높이로 정렬 일정하게 유지
+                            .height(40.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -125,12 +118,10 @@ fun OnboardingPager(
                             )
                         }
 
-                        // 건너뛰기 버튼 또는 동일한 크기의 투명한 공간 (헤더 높이 일정하게 유지)
-                        // 오른쪽에 항상 동일한 크기의 공간 유지
                         Box(
                             modifier = Modifier
-                                .height(40.dp) // Row의 높이와 동일
-                                .width(80.dp), // 건너뛰기 버튼의 대략적인 너비
+                                .height(40.dp)
+                                .width(80.dp),
                             contentAlignment = Alignment.Center,
                         ) {
                             if (!isLastPage.value) {
@@ -152,11 +143,9 @@ fun OnboardingPager(
                                     )
                                 }
                             }
-                            // 마지막 페이지에서는 투명한 공간만 유지
                         }
                     }
 
-                    // 페이지 인디케이터
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -200,12 +189,10 @@ fun OnboardingPager(
                         }
                     }
 
-                    // Pager 콘텐츠
-
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(700.dp), // 고정 높이 설정 (텍스트 표시를 위해 증가)
+                            .height(700.dp),
                     ) {
                         HorizontalPager(
                             state = pagerState,
@@ -220,7 +207,6 @@ fun OnboardingPager(
                             )
                         }
 
-                        // 왼쪽 화살표 (첫 페이지가 아닐 때) - 이미지 위에 오버레이
                         if (!isFirstPage.value) {
                             Box(
                                 modifier = Modifier
@@ -260,7 +246,6 @@ fun OnboardingPager(
                             }
                         }
 
-                        // 오른쪽 화살표 (마지막 페이지가 아닐 때) - 이미지 위에 오버레이
                         if (!isLastPage.value) {
                             Box(
                                 modifier = Modifier
@@ -301,44 +286,33 @@ fun OnboardingPager(
                         }
                     }
 
-                    // 시작하기 버튼을 위한 여백 (스크롤 가능하도록)
                     Spacer(modifier = Modifier.height(20.dp))
                 }
 
-                // 마지막 페이지에서 오른쪽으로 스와이프 시 완료 처리
                 val onCompleteState = rememberUpdatedState(onComplete)
                 var hasCompleted by remember { mutableStateOf(false) }
                 var previousOffset by remember(pagerState.currentPage) { mutableStateOf(0f) }
 
                 LaunchedEffect(pagerState.currentPage, pageOffset.value) {
-                    // 현재 페이지가 마지막 페이지인지 확인 (학생: 인덱스 5, 선생님: 인덱스 7)
-                    // 실제로는 학생: 인덱스 4 (5번째), 선생님: 인덱스 6 (7번째)이지만
-                    // 체크를 더 엄격하게 하기 위해 pages.size와 비교
                     val currentPageIndex = pagerState.currentPage
                     val isCurrentlyLastPage = currentPageIndex == pages.size - 1
 
-                    // 마지막 페이지가 아니면 리셋하고 종료
                     if (!isCurrentlyLastPage) {
                         previousOffset = 0f
                         hasCompleted = false
                         return@LaunchedEffect
                     }
 
-                    // 마지막 페이지에서만 처리
-                    // 페이지가 완전히 안정된 상태(오프셋이 0)에서 시작해서 음수로 변했을 때만 완료
                     val isFullySettled = kotlin.math.abs(pageOffset.value) < 0.05f
                     val wasFullySettled = kotlin.math.abs(previousOffset) < 0.05f
 
-                    // 안정된 상태에서 오른쪽으로 스와이프할 때만 완료
                     if (wasFullySettled && pageOffset.value < -0.5f && !hasCompleted) {
                         hasCompleted = true
                         onCompleteState.value()
                     }
 
-                    // 오프셋 업데이트
                     previousOffset = pageOffset.value
 
-                    // 스와이프가 끝나면 플래그 리셋 (다시 시도할 수 있도록)
                     if (isFullySettled) {
                         hasCompleted = false
                     }
@@ -348,9 +322,6 @@ fun OnboardingPager(
     }
 }
 
-/**
- * 개별 온보딩 페이지 콘텐츠
- */
 @Composable
 private fun OnboardingPageContent(
     page: OnboardingPage,
@@ -366,7 +337,6 @@ private fun OnboardingPageContent(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // 이미지 또는 아이콘 - 위쪽에 액자 스타일로 배치 (9:16 비율)
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.85f)
@@ -425,14 +395,12 @@ private fun OnboardingPageContent(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // 제목과 설명 - 이미지 아래에 배치
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            // 제목
             Text(
                 text = page.title,
                 style = MaterialTheme.typography.titleLarge,
@@ -448,7 +416,6 @@ private fun OnboardingPageContent(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // 설명 (전체 표시)
             Text(
                 text = page.description,
                 style = MaterialTheme.typography.bodyMedium,
@@ -461,7 +428,6 @@ private fun OnboardingPageContent(
                     .padding(horizontal = 8.dp),
             )
 
-            // 시작하기 버튼 (부제 아래 바로 배치)
             if (showStartButton) {
                 Spacer(modifier = Modifier.height(8.dp))
                 Box(

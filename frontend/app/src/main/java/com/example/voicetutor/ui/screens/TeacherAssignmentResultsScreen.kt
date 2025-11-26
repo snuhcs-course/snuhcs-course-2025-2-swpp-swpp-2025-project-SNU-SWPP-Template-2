@@ -16,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
@@ -44,7 +43,6 @@ fun TeacherAssignmentResultsScreen(
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
 
-    // 과제 찾기: ID 또는 제목으로 찾기 ("과목 - 제목" 형식도 처리 가능)
     val targetAssignment = remember(assignments, assignmentId, assignmentTitle) {
         if (assignmentId > 0) {
             assignments.find { it.id == assignmentId }
@@ -62,7 +60,6 @@ fun TeacherAssignmentResultsScreen(
     val dynamicAssignmentTitle = currentAssignment?.title ?: (targetAssignment?.title ?: assignmentTitle ?: "과제")
     val resolvedAssignmentId = targetAssignment?.id ?: currentAssignment?.id ?: assignmentId
 
-    // 과제 데이터 로드: assignmentId가 있으면 직접 로드, 없으면 targetAssignment를 찾아서 로드
     LaunchedEffect(assignmentId, targetAssignment?.id) {
         if (assignmentId > 0) {
             println("TeacherAssignmentResults - Loading assignment by ID: $assignmentId")
@@ -77,7 +74,6 @@ fun TeacherAssignmentResultsScreen(
         }
     }
 
-    // 에러 처리: 에러가 발생하면 자동으로 클리어
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             viewModel.clearError()
@@ -172,7 +168,6 @@ fun TeacherAssignmentResultsScreen(
                 students.isEmpty() -> {
                     EmptyState(
                         icon = Icons.Filled.Person,
-                        message = "제출된 과제가 없습니다",
                     )
                 }
                 else -> {
@@ -197,9 +192,6 @@ fun TeacherAssignmentResultsScreen(
     }
 }
 
-/**
- * 로딩 인디케이터 컴포넌트
- */
 @Composable
 private fun LoadingIndicator() {
     Box(
@@ -212,13 +204,9 @@ private fun LoadingIndicator() {
     }
 }
 
-/**
- * 빈 상태 표시 컴포넌트
- */
 @Composable
 private fun EmptyState(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    message: String,
 ) {
     Box(
         modifier = Modifier.fillMaxWidth(),
@@ -235,7 +223,7 @@ private fun EmptyState(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = message,
+                text = "제출된 과제가 없습니다",
                 style = MaterialTheme.typography.bodyLarge,
                 color = Gray600,
             )

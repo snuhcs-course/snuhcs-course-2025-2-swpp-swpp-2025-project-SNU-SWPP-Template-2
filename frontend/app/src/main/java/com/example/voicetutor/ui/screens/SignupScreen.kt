@@ -42,7 +42,6 @@ import com.example.voicetutor.utils.TutorialPreferences
 @Composable
 fun SignupScreen(
     authViewModel: AuthViewModel? = null,
-    onSignupSuccess: () -> Unit = {},
     onLoginClick: () -> Unit = {},
 ) {
     val viewModelAuth = authViewModel ?: hiltViewModel()

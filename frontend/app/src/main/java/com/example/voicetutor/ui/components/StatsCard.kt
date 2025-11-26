@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -28,8 +29,8 @@ enum class TrendDirection {
 }
 
 enum class StatsCardLayout {
-    Horizontal, // Text left, icon right (default)
-    Vertical, // Icon top, text bottom
+    Horizontal,
+    Vertical,
 }
 
 @Composable
@@ -66,7 +67,7 @@ fun VTStatsCard(
                         CardVariant.Elevated -> Color.White
                         CardVariant.Outlined -> Color.White
                         CardVariant.Selected -> Color.White
-                        CardVariant.Gradient -> Color.White // This case won't be reached
+                        CardVariant.Gradient -> Color.White
                     },
                 )
             },
@@ -133,13 +134,13 @@ fun VTStatsCard(
                                     imageVector = when (trend) {
                                         TrendDirection.Up -> Icons.Filled.KeyboardArrowUp
                                         TrendDirection.Down -> Icons.Filled.KeyboardArrowDown
-                                        TrendDirection.None -> Icons.Filled.Remove
+                                        TrendDirection.None -> Icons.Filled.KeyboardArrowUp
                                     },
                                     contentDescription = null,
                                     tint = when (trend) {
                                         TrendDirection.Up -> Success
                                         TrendDirection.Down -> Error
-                                        TrendDirection.None -> Gray400
+                                        TrendDirection.None -> Gray600
                                     },
                                     modifier = Modifier.size(16.dp),
                                 )
@@ -150,7 +151,7 @@ fun VTStatsCard(
                                     color = when (trend) {
                                         TrendDirection.Up -> Success
                                         TrendDirection.Down -> Error
-                                        TrendDirection.None -> Gray400
+                                        TrendDirection.None -> Gray600
                                     },
                                     fontWeight = FontWeight.Medium,
                                 )
@@ -181,7 +182,6 @@ fun VTStatsCard(
                 modifier = cardModifier.padding(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                // Icon at the top
                 Box(
                     modifier = Modifier
                         .size(40.dp)
@@ -199,7 +199,6 @@ fun VTStatsCard(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                // Title
                 Text(
                     text = title,
                     style = MaterialTheme.typography.bodySmall,
@@ -214,7 +213,6 @@ fun VTStatsCard(
 
                 Spacer(modifier = Modifier.height(6.dp))
 
-                // Value
                 Text(
                     text = value,
                     style = MaterialTheme.typography.titleLarge,
@@ -226,7 +224,6 @@ fun VTStatsCard(
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                 )
 
-                // Trend indicator
                 if (trend != TrendDirection.None && trendValue.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(4.dp))
 
@@ -238,13 +235,13 @@ fun VTStatsCard(
                             imageVector = when (trend) {
                                 TrendDirection.Up -> Icons.Filled.KeyboardArrowUp
                                 TrendDirection.Down -> Icons.Filled.KeyboardArrowDown
-                                TrendDirection.None -> Icons.Filled.Remove
+                                TrendDirection.None -> Icons.Filled.KeyboardArrowUp
                             },
                             contentDescription = null,
                             tint = when (trend) {
                                 TrendDirection.Up -> Success
                                 TrendDirection.Down -> Error
-                                TrendDirection.None -> Gray400
+                                TrendDirection.None -> Gray600
                             },
                             modifier = Modifier.size(16.dp),
                         )
@@ -255,7 +252,7 @@ fun VTStatsCard(
                             color = when (trend) {
                                 TrendDirection.Up -> Success
                                 TrendDirection.Down -> Error
-                                TrendDirection.None -> Gray400
+                                TrendDirection.None -> Gray600
                             },
                             fontWeight = FontWeight.Medium,
                         )
@@ -280,22 +277,22 @@ fun StatsCardPreview() {
             ) {
                 VTStatsCard(
                     title = "총 과제",
-                    value = "0", // TODO: 실제 총 과제 수로 동적 설정
-                    icon = Icons.Filled.List,
+                    value = "0",
+                    icon = Icons.AutoMirrored.Filled.List,
                     iconColor = PrimaryIndigo,
                     trend = TrendDirection.Up,
-                    trendValue = "+0", // TODO: 실제 증가 수로 동적 설정
+                    trendValue = "+0",
                     modifier = Modifier.weight(1f),
                     variant = CardVariant.Gradient,
                 )
 
                 VTStatsCard(
                     title = "완료율",
-                    value = "0%", // TODO: 실제 완료율로 동적 설정
+                    value = "0%",
                     icon = Icons.Filled.Done,
                     iconColor = Success,
                     trend = TrendDirection.Up,
-                    trendValue = "+0%", // TODO: 실제 증가율로 동적 설정
+                    trendValue = "+0%",
                     modifier = Modifier.weight(1f),
                     variant = CardVariant.Gradient,
                 )
@@ -307,22 +304,22 @@ fun StatsCardPreview() {
             ) {
                 VTStatsCard(
                     title = "학생 수",
-                    value = "0", // TODO: 실제 학생 수로 동적 설정
+                    value = "0",
                     icon = Icons.Filled.Person,
                     iconColor = PrimaryEmerald,
                     trend = TrendDirection.Up,
-                    trendValue = "+0", // TODO: 실제 증가 수로 동적 설정
+                    trendValue = "+0",
                     modifier = Modifier.weight(1f),
                     onClick = { },
                 )
 
                 VTStatsCard(
                     title = "평균 점수",
-                    value = "0점", // TODO: 실제 평균 점수로 동적 설정
+                    value = "0점",
                     icon = Icons.Filled.Star,
                     iconColor = Warning,
                     trend = TrendDirection.Down,
-                    trendValue = "0점", // TODO: 실제 변화량으로 동적 설정
+                    trendValue = "0점",
                     modifier = Modifier.weight(1f),
                 )
             }

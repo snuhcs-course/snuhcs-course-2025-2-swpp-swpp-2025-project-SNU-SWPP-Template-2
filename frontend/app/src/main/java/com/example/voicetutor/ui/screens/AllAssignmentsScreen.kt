@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -128,7 +132,7 @@ fun AllAssignmentsScreen(
                 label = { Text("전체") },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Filled.List,
+                        imageVector = Icons.AutoMirrored.Filled.List,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
@@ -169,7 +173,7 @@ fun AllAssignmentsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Assignment,
+                            imageVector = Icons.AutoMirrored.Filled.Assignment,
                             contentDescription = null,
                             tint = Gray400,
                             modifier = Modifier.size(48.dp),
@@ -386,8 +390,8 @@ fun TypeBadge(type: String) {
     val (text, color, icon) = when (type) {
         "Quiz" -> Triple("퀴즈", Warning, Icons.Filled.Quiz)
         "Continuous" -> Triple("연속", Success, Icons.Filled.Schedule)
-        "Discussion" -> Triple("토론", PrimaryPurple, Icons.Filled.Chat)
-        else -> Triple("알 수 없음", MaterialTheme.colorScheme.onSurface, Icons.Filled.Help)
+        "Discussion" -> Triple("토론", PrimaryPurple, Icons.AutoMirrored.Filled.Chat)
+        else -> Triple("알 수 없음", MaterialTheme.colorScheme.onSurface, Icons.AutoMirrored.Filled.Help)
     }
 
     Box(

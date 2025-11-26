@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -41,7 +42,6 @@ fun TeacherStudentReportScreen(
     classId: Int,
     studentId: Int,
     studentName: String = "학생",
-    onBackClick: () -> Unit = {},
 ) {
     val reportViewModel: ReportViewModel = hiltViewModel()
     val classViewModel: ClassViewModel = hiltViewModel()
@@ -429,12 +429,6 @@ fun AchievementStatisticCard(
         else -> Error
     }
 
-    val statusIcon = when {
-        isHighAccuracy -> Icons.Filled.CheckCircle
-        isMediumAccuracy -> Icons.Filled.Warning
-        else -> Icons.Filled.Error
-    }
-
     val statusText = when {
         isHighAccuracy -> "✅"
         isMediumAccuracy -> "⚠️"
@@ -459,7 +453,7 @@ fun AchievementStatisticCard(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Label,
+                        imageVector = Icons.AutoMirrored.Filled.Label,
                         contentDescription = null,
                         tint = PrimaryIndigo,
                         modifier = Modifier.size(20.dp),

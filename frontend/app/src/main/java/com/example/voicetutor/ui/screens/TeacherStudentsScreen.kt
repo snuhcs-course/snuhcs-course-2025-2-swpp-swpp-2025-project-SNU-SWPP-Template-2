@@ -48,8 +48,6 @@ private const val DELAY_AFTER_ENROLL = 500L
 fun TeacherStudentsScreen(
     classId: Int? = null,
     teacherId: String? = null,
-    onNavigateToStudentDetail: (Int) -> Unit = {},
-    navController: androidx.navigation.NavHostController? = null,
 ) {
     val viewModel: StudentViewModel = hiltViewModel()
     val classViewModel: ClassViewModel = hiltViewModel()
@@ -66,7 +64,6 @@ fun TeacherStudentsScreen(
     val className = currentClass?.name ?: "고등학교 1학년 A반"
     val subjectName = currentClass?.subject?.name ?: "과목"
     val description = currentClass?.description ?: "과목 설명"
-    val teacherName = currentClass?.teacherName ?: currentUser?.name ?: "선생님"
 
     data class StudentStats(
         val averageScore: Float,
@@ -406,7 +403,7 @@ fun TeacherStudentsScreen(
                     } else {
                         allCandidates.filter { student ->
                             val name = student.name?.lowercase() ?: ""
-                            val email = student.email?.lowercase() ?: ""
+                            val email = student.email.lowercase()
                             name.contains(searchQueryLower) || email.contains(searchQueryLower)
                         }
                     }
@@ -538,7 +535,7 @@ fun TeacherStudentsScreen(
                 } else {
                     enrolledStudents.filter { student ->
                         val name = student.name?.lowercase() ?: ""
-                        val email = student.email?.lowercase() ?: ""
+                        val email = student.email.lowercase()
                         name.contains(searchQueryLower) || email.contains(searchQueryLower)
                     }
                 }
@@ -725,7 +722,7 @@ fun StudentListItem(
                         )
                         Text(
                             text = run {
-                            val email = student.email ?: "이메일 없음"
+                            val email = student.email
                             if (email.length > EMAIL_MAX_LENGTH) email.take(EMAIL_MAX_LENGTH) + "..." else email
                             },
                             style = MaterialTheme.typography.bodySmall,
@@ -814,7 +811,7 @@ fun StudentListItem(
     ) {
         if (!isLastItem) {
             Spacer(modifier = Modifier.height(4.dp))
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.fillMaxWidth(),
                 color = Gray200,
                 thickness = 0.5.dp,

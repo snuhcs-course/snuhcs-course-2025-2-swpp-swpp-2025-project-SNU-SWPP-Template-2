@@ -29,7 +29,7 @@ data class PendingAction(
     val retryCount: Int = 0,
 )
 
-class OfflineManager(private val context: Context) {
+class OfflineManager(context: Context) {
 
     private val _offlineState = MutableStateFlow(OfflineState())
     val offlineState: StateFlow<OfflineState> = _offlineState.asStateFlow()
@@ -44,9 +44,6 @@ class OfflineManager(private val context: Context) {
         loadOfflineState()
     }
 
-    /**
-     * 데이터 캐시 저장
-     */
     fun <T> cacheData(key: String, data: T): Boolean {
         return try {
             val cachedData = CachedData(
@@ -64,14 +61,11 @@ class OfflineManager(private val context: Context) {
             cacheFile.writeText(jsonObject.toString())
             updateCacheSize()
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
 
-    /**
-     * 캐시된 데이터 조회
-     */
     fun getCachedData(key: String, maxAge: Long = 24 * 60 * 60 * 1000): String? {
         return try {
             val cacheFile = File(cacheDir, "$key.json")
@@ -81,21 +75,17 @@ class OfflineManager(private val context: Context) {
             val jsonObject = JSONObject(jsonString)
             val timestamp = jsonObject.getLong("timestamp")
 
-            // 만료 시간 체크
             if (System.currentTimeMillis() - timestamp > maxAge) {
                 cacheFile.delete()
                 return null
             }
 
             jsonObject.getString("data")
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
 
-    /**
-     * 오프라인 액션 추가
-     */
     fun addPendingAction(type: String, data: String): String {
         val actionId = "${type}_${System.currentTimeMillis()}"
         val pendingAction = PendingAction(
@@ -116,9 +106,6 @@ class OfflineManager(private val context: Context) {
         return actionId
     }
 
-    /**
-     * 오프라인 액션 제거
-     */
     fun removePendingAction(actionId: String) {
         val currentActions = _offlineState.value.pendingActions.filter { it.id != actionId }
         _offlineState.value = _offlineState.value.copy(
@@ -127,9 +114,6 @@ class OfflineManager(private val context: Context) {
         savePendingActions()
     }
 
-    /**
-     * 오프라인 액션 재시도
-     */
     fun retryPendingAction(actionId: String) {
         val currentActions = _offlineState.value.pendingActions.toMutableList()
         val actionIndex = currentActions.indexOfFirst { it.id == actionId }
@@ -147,10 +131,7 @@ class OfflineManager(private val context: Context) {
         }
     }
 
-    /**
-     * 모든 대기 중인 액션 실행
-     */
-    suspend fun syncPendingActions(): Int {
+    fun syncPendingActions(): Int {
         var syncedCount = 0
         val actionsToRemove = mutableListOf<String>()
 
@@ -161,16 +142,13 @@ class OfflineManager(private val context: Context) {
                     actionsToRemove.add(action.id)
                     syncedCount++
                 } else if (action.retryCount >= 3) {
-                    // 최대 재시도 횟수 초과 시 제거
                     actionsToRemove.add(action.id)
                 }
-            } catch (e: Exception) {
-                // 에러 발생 시 재시도 카운트 증가
+            } catch (_: Exception) {
                 retryPendingAction(action.id)
             }
         }
 
-        // 성공한 액션들 제거
         actionsToRemove.forEach { actionId ->
             removePendingAction(actionId)
         }
@@ -182,30 +160,21 @@ class OfflineManager(private val context: Context) {
         return syncedCount
     }
 
-    /**
-     * 개별 액션 실행
-     */
-    private suspend fun executePendingAction(action: PendingAction): Boolean {
+    private fun executePendingAction(action: PendingAction): Boolean {
         return when (action.type) {
             "send_message" -> {
-                // TODO: 실제 메시지 전송 API 호출
                 true
             }
             "submit_assignment" -> {
-                // TODO: 실제 과제 제출 API 호출
                 true
             }
             "update_profile" -> {
-                // TODO: 실제 프로필 업데이트 API 호출
                 true
             }
             else -> false
         }
     }
 
-    /**
-     * 캐시 정리
-     */
     fun clearCache(): Boolean {
         return try {
             cacheDir.listFiles()?.forEach { file ->
@@ -215,14 +184,11 @@ class OfflineManager(private val context: Context) {
             }
             updateCacheSize()
             true
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
 
-    /**
-     * 오래된 캐시 정리
-     */
     fun clearOldCache(maxAge: Long = 7 * 24 * 60 * 60 * 1000): Int {
         var deletedCount = 0
         val currentTime = System.currentTimeMillis()
@@ -241,18 +207,12 @@ class OfflineManager(private val context: Context) {
         return deletedCount
     }
 
-    /**
-     * 오프라인 상태 설정
-     */
     fun setOfflineMode(isOffline: Boolean) {
         _offlineState.value = _offlineState.value.copy(
             isOffline = isOffline,
         )
     }
 
-    /**
-     * 캐시 크기 업데이트
-     */
     private fun updateCacheSize() {
         val cacheSize = cacheDir.listFiles()?.sumOf { it.length() } ?: 0L
         _offlineState.value = _offlineState.value.copy(
@@ -260,9 +220,6 @@ class OfflineManager(private val context: Context) {
         )
     }
 
-    /**
-     * 오프라인 상태 로드
-     */
     private fun loadOfflineState() {
         try {
             if (pendingActionsFile.exists()) {
@@ -286,15 +243,11 @@ class OfflineManager(private val context: Context) {
                     pendingActions = pendingActions,
                 )
             }
-        } catch (e: Exception) {
-            // 에러 발생 시 빈 상태로 초기화
+        } catch (_: Exception) {
         }
         updateCacheSize()
     }
 
-    /**
-     * 대기 중인 액션 저장
-     */
     private fun savePendingActions() {
         try {
             val jsonArray = JSONArray()
@@ -310,8 +263,7 @@ class OfflineManager(private val context: Context) {
             }
 
             pendingActionsFile.writeText(jsonArray.toString())
-        } catch (e: Exception) {
-            // 저장 실패 시 무시
+        } catch (_: Exception) {
         }
     }
 }

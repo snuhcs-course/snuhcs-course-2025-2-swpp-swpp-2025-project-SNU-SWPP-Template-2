@@ -4,7 +4,6 @@ import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.os.Build
 import com.example.voicetutor.annotations.ExcludeFromJacocoGeneratedReport
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,23 +16,23 @@ import java.util.*
 
 data class RecordingState(
     val isRecording: Boolean = false,
-    val recordingTime: Int = 0, // seconds
+    val recordingTime: Int = 0,
     val audioFilePath: String? = null,
     val isRecordingComplete: Boolean = false,
     val error: String? = null,
 )
 
 data class AudioConfig(
-    val sampleRate: Int = 16000, // Google STT 표준
+    val sampleRate: Int = 16000,
     val channelConfig: Int = AudioFormat.CHANNEL_IN_MONO,
     val audioFormat: Int = AudioFormat.ENCODING_PCM_16BIT,
     val audioSource: Int = MediaRecorder.AudioSource.MIC,
-    val maxRecordingDurationSeconds: Int = 60, // 최대 녹음 시간: 1분
+    val maxRecordingDurationSeconds: Int = 60,
 )
 
 class AudioRecorder(private val context: Context) {
 
-    private var audioRecord: android.media.AudioRecord? = null
+    private var audioRecord: AudioRecord? = null
     private var recordingJob: Job? = null
     private var timerJob: Job? = null
     private var startTime: Long = 0
@@ -43,9 +42,6 @@ class AudioRecorder(private val context: Context) {
 
     private val audioConfig = AudioConfig()
 
-    /**
-     * 녹음 시작
-     */
     fun startRecording(): Boolean {
         return try {
             println("AudioRecorder - Starting recording...")
@@ -67,19 +63,16 @@ class AudioRecorder(private val context: Context) {
                 return false
             }
 
-            // Android 6.0 이상에서 권한 체크
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
-                    != android.content.pm.PackageManager.PERMISSION_GRANTED
-                ) {
-                    _recordingState.value = _recordingState.value.copy(
-                        error = "마이크 권한이 필요합니다",
-                    )
-                    return false
-                }
+            if (context.checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED
+            ) {
+                _recordingState.value = _recordingState.value.copy(
+                    error = "마이크 권한이 필요합니다",
+                )
+                return false
             }
 
-            audioRecord = android.media.AudioRecord(
+            audioRecord = AudioRecord(
                 audioConfig.audioSource,
                 audioConfig.sampleRate,
                 audioConfig.channelConfig,
@@ -87,7 +80,7 @@ class AudioRecorder(private val context: Context) {
                 bufferSize * 2,
             )
 
-            if (audioRecord?.state != android.media.AudioRecord.STATE_INITIALIZED) {
+            if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
                 _recordingState.value = _recordingState.value.copy(
                     error = "오디오 레코더 초기화에 실패했습니다",
                 )
@@ -112,10 +105,7 @@ class AudioRecorder(private val context: Context) {
 
             startTime = System.currentTimeMillis()
 
-            // 타이머 시작
             startTimer()
-
-            // 녹음 시작
             startRecordingJob(audioFile, bufferSize)
 
             println("AudioRecorder - Recording started successfully")
@@ -132,9 +122,6 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    /**
-     * 녹음 중지
-     */
     fun stopRecording() {
         try {
             _recordingState.value = _recordingState.value.copy(
@@ -142,20 +129,17 @@ class AudioRecorder(private val context: Context) {
                 isRecordingComplete = true,
             )
 
-            // 작업들 중지
             recordingJob?.cancel()
             timerJob?.cancel()
 
-            // AudioRecord 정리
             audioRecord?.apply {
-                if (state == android.media.AudioRecord.STATE_INITIALIZED) {
+                if (state == AudioRecord.STATE_INITIALIZED) {
                     stop()
                 }
                 release()
             }
             audioRecord = null
 
-            // PCM 파일을 WAV로 변환
             val currentFilePath = _recordingState.value.audioFilePath
             if (currentFilePath != null && currentFilePath.endsWith(".pcm")) {
                 println("AudioRecorder - Converting PCM to WAV: $currentFilePath")
@@ -179,17 +163,13 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    /**
-     * 녹음 타이머 시작
-     */
     private fun startTimer() {
         timerJob = CoroutineScope(Dispatchers.Main).launch {
             while (_recordingState.value.isRecording) {
                 delay(1000)
                 val elapsedTime = ((System.currentTimeMillis() - startTime) / 1000).toInt()
                 _recordingState.value = _recordingState.value.copy(recordingTime = elapsedTime)
-                
-                // 최대 녹음 시간 도달 시 자동 중지
+
                 if (elapsedTime >= audioConfig.maxRecordingDurationSeconds) {
                     println("AudioRecorder - 최대 녹음 시간 도달, 자동 중지")
                     stopRecording()
@@ -199,9 +179,6 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    /**
-     * 실제 녹음 작업
-     */
     private fun startRecordingJob(audioFile: File, bufferSize: Int) {
         recordingJob = CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -214,17 +191,14 @@ class AudioRecorder(private val context: Context) {
                     val readSize = audioRecord?.read(buffer, 0, bufferSize) ?: 0
 
                     if (readSize > 0) {
-                        // PCM 데이터를 바이트 배열로 변환
                         val byteBuffer = ShortArray(readSize)
                         System.arraycopy(buffer, 0, byteBuffer, 0, readSize)
 
-                        // 바이트 배열로 변환하여 파일에 쓰기
                         val bytes = ShortArray(readSize)
                         for (i in 0 until readSize) {
                             bytes[i] = buffer[i]
                         }
 
-                        // 바이트로 변환
                         val byteArray = ByteArray(readSize * 2)
                         for (i in 0 until readSize) {
                             val sample = bytes[i]
@@ -245,9 +219,6 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    /**
-     * 오디오 파일 생성
-     */
     private fun createAudioFile(): File? {
         return try {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -255,7 +226,6 @@ class AudioRecorder(private val context: Context) {
 
             println("AudioRecorder - Creating audio file: $fileName")
 
-            // 앱의 내부 저장소에 파일 생성
             val audioDir = File(context.filesDir, "audio_recordings")
             if (!audioDir.exists()) {
                 audioDir.mkdirs()
@@ -273,9 +243,6 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    /**
-     * PCM 파일을 WAV 파일로 변환
-     */
     fun convertPcmToWav(pcmFilePath: String): String? {
         return try {
             println("AudioRecorder - Starting PCM to WAV conversion")
@@ -304,7 +271,7 @@ class AudioRecorder(private val context: Context) {
             println("AudioRecorder - WAV file written successfully")
             println("AudioRecorder - WAV file size: ${wavFile.length()} bytes")
 
-            pcmFile.delete() // PCM 파일 삭제
+            pcmFile.delete()
             println("AudioRecorder - PCM file deleted")
 
             wavFilePath
@@ -315,79 +282,64 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    /**
-     * WAV 파일 헤더만 생성 (44바이트)
-     */
-    private fun createWavHeader(dataSize: Int, sampleRate: Int): ByteArray {
+    private fun createWavHeader(dataSize: Int): ByteArray {
         val wavHeader = ByteArray(44)
         val fileSize = dataSize + 36
 
-        // RIFF 헤더
         wavHeader[0] = 'R'.code.toByte()
         wavHeader[1] = 'I'.code.toByte()
         wavHeader[2] = 'F'.code.toByte()
         wavHeader[3] = 'F'.code.toByte()
 
-        // 파일 크기
         wavHeader[4] = (fileSize and 0xFF).toByte()
         wavHeader[5] = ((fileSize shr 8) and 0xFF).toByte()
         wavHeader[6] = ((fileSize shr 16) and 0xFF).toByte()
         wavHeader[7] = ((fileSize shr 24) and 0xFF).toByte()
 
-        // WAVE 포맷
         wavHeader[8] = 'W'.code.toByte()
         wavHeader[9] = 'A'.code.toByte()
         wavHeader[10] = 'V'.code.toByte()
         wavHeader[11] = 'E'.code.toByte()
 
-        // fmt 청크
         wavHeader[12] = 'f'.code.toByte()
         wavHeader[13] = 'm'.code.toByte()
         wavHeader[14] = 't'.code.toByte()
         wavHeader[15] = ' '.code.toByte()
 
-        // fmt 청크 크기
         wavHeader[16] = 16
         wavHeader[17] = 0
         wavHeader[18] = 0
         wavHeader[19] = 0
 
-        // 오디오 포맷 (PCM)
         wavHeader[20] = 1
         wavHeader[21] = 0
 
-        // 채널 수 (모노)
         wavHeader[22] = 1
         wavHeader[23] = 0
 
-        // 샘플 레이트
+        val sampleRate = 16000
         wavHeader[24] = (sampleRate and 0xFF).toByte()
         wavHeader[25] = ((sampleRate shr 8) and 0xFF).toByte()
-        wavHeader[26] = ((sampleRate shr 16) and 0xFF).toByte()
-        wavHeader[27] = ((sampleRate shr 24) and 0xFF).toByte()
+        wavHeader[26] = 0
+        wavHeader[27] = 0
 
-        // 바이트 레이트
         val byteRate = sampleRate * 2
-        wavHeader[28] = (byteRate and 0xFF).toByte()
+        wavHeader[28] = 0
         wavHeader[29] = ((byteRate shr 8) and 0xFF).toByte()
-        wavHeader[30] = ((byteRate shr 16) and 0xFF).toByte()
-        wavHeader[31] = ((byteRate shr 24) and 0xFF).toByte()
+        wavHeader[30] = 0
+        wavHeader[31] = 0
 
-        // 블록 정렬
         wavHeader[32] = 2
         wavHeader[33] = 0
 
-        // 비트당 샘플
         wavHeader[34] = 16
         wavHeader[35] = 0
 
-        // data 청크
         wavHeader[36] = 'd'.code.toByte()
         wavHeader[37] = 'a'.code.toByte()
         wavHeader[38] = 't'.code.toByte()
         wavHeader[39] = 'a'.code.toByte()
 
-        // 데이터 크기
         wavHeader[40] = (dataSize and 0xFF).toByte()
         wavHeader[41] = ((dataSize shr 8) and 0xFF).toByte()
         wavHeader[42] = ((dataSize shr 16) and 0xFF).toByte()
@@ -396,80 +348,64 @@ class AudioRecorder(private val context: Context) {
         return wavHeader
     }
 
-    /**
-     * WAV 파일 헤더 생성
-     */
     private fun createWavFile(pcmData: ByteArray, sampleRate: Int): ByteArray {
         val wavHeader = ByteArray(44)
         val dataSize = pcmData.size
         val fileSize = dataSize + 36
 
-        // RIFF 헤더
-        wavHeader[0] = 'R'.toByte()
-        wavHeader[1] = 'I'.toByte()
-        wavHeader[2] = 'F'.toByte()
-        wavHeader[3] = 'F'.toByte()
+        wavHeader[0] = 'R'.code.toByte()
+        wavHeader[1] = 'I'.code.toByte()
+        wavHeader[2] = 'F'.code.toByte()
+        wavHeader[3] = 'F'.code.toByte()
 
-        // 파일 크기
         wavHeader[4] = (fileSize and 0xFF).toByte()
         wavHeader[5] = ((fileSize shr 8) and 0xFF).toByte()
         wavHeader[6] = ((fileSize shr 16) and 0xFF).toByte()
         wavHeader[7] = ((fileSize shr 24) and 0xFF).toByte()
 
-        // WAVE 형식
-        wavHeader[8] = 'W'.toByte()
-        wavHeader[9] = 'A'.toByte()
-        wavHeader[10] = 'V'.toByte()
-        wavHeader[11] = 'E'.toByte()
+        wavHeader[8] = 'W'.code.toByte()
+        wavHeader[9] = 'A'.code.toByte()
+        wavHeader[10] = 'V'.code.toByte()
+        wavHeader[11] = 'E'.code.toByte()
 
-        // fmt 청크
-        wavHeader[12] = 'f'.toByte()
-        wavHeader[13] = 'm'.toByte()
-        wavHeader[14] = 't'.toByte()
-        wavHeader[15] = ' '.toByte()
+        wavHeader[12] = 'f'.code.toByte()
+        wavHeader[13] = 'm'.code.toByte()
+        wavHeader[14] = 't'.code.toByte()
+        wavHeader[15] = ' '.code.toByte()
 
-        // fmt 청크 크기
         wavHeader[16] = 16
         wavHeader[17] = 0
         wavHeader[18] = 0
         wavHeader[19] = 0
 
-        // 오디오 포맷 (PCM)
         wavHeader[20] = 1
         wavHeader[21] = 0
 
-        // 채널 수 (모노)
         wavHeader[22] = 1
         wavHeader[23] = 0
 
-        // 샘플 레이트
         wavHeader[24] = (sampleRate and 0xFF).toByte()
         wavHeader[25] = ((sampleRate shr 8) and 0xFF).toByte()
-        wavHeader[26] = ((sampleRate shr 16) and 0xFF).toByte()
-        wavHeader[27] = ((sampleRate shr 24) and 0xFF).toByte()
+        wavHeader[26] = 0
+        wavHeader[27] = 0
 
-        // 바이트 레이트
         val byteRate = sampleRate * 2
-        wavHeader[28] = (byteRate and 0xFF).toByte()
+        wavHeader[28] = 0
         wavHeader[29] = ((byteRate shr 8) and 0xFF).toByte()
-        wavHeader[30] = ((byteRate shr 16) and 0xFF).toByte()
-        wavHeader[31] = ((byteRate shr 24) and 0xFF).toByte()
+        wavHeader[30] = 0
+        wavHeader[31] = 0
 
-        // 블록 정렬
         wavHeader[32] = 2
         wavHeader[33] = 0
 
-        // 비트당 샘플
         wavHeader[34] = 16
         wavHeader[35] = 0
 
-        // data 청크
-        wavHeader[36] = 'd'.toByte()
-        wavHeader[37] = 'a'.toByte()
-        wavHeader[38] = 't'.toByte()
-        wavHeader[39] = 'a'.toByte()
+        wavHeader[36] = 'd'.code.toByte()
+        wavHeader[37] = 'a'.code.toByte()
+        wavHeader[38] = 't'.code.toByte()
+        wavHeader[39] = 'a'.code.toByte()
 
-        // 데이터 크기
         wavHeader[40] = (dataSize and 0xFF).toByte()
         wavHeader[41] = ((dataSize shr 8) and 0xFF).toByte()
         wavHeader[42] = ((dataSize shr 16) and 0xFF).toByte()
@@ -478,9 +414,6 @@ class AudioRecorder(private val context: Context) {
         return wavHeader + pcmData
     }
 
-    /**
-     * 1초짜리 빈 WAV 파일 생성 (건너뛰기용)
-     */
     fun createEmptyWavFile(): File? {
         return try {
             println("AudioRecorder - Creating empty WAV file for skip")
@@ -495,15 +428,12 @@ class AudioRecorder(private val context: Context) {
 
             val wavFile = File(audioDir, fileName)
 
-            // 1초 분량의 무음 데이터 생성 (16000 샘플 * 2바이트 = 32000 바이트)
             val sampleRate = 16000
-            val numSamples = sampleRate // 1초
-            val silentData = ByteArray(numSamples * 2) // 16-bit = 2 bytes per sample
+            val numSamples = sampleRate
+            val silentData = ByteArray(numSamples * 2)
 
-            // WAV 헤더 생성
-            val wavHeader = createWavHeader(silentData.size, sampleRate)
+            val wavHeader = createWavHeader(silentData.size)
 
-            // 파일에 쓰기
             FileOutputStream(wavFile).use { outputStream ->
                 outputStream.write(wavHeader)
                 outputStream.write(silentData)
@@ -518,9 +448,6 @@ class AudioRecorder(private val context: Context) {
         }
     }
 
-    /**
-     * 리소스 정리
-     */
     @ExcludeFromJacocoGeneratedReport
     fun cleanup() {
         stopRecording()

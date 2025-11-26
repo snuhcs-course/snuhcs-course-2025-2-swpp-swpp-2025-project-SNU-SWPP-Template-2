@@ -6,6 +6,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,8 +24,10 @@ import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
-import java.time.ZoneId
-import java.time.ZonedDateTime
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
+import java.util.TimeZone
 
 data class ClassAssignment(
     val id: Int,
@@ -166,7 +170,7 @@ fun TeacherClassDetailScreen(
                 VTStatsCard(
                     title = "과제",
                     value = "${classAssignments.size}개",
-                    icon = Icons.Filled.Assignment,
+                    icon = Icons.AutoMirrored.Filled.Assignment,
                     iconColor = Warning,
                     modifier = Modifier.weight(1f),
                     variant = CardVariant.Gradient,
@@ -217,7 +221,7 @@ fun TeacherClassDetailScreen(
                         label = { Text("전체", style = MaterialTheme.typography.bodySmall) },
                         leadingIcon = {
                             Icon(
-                                imageVector = Icons.Filled.List,
+                                imageVector = Icons.AutoMirrored.Filled.List,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
@@ -260,7 +264,7 @@ fun TeacherClassDetailScreen(
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Icon(
-                                imageVector = Icons.Filled.Assignment,
+                                imageVector = Icons.AutoMirrored.Filled.Assignment,
                                 contentDescription = null,
                                 tint = Gray400,
                                 modifier = Modifier.size(48.dp),
@@ -292,7 +296,7 @@ private fun filterAssignmentsByStatus(
     assignments: List<ClassAssignment>,
     filter: AssignmentFilter,
 ): List<ClassAssignment> {
-    val now = ZonedDateTime.now(ZoneId.systemDefault())
+    val now = Calendar.getInstance()
     return when (filter) {
         AssignmentFilter.ALL -> assignments
         AssignmentFilter.IN_PROGRESS -> assignments.filter { isAssignmentInProgress(it.dueDate, now) }
@@ -300,20 +304,56 @@ private fun filterAssignmentsByStatus(
     }
 }
 
-private fun isAssignmentInProgress(dueDate: String, now: ZonedDateTime): Boolean {
+private fun isAssignmentInProgress(dueDate: String, now: Calendar): Boolean {
     return try {
-        ZonedDateTime.parse(dueDate).isAfter(now)
-    } catch (e: Exception) {
+        val dueDateCalendar = parseIsoDate(dueDate)
+        dueDateCalendar != null && dueDateCalendar.after(now)
+    } catch (_: Exception) {
         true
     }
 }
 
-private fun isAssignmentCompleted(dueDate: String, now: ZonedDateTime): Boolean {
+private fun isAssignmentCompleted(dueDate: String, now: Calendar): Boolean {
     return try {
-        val parsed = ZonedDateTime.parse(dueDate)
-        parsed.isBefore(now) || parsed.isEqual(now)
-    } catch (e: Exception) {
+        val dueDateCalendar = parseIsoDate(dueDate)
+        if (dueDateCalendar == null) {
+            false
+        } else {
+            dueDateCalendar.before(now) || dueDateCalendar.timeInMillis == now.timeInMillis
+        }
+    } catch (_: Exception) {
         false
+    }
+}
+
+private fun parseIsoDate(isoDate: String): Calendar? {
+    return try {
+        val formats = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+            "yyyy-MM-dd'T'HH:mm:ssXXX",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss",
+            "yyyy-MM-dd HH:mm:ss",
+        )
+        
+        for (pattern in formats) {
+            try {
+                val sdf = SimpleDateFormat(pattern, Locale.getDefault())
+                sdf.timeZone = TimeZone.getTimeZone("UTC")
+                val date = sdf.parse(isoDate)
+                if (date != null) {
+                    val calendar = Calendar.getInstance()
+                    calendar.time = date
+                    return calendar
+                }
+            } catch (_: Exception) {
+                continue
+            }
+        }
+        null
+    } catch (_: Exception) {
+        null
     }
 }
 

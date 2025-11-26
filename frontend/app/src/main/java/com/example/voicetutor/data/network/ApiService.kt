@@ -9,11 +9,9 @@ import retrofit2.http.*
 
 interface ApiService {
 
-    // Health check API
     @GET("core/health/")
     suspend fun healthCheck(): Response<ApiResponse<String>>
 
-    // Auth APIs
     @POST("auth/login/")
     suspend fun login(@Body request: LoginRequest): Response<LoginResponse>
 
@@ -26,7 +24,6 @@ interface ApiService {
     @DELETE("auth/account/")
     suspend fun deleteAccount(): Response<ApiResponse<Unit>>
 
-    // Assignment APIs
     @GET("assignments/")
     suspend fun getAllAssignments(
         @Query("teacherId") teacherId: String? = null,
@@ -49,7 +46,6 @@ interface ApiService {
     @GET("assignments/{id}/results/")
     suspend fun getAssignmentResult(@Path("id") id: Int): Response<ApiResponse<AssignmentResultData>>
 
-    // Student APIs (Backend: /api/courses/students/)
     @GET("courses/students/")
     suspend fun getAllStudents(
         @Query("teacherId") teacherId: String? = null,
@@ -62,7 +58,6 @@ interface ApiService {
     @GET("courses/students/{id}/assignments/")
     suspend fun getStudentAssignments(@Path("id") id: Int): Response<ApiResponse<List<AssignmentData>>>
 
-    // Personal Assignment APIs (Backend: /api/personal_assignments/)
     @GET("personal_assignments/")
     suspend fun getPersonalAssignments(
         @Query("student_id") studentId: Int? = null,
@@ -75,7 +70,6 @@ interface ApiService {
     @GET("personal_assignments/{id}/statistics/")
     suspend fun getPersonalAssignmentStatistics(@Path("id") id: Int): Response<ApiResponse<PersonalAssignmentStatistics>>
 
-    // Recent personal assignment for a student (used when entering assignment without id)
     @GET("personal_assignments/recentanswer/")
     suspend fun getRecentPersonalAssignment(
         @Query("student_id") studentId: Int,
@@ -104,7 +98,6 @@ interface ApiService {
     @GET("courses/students/{id}/progress/")
     suspend fun getStudentProgress(@Path("id") id: Int): Response<ApiResponse<StudentProgress>>
 
-    // Class APIs (Backend: /api/courses/classes/)
     @GET("courses/classes/")
     suspend fun getClasses(@Query("teacherId") teacherId: String): Response<ApiResponse<List<ClassData>>>
 
@@ -120,33 +113,28 @@ interface ApiService {
     @GET("courses/classes/{id}/students/")
     suspend fun getClassStudents(@Path("id") id: Int): Response<ApiResponse<List<Student>>>
 
-    // Student's enrolled classes (Backend: GET /api/courses/students/{id}/classes/)
     @GET("courses/students/{id}/classes/")
     suspend fun getStudentClasses(
         @Path("id") id: Int,
     ): Response<ApiResponse<List<ClassInfo>>>
 
-    // Enroll student to class (Backend: PUT /api/courses/classes/{id}/students/)
     @PUT("courses/classes/{id}/students/")
     suspend fun enrollStudentToClass(
         @Path("id") id: Int,
         @Query("studentId") studentId: Int,
     ): Response<ApiResponse<EnrollmentData>>
 
-    // Remove student from class (Backend: DELETE /api/courses/classes/{id}/students/{student_id}/)
     @DELETE("courses/classes/{id}/students/{student_id}/")
     suspend fun removeStudentFromClass(
         @Path("id") id: Int,
         @Path("student_id") student_id: Int,
     ): Response<ApiResponse<Unit>>
 
-    // Class Students Statistics API
     @GET("courses/classes/{classId}/students-statistics/")
     suspend fun getClassStudentsStatistics(
         @Path("classId") classId: Int,
     ): Response<ApiResponse<ClassStudentsStatistics>>
 
-    // Progress Report APIs
     @GET("reports/progress/")
     suspend fun getProgressReport(
         @Query("teacherId") teacherId: String,
@@ -154,30 +142,25 @@ interface ApiService {
         @Query("period") period: String = "week",
     ): Response<ApiResponse<ProgressReportData>>
 
-    // Curriculum Report API (선생님용 학생 리포트)
     @GET("reports/{class_id}/{student_id}/")
     suspend fun getCurriculumReport(
         @Path("class_id") classId: Int,
         @Path("student_id") studentId: Int,
-    ): Response<ApiResponse<com.example.voicetutor.data.models.CurriculumReportData>>
+    ): Response<ApiResponse<CurriculumReportData>>
 
     @GET("assignments/{assignment_id}/s3-check/")
     suspend fun checkS3Upload(@Path("assignment_id") assignmentId: Int): Response<ApiResponse<S3UploadStatus>>
 
-    // Questions - generate base questions after PDF upload
-    // 백엔드는 ApiResponse 형식이 아닌 직접 JSON 응답을 반환함
     @POST("questions/create/")
     suspend fun createQuestions(@Body request: QuestionCreateRequest): Response<ResponseBody>
 
-    // Dashboard APIs (Backend: /api/assignments/teacher-dashboard-stats/)
     @GET("assignments/teacher-dashboard-stats/")
     suspend fun getDashboardStats(
         @Query("teacherId") teacherId: String,
-    ): Response<ApiResponse<com.example.voicetutor.data.models.DashboardStats>>
+    ): Response<ApiResponse<DashboardStats>>
 
 }
 
-// Minimal response model for recent personal assignment lookup
 data class RecentAnswerData(
     @SerializedName("personal_assignment_id") val personalAssignmentId: Int,
 )
@@ -256,7 +239,6 @@ data class S3UploadStatus(
     @SerializedName("bucket") val bucket: String,
 )
 
-// Request body to trigger question generation based on uploaded PDF
 data class QuestionCreateRequest(
     @SerializedName("assignment_id") val assignment_id: Int,
     @SerializedName("material_id") val material_id: Int,

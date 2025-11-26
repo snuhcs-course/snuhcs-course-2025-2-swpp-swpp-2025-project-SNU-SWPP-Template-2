@@ -24,7 +24,7 @@ open class AuthRepository @Inject constructor(
             println("AuthRepository - Login response success: ${responseBody?.success}")
 
             if (response.isSuccessful && responseBody?.success == true) {
-                val user = responseBody.user // 'data' 필드가 'user'로 매핑됨
+                val user = responseBody.user
                 println("AuthRepository - User: ${user?.email}")
                 println("AuthRepository - User.assignments: ${user?.assignments?.size}")
                 user?.assignments?.forEach {
@@ -82,7 +82,7 @@ open class AuthRepository @Inject constructor(
                 name = name,
                 email = email,
                 password = password,
-                role = role.name, // UserRole enum을 String으로 변환
+                role = role.name,
             )
             val response = apiService.signup(signupRequest)
 
@@ -153,9 +153,9 @@ open class AuthRepository @Inject constructor(
                     ?: parseErrorMessage(response)
                     ?: "계정 삭제에 실패했습니다."
 
-                val exception = when {
-                    statusCode == 401 || statusCode == 403 -> DeleteAccountException.Unauthorized("계정 삭제를 위해 다시 로그인해주세요.")
-                    statusCode in 500..599 -> DeleteAccountException.Server("서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+                val exception = when (statusCode) {
+                    401, 403 -> DeleteAccountException.Unauthorized("계정 삭제를 위해 다시 로그인해주세요.")
+                    in 500..599 -> DeleteAccountException.Server("서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
                     else -> DeleteAccountException.Unknown(message)
                 }
                 Result.failure(exception)

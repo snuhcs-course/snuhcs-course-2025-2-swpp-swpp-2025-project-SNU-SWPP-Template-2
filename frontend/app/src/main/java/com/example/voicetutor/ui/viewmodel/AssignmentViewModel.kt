@@ -1317,7 +1317,7 @@ class AssignmentViewModel @Inject constructor(
                     _personalAssignmentQuestions.value = questions
                     _currentQuestionIndex.value = 0
                     lastLoadedPersonalAssignmentId = personalAssignmentId
-                    println("AssignmentViewModel - Successfully loaded ${questions?.size ?: 0} questions")
+                    println("AssignmentViewModel - Successfully loaded ${questions.size} questions")
                 }
                 .onFailure { exception ->
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)

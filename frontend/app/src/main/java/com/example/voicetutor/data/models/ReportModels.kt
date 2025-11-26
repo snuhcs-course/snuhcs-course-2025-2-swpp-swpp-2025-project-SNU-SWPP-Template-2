@@ -43,7 +43,6 @@ data class QuestionResult(
     val confidence: Float,
 )
 
-// 성취기준별 통계 데이터
 data class AchievementStatistics(
     @SerializedName("total_questions")
     val totalQuestions: Int,
@@ -55,7 +54,6 @@ data class AchievementStatistics(
     val content: String,
 )
 
-// 성취기준 분석 리포트 데이터
 data class CurriculumReportData(
     @SerializedName("total_questions")
     val totalQuestions: Int,

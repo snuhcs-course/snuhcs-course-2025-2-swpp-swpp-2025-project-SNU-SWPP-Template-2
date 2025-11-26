@@ -23,7 +23,6 @@ fun NoRecentAssignmentScreen() {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
-            // Icon
             Icon(
                 imageVector = Icons.Filled.Assignment,
                 contentDescription = "No Recent Assignments",
@@ -31,7 +30,6 @@ fun NoRecentAssignmentScreen() {
                 modifier = Modifier.size(80.dp),
             )
 
-            // Message
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp),

@@ -40,12 +40,11 @@ import com.example.voicetutor.ui.viewmodel.StudentViewModel
 import com.example.voicetutor.data.network.CreateAssignmentRequest
 import kotlinx.coroutines.launch
 import java.io.File
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -136,7 +135,7 @@ fun CreateAssignmentScreen(
     var selectedSubject by remember { mutableStateOf("") }
     var dueDateText by remember { mutableStateOf("") }
     var dueDateRequest by remember { mutableStateOf("") }
-    var dueDateTime by remember { mutableStateOf<LocalDateTime?>(null) }
+    var dueDateTime by remember { mutableStateOf<Calendar?>(null) }
     var questionCount by remember { mutableStateOf("5") }
     var assignToAll by remember { mutableStateOf(true) }
     var showClassSelectionWarning by remember { mutableStateOf(false) }
@@ -145,10 +144,10 @@ fun CreateAssignmentScreen(
     var subjectSelectionExpanded by remember { mutableStateOf(false) }
     var dueShowDatePicker by remember { mutableStateOf(false) }
     var dueShowTimePicker by remember { mutableStateOf(false) }
-    var duePendingDate by remember { mutableStateOf<LocalDate?>(null) }
+    var duePendingDate by remember { mutableStateOf<Calendar?>(null) }
 
-    val displayDateFormatter = remember { DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm") }
-    val zoneId = remember { ZoneId.systemDefault() }
+    val displayDateFormatter = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
+    val isoDateFormatter = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault()).apply { timeZone = TimeZone.getTimeZone("UTC") } }
 
     val classStudents by classViewModel.classStudents.collectAsStateWithLifecycle()
     val isLoadingClassStudents by classViewModel.isLoading.collectAsStateWithLifecycle()
@@ -164,7 +163,6 @@ fun CreateAssignmentScreen(
     LaunchedEffect(actualTeacherId) {
         classViewModel.loadClasses(actualTeacherId)
         studentViewModel.loadAllStudents(teacherId = actualTeacherId)
-        // 화면이 열릴 때 업로드 상태 초기화
         actualAssignmentViewModel.resetUploadState()
     }
 
@@ -205,7 +203,6 @@ fun CreateAssignmentScreen(
         }
     }
 
-    // 학년 리스트
     val grades = listOf(
         "초등학교 1학년", "초등학교 2학년", "초등학교 3학년",
         "초등학교 4학년", "초등학교 5학년", "초등학교 6학년",
@@ -305,7 +302,7 @@ fun CreateAssignmentScreen(
                                             tint = PrimaryIndigo,
                                         )
                                     },
-                                    modifier = Modifier.menuAnchor(),
+                                    modifier = Modifier                                    .menuAnchor(),
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = PrimaryIndigo,
                                         focusedLabelColor = PrimaryIndigo,
@@ -318,7 +315,7 @@ fun CreateAssignmentScreen(
                                     expanded = classSelectionExpanded,
                                     onDismissRequest = { classSelectionExpanded = false },
                                 ) {
-                                    classes.forEachIndexed { index, classData ->
+                                    classes.forEachIndexed { _, classData ->
                                         val className = classData.name
                                         DropdownMenuItem(
                                             text = {
@@ -345,7 +342,6 @@ fun CreateAssignmentScreen(
                                 }
                             }
 
-                            // Grade selection
                             ExposedDropdownMenuBox(
                                 expanded = gradeSelectionExpanded,
                                 onExpandedChange = { gradeSelectionExpanded = !gradeSelectionExpanded },
@@ -359,7 +355,7 @@ fun CreateAssignmentScreen(
                                     placeholder = { Text("학년을 선택하세요") },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .menuAnchor(),
+                                    .menuAnchor(),
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = gradeSelectionExpanded)
                                     },
@@ -387,7 +383,6 @@ fun CreateAssignmentScreen(
                                 }
                             }
 
-                            // Subject selection
                             ExposedDropdownMenuBox(
                                 expanded = subjectSelectionExpanded,
                                 onExpandedChange = { subjectSelectionExpanded = !subjectSelectionExpanded },
@@ -401,7 +396,7 @@ fun CreateAssignmentScreen(
                                     placeholder = { Text("과목을 선택하세요") },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .menuAnchor(),
+                                    .menuAnchor(),
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = subjectSelectionExpanded)
                                     },
@@ -530,7 +525,7 @@ fun CreateAssignmentScreen(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 LinearProgressIndicator(
-                                    progress = uploadProgress.coerceIn(0f, 1f),
+                                    progress = { uploadProgress.coerceIn(0f, 1f) },
                                     modifier = Modifier.fillMaxWidth(),
                                     color = PrimaryIndigo,
                                     trackColor = Gray300,
@@ -736,14 +731,12 @@ fun CreateAssignmentScreen(
                                     verticalArrangement = Arrangement.spacedBy(8.dp),
                                 ) {
                                     if (isLoadingClassStudents) {
-                                        // 로딩 중인 경우
                                         Text(
                                             text = "학생 목록을 불러오는 중...",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = Gray600,
                                         )
                                     } else if (displayStudents.isEmpty()) {
-                                        // 로딩 완료되었지만 학생이 없는 경우
                                         Text(
                                             text = "해당 반에 학생이 등록되지 않았습니다.",
                                             style = MaterialTheme.typography.bodyMedium,
@@ -821,7 +814,6 @@ fun CreateAssignmentScreen(
                     text = "과제 생성",
                     onClick = {
                         if (isFormValid && selectedClassId != null) {
-                            // 문제 개수를 정수로 파싱 (기본값 0)
                             val questionCountInt = questionCount.toIntOrNull() ?: 0
 
                             val createRequest = CreateAssignmentRequest.builder()
@@ -851,7 +843,6 @@ fun CreateAssignmentScreen(
                                 println("파일 크기: ${pdfFile.length()} bytes")
                                 actualAssignmentViewModel.createAssignmentWithPdf(createRequest, pdfFile, totalNumber = questionCountInt, teacherId = actualTeacherId)
                             } else {
-                                // PDF 파일이 없는 경우 일반 과제 생성
                                 println("PDF 파일이 없음 - 일반 과제 생성")
                                 actualAssignmentViewModel.createAssignment(createRequest, teacherId = actualTeacherId)
                             }
@@ -874,17 +865,16 @@ fun CreateAssignmentScreen(
         }
 
         if (dueShowDatePicker) {
-            val initialDateMillis = dueDateTime
-                ?.atZone(zoneId)
-                ?.toInstant()
-                ?.toEpochMilli()
-                ?: Instant.now().toEpochMilli()
+            val initialDateMillis = dueDateTime?.timeInMillis
+                ?: Calendar.getInstance().timeInMillis
             
-            // 오늘 날짜를 밀리초로 계산
-            val todayMillis = LocalDate.now()
-                .atStartOfDay(zoneId)
-                .toInstant()
-                .toEpochMilli()
+            val todayCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val todayMillis = todayCalendar.timeInMillis
             
             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
@@ -898,11 +888,10 @@ fun CreateAssignmentScreen(
                         onClick = {
                             val selectedMillis = datePickerState.selectedDateMillis
                             if (selectedMillis != null) {
-                                // 선택된 날짜가 오늘 이후인지 확인
                                 if (selectedMillis >= todayMillis) {
-                                    duePendingDate = Instant.ofEpochMilli(selectedMillis)
-                                        .atZone(zoneId)
-                                        .toLocalDate()
+                                    duePendingDate = Calendar.getInstance().apply {
+                                        timeInMillis = selectedMillis
+                                    }
                                     dueShowDatePicker = false
                                     dueShowTimePicker = true
                                 }
@@ -944,19 +933,32 @@ fun CreateAssignmentScreen(
         }
 
         if (dueShowTimePicker) {
-            val selectedDate = duePendingDate ?: dueDateTime?.toLocalDate() ?: LocalDate.now()
-            val isToday = selectedDate == LocalDate.now()
-            val now = LocalTime.now()
+            val now = Calendar.getInstance()
+            val selectedDateCalendar = duePendingDate ?: dueDateTime ?: Calendar.getInstance()
+            val todayCalendar = Calendar.getInstance().apply {
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val selectedDateOnly = Calendar.getInstance().apply {
+                timeInMillis = selectedDateCalendar.timeInMillis
+                set(Calendar.HOUR_OF_DAY, 0)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            val isToday = selectedDateOnly.timeInMillis == todayCalendar.timeInMillis
             
             val initialHour = if (isToday && dueDateTime == null) {
-                now.hour
+                now.get(Calendar.HOUR_OF_DAY)
             } else {
-                dueDateTime?.hour ?: now.hour
+                dueDateTime?.get(Calendar.HOUR_OF_DAY) ?: now.get(Calendar.HOUR_OF_DAY)
             }
             val initialMinute = if (isToday && dueDateTime == null) {
-                now.minute
+                now.get(Calendar.MINUTE)
             } else {
-                dueDateTime?.minute ?: now.minute
+                dueDateTime?.get(Calendar.MINUTE) ?: now.get(Calendar.MINUTE)
             }
             
             val timePickerState = rememberTimePickerState(
@@ -973,23 +975,29 @@ fun CreateAssignmentScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val selectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
-                            val finalDateTime = LocalDateTime.of(selectedDate, selectedTime)
+                            val finalDateTime = Calendar.getInstance().apply {
+                                timeInMillis = selectedDateCalendar.timeInMillis
+                                set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                                set(Calendar.MINUTE, timePickerState.minute)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
                             
-                            // 오늘 날짜인 경우 현재 시간 이후인지 확인
                             val isValid = if (isToday) {
-                                finalDateTime.isAfter(LocalDateTime.now())
+                                finalDateTime.after(Calendar.getInstance())
                             } else {
                                 true
                             }
                             
                             if (isValid) {
                                 dueDateTime = finalDateTime
-                                dueDateText = finalDateTime.format(displayDateFormatter)
-                                dueDateRequest = finalDateTime
-                                    .atZone(zoneId)
-                                    .toOffsetDateTime()
-                                    .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                                dueDateText = displayDateFormatter.format(finalDateTime.time)
+                                
+                                val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                                    timeInMillis = finalDateTime.timeInMillis
+                                }
+                                dueDateRequest = isoDateFormatter.format(utcCalendar.time)
+                                
                                 dueShowTimePicker = false
                                 duePendingDate = null
                             }
@@ -1059,7 +1067,7 @@ fun CreateAssignmentScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             LinearProgressIndicator(
-                                progress = uploadProgress,
+                                progress = { uploadProgress },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(8.dp),

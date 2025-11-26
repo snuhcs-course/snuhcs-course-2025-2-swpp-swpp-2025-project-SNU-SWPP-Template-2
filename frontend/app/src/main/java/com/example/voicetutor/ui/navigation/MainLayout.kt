@@ -37,12 +37,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 data class RecentAssignment(
-    val id: String, // personal_assignment_id
-    val title: String, // 과제 제목
-    val assignmentId: Int, // assignment_id
+    val id: String,
+    val title: String,
+    val assignmentId: Int,
 )
 
-// Helper function to get page title based on current destination
 fun getPageTitle(currentDestination: String?, userRole: UserRole): String {
     return when {
         currentDestination == VoiceTutorScreens.Assignment.route -> "과제"
@@ -125,7 +124,6 @@ fun MainLayout(
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
     val recentAssignment = if (userRole == UserRole.STUDENT) recentAssignmentState.value else null
 
-    // Get question generation status for floating progress indicator
     val isGeneratingQuestions by assignmentViewModel.isGeneratingQuestions.collectAsStateWithLifecycle()
     val generatingAssignmentTitle by assignmentViewModel.generatingAssignmentTitle.collectAsStateWithLifecycle()
     val questionGenerationSuccess by assignmentViewModel.questionGenerationSuccess.collectAsStateWithLifecycle()
@@ -200,7 +198,6 @@ fun MainLayout(
         }
     }
 
-    // Load recent assignment for students
     LaunchedEffect(userRole, currentUser?.id) {
         if (userRole == UserRole.STUDENT) {
             val userId = currentUser?.id
@@ -210,7 +207,6 @@ fun MainLayout(
         }
     }
 
-    // Check if current page is a dashboard (should show logo) or other page (should show back button)
     val isDashboard = baseDestination == VoiceTutorScreens.StudentDashboard.route ||
         baseDestination == VoiceTutorScreens.Progress.route ||
         baseDestination == VoiceTutorScreens.TeacherDashboard.route ||
@@ -236,15 +232,13 @@ fun MainLayout(
                     ),
                 ),
             ),
-    ) {
-        // Header
+        ) {
         TopAppBar(
             title = {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     if (isDashboard) {
-                        // Logo (for dashboard pages)
                         Box(
                             modifier = Modifier
                                 .size(40.dp)
@@ -273,7 +267,6 @@ fun MainLayout(
                             color = PrimaryIndigo,
                         )
                     } else {
-                        // Back button (for non-dashboard pages)
                         IconButton(
                             onClick = {
                                 navController.popBackStack()
@@ -302,7 +295,6 @@ fun MainLayout(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    // User info
                     Column(
                         horizontalAlignment = Alignment.End,
                     ) {
@@ -323,7 +315,6 @@ fun MainLayout(
                         )
                     }
 
-                    // Profile button
                     IconButton(
                         onClick = {
                             navController.navigate(VoiceTutorScreens.Settings.createRoute())
@@ -348,7 +339,6 @@ fun MainLayout(
                         }
                     }
 
-                    // Logout button
                     IconButton(
                         onClick = {
                             showLogoutDialog = true
@@ -446,7 +436,6 @@ fun MainLayout(
             )
         }
 
-        // Main content
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -460,7 +449,6 @@ fun MainLayout(
             content()
         }
 
-        // Floating progress indicator for background question generation (above bottom navigation)
         if (isGeneratingQuestions && generatingAssignmentTitle != null) {
             Box(
                 modifier = Modifier
@@ -515,7 +503,6 @@ fun MainLayout(
             }
         }
 
-        // 과제 생성 성공 메시지 (질문 생성 완료 시)
         if (showAssignmentCreatedToast) {
             Box(
                 modifier = Modifier
@@ -556,7 +543,6 @@ fun MainLayout(
             }
         }
         
-        // 취소 메시지
         if (showCancelledToast) {
             Box(
                 modifier = Modifier
@@ -597,7 +583,6 @@ fun MainLayout(
             }
         }
 
-        // Bottom navigation
         BottomNavigation(
             navController = navController,
             userRole = userRole,
@@ -625,7 +610,6 @@ fun BottomNavigation(
             .clip(RoundedCornerShape(20.dp)),
     ) {
         if (userRole == UserRole.TEACHER) {
-            // Teacher navigation items
             NavigationBarItem(
                 icon = {
                     Icon(
@@ -685,7 +669,6 @@ fun BottomNavigation(
                 ),
             )
         } else {
-            // Student navigation items
             NavigationBarItem(
                 icon = {
                     Icon(
@@ -707,7 +690,6 @@ fun BottomNavigation(
                 ),
             )
 
-            // Recent assignment (always shows "이어하기")
             NavigationBarItem(
                 icon = {
                     Icon(
@@ -719,15 +701,12 @@ fun BottomNavigation(
                 selected = currentRoute == "assignment",
                 onClick = {
                     if (recentAssignment != null) {
-                        // ViewModel에 두 ID를 모두 저장 (Dashboard와 동일하게)
                         assignmentViewModel.setSelectedAssignmentIds(
                             assignmentId = recentAssignment.assignmentId,
                             personalAssignmentId = recentAssignment.id.toIntOrNull(),
                         )
-                        // 이어하기: 최근 과제 상세 화면으로 이동
                         navController.navigate(VoiceTutorScreens.AssignmentDetail.createRoute(recentAssignment.id, recentAssignment.title))
                     } else {
-                        // 진행할 과제가 없는 경우: NoRecentAssignmentScreen으로 이동
                         currentUserId?.let { studentId ->
                             navController.navigate(VoiceTutorScreens.NoRecentAssignment.createRoute(studentId))
                         }

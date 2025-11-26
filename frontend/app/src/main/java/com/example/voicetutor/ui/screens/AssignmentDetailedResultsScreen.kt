@@ -28,7 +28,6 @@ import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 fun AssignmentDetailedResultsScreen(
     personalAssignmentId: Int,
     assignmentTitle: String = "리포트",
-    onBackClick: () -> Unit = {},
     viewModel: AssignmentViewModel = hiltViewModel(),
 ) {
     // API에서 정답 여부 데이터 로드
@@ -421,47 +420,51 @@ fun QuestionGroupCard(
                             cardPositions.forEachIndexed { index, yPosition ->
                                 val path = androidx.compose.ui.graphics.Path()
 
-                                if (index == 0) {
-                                    // 첫 번째: 위에서 곡선으로 연결
-                                    path.moveTo(verticalLineX, 0f)
-                                    path.lineTo(verticalLineX, yPosition - curveRadius)
+                                when {
+                                    index == 0 -> {
+                                        // 첫 번째: 위에서 곡선으로 연결
+                                        path.moveTo(verticalLineX, 0f)
+                                        path.lineTo(verticalLineX, yPosition - curveRadius)
 
-                                    // 곡선으로 꺾기
-                                    path.quadraticTo(
-                                        verticalLineX,
-                                        yPosition,
-                                        verticalLineX + curveRadius,
-                                        yPosition,
-                                    )
-                                    path.lineTo(branchLength, yPosition)
-                                } else if (index == cardPositions.size - 1) {
-                                    // 마지막: 이전에서 곡선으로 끝
-                                    val prevYPosition = cardPositions[index - 1]
-                                    path.moveTo(verticalLineX, prevYPosition)
-                                    path.lineTo(verticalLineX, yPosition - curveRadius)
+                                        // 곡선으로 꺾기
+                                        path.quadraticTo(
+                                            verticalLineX,
+                                            yPosition,
+                                            verticalLineX + curveRadius,
+                                            yPosition,
+                                        )
+                                        path.lineTo(branchLength, yPosition)
+                                    }
+                                    index == cardPositions.size - 1 -> {
+                                        // 마지막: 이전에서 곡선으로 끝
+                                        val prevYPosition = cardPositions[index - 1]
+                                        path.moveTo(verticalLineX, prevYPosition)
+                                        path.lineTo(verticalLineX, yPosition - curveRadius)
 
-                                    // 곡선으로 꺾기
-                                    path.quadraticTo(
-                                        verticalLineX,
-                                        yPosition,
-                                        verticalLineX + curveRadius,
-                                        yPosition,
-                                    )
-                                    path.lineTo(branchLength, yPosition)
-                                } else {
-                                    // 중간: 이전에서 현재까지 + 곡선 가지
-                                    val prevYPosition = cardPositions[index - 1]
-                                    path.moveTo(verticalLineX, prevYPosition)
-                                    path.lineTo(verticalLineX, yPosition - curveRadius)
+                                        // 곡선으로 꺾기
+                                        path.quadraticTo(
+                                            verticalLineX,
+                                            yPosition,
+                                            verticalLineX + curveRadius,
+                                            yPosition,
+                                        )
+                                        path.lineTo(branchLength, yPosition)
+                                    }
+                                    else -> {
+                                        // 중간: 이전에서 현재까지 + 곡선 가지
+                                        val prevYPosition = cardPositions[index - 1]
+                                        path.moveTo(verticalLineX, prevYPosition)
+                                        path.lineTo(verticalLineX, yPosition - curveRadius)
 
-                                    // 곡선으로 꺾기
-                                    path.quadraticTo(
-                                        verticalLineX,
-                                        yPosition,
-                                        verticalLineX + curveRadius,
-                                        yPosition,
-                                    )
-                                    path.lineTo(branchLength, yPosition)
+                                        // 곡선으로 꺾기
+                                        path.quadraticTo(
+                                            verticalLineX,
+                                            yPosition,
+                                            verticalLineX + curveRadius,
+                                            yPosition,
+                                        )
+                                        path.lineTo(branchLength, yPosition)
+                                    }
                                 }
 
                                 drawPath(

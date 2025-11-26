@@ -113,7 +113,6 @@ class AssignmentRepository @Inject constructor(
         }
     }
 
-    // Filtered by student and assignment (student-side precise lookup)
     suspend fun getPersonalAssignments(
         studentId: Int? = null,
         assignmentId: Int? = null,
@@ -196,7 +195,6 @@ class AssignmentRepository @Inject constructor(
             println("파일 읽기 가능: ${pdfFile.canRead()}")
             println("파일 절대 경로: ${pdfFile.absolutePath}")
 
-            // 파일 읽기 테스트
             try {
                 val fileBytes = pdfFile.readBytes()
                 println("파일 읽기 성공: ${fileBytes.size} bytes")
@@ -205,7 +203,6 @@ class AssignmentRepository @Inject constructor(
                 throw e
             }
 
-            // 네트워크 요청을 백그라운드 스레드에서 실행
             withContext(Dispatchers.IO) {
                 try {
                     val client = OkHttpClient()
@@ -284,13 +281,10 @@ class AssignmentRepository @Inject constructor(
                     total_number = totalNumber,
                 ),
             )
-            // 백엔드는 ApiResponse 형식이 아닌 직접 JSON 응답을 반환함
-            // 200 OK이면 성공으로 간주
             if (response.isSuccessful) {
                 println("AssignmentRepository - Question generation completed successfully")
                 Result.success(Unit)
             } else {
-                // 에러 응답 처리
                 val errorMessage = response.message() ?: "HTTP ${response.code()}"
                 println("AssignmentRepository - Question generation failed: $errorMessage")
                 Result.failure(Exception(errorMessage))
@@ -302,7 +296,6 @@ class AssignmentRepository @Inject constructor(
         }
     }
 
-    // Personal Assignment API 메서드들
     suspend fun getPersonalAssignmentQuestions(personalAssignmentId: Int): Result<List<PersonalAssignmentQuestion>> {
         return try {
             println("AssignmentRepository - Getting questions for personal assignment $personalAssignmentId")
@@ -341,15 +334,12 @@ class AssignmentRepository @Inject constructor(
                 val responseBody = response.body()
                 val errorBody = response.errorBody()
 
-                // 404 응답에서는 response.body()가 null이므로 errorBody()를 사용
                 val errorMessage = if (responseBody != null) {
                     responseBody.message ?: responseBody.error ?: "Unknown error"
                 } else if (errorBody != null) {
-                    // errorBody에서 JSON 파싱 시도
                     try {
                         val errorJson = errorBody.string()
                         println("AssignmentRepository - Error body JSON: $errorJson")
-                        // JSON에서 message 필드 추출
                         if (errorJson.contains("\"message\":\"모든 문제를 완료했습니다.\"")) {
                             "모든 문제를 완료했습니다."
                         } else {
@@ -395,7 +385,6 @@ class AssignmentRepository @Inject constructor(
         }
     }
 
-    // Recent personal assignment for a student
     suspend fun getRecentPersonalAssignment(studentId: Int): Result<Int> {
         return try {
             println("AssignmentRepository - Getting recent personal assignment for student $studentId")
@@ -420,11 +409,7 @@ class AssignmentRepository @Inject constructor(
         return try {
             println("AssignmentRepository - Submitting answer for personal_assignment_id $personalAssignmentId, student $studentId, question $questionId")
 
-            // Create multipart request body
-            val requestBody = RequestBody.create(
-                "audio/wav".toMediaType(),
-                audioFile,
-            )
+            val requestBody = audioFile.asRequestBody("audio/wav".toMediaType())
             val audioPart = MultipartBody.Part.createFormData(
                 "audioFile",
                 audioFile.name,

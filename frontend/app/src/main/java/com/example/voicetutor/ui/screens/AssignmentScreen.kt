@@ -32,6 +32,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
+import java.util.Locale
 
 @Composable
 fun AssignmentScreen(
@@ -60,8 +61,8 @@ fun AssignmentScreen(
 
     var mediaPlayer by remember { mutableStateOf<android.media.MediaPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
-    var playbackDuration by remember { mutableStateOf(0) }
-    var playbackCurrentPosition by remember { mutableStateOf(0) }
+    var playbackDuration by remember { mutableIntStateOf(0) }
+    var playbackCurrentPosition by remember { mutableIntStateOf(0) }
 
     val audioRecorderState by audioRecorder.recordingState.collectAsStateWithLifecycle()
     val isProcessing by viewModel.isProcessing.collectAsStateWithLifecycle()
@@ -119,7 +120,7 @@ fun AssignmentScreen(
                     mediaPlayer?.let { player ->
                         try {
                             playbackCurrentPosition = player.currentPosition / 1000
-                        } catch (e: Exception) {
+                        } catch (_: Exception) {
                             // 재생 위치 가져오기 실패 시 무시
                         }
                     }
@@ -206,11 +207,7 @@ fun AssignmentScreen(
 
                 while (audioRecordingState.isRecording) {
                     delay(1000)
-                    if (audioRecordingState.isRecording) {
-                        viewModel.updateRecordingDuration(audioRecordingState.recordingTime + 1)
-                    } else {
-                        break
-                    }
+                    viewModel.updateRecordingDuration(audioRecordingState.recordingTime + 1)
                 }
             }
 
@@ -507,6 +504,7 @@ fun AssignmentScreen(
                                             Text(
                                                 text = "녹음 중... ${
                                                     String.format(
+                                                        Locale.getDefault(),
                                                         "%02d:%02d",
                                                         audioRecordingState.recordingTime / 60,
                                                         audioRecordingState.recordingTime % 60
@@ -539,6 +537,7 @@ fun AssignmentScreen(
                                             Text(
                                                 text = "녹음 완료 (${
                                                     String.format(
+                                                        Locale.getDefault(),
                                                         "%02d:%02d",
                                                         audioRecordingState.recordingTime / 60,
                                                         audioRecordingState.recordingTime % 60
@@ -559,12 +558,14 @@ fun AssignmentScreen(
                                                 Text(
                                                     text = "${
                                                         String.format(
+                                                            Locale.getDefault(),
                                                             "%02d:%02d",
                                                             playbackCurrentPosition / 60,
                                                             playbackCurrentPosition % 60
                                                         )
                                                     } / ${
                                                         String.format(
+                                                            Locale.getDefault(),
                                                             "%02d:%02d",
                                                             playbackDuration / 60,
                                                             playbackDuration % 60
@@ -587,8 +588,7 @@ fun AssignmentScreen(
                                                 onClick = {
                                                     val audioFilePath =
                                                         audioRecordingState.audioFilePath
-                                                    if (audioFilePath != null) {
-                                                        if (isPlaying) {
+                                                    if (isPlaying) {
                                                             mediaPlayer?.stop()
                                                             mediaPlayer?.release()
                                                             mediaPlayer = null
@@ -628,14 +628,13 @@ fun AssignmentScreen(
                                                                                 true
                                                                             }
                                                                         }
-                                                            } catch (e: Exception) {
+                                                            } catch (_: Exception) {
                                                                 isPlaying = false
                                                                 playbackCurrentPosition = 0
                                                                 mediaPlayer?.release()
                                                                 mediaPlayer = null
                                                             }
                                                         }
-                                                    }
                                                 },
                                                 modifier = Modifier
                                                     .background(
@@ -729,7 +728,7 @@ fun AssignmentScreen(
                                                             )
                                                             viewModel.resetAudioRecording()
                                                         }
-                                                    } catch (e: Exception) {
+                                                    } catch (_: Exception) {
                                                         // 건너뛰기 실패 시 무시
                                                     }
                                                 }
@@ -751,8 +750,7 @@ fun AssignmentScreen(
                                 VTButton(
                                     text = when {
                                         audioRecordingState.isRecording -> "녹음 중지"
-                                        audioRecordingState.audioFilePath != null -> "다시 녹음하기"
-                                        else -> "녹음 시작"
+                                        else -> "다시 녹음하기"
                                     },
                                     onClick = {
                                         if (audioRecordingState.isRecording) {
@@ -761,11 +759,11 @@ fun AssignmentScreen(
                                                 scope.launch {
                                                     try {
                                                         audioRecorder.stopRecording()
-                                                    } catch (e: Exception) {
+                                                    } catch (_: Exception) {
                                                         viewModel.resetAudioRecording()
                                                     }
                                                 }
-                                            } catch (e: Exception) {
+                                            } catch (_: Exception) {
                                                 viewModel.resetAudioRecording()
                                             }
                                         } else {
@@ -782,8 +780,7 @@ fun AssignmentScreen(
                                         Icon(
                                             imageVector = when {
                                                 audioRecordingState.isRecording -> Icons.Filled.Stop
-                                                audioRecordingState.audioFilePath != null -> Icons.Filled.Refresh
-                                                else -> Icons.Filled.Mic
+                                                else -> Icons.Filled.Refresh
                                             },
                                             contentDescription = null,
                                         )

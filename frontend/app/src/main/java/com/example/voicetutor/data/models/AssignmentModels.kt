@@ -24,7 +24,6 @@ enum class AssignmentFilter {
     COMPLETED,
 }
 
-// Personal Assignment 상태
 enum class PersonalAssignmentStatus {
     @SerializedName("NOT_STARTED")
     NOT_STARTED,
@@ -36,12 +35,11 @@ enum class PersonalAssignmentStatus {
     SUBMITTED,
 }
 
-// Personal Assignment용 필터
 enum class PersonalAssignmentFilter {
-    ALL, // 모든 과제
-    NOT_STARTED, // 시작 안함
-    IN_PROGRESS, // 진행 중
-    SUBMITTED, // 제출 완료
+    ALL,
+    NOT_STARTED,
+    IN_PROGRESS,
+    SUBMITTED,
 }
 
 data class AssignmentData(
@@ -63,11 +61,10 @@ data class AssignmentData(
     val materials: List<Material>? = null,
     @SerializedName("grade")
     val grade: String? = null,
-    // Personal Assignment 관련 정보 (변환 시 추가)
     val personalAssignmentStatus: PersonalAssignmentStatus? = null,
     val solvedNum: Int? = null,
-    val personalAssignmentId: Int? = null, // PersonalAssignment ID 추가
-    val submittedAt: String? = null, // 제출 일시
+    val personalAssignmentId: Int? = null,
+    val submittedAt: String? = null,
 )
 
 data class CourseClass(
@@ -126,7 +123,6 @@ data class QuestionData(
     val explanation: String? = null,
 )
 
-// Personal Assignment 데이터 모델
 data class PersonalAssignmentData(
     @SerializedName("id")
     val id: Int,
@@ -217,12 +213,11 @@ data class AssignmentResultData(
     val completionRate: Double? = null,
 )
 
-// Personal Assignment API용 데이터 모델들
 data class PersonalAssignmentQuestion(
     @SerializedName("id")
     val id: Int,
     @SerializedName("number")
-    val number: String, // Int에서 String으로 변경 (예: "2-2")
+    val number: String,
     @SerializedName("question")
     val question: String,
     @SerializedName("answer")
@@ -278,7 +273,6 @@ data class AnswerSubmissionResponse(
     val tailQuestion: TailQuestion?,
 )
 
-// 음성 녹음을 위한 데이터 클래스
 data class AudioRecordingState(
     val isRecording: Boolean = false,
     val recordingDuration: Int = 0,

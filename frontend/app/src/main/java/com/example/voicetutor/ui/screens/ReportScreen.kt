@@ -37,7 +37,6 @@ fun ReportScreen(
         }
     }
 
-    // 에러 처리
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             viewModel.clearError()
@@ -50,7 +49,6 @@ fun ReportScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Welcome section (Header)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -98,7 +96,6 @@ fun ReportScreen(
             }
         }
 
-        // My completed assignments
         Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -122,7 +119,6 @@ fun ReportScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Completed assignments from API
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -192,7 +188,6 @@ fun AssignmentReportCard(
                 Column(
                     modifier = Modifier.weight(1f),
                 ) {
-                    // Assignment title
                     Text(
                         text = assignment.title,
                         style = MaterialTheme.typography.titleMedium,
@@ -202,7 +197,6 @@ fun AssignmentReportCard(
 
                     Spacer(modifier = Modifier.height(6.dp))
 
-                    // 제출일
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
@@ -224,7 +218,6 @@ fun AssignmentReportCard(
                 Column(
                     horizontalAlignment = Alignment.End,
                 ) {
-                    // Question count
                     Text(
                         text = "${assignment.totalQuestions}",
                         style = MaterialTheme.typography.titleMedium,
@@ -241,7 +234,6 @@ fun AssignmentReportCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            // 리포트 보기 버튼
             VTButton(
                 text = "리포트 보기",
                 onClick = onReportClick,

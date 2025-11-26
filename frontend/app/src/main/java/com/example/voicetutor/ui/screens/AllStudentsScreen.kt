@@ -25,8 +25,6 @@ import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.StudentViewModel
 
-// AllStudentsStudent는 StudentModels.kt에서 정의된 것을 사용
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllStudentsScreen(
@@ -50,7 +48,6 @@ fun AllStudentsScreen(
     ) { mutableStateOf<Int?>(null) }
     var expandedClassDropdown by remember { mutableStateOf(false) }
 
-    // Load classes for teacher
     LaunchedEffect(teacherId) {
         println("AllStudentsScreen - Loading classes for teacher ID: $teacherId")
         classViewModel.loadClasses(teacherId)
@@ -64,7 +61,6 @@ fun AllStudentsScreen(
         }
     }
 
-    // Load students when class is selected
     LaunchedEffect(selectedClassId) {
         if (selectedClassId != null) {
             println("AllStudentsScreen - Loading students for class ID: $selectedClassId")
@@ -72,15 +68,12 @@ fun AllStudentsScreen(
         }
     }
 
-    // Handle error
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
-            // Show error message
             studentViewModel.clearError()
         }
     }
 
-    // Convert Student to AllStudentsStudent for UI
     val allStudents = apiStudents.map { student ->
         AllStudentsStudent(
             id = student.id,
@@ -90,7 +83,6 @@ fun AllStudentsScreen(
         )
     }
 
-    // Calculate stats
     val totalStudents = allStudents.size
 
     LazyColumn(
@@ -98,7 +90,6 @@ fun AllStudentsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -126,7 +117,6 @@ fun AllStudentsScreen(
         }
 
         item {
-            // Compact stats without card background
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -169,7 +159,6 @@ fun AllStudentsScreen(
         }
 
         item {
-            // Class selector dropdown only (no search)
             ExposedDropdownMenuBox(
                 expanded = expandedClassDropdown,
                 onExpandedChange = { expandedClassDropdown = it },
@@ -212,7 +201,6 @@ fun AllStudentsScreen(
         }
 
         item {
-            // Students list header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -234,7 +222,6 @@ fun AllStudentsScreen(
             }
         }
 
-        // Students list
         if (isLoading) {
             item {
                 Box(
