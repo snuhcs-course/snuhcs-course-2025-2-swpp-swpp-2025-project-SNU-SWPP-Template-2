@@ -396,7 +396,7 @@ ai-model/
 ├── configs/               # Configuration files
 │   ├── facet_schema.json  # Facet taxonomy schema
 │   └── model_config.yaml  # Model hyperparameters
-├── requirements.txt       # Python dependencies
+├── pyproject.toml        # Project metadata & dependencies
 └── SUMMARY.md            # This file
 ```
 
@@ -435,4 +435,3 @@ ai-model/
 
 **Maintained by**: Team 10 - SWPP 2025  
 **Contact**: [GitHub Issues](https://github.com/snuhcs-course/swpp-2025-project-team-10/issues)
-

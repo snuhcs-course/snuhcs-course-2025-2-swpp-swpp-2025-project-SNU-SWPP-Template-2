@@ -45,21 +45,21 @@ data class PostReview(
 )
 
 data class Book(
-    val id: Int,
+    val id: String,
     val title: String,
-    val author: String?,
-    val coverUrl: String?,
+    val authors: String?,
+    val cover_image: String?,
     val publisher: String?,
     val isbn: String?
 )
 
 data class PostBook(
     val title: String,
-    val author: String,
+    val authors: String,
     val publisher: String?,
     val isbn: String?,
-    val isForBarter: Boolean,
-    val coverUrl: String? = null
+    val is_for_barter: Boolean,
+    val cover_image: String? = null
 )
 
 data class UserProfile(
@@ -78,13 +78,19 @@ data class UserPreferences(
     val tradeLocation2: String?,
     val tradeSpot1: String?,
     val tradeSpot2: String?,
-    val favBook: String?,
-    val favBookNote: String?,
-    val favAuthor: String?,
-    val favAuthorNote: String?,
-    val readingHabit: String?
+    val favBooks: List<String>,  
+    val favBookNotes: List<String>,
+    val favAuthors: List<String>,  
+    val favAuthorNotes: List<String>,
+    val readingHabit: String?,
 )
+
+data class WishlistRequest(val book: PostBook)
 
 data class ReviewResponse(
     val results: List<Review>
+)
+
+data class ReviewLikeResponse(
+    val review: Review
 )

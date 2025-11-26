@@ -99,7 +99,7 @@ Frontend should connect to: http://10.0.2.2:8000/auth/
 ### **If tests fail:**
 1. **Check virtual environment**: Make sure you're in the activated venv
 2. **Check database**: Run `python manage.py migrate`
-3. **Check dependencies**: Run `pip install -r requirements-dev.txt`
+3. **Check dependencies**: Run `uv sync --extra dev` (or `pip install -e ".[dev]"`)
 4. **Check Django setup**: Run `python manage.py check`
 
 ### **Common Issues:**

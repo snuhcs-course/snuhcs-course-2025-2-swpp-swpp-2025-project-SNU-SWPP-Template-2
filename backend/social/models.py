@@ -19,10 +19,8 @@ class Post(models.Model):
         ("barter_success", "Successful Barter"),
     ]
 
-    # Use UUID primary key for Post (consistent with initial migration)
-    # UUIDs avoid exposing sequential IDs externally and are used across
-    # other social models (Comment, BookClub, etc.).
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Use AutoField (integer) primary key for Post
+    id = models.AutoField(primary_key=True)
     author = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name="posts"
     )

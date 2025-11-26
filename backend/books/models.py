@@ -3,7 +3,10 @@ import uuid
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from PIL import Image
+from social.models import Post
 from taggit.managers import TaggableManager
 
 User = get_user_model()
@@ -200,12 +203,13 @@ class BookCopy(models.Model):
         ("poor", "Poor"),
     ]
 
-    AVAILABILITY_CHOICES = [
-        ("available", "Available"),
+    TRADE_STATUS_CHOICES = [
+        ("available", "Available for Trade"),
         ("pending", "Pending Trade"),
         ("traded", "Traded"),
         ("not_available", "Not Available"),
     ]
+    AVAILABILITY_CHOICES = TRADE_STATUS_CHOICES
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     publication = models.ForeignKey(
@@ -219,15 +223,37 @@ class BookCopy(models.Model):
     condition = models.CharField(
         max_length=20, choices=CONDITION_CHOICES, default="good"
     )
-    availability = models.CharField(
-        max_length=20, choices=AVAILABILITY_CHOICES, default="available"
-    )
+    tags = TaggableManager(blank=True)
+    # Owner's Notes
     owner_notes = models.TextField(
         blank=True,
         help_text="Additional notes about the book's condition or special features",
     )
-    tags = TaggableManager(blank=True)
-    is_for_barter = models.BooleanField(default=True)
+    # Barter Status (System-managed, changes during trade lifecycle)
+    # This field tracks the current trade state of the book:
+    # - "available": Book is ready for barter (no pending trades)
+    # - "not_available": Book is locked in a pending barter request
+    # - "traded": Book has been successfully traded to another user
+    # - "pending": (deprecated, use "not_available" instead)
+    # System automatically sets this to "not_available" when a barter request is created,
+    # and restores to "available" when trade is rejected/cancelled or completed.
+    trade_status = models.CharField(
+        max_length=20,
+        choices=TRADE_STATUS_CHOICES,
+        default="available",
+        db_column="availability",  # reuse legacy column created before BookCopy rename
+    )
+
+    # Barter Preference (User-controlled, owner's trading preference)
+    # This field represents the owner's decision about whether they want to trade this book:
+    # - True: Owner is willing to trade this book (book will appear in barter searches)
+    # - False: Owner wants to keep this book (book won't be available for barter requests)
+    # User can toggle this in their library settings to control which books are tradeable.
+    # Even if availability="available", barter requests will be rejected if is_for_barter=False.
+    is_for_barter = models.BooleanField(
+        default=True,
+        help_text="Whether the owner wants to trade this book (user setting)",
+    )
     preferred_genres_for_trade = models.ManyToManyField(
         Genre,
         related_name="book_copies_wanted_for_trade",
@@ -251,7 +277,7 @@ class BookCopy(models.Model):
         ordering = ["-created_at"]
         indexes = [
             models.Index(fields=["owner"]),
-            models.Index(fields=["availability"]),
+            models.Index(fields=["trade_status"]),
             models.Index(fields=["is_for_barter"]),
         ]
 
@@ -300,7 +326,13 @@ class BookCopy(models.Model):
 
     @property
     def is_available_for_barter(self):
-        return self.is_for_barter and self.availability == "available"
+        """Check if book is available for bartering."""
+        return self.is_for_barter and self.trade_status == "available"
+
+    @property
+    def availability(self):
+        """Backward-compatible alias for legacy column name."""
+        return self.trade_status
 
     def __getattr__(self, item):
         if item in self._PUBLICATION_FIELD_PROXY:
@@ -538,3 +570,16 @@ class ReadingStatus(models.Model):
         if self.book.pages and self.pages_read:
             return min(100, (self.pages_read / self.book.pages) * 100)
         return 0
+
+
+# --- Signal: Create Post when BookReview is created ---
+@receiver(post_save, sender=BookReview)
+def create_post_for_review(sender, instance, created, **kwargs):
+    if created:
+        Post.objects.create(
+            author=instance.reviewer,
+            post_type="book_review",
+            content=instance.content,
+            related_book=instance.book,
+            is_public=True,
+        )

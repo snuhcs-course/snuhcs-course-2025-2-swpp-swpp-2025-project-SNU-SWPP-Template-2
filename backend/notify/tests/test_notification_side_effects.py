@@ -1,6 +1,10 @@
 import pytest
 from books.models import Author as BookAuthor
-from books.models import BookCopy, BookPublication, Publisher
+from books.models import (
+    BookCopy,
+    BookPublication,
+    Publisher,
+)
 from django.contrib.auth import get_user_model
 from notify.models import Notification
 from rest_framework.test import APIClient
@@ -33,11 +37,11 @@ def test_notifications_on_user_actions():
 
     client.force_authenticate(actor)
 
-    # wishlist self-notification
+    # wishlist should notify the book owner
     res = client.post(f"/library/books/{book.id}/wishlist/")
     assert res.status_code == 200
     assert Notification.objects.filter(
-        recipient=actor, notification_type="book_wishlisted"
+        recipient=author, notification_type="book_wishlisted"
     ).exists()
 
     # like
@@ -54,8 +58,15 @@ def test_notifications_on_user_actions():
         recipient=author, notification_type="comment_received"
     ).exists()
 
-    # barter
-    client.post(f"/posts/{post.id}/barter/", {})
+    # barter - actor must offer a book they own
+    actor_book = BookCopy.objects.create(
+        publication=publication, owner=actor, is_for_barter=True
+    )
+    client.post(
+        f"/posts/{post.id}/barter/",
+        {"offered_book_id": str(actor_book.id)},
+        format="json",
+    )
     assert Notification.objects.filter(
         recipient=author, notification_type="barter_request"
     ).exists()

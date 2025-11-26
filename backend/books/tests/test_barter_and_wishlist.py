@@ -38,7 +38,7 @@ def test_toggle_wishlist_creates_and_removes():
     assert res.data["wishlisted"] is True
 
     # Remove from wishlist
-    res = client.post(url)
+    res = client.delete(url)
     assert res.status_code == 200
     assert res.data["wishlisted"] is False
 

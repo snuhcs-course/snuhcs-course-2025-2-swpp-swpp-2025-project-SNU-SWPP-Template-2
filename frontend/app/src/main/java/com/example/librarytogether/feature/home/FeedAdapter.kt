@@ -1,19 +1,17 @@
 package com.example.librarytogether.feature.home
 
 import android.content.res.ColorStateList
+import android.provider.CalendarContract
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
-import com.bumptech.glide.Glide
 import com.example.librarytogether.R
 import com.example.librarytogether.databinding.FeedPostBinding
 import com.example.librarytogether.feature.home.data.Post
@@ -67,6 +65,10 @@ class FeedAdapter(
 
         private var current: Post? = null
 
+        private val defaultLikeIconTint = binding.btnLike.iconTint
+        private val enabledExchangeTextColors = binding.btnExchange.textColors
+        private val enabledExchangeIconTint = binding.btnExchange.iconTint
+
         init {
             with(binding) {
                 fun View.safeClick(action: (Post) -> Unit) = setOnClickListener {
@@ -89,6 +91,19 @@ class FeedAdapter(
         }
 
         fun bind(post: Post) = with(binding) {
+
+            // UI Initialize (재활용 잔상 제거)
+            tvAuthor.text = ""
+            tvPoster.text = ""
+            tvTitle.text = ""
+            tvContent.text = ""
+            ivProfileImage.setImageDrawable(null)
+            vpImages.adapter = null
+            tabDots.removeAllTabs()
+            mcPostImage.isVisible = false
+            tvContent.maxLines = MAX_LINES
+            tvContent.ellipsize = TextUtils.TruncateAt.END
+
             current = post
 
             tvAuthor.text = post.authorName
@@ -147,12 +162,34 @@ class FeedAdapter(
                 tvContent.ellipsize = TextUtils.TruncateAt.END
             }
 
-            val likeIconColor = if (post.isLiked) {
-                ContextCompat.getColor(itemView.context, R.color.red)
+            val IconColor = if (post.isLiked) {
+                val red = ContextCompat.getColor(itemView.context, R.color.red)
+                ColorStateList.valueOf(red)
             } else {
-                ContextCompat.getColor(itemView.context, R.color.black)
+                defaultLikeIconTint
             }
-            binding.btnLike.iconTint = ColorStateList.valueOf(likeIconColor)
+            btnLike.iconTint = IconColor
+
+            if (post.isLiked) {
+                btnLike.setIconResource(R.drawable.filled_like_icon)
+            } else {
+                btnLike.setIconResource(R.drawable.like_icon)
+            }
+
+            val barterAvailable = post.bookAvailableForBarter
+
+            btnExchange.isEnabled = barterAvailable
+
+            if (barterAvailable) {
+                btnExchange.isEnabled = true
+                btnExchange.setTextColor(enabledExchangeTextColors)
+                btnExchange.iconTint = enabledExchangeIconTint
+            } else {
+                btnExchange.isEnabled = false
+                val disabledColor = ContextCompat.getColor(itemView.context, R.color.light_gray)
+                btnExchange.setTextColor(disabledColor)
+                btnExchange.iconTint = ColorStateList.valueOf(disabledColor)
+            }
         }
 
         fun cleanup() = with(binding) {
@@ -175,6 +212,9 @@ object PostDiff : DiffUtil.ItemCallback<Post>() {
     override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean =
         oldItem.id == newItem.id
 
-    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean =
-        oldItem == newItem
+
+    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
+        return oldItem == newItem
+    }
+
 }

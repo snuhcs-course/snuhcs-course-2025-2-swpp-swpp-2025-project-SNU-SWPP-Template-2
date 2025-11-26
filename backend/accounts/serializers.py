@@ -154,6 +154,7 @@ class UserSerializer(serializers.ModelSerializer):
     follower_count = serializers.ReadOnlyField()
     following_count = serializers.ReadOnlyField()
     books_count = serializers.ReadOnlyField()
+    has_initial_taste = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -177,12 +178,14 @@ class UserSerializer(serializers.ModelSerializer):
             "books_count",
             "created_at",
             "last_active",
+            "has_initial_taste",
         )
         read_only_fields = (
             "id",
             "reputation_score",
             "successful_trades",
             "created_at",
+            "has_initial_taste",
         )
 
 
@@ -359,8 +362,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "last_name",
             "bio",
             "location",
-            "latitude",
-            "longitude",
             "birth_date",
             "profile_picture",
             "phone_number",
@@ -419,7 +420,6 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
     library = serializers.SerializerMethodField()
     wishlist = serializers.SerializerMethodField()
     taste = serializers.SerializerMethodField()
-    distance_km = serializers.SerializerMethodField()
     reviews = serializers.SerializerMethodField()
     reviewCount = serializers.SerializerMethodField()
 
@@ -437,7 +437,6 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             "library",
             "wishlist",
             "taste",
-            "distance_km",
             "reviews",
             "reviewCount",
         )
@@ -454,11 +453,17 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
 
     def get_library(self, obj):
         # All books owned by the user (use reverse relation to avoid import ambiguity)
-        qs = obj.books.select_related("publisher").prefetch_related("authors")
+        qs = obj.book_copies.select_related("publication").prefetch_related(
+            "publication__authors"
+        )
         return BookSummarySerializer(qs, many=True, context=self.context).data
 
     def get_wishlist(self, obj):
-        qs = BookWishlist.objects.filter(user=obj).select_related("book")
+        qs = (
+            BookWishlist.objects.filter(user=obj)
+            .select_related("book__publication")
+            .prefetch_related("book__publication__authors")
+        )
         books = [item.book for item in qs]
         return BookSummarySerializer(
             books, many=True, context=self.context
@@ -472,9 +477,6 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             return None
 
         data = UserTasteSerializer(taste, context=self.context).data
-        # For barter payloads, exclude precise coordinates to avoid exposing PII
-        data.pop("trade_latitude", None)
-        data.pop("trade_longitude", None)
         return data
 
     def get_distance_km(self, obj):
@@ -500,7 +502,7 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             return None
 
         # Haversine formula
-        R = 6371.0  # Earth radius in km
+        earth_radius_km = 6371.0
         dlat = radians(lat2 - lat1)
         dlon = radians(lon2 - lon1)
         a = (
@@ -508,7 +510,7 @@ class UserBarterInfoSerializer(serializers.ModelSerializer):
             + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
         )
         c = 2 * atan2(sqrt(a), sqrt(1 - a))
-        km = R * c
+        km = earth_radius_km * c
         return round(km, 2)
 
     def get_reviews(self, obj):
@@ -557,12 +559,6 @@ class UserTasteSerializer(serializers.ModelSerializer):
     trade_address = serializers.CharField(
         max_length=200, required=False, allow_blank=True
     )
-    trade_latitude = serializers.DecimalField(
-        max_digits=9, decimal_places=6, required=False, allow_null=True
-    )
-    trade_longitude = serializers.DecimalField(
-        max_digits=9, decimal_places=6, required=False, allow_null=True
-    )
 
     class Meta:
         model = UserTaste
@@ -575,8 +571,6 @@ class UserTasteSerializer(serializers.ModelSerializer):
             "reading_purposes",
             "trade_place_name",
             "trade_address",
-            "trade_latitude",
-            "trade_longitude",
             "current_step",
         )
         read_only_fields = ("current_step",)

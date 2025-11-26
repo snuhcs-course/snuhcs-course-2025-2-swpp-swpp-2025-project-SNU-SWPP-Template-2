@@ -245,3 +245,6 @@ replay_pid*
 
 # Jetbrains
 .idea/
+
+# Temporary files
+/temp/

@@ -14,11 +14,9 @@ class BarterRequest(models.Model):
 
     STATUS_CHOICES = [
         ("pending", "Pending"),
-        ("accepted", "Accepted"),
+        ("counter_proposed", "Counter Proposed"),
         ("rejected", "Rejected"),
-        ("cancelled", "Cancelled"),
         ("completed", "Completed"),
-        ("disputed", "Disputed"),
     ]
 
     MEETING_TYPE_CHOICES = [
@@ -36,16 +34,28 @@ class BarterRequest(models.Model):
         User, on_delete=models.CASCADE, related_name="received_barter_requests"
     )
 
-    # Books Involved
-    offered_books = models.ManyToManyField(
+    # Books Involved (1:1 exchange of copies)
+    offered_book = models.ForeignKey(
         "books.BookCopy",
+        on_delete=models.CASCADE,
         related_name="offered_in_barters",
-        help_text="Books offered by the requester",
+        help_text="Book copy offered by the requester (final selection by recipient)",
+        null=True,
+        blank=True,
     )
-    requested_books = models.ManyToManyField(
+    # Store 3 proposed book IDs as JSON
+    offered_book_ids = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of 3 book IDs proposed by requester",
+    )
+    requested_book = models.ForeignKey(
         "books.BookCopy",
+        on_delete=models.CASCADE,
         related_name="requested_in_barters",
-        help_text="Books requested from the recipient",
+        help_text="Book copy requested from the recipient",
+        null=True,
+        blank=True,
     )
 
     # Request Details
@@ -90,6 +100,16 @@ class BarterRequest(models.Model):
             models.Index(fields=["created_at"]),
         ]
 
+    def create_transaction(self):
+        if hasattr(self, "transaction"):
+            # ...
+            return self.transaction
+
+        return BarterTransaction.objects.create(
+            barter_request=self,
+            meeting_type=self.preferred_meeting_type,
+        )
+
     def __str__(self):
         return f"Barter Request from {self.requester.username} to {self.recipient.username}"
 
@@ -98,15 +118,7 @@ class BarterRequest(models.Model):
         """Check if the barter request is still active."""
         return self.status in ["pending", "accepted"]
 
-    @property
-    def offered_books_count(self):
-        """Return the number of books offered."""
-        return self.offered_books.count()
-
-    @property
-    def requested_books_count(self):
-        """Return the number of books requested."""
-        return self.requested_books.count()
+    # With 1:1 exchange, counts are not needed
 
 
 class BarterCounter(models.Model):

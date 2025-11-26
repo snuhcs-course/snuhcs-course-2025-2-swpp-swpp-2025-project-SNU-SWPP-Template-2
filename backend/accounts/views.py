@@ -14,6 +14,7 @@ from django.utils.crypto import get_random_string
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework import permissions, serializers, status
 from rest_framework.decorators import api_view, permission_classes
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import (
@@ -21,7 +22,8 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .models import UserPreferences, UserTaste
+from books.models import BookCopy, Author as BookAuthor, Genre as BookGenre
+from .models import Follow, UserPreferences, UserTaste
 from .serializers import (
     CustomTokenObtainPairSerializer,
     GoogleAuthSerializer,
@@ -157,7 +159,7 @@ class UserTasteView(APIView):
                 )
         elif step == 7:
             # Trade style step is optional; if provided, accept without strict min checks
-            # Fields: trade_place_name, trade_address, trade_latitude, trade_longitude
+            # Fields: trade_place_name, trade_address
             # No additional validation required here.
             return
 
@@ -637,6 +639,222 @@ def user_preferences(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserProfileMeView(APIView):
+    """
+    Combined endpoint for fetching and updating the authenticated user's profile.
+    Matches frontend expectation for /accounts/profile/me/ (GET, PUT/PATCH) and
+    supports multipart form uploads for profile_picture.
+    """
+
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = (MultiPartParser, FormParser, JSONParser)
+
+    def get(self, request):
+        """Return the current user's profile in frontend's expected shape."""
+        return Response(self._build_frontend_profile(request.user, request))
+
+    def put(self, request):
+        return self._update(request, partial=False)
+
+    def patch(self, request):
+        return self._update(request, partial=True)
+
+    def _update(self, request, partial: bool):
+        # 1) Update basic profile fields (bio, names, etc.)
+        base_serializer = ProfileUpdateSerializer(
+            request.user, data=request.data, partial=True
+        )
+        if base_serializer.is_valid():
+            base_serializer.save()
+        else:
+            # We don't hard-fail here because frontend may only send preferences
+            pass
+
+        # 2) Update preferences coming from nested object
+        prefs = request.data.get("preferences") or {}
+        favorite_genres = request.data.get("favoriteGenres")
+
+        # Store in UserTaste and UserPreferences
+        from .models import UserTaste
+
+        taste, _ = UserTaste.objects.get_or_create(user=request.user)
+        user_prefs, _ = UserPreferences.objects.get_or_create(user=request.user)
+        
+        # Map incoming fields to UserTaste model
+        trade_location1 = prefs.get("tradeLocation1")
+        trade_location2 = prefs.get("tradeLocation2")
+        trade_spot1 = prefs.get("tradeSpot1")
+        trade_spot2 = prefs.get("tradeSpot2")
+        fav_books = prefs.get("favBooks")  # List of book titles/IDs
+        fav_book_notes = prefs.get("favBookNotes")  # List of notes
+        fav_authors = prefs.get("favAuthors")  # List of author names/IDs
+        fav_author_notes = prefs.get("favAuthorNotes")  # List of notes
+        reading_habit = prefs.get("readingHabit")  # Single string
+
+        # Update UserTaste fields (source of truth for favorites)
+        if trade_location1 is not None:
+            taste.trade_place_name = trade_location1
+        if trade_spot1 is not None:
+            taste.trade_address = trade_spot1
+        if favorite_genres is not None and isinstance(favorite_genres, list):
+            taste.favorite_genres = favorite_genres
+        if fav_books is not None:
+            if isinstance(fav_books, list):
+                taste.favorite_books = fav_books
+            elif isinstance(fav_books, str):
+                taste.favorite_books = [fav_books] if fav_books else []
+        if fav_authors is not None:
+            if isinstance(fav_authors, list):
+                taste.favorite_authors = fav_authors
+            elif isinstance(fav_authors, str):
+                taste.favorite_authors = [fav_authors] if fav_authors else []
+        taste.save()
+
+        # Update UserPreferences fields (store additional fields here)
+        update_fields = []
+        
+        # Store trade location 2 and spot 2 in preferred_meeting_locations as JSON
+        meeting_locs = {}
+        if trade_location2 is not None:
+            meeting_locs["tradeLocation2"] = trade_location2
+            update_fields.append("preferred_meeting_locations")
+        if trade_spot2 is not None:
+            meeting_locs["tradeSpot2"] = trade_spot2
+            update_fields.append("preferred_meeting_locations")
+        
+        if meeting_locs:
+            import json
+            existing = {}
+            if user_prefs.preferred_meeting_locations:
+                try:
+                    existing = json.loads(user_prefs.preferred_meeting_locations)
+                except:
+                    pass
+            existing.update(meeting_locs)
+            user_prefs.preferred_meeting_locations = json.dumps(existing)
+        
+        # Store only notes & reading habit as metadata (favorites kept in taste)
+        metadata = {}
+        if fav_book_notes is not None:
+            if isinstance(fav_book_notes, list):
+                metadata["favBookNotes"] = fav_book_notes
+            elif isinstance(fav_book_notes, str):
+                metadata["favBookNotes"] = [fav_book_notes] if fav_book_notes else []
+        if fav_author_notes is not None:
+            if isinstance(fav_author_notes, list):
+                metadata["favAuthorNotes"] = fav_author_notes
+            elif isinstance(fav_author_notes, str):
+                metadata["favAuthorNotes"] = [fav_author_notes] if fav_author_notes else []
+        if reading_habit is not None:
+            if isinstance(reading_habit, str):
+                metadata["readingHabit"] = reading_habit
+            else:
+                metadata["readingHabit"] = str(reading_habit) if reading_habit else ""
+        if metadata:
+            import json
+            existing = {}
+            if user_prefs.preferred_meeting_locations:
+                try:
+                    existing = json.loads(user_prefs.preferred_meeting_locations)
+                except Exception:
+                    existing = {}
+            existing.update(metadata)
+            user_prefs.preferred_meeting_locations = json.dumps(existing)
+            update_fields.append("preferred_meeting_locations")
+        
+        if update_fields:
+            user_prefs.save(update_fields=list(set(update_fields)))
+
+        # Mark initial taste as present if any taste data exists
+        if (
+            trade_location1 or trade_spot1 or favorite_genres
+        ) and not request.user.has_initial_taste:
+            request.user.has_initial_taste = True
+            request.user.save(update_fields=["has_initial_taste"])
+
+        return Response(self._build_frontend_profile(request.user, request))
+
+    def _build_frontend_profile(self, user, request):
+        """Build response matching frontend UserProfile DTO."""
+        # Profile URL
+        profile_url = None
+        if user.profile_picture:
+            profile_url = (
+                request.build_absolute_uri(user.profile_picture.url)
+                if request
+                else user.profile_picture.url
+            )
+
+        # Taste and preferences mapping
+        favorite_genres = []
+        favorite_books = []
+        favorite_authors = []
+        trade_location1 = None
+        trade_spot1 = None
+        try:
+            taste = user.taste
+            favorite_genres = taste.favorite_genres or []
+            favorite_books = taste.favorite_books or []
+            favorite_authors = taste.favorite_authors or []
+            trade_location1 = taste.trade_place_name or None
+            trade_spot1 = taste.trade_address or None
+        except Exception:
+            pass
+
+        # Additional preferences & metadata (only notes & meeting locations; favorites from taste)
+        trade_location2 = None
+        trade_spot2 = None
+        fav_books = favorite_books
+        fav_book_notes = []
+        fav_authors = favorite_authors
+        fav_author_notes = []
+        reading_habit = None
+        try:
+            import json
+            user_prefs = user.preferences
+            if user_prefs.preferred_meeting_locations:
+                metadata = json.loads(user_prefs.preferred_meeting_locations)
+                trade_location2 = metadata.get("tradeLocation2")
+                trade_spot2 = metadata.get("tradeSpot2")
+                fav_book_notes = metadata.get("favBookNotes", [])
+                fav_author_notes = metadata.get("favAuthorNotes", [])
+                reading_habit = metadata.get("readingHabit")
+        except Exception:
+            pass
+
+        # Compute counts
+        from books.models import BookReview
+
+        review_count = BookReview.objects.filter(reviewer=user).count()
+        follower_count = getattr(user, "follower_count", None)
+        following_count = getattr(user, "following_count", None)
+        if follower_count is None:
+            follower_count = user.follower_relationships.count()
+        if following_count is None:
+            following_count = user.following_relationships.count()
+
+        return {
+            "username": user.username,
+            "bio": user.bio,
+            "profileUrl": profile_url,
+            "reviewCount": review_count,
+            "followerCount": follower_count,
+            "followingCount": following_count,
+            "favoriteGenres": favorite_genres or [],
+            "preferences": {
+                "tradeLocation1": trade_location1,
+                "tradeLocation2": trade_location2,
+                "tradeSpot1": trade_spot1,
+                "tradeSpot2": trade_spot2,
+                "favBooks": fav_books or [],
+                "favBookNotes": fav_book_notes or [],
+                "favAuthors": fav_authors or [],
+                "favAuthorNotes": fav_author_notes or [],
+                "readingHabit": reading_habit,
+            },
+        }
+
+
 class GoogleLoginView(APIView):
     """
     Google ID Token authentication for login.
@@ -678,6 +896,7 @@ class GoogleLoginView(APIView):
                         "accessToken": str(refresh.access_token),
                         "refreshToken": str(refresh),
                         "message": "Google login successful",
+                        "user": UserSerializer(user).data,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -855,6 +1074,7 @@ class KakaoLoginView(APIView):
                         "accessToken": str(refresh.access_token),
                         "refreshToken": str(refresh),
                         "message": "Kakao login successful",
+                        "user": UserSerializer(user).data,
                     },
                     status=status.HTTP_200_OK,
                 )
@@ -971,3 +1191,112 @@ class KakaoSignupView(APIView):
             return Response(data, status=status.HTTP_200_OK)
 
         return response
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def onboarding_submit(request):
+    """
+    Handle onboarding survey submission from frontend.
+    Expects: {"book_ids": [1,2,3], "author_ids": [1,2], "genre_ids": [1,2]}
+    """
+    try:
+        book_ids = request.data.get("book_ids", [])
+        author_ids = request.data.get("author_ids", [])
+        genre_ids = request.data.get("genre_ids", [])
+
+        # Validate that we have data
+        if not book_ids and not author_ids and not genre_ids:
+            return Response(
+                {"ok": False, "message": "At least one preference is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get or create UserTaste
+        taste, created = UserTaste.objects.get_or_create(user=request.user)
+
+        # Store IDs directly (frontend sends hardcoded IDs)
+        # In future, these could be mapped to actual database objects
+        if book_ids:
+            taste.favorite_books = book_ids
+
+        if author_ids:
+            taste.favorite_authors = author_ids
+
+        if genre_ids:
+            taste.favorite_genres = genre_ids
+
+        taste.save()
+
+        # Mark user as having completed initial taste survey
+        request.user.has_initial_taste = True
+        request.user.save()
+
+        return Response(
+            {
+                "ok": True,
+                "message": "Onboarding completed successfully",
+                "has_initial_taste": True,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except Exception as e:
+        return Response(
+            {"ok": False, "message": str(e)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+
+@api_view(["POST", "DELETE"])
+@permission_classes([permissions.IsAuthenticated])
+def follow_view(request, user_id: int):
+    """
+    Follow/unfollow a user by ID.
+
+    - POST /users/follow/{userId}/    -> follow
+    - DELETE /users/follow/{userId}/  -> unfollow
+
+    Returns 200 on success. Body is optional (frontend expects Unit).
+    """
+    try:
+        target = User.objects.get(pk=user_id)
+    except User.DoesNotExist:
+        return Response(
+            {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+        )
+
+    if target.id == request.user.id:
+        return Response(
+            {"error": "Cannot follow yourself"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if request.method == "POST":
+        # Create follow if not exists
+        _, created = Follow.objects.get_or_create(
+            follower=request.user,
+            following=target,
+        )
+
+        # Optionally notify the target user on first follow
+        if created:
+            try:
+                from notify.models import Notification
+
+                Notification.objects.create(
+                    recipient=target,
+                    sender=request.user,
+                    notification_type="user_followed",
+                    title=f"{request.user.username} started following you",
+                    message=f"{request.user.username} is now following you.",
+                )
+            except Exception:
+                # Notification failures should not break the API contract
+                pass
+
+        return Response({}, status=status.HTTP_200_OK)
+
+    # DELETE -> unfollow
+    Follow.objects.filter(follower=request.user, following=target).delete()
+    return Response({}, status=status.HTTP_200_OK)

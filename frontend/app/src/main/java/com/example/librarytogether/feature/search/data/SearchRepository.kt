@@ -12,7 +12,7 @@ class SearchRepository @Inject constructor(
         return try {
             val res = api.search(query)
             if (res.isSuccessful) {
-                res.body()?.results ?: emptyList()
+                res.body() ?: emptyList()
             } else {
                 throw IllegalStateException("Failed to search: ${res.code()}")
             }

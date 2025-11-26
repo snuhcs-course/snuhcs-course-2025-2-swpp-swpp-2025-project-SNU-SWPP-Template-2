@@ -5,6 +5,8 @@ The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/5.2/topics/http/urls/
 """
 
+from accounts.views import UserProfileMeView, follow_view
+from books.ai_views import explore_recommendations, get_barter_context
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
@@ -44,13 +46,22 @@ urlpatterns = [
     # Authentication
     path("auth/", include("djoser.urls")),
     path("auth/", include("djoser.urls.jwt")),
+    # Place explicit profile endpoint first to avoid overlap with allauth URLs.
+    path(
+        "accounts/profile/me/", UserProfileMeView.as_view(), name="profile_me"
+    ),
     path("accounts/", include("allauth.urls")),
     # API Endpoints
     path("auth/", include("accounts.urls")),  # Matches frontend expectations
     path("library/", include("books.urls")),  # User's library (reviews, books)
+    # Root-level AI/Explore shortcuts (kept alongside library/ paths for compatibility)
+    path("explore/", explore_recommendations, name="explore-recommendations"),
+    path("ai/barter-context/", get_barter_context, name="barter-context"),
     path("", include("social.urls")),  # Social features (home feed, posts)
     path("barter/", include("barter.urls")),  # Barter requests
-    # path("api/v1/notifications/", include("notify.urls")),
+    # Follow API to match frontend expectations
+    path("users/follow/<int:user_id>/", follow_view, name="follow_user"),
+    path("notifications/", include("notify.urls")),  # Notifications
 ]
 
 # Serve media files in development

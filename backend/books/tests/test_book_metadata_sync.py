@@ -245,3 +245,48 @@ class BookMetadataSynchronizerTestCase(TestCase):
         self.assertTrue(changed)  # other metadata (description) still applied
         self.assertIsNone(target_publication.isbn_13)
         self.assertEqual(other_publication.isbn_13, "9787522518954")
+
+    def test_sync_book_applies_genre_and_author(self):
+        """Test that genre and author are correctly applied from metadata."""
+        candidate = self._build_metadata(
+            categories=["Testing", "Python"],
+            authors=["Jane Author", "John Tester"],
+        )
+        pipeline = MagicMock()
+        pipeline.fetch.return_value = [candidate]
+        synchronizer = self._build_synchronizer(pipeline)
+        changed = synchronizer.sync_book(self.publication)
+        self.assertTrue(changed)
+        self.publication.refresh_from_db()
+        genres = [g.name for g in self.publication.genres.all()]
+        self.assertIn("Testing", genres)
+        self.assertIn("Python", genres)
+        authors = [a.name for a in self.publication.authors.all()]
+        self.assertIn("Jane Author", authors)
+        self.assertIn("John Tester", authors)
+
+    def test_sync_book_handles_missing_thumbnail(self):
+        """Test that missing thumbnail does not break sync."""
+        candidate = self._build_metadata(thumbnail_url=None)
+        pipeline = MagicMock()
+        pipeline.fetch.return_value = [candidate]
+        synchronizer = self._build_synchronizer(pipeline)
+        changed = synchronizer.sync_book(self.publication)
+        self.assertTrue(changed)
+        self.publication.refresh_from_db()
+        self.assertTrue(self.publication.cover_image.name.endswith(".jpg") or self.publication.cover_image.name == "")
+
+    def test_sync_book_conflict_isbn(self):
+        """Test that ISBN conflict skips ISBN update but applies other metadata."""
+        other_pub = BookPublication.objects.create(title="Other", isbn_13="9789999999999")
+        target_pub = BookPublication.objects.create(title="Target")
+        candidate = self._build_metadata(isbn="9789999999999", description="desc")
+        pipeline = MagicMock()
+        pipeline.fetch.return_value = [candidate]
+        synchronizer = self._build_synchronizer(pipeline)
+        changed = synchronizer.sync_book(target_pub, overwrite=True)
+        target_pub.refresh_from_db()
+        self.assertTrue(changed)
+        self.assertIsNone(target_pub.isbn_13)
+        self.assertEqual(other_pub.isbn_13, "9789999999999")
+        self.assertEqual(target_pub.description, "desc")

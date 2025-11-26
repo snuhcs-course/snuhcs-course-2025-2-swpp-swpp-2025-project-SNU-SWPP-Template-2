@@ -1,9 +1,7 @@
 """LLM client supporting both OpenAI API and local models."""
 
 import logging
-import os
 from dataclasses import dataclass
-from typing import Any
 
 from .config import LLMConfig
 
@@ -59,9 +57,7 @@ class LLMClient:
             from openai import OpenAI
 
             if not self.config.openai_api_key:
-                raise ValueError(
-                    "OPENAI_API_KEY not set in environment"
-                )
+                raise ValueError("OPENAI_API_KEY not set in environment")
 
             self.client = OpenAI(api_key=self.config.openai_api_key)
             self.model_type = "openai"
@@ -71,8 +67,7 @@ class LLMClient:
             )
         except ImportError:
             logger.warning(
-                "OpenAI package not installed. "
-                "Falling back to local model."
+                "OpenAI package not installed. Falling back to local model."
             )
             self.config.use_local_model = True
             self._init_local_model()
@@ -80,11 +75,8 @@ class LLMClient:
     def _init_local_model(self) -> None:
         """Initialize local model with transformers."""
         try:
-            from transformers import (
-                AutoModelForCausalLM,
-                AutoTokenizer,
-            )
             import torch
+            from transformers import AutoModelForCausalLM, AutoTokenizer
 
             logger.info(
                 f"Loading local model from: {self.config.local_model_path}"
@@ -95,22 +87,33 @@ class LLMClient:
                 device = "cuda"
                 torch_dtype = torch.float16
                 device_map = "auto"
-                logger.info("CUDA available - using GPU acceleration (float16)")
-            elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+                logger.info(
+                    "CUDA available - using GPU acceleration (float16)"
+                )
+            elif (
+                hasattr(torch.backends, "mps")
+                and torch.backends.mps.is_available()
+            ):
                 device = "mps"
                 # MPS requires float32 for numerical stability
                 torch_dtype = torch.float32
                 device_map = None
-                logger.info("MPS available - using Apple Silicon GPU acceleration")
+                logger.info(
+                    "MPS available - using Apple Silicon GPU acceleration"
+                )
             else:
                 device = "cpu"
                 torch_dtype = torch.float32
                 device_map = None
-                logger.info("Using CPU for inference (no GPU acceleration available)")
+                logger.info(
+                    "Using CPU for inference (no GPU acceleration available)"
+                )
 
             # Load tokenizer
-            self.tokenizer = AutoTokenizer.from_pretrained(
+            # Safe: loading from trusted local path or pinned revision.
+            self.tokenizer = AutoTokenizer.from_pretrained(  # nosec B615
                 self.config.local_model_path,
+                revision=self.config.local_model_revision,
                 trust_remote_code=True,
             )
 
@@ -119,9 +122,13 @@ class LLMClient:
                 self.tokenizer.pad_token = self.tokenizer.eos_token
 
             # Load model
-            logger.info(f"Loading model with dtype={torch_dtype}, device={device}")
-            self.model = AutoModelForCausalLM.from_pretrained(
+            logger.info(
+                f"Loading model with dtype={torch_dtype}, device={device}"
+            )
+            # Safe: loading from trusted local path or pinned revision.
+            self.model = AutoModelForCausalLM.from_pretrained(  # nosec B615
                 self.config.local_model_path,
+                revision=self.config.local_model_revision,
                 torch_dtype=torch_dtype,
                 device_map=device_map,
                 trust_remote_code=True,
@@ -215,8 +222,7 @@ class LLMClient:
             # Format messages for the model
             # Gemma3 uses a specific chat template
             formatted_messages = [
-                {"role": msg.role, "content": msg.content}
-                for msg in messages
+                {"role": msg.role, "content": msg.content} for msg in messages
             ]
 
             # Apply chat template
@@ -239,7 +245,9 @@ class LLMClient:
             inputs = {k: v.to(self.device) for k, v in inputs.items()}
 
             # Generate
-            logger.debug(f"Generating with temperature={temperature}, max_tokens={max_tokens}")
+            logger.debug(
+                f"Generating with temperature={temperature}, max_tokens={max_tokens}"
+            )
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
@@ -252,7 +260,7 @@ class LLMClient:
                 )
 
             # Decode only the generated part (skip input)
-            generated_tokens = outputs[0][inputs["input_ids"].shape[1]:]
+            generated_tokens = outputs[0][inputs["input_ids"].shape[1] :]
             response = self.tokenizer.decode(
                 generated_tokens,
                 skip_special_tokens=True,
@@ -334,4 +342,3 @@ class LLMClient:
                 )
 
         return messages
-

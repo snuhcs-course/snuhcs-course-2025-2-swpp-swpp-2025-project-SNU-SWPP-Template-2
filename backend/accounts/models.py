@@ -90,9 +90,6 @@ class User(AbstractUser):
     location = models.CharField(
         max_length=100, blank=True, help_text="Your city or region"
     )
-    birth_date = models.DateField(null=True, blank=True)
-
-    # GPS Location (for barter proximity and user location features)
     latitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
@@ -107,6 +104,7 @@ class User(AbstractUser):
         blank=True,
         help_text="Current longitude coordinate",
     )
+    birth_date = models.DateField(null=True, blank=True)
 
     # Profile Picture
     profile_picture = models.ImageField(
@@ -258,22 +256,8 @@ class UserTaste(models.Model):
         blank=True,
         help_text="Preferred trade address (optional)",
     )
-    trade_latitude = models.DecimalField(
-        max_digits=9,
-        decimal_places=6,
-        null=True,
-        blank=True,
-        help_text="Preferred trade latitude coordinate",
-    )
-    trade_longitude = models.DecimalField(
-        max_digits=9,
-        decimal_places=6,
-        null=True,
-        blank=True,
-        help_text="Preferred trade longitude coordinate",
-    )
 
-    # Categorization progress (1..6)
+    # Categorization progress (1..7)
     current_step = models.IntegerField(
         default=1, help_text="Current categorization step (1-7)"
     )

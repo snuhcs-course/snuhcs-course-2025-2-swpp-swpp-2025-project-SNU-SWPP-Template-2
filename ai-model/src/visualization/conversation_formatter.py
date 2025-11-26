@@ -1,7 +1,7 @@
 """Format LLM conversations for frontend display."""
 
 import json
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
@@ -287,4 +287,3 @@ class ConversationFormatter:
             return "MEDIUM"
         else:
             return "LOW"
-
