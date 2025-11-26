@@ -722,7 +722,7 @@ fun StudentListItem(
                         )
                         Text(
                             text = run {
-                                val email = student.email ?: "이메일 없음"
+                                val email = student.email
                                 if (email.length > EMAIL_MAX_LENGTH) email.take(EMAIL_MAX_LENGTH) + "..." else email
                             },
                             style = MaterialTheme.typography.bodySmall,

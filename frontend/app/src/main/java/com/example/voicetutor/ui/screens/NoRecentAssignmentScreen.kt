@@ -2,7 +2,7 @@ package com.example.voicetutor.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,7 +24,7 @@ fun NoRecentAssignmentScreen() {
             verticalArrangement = Arrangement.spacedBy(24.dp),
         ) {
             Icon(
-                imageVector = Icons.Filled.Assignment,
+                imageVector = Icons.AutoMirrored.Filled.Assignment,
                 contentDescription = "No Recent Assignments",
                 tint = Gray400,
                 modifier = Modifier.size(80.dp),

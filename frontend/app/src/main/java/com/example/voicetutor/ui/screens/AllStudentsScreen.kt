@@ -261,7 +261,7 @@ fun AllStudentsScreen(
             itemsIndexed(
                 items = allStudents,
                 key = { _, student -> student.id }, // 각 학생의 고유 ID를 키로 사용
-            ) { index, student ->
+            ) { _, student ->
 
                 AllStudentsCard(
                     student = student,

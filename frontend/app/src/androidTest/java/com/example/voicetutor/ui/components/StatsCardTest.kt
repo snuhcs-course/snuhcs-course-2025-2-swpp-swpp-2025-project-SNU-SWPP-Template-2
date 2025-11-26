@@ -274,7 +274,7 @@ class StatsCardTest {
                 VTStatsCard(
                     title = "테스트",
                     value = longValue,
-                    icon = Icons.Filled.List,
+                    icon = Icons.AutoMirrored.Filled.List,
                 )
             }
         }

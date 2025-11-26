@@ -167,7 +167,7 @@ fun TeacherAssignmentDetailScreen(
                         VTStatsCard(
                             title = "제출률",
                             value = "${detail.completionRate}%",
-                            icon = Icons.Filled.Assignment,
+                            icon = Icons.AutoMirrored.Filled.Assignment,
                             iconColor = PrimaryIndigo,
                             variant = CardVariant.Elevated,
                             modifier = Modifier.weight(1f),
@@ -214,9 +214,9 @@ fun TeacherAssignmentDetailScreen(
                             VTButton(
                                 text = "과제 편집",
                                 onClick = {
-                                    val assignmentId = assignment?.id ?: targetAssignment?.id ?: 0
-                                    if (assignmentId > 0) {
-                                        onNavigateToEditAssignment(assignmentId)
+                                    val editAssignmentId = assignment?.id ?: targetAssignment?.id ?: 0
+                                    if (editAssignmentId > 0) {
+                                        onNavigateToEditAssignment(editAssignmentId)
                                     }
                                 },
                                 variant = ButtonVariant.Outline,

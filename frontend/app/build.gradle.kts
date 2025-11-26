@@ -161,6 +161,11 @@ dependencies {
     testImplementation(kotlin("test"))
 }
 
+// Suppress deprecation warnings in generated code (e.g., Hilt generated files)
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.add("-Xlint:-deprecation")
+}
+
 // JaCoCo configuration
 jacoco {
     toolVersion = "0.8.11"

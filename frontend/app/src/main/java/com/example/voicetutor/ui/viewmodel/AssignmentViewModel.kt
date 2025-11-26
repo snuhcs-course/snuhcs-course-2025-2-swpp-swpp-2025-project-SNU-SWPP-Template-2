@@ -29,6 +29,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlin.OptIn
 import java.io.File
 import javax.inject.Inject
 
@@ -987,6 +989,7 @@ class AssignmentViewModel @Inject constructor(
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
     fun createAssignmentWithPdf(assignment: CreateAssignmentRequest, pdfFile: File, totalNumber: Int = 5, teacherId: String? = null) {
         println("=== AssignmentViewModel.createAssignmentWithPdf 시작 ===")
         println("PDF 파일: ${pdfFile.name}")
@@ -1314,10 +1317,11 @@ class AssignmentViewModel @Inject constructor(
 
             assignmentRepository.getPersonalAssignmentQuestions(personalAssignmentId)
                 .onSuccess { questions ->
-                    _personalAssignmentQuestions.value = questions ?: emptyList()
+                    val safeQuestions = questions ?: emptyList()
+                    _personalAssignmentQuestions.value = safeQuestions
                     _currentQuestionIndex.value = 0
                     lastLoadedPersonalAssignmentId = personalAssignmentId
-                    println("AssignmentViewModel - Successfully loaded ${questions?.size ?: 0} questions")
+                    println("AssignmentViewModel - Successfully loaded ${safeQuestions.size} questions")
                 }
                 .onFailure { exception ->
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)

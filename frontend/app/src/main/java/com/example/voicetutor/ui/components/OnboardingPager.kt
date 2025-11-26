@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -52,7 +53,6 @@ fun OnboardingPager(
     pages: List<OnboardingPage>,
     onComplete: () -> Unit,
     onSkip: () -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     val pagerState = rememberPagerState(pageCount = { pages.size })
     val coroutineScope = rememberCoroutineScope()
@@ -198,11 +198,11 @@ fun OnboardingPager(
                             state = pagerState,
                             modifier = Modifier.fillMaxSize(),
                         ) { page ->
-                            val isLastPage = page == pages.size - 1
+                            val isCurrentPageLast = page == pages.size - 1
                             OnboardingPageContent(
                                 page = pages[page],
                                 modifier = Modifier.fillMaxSize(),
-                                showStartButton = isLastPage,
+                                showStartButton = isCurrentPageLast,
                                 onStartClick = onComplete,
                             )
                         }
@@ -238,7 +238,7 @@ fun OnboardingPager(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.ArrowBack,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                     contentDescription = "이전",
                                     tint = Color.White,
                                     modifier = Modifier.size(24.dp),
@@ -277,7 +277,7 @@ fun OnboardingPager(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.ArrowForward,
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
                                     contentDescription = "다음",
                                     tint = Color.White,
                                     modifier = Modifier.size(24.dp),

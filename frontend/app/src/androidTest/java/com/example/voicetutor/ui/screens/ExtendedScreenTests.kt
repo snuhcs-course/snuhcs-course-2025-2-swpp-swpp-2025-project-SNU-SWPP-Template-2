@@ -463,6 +463,22 @@ class ExtendedScreenTests {
         }
         composeTestRule.waitForIdle()
 
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            try {
+                composeTestRule.onAllNodesWithText("튜토리얼 다시 보기", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            try {
+                composeTestRule.onAllNodesWithText("앱 정보", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+            } catch (e: Exception) {
+                false
+            }
+        }
+
         composeTestRule.onNodeWithText("튜토리얼 다시 보기", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("앱 정보", useUnmergedTree = true).assertExists()
     }

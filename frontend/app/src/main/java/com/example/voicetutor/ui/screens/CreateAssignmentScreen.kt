@@ -302,7 +302,7 @@ fun CreateAssignmentScreen(
                                             tint = PrimaryIndigo,
                                         )
                                     },
-                                    modifier = Modifier                                    .menuAnchor(),
+                                    modifier = Modifier.menuAnchor(),
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = PrimaryIndigo,
                                         focusedLabelColor = PrimaryIndigo,
@@ -355,7 +355,7 @@ fun CreateAssignmentScreen(
                                     placeholder = { Text("학년을 선택하세요") },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                    .menuAnchor(),
+                                        .menuAnchor(),
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = gradeSelectionExpanded)
                                     },
@@ -396,7 +396,7 @@ fun CreateAssignmentScreen(
                                     placeholder = { Text("과목을 선택하세요") },
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                    .menuAnchor(),
+                                        .menuAnchor(),
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = subjectSelectionExpanded)
                                     },
