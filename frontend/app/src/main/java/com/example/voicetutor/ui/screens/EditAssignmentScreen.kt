@@ -192,7 +192,7 @@ fun EditAssignmentScreen(
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Column(
-                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         // Assignment title
                         OutlinedTextField(
@@ -215,9 +215,9 @@ fun EditAssignmentScreen(
                             ),
                             singleLine = true,
                             isError = titleError != null,
-                            supportingText = {
-                                titleError?.let {
-                                    Text(text = it, color = Error)
+                            supportingText = titleError?.let { error ->
+                                {
+                                    Text(text = error, color = Error)
                                 }
                             },
                             colors = OutlinedTextFieldDefaults.colors(
@@ -239,8 +239,8 @@ fun EditAssignmentScreen(
                                 value = selectedClass,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("반 선택") },
-                                placeholder = { Text("과제를 배정할 반을 선택하세요") },
+                                label = { Text("수업 선택") },
+                                placeholder = { Text("과제를 배정할 수업을 선택하세요") },
                                 trailingIcon = {
                                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = classSelectionExpanded)
                                 },

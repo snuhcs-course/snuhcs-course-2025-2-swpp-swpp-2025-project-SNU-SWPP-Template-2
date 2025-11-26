@@ -375,7 +375,6 @@ fun ClassCard(
                 Text(
                     text = "\"${classRoom.name}\" 수업을 삭제하시겠습니까?\n삭제하면 되돌릴 수 없어요!",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Gray700,
                 )
             },
             confirmButton = {
