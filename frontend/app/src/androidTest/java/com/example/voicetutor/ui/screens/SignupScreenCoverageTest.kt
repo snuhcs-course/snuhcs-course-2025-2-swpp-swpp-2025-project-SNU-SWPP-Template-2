@@ -76,7 +76,7 @@ class SignupScreenCoverageTest {
             setSignupError(viewModel, SignupError.General.Server("서버 오류가 발생했습니다."))
         }
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("서버 오류가 발생했습니다.", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
@@ -86,7 +86,7 @@ class SignupScreenCoverageTest {
             setSignupError(viewModel, SignupError.General.Unknown("알 수 없는 오류가 발생했습니다."))
         }
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("알 수 없는 오류가 발생했습니다.", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()

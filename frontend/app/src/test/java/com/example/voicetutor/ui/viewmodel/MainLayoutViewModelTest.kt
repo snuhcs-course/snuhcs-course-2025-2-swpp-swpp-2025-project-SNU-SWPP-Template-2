@@ -46,4 +46,3 @@ class MainLayoutViewModelTest {
         assertEquals("teacher_dashboard", MainLayoutViewModel.TEACHER_DASHBOARD)
     }
 }
-

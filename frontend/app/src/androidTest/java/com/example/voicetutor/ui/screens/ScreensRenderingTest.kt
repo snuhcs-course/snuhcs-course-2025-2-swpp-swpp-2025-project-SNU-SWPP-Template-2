@@ -26,7 +26,6 @@ class ScreensRenderingTest {
     fun loginScreen_welcomeText_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-
                 VTCard {
                     Text("VoiceTutor")
                 }
@@ -187,7 +186,6 @@ class ScreensRenderingTest {
         }
 
         composeTestRule.waitForIdle()
-
     }
 
     @Test

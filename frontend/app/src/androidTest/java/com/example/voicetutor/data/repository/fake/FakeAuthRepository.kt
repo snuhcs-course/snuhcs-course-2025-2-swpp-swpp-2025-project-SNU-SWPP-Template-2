@@ -40,7 +40,6 @@ class FakeAuthRepository {
 
     suspend fun login(email: String, password: String): Result<User> {
         return try {
-
             kotlinx.coroutines.delay(500)
 
             val storedPassword = credentials[email]
@@ -70,7 +69,6 @@ class FakeAuthRepository {
         role: UserRole,
     ): Result<User> {
         return try {
-
             kotlinx.coroutines.delay(500)
 
             if (users.containsKey(email)) {

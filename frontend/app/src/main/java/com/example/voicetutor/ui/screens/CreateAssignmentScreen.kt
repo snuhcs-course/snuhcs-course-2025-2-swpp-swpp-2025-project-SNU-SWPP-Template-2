@@ -29,6 +29,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.voicetutor.data.network.CreateAssignmentRequest
 import com.example.voicetutor.file.FileInfo
 import com.example.voicetutor.file.FileManager
 import com.example.voicetutor.file.FileType
@@ -37,7 +38,6 @@ import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.StudentViewModel
-import com.example.voicetutor.data.network.CreateAssignmentRequest
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -800,8 +800,8 @@ fun CreateAssignmentScreen(
                                 }
                             }
                         }
+                    }
                 }
-            }
 
                 val isFormValid = assignmentTitle.isNotBlank() && assignmentDescription.isNotBlank() &&
                     selectedClass.isNotBlank() && selectedClassId != null &&
@@ -897,7 +897,7 @@ fun CreateAssignmentScreen(
                                 }
                             }
                         },
-                        enabled = datePickerState.selectedDateMillis != null && 
+                        enabled = datePickerState.selectedDateMillis != null &&
                             (datePickerState.selectedDateMillis ?: 0) >= todayMillis,
                         colors = ButtonDefaults.textButtonColors(contentColor = PrimaryIndigo),
                     ) {
@@ -960,7 +960,7 @@ fun CreateAssignmentScreen(
             } else {
                 dueDateTime?.get(Calendar.MINUTE) ?: now.get(Calendar.MINUTE)
             }
-            
+
             val timePickerState = rememberTimePickerState(
                 initialHour = initialHour,
                 initialMinute = initialMinute,
@@ -988,7 +988,7 @@ fun CreateAssignmentScreen(
                             } else {
                                 true
                             }
-                            
+
                             if (isValid) {
                                 dueDateTime = finalDateTime
                                 dueDateText = displayDateFormatter.format(finalDateTime.time)

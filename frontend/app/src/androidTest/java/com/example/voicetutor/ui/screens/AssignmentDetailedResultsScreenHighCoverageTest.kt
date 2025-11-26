@@ -39,7 +39,7 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
     @Before
     fun setUp() {
         hiltRule.inject()
-        
+
         fakeApi.apply {
             personalAssignmentStatisticsResponses[1] = PersonalAssignmentStatistics(
                 totalQuestions = 2,
@@ -49,9 +49,9 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
                 totalProblem = 2,
                 solvedProblem = 2,
                 progress = 100f,
-                averageScore = 75f
+                averageScore = 75f,
             )
-            
+
             assignmentCorrectnessResponses = listOf(
 
                 AssignmentCorrectnessItem(
@@ -61,7 +61,7 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
                     questionModelAnswer = "정답",
                     isCorrect = true,
                     explanation = "해설 1",
-                    answeredAt = "2024-01-01"
+                    answeredAt = "2024-01-01",
                 ),
 
                 AssignmentCorrectnessItem(
@@ -71,7 +71,7 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
                     questionModelAnswer = "정답",
                     isCorrect = false,
                     explanation = "해설 2",
-                    answeredAt = "2024-01-01"
+                    answeredAt = "2024-01-01",
                 ),
 
                 AssignmentCorrectnessItem(
@@ -81,7 +81,7 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
                     questionModelAnswer = "꼬리 정답",
                     isCorrect = true,
                     explanation = "꼬리 해설 2-1",
-                    answeredAt = "2024-01-01"
+                    answeredAt = "2024-01-01",
                 ),
 
                 AssignmentCorrectnessItem(
@@ -91,8 +91,8 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
                     questionModelAnswer = "꼬리 정답",
                     isCorrect = false,
                     explanation = "꼬리 해설 2-2",
-                    answeredAt = "2024-01-01"
-                )
+                    answeredAt = "2024-01-01",
+                ),
             )
         }
     }
@@ -116,18 +116,18 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
 
         composeRule.onNodeWithText("메인 질문 1")
             .assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("메인 질문 2").performScrollTo()
         composeRule.waitForIdle()
-        
+
         val toggleButton = composeRule.onNodeWithText("꼬리질문 펼치기")
         toggleButton.assertIsDisplayed()
-        
+
         toggleButton.performClick()
         composeRule.waitForIdle()
-        
+
         waitForText("꼬리 질문 2-1")
-        
+
         composeRule.onNodeWithText("꼬리 질문 2-1").performScrollTo()
         composeRule.onNodeWithText("꼬리 질문 2-1").assertIsDisplayed()
 
@@ -135,18 +135,18 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
 
         composeRule.onAllNodesWithText("꼬리 정답", useUnmergedTree = true).onFirst().performScrollTo()
         composeRule.onAllNodesWithText("꼬리 정답", useUnmergedTree = true).onFirst().assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("꼬리 질문 2-2").performScrollTo()
         composeRule.onNodeWithText("꼬리 질문 2-2").assertIsDisplayed()
         waitForText("꼬리 오답")
         composeRule.onNodeWithText("꼬리 오답").performScrollTo()
         composeRule.onNodeWithText("꼬리 오답").assertIsDisplayed()
-        
+
         composeRule.onAllNodesWithText("꼬리질문 접기")
             .onLast()
             .performClick()
-            
-        composeRule.waitForIdle()        
+
+        composeRule.waitForIdle()
     }
 
     @Test
@@ -160,19 +160,19 @@ class AssignmentDetailedResultsScreenHighCoverageTest {
         waitForText("메인 질문 1")
 
         composeRule.onNodeWithText("메인 질문 1").assertIsDisplayed()
-        
+
         composeRule.onAllNodesWithText("내 답변").onFirst().assertIsDisplayed()
 
         composeRule.onAllNodesWithText("해설").onFirst().assertIsDisplayed()
         composeRule.onNodeWithText("해설 1").assertIsDisplayed()
 
         composeRule.onNodeWithText("메인 질문 2").performScrollTo()
-        
+
         composeRule.onNodeWithText("오답").assertIsDisplayed()
-        
+
         composeRule.onAllNodesWithText("내 답변").onLast().assertIsDisplayed()
         composeRule.onNodeWithText("오답").assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("해설 2").assertIsDisplayed()
     }
 }

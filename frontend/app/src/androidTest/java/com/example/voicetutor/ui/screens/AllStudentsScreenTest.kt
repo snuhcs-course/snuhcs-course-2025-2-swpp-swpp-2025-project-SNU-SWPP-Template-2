@@ -223,7 +223,6 @@ class AllStudentsScreenTest {
 
     @Test
     fun allStudentsScreen_studentCardShowsEmptyClasses() {
-
         fakeApi.shouldFailStudentClasses = false
         fakeApi.studentClassesResponse = emptyList()
 
@@ -241,7 +240,6 @@ class AllStudentsScreenTest {
 
     @Test
     fun allStudentsScreen_studentCardShowsMultipleClasses() {
-
         composeRule.setContent {
             VoiceTutorTheme {
                 AllStudentsScreen(teacherId = "2")
@@ -281,7 +279,6 @@ class AllStudentsScreenTest {
 
         waitForText("홍길동")
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
-
     }
 
     @Test
@@ -316,7 +313,6 @@ class AllStudentsScreenTest {
 
     @Test
     fun allStudentsScreen_displaysLoadingIndicator() {
-
         fakeApi.allStudentsResponse = listOf(
             Student(id = 1, name = "홍길동", email = "hong@school.com", role = UserRole.STUDENT),
         )
@@ -361,7 +357,6 @@ class AllStudentsScreenTest {
 
     @Test
     fun allStudentsScreen_showsLoadingClassesMessage() {
-
         fakeApi.shouldFailStudentClasses = false
         fakeApi.studentClassesResponse = listOf(
             ClassInfo(id = 1, name = "수학 A반"),
@@ -415,7 +410,6 @@ class AllStudentsScreenTest {
 
     @Test
     fun allStudentsScreen_handlesNullSelectedClassId() {
-
         fakeApi.classesResponse = listOf(
             ClassData(
                 id = 1,
@@ -470,7 +464,6 @@ class AllStudentsScreenTest {
 
         waitForText("이름 없음")
         composeRule.onNodeWithText("이름 없음", useUnmergedTree = true).assertIsDisplayed()
-
     }
 
     @Test
@@ -514,6 +507,5 @@ class AllStudentsScreenTest {
 
         waitForText("홍길동")
         composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true).onFirst().assertIsDisplayed()
-
     }
 }

@@ -279,4 +279,3 @@ class OnboardingDataTest {
         assertEquals(imageReses.size, imageReses.distinct().size)
     }
 }
-

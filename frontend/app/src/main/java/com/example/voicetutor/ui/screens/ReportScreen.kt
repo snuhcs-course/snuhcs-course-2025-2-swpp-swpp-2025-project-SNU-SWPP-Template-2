@@ -179,7 +179,7 @@ fun AssignmentReportCard(
         variant = CardVariant.Elevated,
         onClick = onReportClick,
     ) {
-        Column{
+        Column {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,

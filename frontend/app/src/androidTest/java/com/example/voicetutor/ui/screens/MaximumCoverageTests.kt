@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Assignment
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
@@ -32,7 +32,6 @@ class MaximumCoverageTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     VTCard(variant = CardVariant.Elevated) {
                         Text("Elevated Card")
                     }
@@ -68,7 +67,6 @@ class MaximumCoverageTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     VTButton(text = "Primary Small", onClick = {}, variant = ButtonVariant.Primary, size = ButtonSize.Small)
                     VTButton(text = "Primary Medium", onClick = {}, variant = ButtonVariant.Primary, size = ButtonSize.Medium)
                     VTButton(text = "Primary Large", onClick = {}, variant = ButtonVariant.Primary, size = ButtonSize.Large)
@@ -95,7 +93,6 @@ class MaximumCoverageTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     VTStatsCard(
                         title = "Horizontal",
                         value = "100",
@@ -298,7 +295,6 @@ class MaximumCoverageTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     LinearProgressIndicator(progress = { 0.5f })
 
                     CircularProgressIndicator()
@@ -309,7 +305,6 @@ class MaximumCoverageTests {
         }
 
         composeTestRule.waitForIdle()
-
     }
 
     @Test
@@ -418,7 +413,6 @@ class MaximumCoverageTests {
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-
                     Text(
                         text = "대시보드",
                         style = MaterialTheme.typography.headlineMedium,
@@ -461,7 +455,6 @@ class MaximumCoverageTests {
 
     @Test
     fun multipleRenders_increaseCoverage() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -603,7 +596,7 @@ class MaximumCoverageTests {
             }
         }
         composeTestRule.waitForIdle()
-        
+
         composeTestRule.onNodeWithText("개발사", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("빌드 번호", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("최종 업데이트", useUnmergedTree = true).assertExists()
@@ -614,7 +607,6 @@ class MaximumCoverageTests {
 
     @Test
     fun multipleScreenRenders_increaseCoverage() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {

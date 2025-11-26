@@ -266,7 +266,6 @@ class ExtendedCoverageTests {
 
     @Test
     fun dashboardSummaryCard_renders_withStats() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -502,7 +501,6 @@ class ExtendedCoverageTests {
         }
 
         composeTestRule.waitForIdle()
-
     }
 
     @Test
@@ -520,7 +518,6 @@ class ExtendedCoverageTests {
         }
 
         composeTestRule.waitForIdle()
-
     }
 
     @Test

@@ -291,7 +291,6 @@ fun TeacherClassDetailScreen(
     }
 }
 
-
 private fun filterAssignmentsByStatus(
     assignments: List<ClassAssignment>,
     filter: AssignmentFilter,

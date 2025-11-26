@@ -563,7 +563,6 @@ class LowCoverageScreenTests {
         }
 
         composeTestRule.waitForIdle()
-
     }
 
     @Test

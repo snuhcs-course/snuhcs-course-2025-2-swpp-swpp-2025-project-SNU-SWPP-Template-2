@@ -341,7 +341,6 @@ class OnboardingPagerTest {
         }
 
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -386,7 +385,6 @@ class OnboardingPagerTest {
 
         waitForText("첫 번째 페이지")
         composeRule.onNodeWithText("첫 번째 페이지", substring = true).assertIsDisplayed()
-
     }
 
     @Test

@@ -25,7 +25,6 @@ class FullScreenRenderingTests {
 
     @Test
     fun createAssignmentScreen_uiComponents_render() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
@@ -350,11 +349,9 @@ class FullScreenRenderingTests {
 
     @Test
     fun screenComponents_withDifferentStates_render() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     CircularProgressIndicator()
 
                     Text("데이터가 없습니다")

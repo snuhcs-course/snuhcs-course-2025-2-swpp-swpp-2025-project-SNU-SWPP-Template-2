@@ -131,7 +131,7 @@ fun AssignmentDetailScreen(
                     modifier = Modifier.widthIn(max = 180.dp),
                 )
                 Spacer(modifier = Modifier.height(10.dp))
-                
+
                 // Subject and Class chips
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -139,12 +139,12 @@ fun AssignmentDetailScreen(
                 ) {
                     val subject = currentAssignment?.courseClass?.subject?.name
                     val className = currentAssignment?.courseClass?.name
-                    
+
                     if (!subject.isNullOrBlank()) {
                         Surface(
                             color = PrimaryIndigo.copy(alpha = 0.12f),
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
-                            modifier = Modifier.widthIn(max = 120.dp)
+                            modifier = Modifier.widthIn(max = 120.dp),
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
@@ -167,12 +167,12 @@ fun AssignmentDetailScreen(
                             }
                         }
                     }
-                    
+
                     if (!className.isNullOrBlank()) {
                         Surface(
                             color = PrimaryEmerald.copy(alpha = 0.12f),
                             shape = androidx.compose.foundation.shape.RoundedCornerShape(6.dp),
-                            modifier = Modifier.widthIn(max = 120.dp)
+                            modifier = Modifier.widthIn(max = 120.dp),
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
@@ -197,13 +197,13 @@ fun AssignmentDetailScreen(
                     }
                 }
             }
-            
+
             // Right side: Due date badge (absolute positioned)
             currentAssignment?.dueAt?.let { dueDate ->
                 Box(
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .offset(x = 5.dp, y = (-3).dp)
+                        .offset(x = 5.dp, y = (-3).dp),
                 ) {
                     Surface(
                         color = PrimaryIndigo.copy(alpha = 0.7f),

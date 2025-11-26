@@ -269,7 +269,6 @@ class ScreenInternalComponentsTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     StudentAssignmentCard(
                         title = "과제",
                         subject = "수학",
@@ -301,7 +300,6 @@ class ScreenInternalComponentsTests {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Column {
-
                     TeacherAssignmentCard(
                         title = "과제",
                         className = "수학 1반",

@@ -93,7 +93,6 @@ class SupportingViewModelIntegrationTest {
         classViewModel.enrollStudentToClass(classId = 1, studentId = 3)
         advanceUntilIdle()
         assertEquals(null, classViewModel.error.value)
-
     }
 
     @Test
@@ -150,7 +149,6 @@ class SupportingViewModelIntegrationTest {
         failingClassViewModel.enrollStudentToClass(classId = 1, studentId = 3)
         advanceUntilIdle()
         assertEquals("enroll error", failingClassViewModel.error.value)
-
     }
 
     @Test

@@ -26,27 +26,21 @@ class MainActivityTest {
 
     @Test
     fun mainActivity_launches_successfully() {
-
         composeTestRule.waitForIdle()
     }
 
     @Test
     fun mainActivity_setsContent_withVoiceTutorTheme() {
-
         composeTestRule.waitForIdle()
-
     }
 
     @Test
     fun voiceTutorApp_displays_navigationContent() {
-
         composeTestRule.waitForIdle()
-
     }
 
     @Test
     fun mainActivity_enablesEdgeToEdge() {
-
         composeTestRule.waitForIdle()
     }
 }

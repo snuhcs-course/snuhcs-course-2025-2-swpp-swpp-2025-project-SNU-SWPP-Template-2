@@ -39,7 +39,6 @@ class ExtendedScreenTests {
 
     @Test
     fun appInfoScreen_multipleRenders() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 AppInfoScreen()
@@ -50,7 +49,6 @@ class ExtendedScreenTests {
 
     @Test
     fun noRecentAssignmentScreen_multipleRenders() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 NoRecentAssignmentScreen()
@@ -408,7 +406,6 @@ class ExtendedScreenTests {
 
     @Test
     fun roleCard_bothRoles_multipleTimes() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 Row {
@@ -465,7 +462,7 @@ class ExtendedScreenTests {
             }
         }
         composeTestRule.waitForIdle()
-        
+
         composeTestRule.onNodeWithText("튜토리얼 다시 보기", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("앱 정보", useUnmergedTree = true).assertExists()
     }

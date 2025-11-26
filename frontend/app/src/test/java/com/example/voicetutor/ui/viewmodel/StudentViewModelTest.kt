@@ -122,7 +122,6 @@ class StudentViewModelTest {
         Mockito.verify(studentRepository, times(1)).getStudentById(1)
     }
 
-
     @Test
     fun isLoading_loadingOperation_setsTrueThenFalse() = runTest {
         Mockito.`when`(studentRepository.getAllStudents(null, null))
@@ -180,7 +179,6 @@ class StudentViewModelTest {
         }
     }
 
-
     @Test
     fun loadAllStudents_withOnlyTeacherId_callsRepoWithTeacherId() = runTest {
         val students = listOf(
@@ -223,7 +221,6 @@ class StudentViewModelTest {
         Mockito.verify(studentRepository, times(1)).getAllStudents(null, "10")
     }
 
-
     @Test
     fun students_initialState_isEmpty() = runTest {
         viewModel.students.test {
@@ -239,7 +236,6 @@ class StudentViewModelTest {
             cancelAndIgnoreRemainingEvents()
         }
     }
-
 
     @Test
     fun error_initialState_isNull() = runTest {

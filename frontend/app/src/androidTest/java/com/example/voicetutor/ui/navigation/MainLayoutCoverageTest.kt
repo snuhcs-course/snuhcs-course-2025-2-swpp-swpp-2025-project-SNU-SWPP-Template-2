@@ -109,7 +109,6 @@ class MainLayoutCoverageTest {
 
     @Test
     fun testGetPageTitle_AssignmentDetail() {
-
         val title = getPageTitle(VoiceTutorScreens.AssignmentDetail.createRoute("1", "Test"), UserRole.STUDENT)
         assert(title == "과제 상세")
     }
@@ -128,14 +127,12 @@ class MainLayoutCoverageTest {
 
     @Test
     fun testGetPageTitle_CreateAssignment() {
-
         val title = getPageTitle(VoiceTutorScreens.CreateAssignment.createRoute(1), UserRole.TEACHER)
         assert(title == "과제 생성")
     }
 
     @Test
     fun testGetPageTitle_EditAssignment() {
-
         val title = getPageTitle(VoiceTutorScreens.EditAssignment.createRoute(1), UserRole.TEACHER)
         assert(title == "과제 편집")
     }
@@ -422,12 +419,12 @@ class MainLayoutCoverageTest {
 
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodes(
-                hasText("로그아웃") and hasClickAction()
+                hasText("로그아웃") and hasClickAction(),
             ).fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.onNode(
-            hasText("로그아웃") and hasClickAction()
+            hasText("로그아웃") and hasClickAction(),
         ).performClick()
 
         composeRule.waitForIdle()

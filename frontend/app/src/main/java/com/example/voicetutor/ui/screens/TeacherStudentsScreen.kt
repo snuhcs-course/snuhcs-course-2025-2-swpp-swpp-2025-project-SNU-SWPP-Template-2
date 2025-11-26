@@ -156,13 +156,13 @@ fun TeacherStudentsScreen(
                         isLoadingAllStudents = false
                     }
                 }
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        isLoadingAllStudents = false
-                    }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    isLoadingAllStudents = false
                 }
-            } else {
-                allStudentsForEnroll.clear()
+            }
+        } else {
+            allStudentsForEnroll.clear()
             selectedToEnroll.clear()
             enrollSearchQuery = ""
         }
@@ -722,8 +722,8 @@ fun StudentListItem(
                         )
                         Text(
                             text = run {
-                            val email = student.email
-                            if (email.length > EMAIL_MAX_LENGTH) email.take(EMAIL_MAX_LENGTH) + "..." else email
+                                val email = student.email ?: "이메일 없음"
+                                if (email.length > EMAIL_MAX_LENGTH) email.take(EMAIL_MAX_LENGTH) + "..." else email
                             },
                             style = MaterialTheme.typography.bodySmall,
                             color = Gray600,

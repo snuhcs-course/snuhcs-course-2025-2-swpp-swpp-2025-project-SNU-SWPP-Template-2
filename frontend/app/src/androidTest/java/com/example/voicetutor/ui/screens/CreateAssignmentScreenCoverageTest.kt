@@ -1,16 +1,16 @@
 package com.example.voicetutor.ui.screens
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasClickAction
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.isSelectable
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onLast
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextReplacement
-import androidx.compose.ui.test.hasClickAction
-import androidx.compose.ui.test.isSelectable
-import androidx.compose.ui.test.onLast
-import androidx.compose.ui.test.hasSetTextAction
 import androidx.lifecycle.ViewModelProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
@@ -107,7 +107,6 @@ class CreateAssignmentScreenCoverageTest {
 
     @Test
     fun createAssignmentScreen_handlesFileSelectionState() {
-
         composeRule.setContent {
             VoiceTutorTheme {
                 CreateAssignmentScreen(teacherId = "2")
@@ -115,7 +114,6 @@ class CreateAssignmentScreenCoverageTest {
         }
 
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -132,7 +130,6 @@ class CreateAssignmentScreenCoverageTest {
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
         composeRule.runOnIdle {
-
             setStateFlow(assignmentViewModel, "_currentAssignment", fakeApi.assignmentByIdResponse)
             setStateFlow(assignmentViewModel, "_uploadSuccess", true)
         }
@@ -285,8 +282,8 @@ class CreateAssignmentScreenCoverageTest {
         composeRule.waitUntil(timeoutMillis = 5_000) {
             composeRule.onAllNodesWithText("파일 선택", useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty() ||
-            composeRule.onAllNodesWithText("파일 추가", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
+                composeRule.onAllNodesWithText("파일 추가", useUnmergedTree = true)
+                    .fetchSemanticsNodes().isNotEmpty()
         }
 
         composeRule.onAllNodesWithText("최대 10MB", substring = true, useUnmergedTree = true)
@@ -504,7 +501,7 @@ class CreateAssignmentScreenCoverageTest {
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
-        
+
         composeRule.waitForIdle()
         Thread.sleep(500)
 
@@ -516,18 +513,17 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitUntil(timeoutMillis = 15_000) {
             try {
-
                 composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
                     .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText("학생 목록을 불러오는 중", substring = true, useUnmergedTree = true)
-                    .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText("해당 반에 학생이 등록되지 않았습니다", substring = true, useUnmergedTree = true)
-                    .fetchSemanticsNodes().isNotEmpty()
+                    composeRule.onAllNodesWithText("학생 목록을 불러오는 중", substring = true, useUnmergedTree = true)
+                        .fetchSemanticsNodes().isNotEmpty() ||
+                    composeRule.onAllNodesWithText("해당 반에 학생이 등록되지 않았습니다", substring = true, useUnmergedTree = true)
+                        .fetchSemanticsNodes().isNotEmpty()
             } catch (_: Exception) {
                 false
             }
         }
-        
+
         composeRule.waitForIdle()
     }
 
@@ -559,7 +555,7 @@ class CreateAssignmentScreenCoverageTest {
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
-        
+
         composeRule.waitForIdle()
         Thread.sleep(500)
 
@@ -571,13 +567,12 @@ class CreateAssignmentScreenCoverageTest {
 
         composeRule.waitUntil(timeoutMillis = 15_000) {
             try {
-
                 composeRule.onAllNodesWithText("전체 선택", useUnmergedTree = true)
                     .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
-                    .fetchSemanticsNodes().isNotEmpty() ||
-                composeRule.onAllNodesWithText("학생 목록을 불러오는 중", substring = true, useUnmergedTree = true)
-                    .fetchSemanticsNodes().isNotEmpty()
+                    composeRule.onAllNodesWithText("홍길동", useUnmergedTree = true)
+                        .fetchSemanticsNodes().isNotEmpty() ||
+                    composeRule.onAllNodesWithText("학생 목록을 불러오는 중", substring = true, useUnmergedTree = true)
+                        .fetchSemanticsNodes().isNotEmpty()
             } catch (_: Exception) {
                 false
             }
@@ -588,7 +583,6 @@ class CreateAssignmentScreenCoverageTest {
                 .onFirst()
                 .performClick()
         } catch (_: Exception) {
-
         }
 
         composeRule.waitForIdle()
@@ -605,7 +599,7 @@ class CreateAssignmentScreenCoverageTest {
         waitForText("과제 제목")
 
         val allTextFields = composeRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
-        
+
         allTextFields[0].performClick()
         composeRule.waitForIdle()
         allTextFields[0].performTextReplacement("테스트 과제")
@@ -663,7 +657,7 @@ class CreateAssignmentScreenCoverageTest {
         waitForText("과제 제목")
 
         val allTextFields = composeRule.onAllNodes(hasSetTextAction(), useUnmergedTree = true)
-        
+
         allTextFields[0].performClick()
         composeRule.waitForIdle()
         allTextFields[0].performTextReplacement("테스트 과제")
@@ -782,7 +776,7 @@ class CreateAssignmentScreenCoverageTest {
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
-        
+
         composeRule.waitForIdle()
         Thread.sleep(500)
 
@@ -803,7 +797,7 @@ class CreateAssignmentScreenCoverageTest {
                 false
             }
         }
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule.onAllNodesWithText("해당 반에 학생이 등록되지 않았습니다", substring = true, useUnmergedTree = true)
@@ -842,7 +836,7 @@ class CreateAssignmentScreenCoverageTest {
         composeRule.onAllNodesWithText("선택한 학생에게만 배정", useUnmergedTree = true)
             .onFirst()
             .performScrollTo()
-        
+
         composeRule.waitForIdle()
         Thread.sleep(500)
 

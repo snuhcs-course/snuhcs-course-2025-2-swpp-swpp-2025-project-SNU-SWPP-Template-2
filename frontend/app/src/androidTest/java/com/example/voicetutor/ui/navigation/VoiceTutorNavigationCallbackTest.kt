@@ -114,13 +114,13 @@ class VoiceTutorNavigationCallbackTest {
     @Test
     fun mainLayout_backButton_navigatesBack() {
         loginTeacher()
-        
+
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.CreateClass.route)
         }
         waitForRoutePrefix(VoiceTutorScreens.CreateClass.route)
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -131,12 +131,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithContentDescription("뒤로가기", useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
         composeRule.waitForIdle()
     }
@@ -145,7 +145,7 @@ class VoiceTutorNavigationCallbackTest {
     fun mainLayout_settingsButton_navigatesToSettings() {
         loginTeacher()
         composeRule.waitForIdle()
-        
+
         // Navigate directly to settings to test the route
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.Settings.createRoute())
@@ -158,7 +158,7 @@ class VoiceTutorNavigationCallbackTest {
     fun mainLayout_logoutButton_showsDialog() {
         loginTeacher()
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -169,12 +169,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithContentDescription("로그아웃", useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -185,7 +185,7 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithText("로그아웃하시겠습니까?", substring = true, useUnmergedTree = true)
             .onFirst()
@@ -196,7 +196,7 @@ class VoiceTutorNavigationCallbackTest {
     fun mainLayout_logoutDialog_cancelButton_dismissesDialog() {
         loginTeacher()
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -207,12 +207,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithContentDescription("로그아웃", useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -223,14 +223,14 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithText("취소", substring = true, useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         composeRule.waitForIdle()
-        
+
         // Dialog should be dismissed
         composeRule.waitUntil(timeoutMillis = 3_000) {
             try {
@@ -247,13 +247,13 @@ class VoiceTutorNavigationCallbackTest {
     @Test
     fun bottomNavigation_teacherHome_navigatesToDashboard() {
         loginTeacher()
-        
+
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.TeacherClasses.route)
         }
         waitForRoutePrefix(VoiceTutorScreens.TeacherClasses.route)
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -264,12 +264,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithText("홈", substring = true, useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
         composeRule.waitForIdle()
     }
@@ -278,7 +278,7 @@ class VoiceTutorNavigationCallbackTest {
     fun bottomNavigation_teacherStudents_navigatesToAllStudents() {
         loginTeacher()
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -289,12 +289,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithText("리포트", substring = true, useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         waitForRoutePrefix(VoiceTutorScreens.AllStudents.route)
         composeRule.waitForIdle()
     }
@@ -302,13 +302,13 @@ class VoiceTutorNavigationCallbackTest {
     @Test
     fun bottomNavigation_studentHome_navigatesToDashboard() {
         loginStudent()
-        
+
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.Progress.route)
         }
         waitForRoutePrefix(VoiceTutorScreens.Progress.route)
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -319,12 +319,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithText("홈", substring = true, useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         waitForRoutePrefix(VoiceTutorScreens.StudentDashboard.route)
         composeRule.waitForIdle()
     }
@@ -333,7 +333,7 @@ class VoiceTutorNavigationCallbackTest {
     fun bottomNavigation_studentProgress_navigatesToProgress() {
         loginStudent()
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -344,12 +344,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithText("리포트", substring = true, useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         waitForRoutePrefix(VoiceTutorScreens.Progress.route)
         composeRule.waitForIdle()
     }
@@ -357,13 +357,13 @@ class VoiceTutorNavigationCallbackTest {
     @Test
     fun createClassScreen_onClassCreated_navigatesToTeacherClasses() {
         loginTeacher()
-        
+
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.CreateClass.route)
         }
         waitForRoutePrefix(VoiceTutorScreens.CreateClass.route)
         composeRule.waitForIdle()
-        
+
         // This test verifies the navigation callback is set up correctly
         // The actual class creation would require more complex setup
         composeRule.waitUntil(timeoutMillis = 5_000) {
@@ -376,7 +376,7 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithText("수업 생성", substring = true, useUnmergedTree = true)
             .onFirst()
@@ -386,13 +386,13 @@ class VoiceTutorNavigationCallbackTest {
     @Test
     fun appInfoScreen_onBackClick_navigatesBack() {
         loginTeacher()
-        
+
         composeRule.runOnIdle {
             navController.navigate(VoiceTutorScreens.AppInfo.route)
         }
         waitForRoutePrefix(VoiceTutorScreens.AppInfo.route)
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 composeRule
@@ -403,12 +403,12 @@ class VoiceTutorNavigationCallbackTest {
                 false
             }
         }
-        
+
         composeRule
             .onAllNodesWithContentDescription("뒤로가기", useUnmergedTree = true)
             .onFirst()
             .performClick()
-        
+
         // Should navigate back to previous screen
         composeRule.waitForIdle()
     }

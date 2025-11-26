@@ -281,7 +281,6 @@ class ClassViewModelTest {
         }
     }
 
-
     @Test
     fun clearError_clearsError() = runTest {
         val vm = ClassViewModel(classRepository)

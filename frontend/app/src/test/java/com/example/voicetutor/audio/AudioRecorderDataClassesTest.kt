@@ -5,7 +5,6 @@ import android.media.MediaRecorder
 import org.junit.Assert.*
 import org.junit.Test
 
-
 class AudioRecorderDataClassesTest {
 
     @Test

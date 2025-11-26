@@ -59,7 +59,7 @@ class CreateAssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        
+
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
         composeRule.runOnIdle {
@@ -68,10 +68,9 @@ class CreateAssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
-
                 val uploadSuccessField = AssignmentViewModel::class.java.getDeclaredField("_uploadSuccess")
                 uploadSuccessField.isAccessible = true
                 @Suppress("UNCHECKED_CAST")
@@ -183,7 +182,7 @@ class CreateAssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        
+
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
         composeRule.runOnIdle {
@@ -193,7 +192,7 @@ class CreateAssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 val uploadSuccessField = AssignmentViewModel::class.java.getDeclaredField("_uploadSuccess")
@@ -390,7 +389,7 @@ class CreateAssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        
+
         val assignmentViewModel = ViewModelProvider(composeRule.activity)[AssignmentViewModel::class.java]
 
         composeRule.runOnIdle {
@@ -399,7 +398,7 @@ class CreateAssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-        
+
         composeRule.waitUntil(timeoutMillis = 5_000) {
             try {
                 val uploadSuccessField = AssignmentViewModel::class.java.getDeclaredField("_uploadSuccess")

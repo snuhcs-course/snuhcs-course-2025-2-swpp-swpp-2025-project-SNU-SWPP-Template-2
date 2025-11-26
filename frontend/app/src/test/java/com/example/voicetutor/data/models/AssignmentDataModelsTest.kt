@@ -418,4 +418,3 @@ class AssignmentDataModelsTest {
         assertEquals("1학년", info.grade)
     }
 }
-

@@ -264,7 +264,6 @@ class VoiceTutorNavigationTest {
 
     @Test
     fun voiceTutorNavigation_handlesSpecialCharactersInRoutes() {
-
         val specialTitle = "과제: 테스트/문제"
         val route = VoiceTutorScreens.TeacherStudentAssignmentDetail.createRoute("1", 2, specialTitle)
 

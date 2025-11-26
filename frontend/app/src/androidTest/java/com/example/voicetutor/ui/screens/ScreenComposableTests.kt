@@ -78,7 +78,6 @@ class ScreenComposableTests {
     fun dashboardSummaryCard_renders() {
         composeTestRule.setContent {
             VoiceTutorTheme {
-
                 TeacherAssignmentCard(
                     title = "테스트",
                     className = "테스트",
@@ -695,5 +694,4 @@ class ScreenComposableTests {
         composeTestRule.onNodeWithText("튜토리얼 다시 보기", substring = true).assertExists()
         composeTestRule.onNodeWithText("앱 정보", substring = true).assertExists()
     }
-
 }
