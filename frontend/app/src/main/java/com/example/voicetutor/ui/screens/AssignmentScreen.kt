@@ -69,8 +69,6 @@ fun AssignmentScreen(
     // 채점 상태 polling
     var pollingJob by remember { mutableStateOf<Job?>(null) }
 
-
-
     LaunchedEffect(Unit) {
         viewModel.refreshProcessingStatus(assignmentIdValue)
     }
@@ -111,7 +109,6 @@ fun AssignmentScreen(
                 }
             }
         } else {
-
             // 재생 진행 시간 업데이트
             LaunchedEffect(isPlaying) {
                 while (isPlaying) {
@@ -133,7 +130,7 @@ fun AssignmentScreen(
             var currentTailQuestionNumber by remember { mutableStateOf<String?>(null) }
             var savedTailQuestion by remember {
                 mutableStateOf<com.example.voicetutor.data.models.TailQuestion?>(
-                    null
+                    null,
                 )
             }
             var lastProcessedResponseNumberStr by remember { mutableStateOf<String?>(null) }
@@ -339,9 +336,9 @@ fun AssignmentScreen(
                                     modifier = Modifier.size(56.dp),
                                 )
                                 val resultTextStyle = when {
-                                            isSkipped -> MaterialTheme.typography.titleLarge
-                                            else -> MaterialTheme.typography.headlineSmall
-                                        }
+                                    isSkipped -> MaterialTheme.typography.titleLarge
+                                    else -> MaterialTheme.typography.headlineSmall
+                                }
                                 // 정답/오답 텍스트
                                 Text(
                                     text = when {
@@ -400,7 +397,7 @@ fun AssignmentScreen(
                                                     savedTailQuestion = null
                                                     viewModel.moveToQuestionByNumber(
                                                         response.numberStr,
-                                                        assignmentIdValue
+                                                        assignmentIdValue,
                                                     )
                                                 },
                                                 variant = ButtonVariant.Gradient,
@@ -433,7 +430,7 @@ fun AssignmentScreen(
                                 } ?: run {
                                     val response = answerSubmissionResponse
                                     if (response?.numberStr != null && !response.numberStr.contains(
-                                            "-"
+                                            "-",
                                         )
                                     ) {
                                         "질문 ${response.numberStr}"
@@ -484,7 +481,7 @@ fun AssignmentScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(50.dp),
-                                contentAlignment = Alignment.TopCenter
+                                contentAlignment = Alignment.TopCenter,
                             ) {
                                 if (audioRecordingState.isRecording) {
                                     Column(
@@ -509,7 +506,7 @@ fun AssignmentScreen(
                                                     String.format(
                                                         "%02d:%02d",
                                                         audioRecordingState.recordingTime / 60,
-                                                        audioRecordingState.recordingTime % 60
+                                                        audioRecordingState.recordingTime % 60,
                                                     )
                                                 }/01:00",
                                                 style = MaterialTheme.typography.bodyLarge,
@@ -517,7 +514,6 @@ fun AssignmentScreen(
                                                 fontWeight = FontWeight.Bold,
                                             )
                                         }
-
                                     }
                                 } else if (audioRecordingState.audioFilePath != null) {
                                     Row(
@@ -541,7 +537,7 @@ fun AssignmentScreen(
                                                     String.format(
                                                         "%02d:%02d",
                                                         audioRecordingState.recordingTime / 60,
-                                                        audioRecordingState.recordingTime % 60
+                                                        audioRecordingState.recordingTime % 60,
                                                     )
                                                 })",
                                                 style = MaterialTheme.typography.bodyLarge,
@@ -561,13 +557,13 @@ fun AssignmentScreen(
                                                         String.format(
                                                             "%02d:%02d",
                                                             playbackCurrentPosition / 60,
-                                                            playbackCurrentPosition % 60
+                                                            playbackCurrentPosition % 60,
                                                         )
                                                     } / ${
                                                         String.format(
                                                             "%02d:%02d",
                                                             playbackDuration / 60,
-                                                            playbackDuration % 60
+                                                            playbackDuration % 60,
                                                         )
                                                     }",
                                                     style = MaterialTheme.typography.bodySmall,
@@ -601,7 +597,7 @@ fun AssignmentScreen(
                                                                     android.media.MediaPlayer()
                                                                         .apply {
                                                                             setDataSource(
-                                                                                audioFilePath
+                                                                                audioFilePath,
                                                                             )
                                                                             prepare()
                                                                             playbackDuration =
@@ -639,9 +635,13 @@ fun AssignmentScreen(
                                                 },
                                                 modifier = Modifier
                                                     .background(
-                                                        color = if (isPlaying) Error.copy(alpha = 0.15f) else PrimaryIndigo.copy(
-                                                            alpha = 0.15f
-                                                        ),
+                                                        color = if (isPlaying) {
+                                                            Error.copy(alpha = 0.15f)
+                                                        } else {
+                                                            PrimaryIndigo.copy(
+                                                                alpha = 0.15f,
+                                                            )
+                                                        },
                                                         shape = androidx.compose.foundation.shape.CircleShape,
                                                     )
                                                     .size(40.dp),
@@ -661,186 +661,184 @@ fun AssignmentScreen(
                                         text = "최대 녹음 시간 : 1분",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = Gray600,
-                                        modifier = Modifier.padding(top = 10.dp)
+                                        modifier = Modifier.padding(top = 10.dp),
                                     )
                                 }
                             }
-                        // 하단 버튼 영역
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            // 녹음 버튼
-                            if (audioRecordingState.audioFilePath == null && !audioRecordingState.isRecording) {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                                ) {
-
-                                    Row(
+                            // 하단 버튼 영역
+                            Column(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                // 녹음 버튼
+                                if (audioRecordingState.audioFilePath == null && !audioRecordingState.isRecording) {
+                                    Column(
                                         modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalArrangement = Arrangement.spacedBy(8.dp),
                                     ) {
-                                        VTButton(
-                                            text = "녹음 시작",
-                                            onClick = {
-                                                if (!PermissionUtils.hasAudioPermission(context)) {
-                                                    permissionLauncher.launch(PermissionUtils.getRequiredPermissions())
-                                                } else {
-                                                    val success = audioRecorder.startRecording()
-                                                    if (success) {
-                                                        viewModel.startRecording()
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        ) {
+                                            VTButton(
+                                                text = "녹음 시작",
+                                                onClick = {
+                                                    if (!PermissionUtils.hasAudioPermission(context)) {
+                                                        permissionLauncher.launch(PermissionUtils.getRequiredPermissions())
+                                                    } else {
+                                                        val success = audioRecorder.startRecording()
+                                                        if (success) {
+                                                            viewModel.startRecording()
+                                                        }
                                                     }
-                                                }
-                                            },
-                                            variant = ButtonVariant.Gradient,
-                                            enabled = true,
-                                            modifier = Modifier.weight(1f),
-                                            leadingIcon = {
-                                                Icon(
-                                                    imageVector = Icons.Filled.Mic,
-                                                    contentDescription = null,
-                                                )
-                                            },
-                                        )
+                                                },
+                                                variant = ButtonVariant.Gradient,
+                                                enabled = true,
+                                                modifier = Modifier.weight(1f),
+                                                leadingIcon = {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.Mic,
+                                                        contentDescription = null,
+                                                    )
+                                                },
+                                            )
 
-                                        VTButton(
-                                            text = "건너뛰기",
-                                            onClick = {
-                                                isSkipped = true
+                                            VTButton(
+                                                text = "건너뛰기",
+                                                onClick = {
+                                                    isSkipped = true
 
-                                                scope.launch {
-                                                    try {
-                                                        val emptyFile =
-                                                            audioRecorder.createEmptyWavFile()
-                                                        if (emptyFile != null && currentUser != null) {
-                                                            val questionIdToSubmit =
-                                                                if (currentTailQuestionNumber != null && savedTailQuestion != null) {
-                                                                    savedTailQuestion!!.id
-                                                                } else {
-                                                                    currentQuestion.id
-                                                                }
+                                                    scope.launch {
+                                                        try {
+                                                            val emptyFile =
+                                                                audioRecorder.createEmptyWavFile()
+                                                            if (emptyFile != null && currentUser != null) {
+                                                                val questionIdToSubmit =
+                                                                    if (currentTailQuestionNumber != null && savedTailQuestion != null) {
+                                                                        savedTailQuestion!!.id
+                                                                    } else {
+                                                                        currentQuestion.id
+                                                                    }
 
-                                                            viewModel.submitAnswer(
-                                                                personalAssignmentId = assignmentIdValue,
-                                                                studentId = currentUser!!.id,
-                                                                questionId = questionIdToSubmit,
-                                                                audioFile = emptyFile,
-                                                            )
+                                                                viewModel.submitAnswer(
+                                                                    personalAssignmentId = assignmentIdValue,
+                                                                    studentId = currentUser!!.id,
+                                                                    questionId = questionIdToSubmit,
+                                                                    audioFile = emptyFile,
+                                                                )
+                                                                viewModel.resetAudioRecording()
+                                                            }
+                                                        } catch (e: Exception) {
+                                                            // 건너뛰기 실패 시 무시
+                                                        }
+                                                    }
+                                                },
+                                                variant = ButtonVariant.Outline,
+                                                enabled = !isSubmitting,
+                                                modifier = Modifier.weight(1f),
+                                                leadingIcon = {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.SkipNext,
+                                                        contentDescription = null,
+                                                    )
+                                                },
+                                            )
+                                        }
+                                    }
+                                } else {
+                                    // 녹음 중 또는 녹음 완료: 단일 버튼
+                                    VTButton(
+                                        text = when {
+                                            audioRecordingState.isRecording -> "녹음 중지"
+                                            audioRecordingState.audioFilePath != null -> "다시 녹음하기"
+                                            else -> "녹음 시작"
+                                        },
+                                        onClick = {
+                                            if (audioRecordingState.isRecording) {
+                                                try {
+                                                    scope.launch {
+                                                        try {
+                                                            audioRecorder.stopRecording()
+                                                        } catch (e: Exception) {
                                                             viewModel.resetAudioRecording()
                                                         }
-                                                    } catch (e: Exception) {
-                                                        // 건너뛰기 실패 시 무시
                                                     }
+                                                } catch (e: Exception) {
+                                                    viewModel.resetAudioRecording()
                                                 }
-                                            },
-                                            variant = ButtonVariant.Outline,
-                                            enabled = !isSubmitting,
-                                            modifier = Modifier.weight(1f),
-                                            leadingIcon = {
-                                                Icon(
-                                                    imageVector = Icons.Filled.SkipNext,
-                                                    contentDescription = null,
-                                                )
-                                            },
-                                        )
-                                    }
-                                }
-                            } else {
-                                // 녹음 중 또는 녹음 완료: 단일 버튼
-                                VTButton(
-                                    text = when {
-                                        audioRecordingState.isRecording -> "녹음 중지"
-                                        audioRecordingState.audioFilePath != null -> "다시 녹음하기"
-                                        else -> "녹음 시작"
-                                    },
-                                    onClick = {
-                                        if (audioRecordingState.isRecording) {
-                                            try {
-
-                                                scope.launch {
-                                                    try {
-                                                        audioRecorder.stopRecording()
-                                                    } catch (e: Exception) {
-                                                        viewModel.resetAudioRecording()
-                                                    }
-                                                }
-                                            } catch (e: Exception) {
+                                            } else {
                                                 viewModel.resetAudioRecording()
                                             }
-                                        } else {
-                                            viewModel.resetAudioRecording()
+                                        },
+                                        variant = when {
+                                            audioRecordingState.isRecording -> ButtonVariant.Outline
+                                            else -> ButtonVariant.Gradient
+                                        },
+                                        enabled = true,
+                                        fullWidth = true,
+                                        leadingIcon = {
+                                            Icon(
+                                                imageVector = when {
+                                                    audioRecordingState.isRecording -> Icons.Filled.Stop
+                                                    audioRecordingState.audioFilePath != null -> Icons.Filled.Refresh
+                                                    else -> Icons.Filled.Mic
+                                                },
+                                                contentDescription = null,
+                                            )
+                                        },
+                                    )
+                                }
+
+                                // 전송 버튼
+                                VTButton(
+                                    text = "음성 답안 제출하기",
+                                    onClick = {
+                                        val user = currentUser
+                                        val audioFilePath = audioRecordingState.audioFilePath
+
+                                        if (audioFilePath != null && user != null) {
+                                            val audioFile = File(audioFilePath)
+
+                                            try {
+                                                val questionIdToSubmit =
+                                                    if (currentTailQuestionNumber != null && savedTailQuestion != null) {
+                                                        savedTailQuestion!!.id
+                                                    } else {
+                                                        currentQuestion.id
+                                                    }
+
+                                                viewModel.submitAnswer(
+                                                    personalAssignmentId = assignmentIdValue,
+                                                    studentId = user.id,
+                                                    questionId = questionIdToSubmit,
+                                                    audioFile = audioFile,
+                                                )
+                                                viewModel.resetAudioRecording()
+                                            } catch (e: Exception) {
+                                                scope.launch {
+                                                    snackbarHostState.showSnackbar(
+                                                        message = "전송 중 오류가 발생했습니다: ${e.message}",
+                                                        duration = SnackbarDuration.Long,
+                                                    )
+                                                }
+                                            }
                                         }
                                     },
-                                    variant = when {
-                                        audioRecordingState.isRecording -> ButtonVariant.Outline
-                                        else -> ButtonVariant.Gradient
-                                    },
-                                    enabled = true,
+                                    variant = ButtonVariant.Gradient,
                                     fullWidth = true,
+                                    enabled = audioRecordingState.audioFilePath != null && !audioRecordingState.isRecording,
                                     leadingIcon = {
                                         Icon(
-                                            imageVector = when {
-                                                audioRecordingState.isRecording -> Icons.Filled.Stop
-                                                audioRecordingState.audioFilePath != null -> Icons.Filled.Refresh
-                                                else -> Icons.Filled.Mic
-                                            },
+                                            imageVector = Icons.Filled.UploadFile,
                                             contentDescription = null,
+                                            tint = if (audioRecordingState.audioFilePath != null && !audioRecordingState.isRecording) Gray800 else Gray400,
                                         )
                                     },
                                 )
                             }
-
-                            // 전송 버튼
-                            VTButton(
-                                text = "음성 답안 제출하기",
-                                onClick = {
-                                    val user = currentUser
-                                    val audioFilePath = audioRecordingState.audioFilePath
-
-                                    if (audioFilePath != null && user != null) {
-                                        val audioFile = File(audioFilePath)
-
-                                        try {
-                                            val questionIdToSubmit =
-                                                if (currentTailQuestionNumber != null && savedTailQuestion != null) {
-                                                    savedTailQuestion!!.id
-                                                } else {
-                                                    currentQuestion.id
-                                                }
-
-                                            viewModel.submitAnswer(
-                                                personalAssignmentId = assignmentIdValue,
-                                                studentId = user.id,
-                                                questionId = questionIdToSubmit,
-                                                audioFile = audioFile,
-                                            )
-                                            viewModel.resetAudioRecording()
-                                        } catch (e: Exception) {
-                                            scope.launch {
-                                                snackbarHostState.showSnackbar(
-                                                    message = "전송 중 오류가 발생했습니다: ${e.message}",
-                                                    duration = SnackbarDuration.Long,
-                                                )
-                                            }
-                                        }
-                                    }
-                                },
-                                variant = ButtonVariant.Gradient,
-                                fullWidth = true,
-                                enabled = audioRecordingState.audioFilePath != null && !audioRecordingState.isRecording,
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Filled.UploadFile,
-                                        contentDescription = null,
-                                        tint = if (audioRecordingState.audioFilePath != null && !audioRecordingState.isRecording) Gray800 else Gray400
-                                    )
-                                }
-                            )
                         }
                     }
                 }
-            }
 
                 // 채점 중 오버레이
                 if (isSubmitting) {
@@ -868,11 +866,9 @@ fun AssignmentScreen(
                     }
                 }
             }
-
         }
     }
 }
-
 
 @Preview(showBackground = true)
 @Composable
@@ -881,4 +877,3 @@ fun AssignmentScreenPreview() {
         AssignmentScreen()
     }
 }
-

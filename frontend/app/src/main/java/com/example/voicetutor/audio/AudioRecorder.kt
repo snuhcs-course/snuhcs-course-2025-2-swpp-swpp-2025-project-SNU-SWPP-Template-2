@@ -188,7 +188,7 @@ class AudioRecorder(private val context: Context) {
                 delay(1000)
                 val elapsedTime = ((System.currentTimeMillis() - startTime) / 1000).toInt()
                 _recordingState.value = _recordingState.value.copy(recordingTime = elapsedTime)
-                
+
                 // 최대 녹음 시간 도달 시 자동 중지
                 if (elapsedTime >= audioConfig.maxRecordingDurationSeconds) {
                     println("AudioRecorder - 최대 녹음 시간 도달, 자동 중지")

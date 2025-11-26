@@ -125,4 +125,3 @@ class TutorialPreferencesTest {
         verify(editorAfterPut).apply()
     }
 }
-

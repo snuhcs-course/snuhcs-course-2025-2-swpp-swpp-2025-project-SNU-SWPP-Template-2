@@ -1,4 +1,4 @@
-﻿  package com.example.voicetutor.ui.viewmodel
+﻿package com.example.voicetutor.ui.viewmodel
 
 import org.junit.Assert.*
 import org.junit.Test

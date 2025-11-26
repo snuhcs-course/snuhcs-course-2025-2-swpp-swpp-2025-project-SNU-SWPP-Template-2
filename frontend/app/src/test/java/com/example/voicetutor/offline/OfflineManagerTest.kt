@@ -421,7 +421,7 @@ class OfflineManagerTest {
         val timestamp = System.currentTimeMillis()
         val jsonString = """[{"id":"test_id","type":"test_type","data":"test_data","timestamp":$timestamp,"retryCount":0}]"""
         pendingActionsFile.writeText(jsonString)
-        
+
         // 파일이 실제로 생성되었는지 확인
         assertTrue(pendingActionsFile.exists())
 

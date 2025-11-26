@@ -133,12 +133,12 @@ fun MainLayout(
 
     var showAssignmentCreatedToast by remember { mutableStateOf(false) }
     var showCancelledToast by remember { mutableStateOf(false) }
-    
+
     var hasShownSuccessMessage by remember { mutableStateOf(false) }
     var hasShownCancelledMessage by remember { mutableStateOf(false) }
-    
+
     var previousIsGeneratingQuestions by remember { mutableStateOf(false) }
-    
+
     LaunchedEffect(isGeneratingQuestions) {
         if (!isGeneratingQuestions && previousIsGeneratingQuestions) {
             if (questionGenerationSuccess && !hasShownSuccessMessage) {
@@ -153,7 +153,7 @@ fun MainLayout(
         }
         previousIsGeneratingQuestions = isGeneratingQuestions
     }
-    
+
     LaunchedEffect(questionGenerationSuccess) {
         if (questionGenerationSuccess && !hasShownSuccessMessage) {
             hasShownSuccessMessage = true
@@ -165,7 +165,7 @@ fun MainLayout(
             hasShownSuccessMessage = false
         }
     }
-    
+
     LaunchedEffect(questionGenerationCancelled) {
         if (questionGenerationCancelled && !hasShownCancelledMessage) {
             hasShownCancelledMessage = true
@@ -177,7 +177,7 @@ fun MainLayout(
             hasShownCancelledMessage = false
         }
     }
-    
+
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     DisposableEffect(lifecycleOwner, questionGenerationSuccess) {
@@ -521,7 +521,7 @@ fun MainLayout(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = Alignment.CenterEnd,
             ) {
                 Surface(
                     modifier = Modifier
@@ -530,17 +530,17 @@ fun MainLayout(
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     color = Color.White,
-                    tonalElevation = 8.dp
+                    tonalElevation = 8.dp,
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Filled.CheckCircle,
                             contentDescription = "과제 생성 완료",
-                            tint = PrimaryIndigo
+                            tint = PrimaryIndigo,
                         )
                         Text(
                             text = "과제가 성공적으로 생성되었습니다!",
@@ -549,20 +549,20 @@ fun MainLayout(
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = 300.dp)
+                            modifier = Modifier.widthIn(max = 300.dp),
                         )
                     }
                 }
             }
         }
-        
+
         // 취소 메시지
         if (showCancelledToast) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp),
-                contentAlignment = Alignment.CenterEnd
+                contentAlignment = Alignment.CenterEnd,
             ) {
                 Surface(
                     modifier = Modifier
@@ -571,17 +571,17 @@ fun MainLayout(
                         .height(56.dp),
                     shape = RoundedCornerShape(12.dp),
                     color = Color.White,
-                    tonalElevation = 8.dp
+                    tonalElevation = 8.dp,
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Cancel,
                             contentDescription = "과제 생성 취소",
-                            tint = Gray600
+                            tint = Gray600,
                         )
                         Text(
                             text = "과제 생성이 취소되었습니다!",
@@ -590,7 +590,7 @@ fun MainLayout(
                             fontWeight = FontWeight.Medium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.widthIn(max = 300.dp)
+                            modifier = Modifier.widthIn(max = 300.dp),
                         )
                     }
                 }
@@ -759,5 +759,5 @@ fun BottomNavigation(
                 ),
             )
         }
-        }
     }
+}

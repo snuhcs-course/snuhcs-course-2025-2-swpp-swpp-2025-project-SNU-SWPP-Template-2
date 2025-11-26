@@ -31,7 +31,6 @@ class SignupScreenTest {
         }
     }
 
-
     @Test
     fun signupScreen_displaysAllFormFields() {
         val viewModel = AuthViewModel(AuthRepository(FakeApiService()))

@@ -27,4 +27,3 @@ class MainLayoutViewModel @Inject constructor() : ViewModel() {
         const val TEACHER_DASHBOARD = "teacher_dashboard"
     }
 }
-

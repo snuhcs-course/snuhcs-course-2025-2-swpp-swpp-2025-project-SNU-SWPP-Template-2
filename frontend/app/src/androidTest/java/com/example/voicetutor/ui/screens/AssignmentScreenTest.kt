@@ -753,7 +753,6 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -778,7 +777,6 @@ class AssignmentScreenTest {
         }
 
         composeRule.waitForIdle()
-
     }
 
     @Test

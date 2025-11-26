@@ -247,8 +247,8 @@ class VoiceTutorNavigationCoverageTest {
                 modifier = Modifier.clickable { onLoginClick() }
             )
         }
-        */
-        
+         */
+
         composeRule.onNodeWithText("로그인", substring = true).performClick()
         composeRule.waitForIdle()
     }
@@ -373,7 +373,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.CreateAssignment.route.substringBefore("{"))
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -426,7 +425,6 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.CreateClass.route)
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -475,6 +473,5 @@ class VoiceTutorNavigationCoverageTest {
 
         waitForRoutePrefix(VoiceTutorScreens.Assignment.route.substringBefore("{"))
         composeRule.waitForIdle()
-
     }
 }

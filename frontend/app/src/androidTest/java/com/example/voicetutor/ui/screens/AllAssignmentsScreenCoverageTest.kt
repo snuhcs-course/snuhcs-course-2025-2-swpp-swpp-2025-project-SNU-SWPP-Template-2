@@ -1,21 +1,21 @@
 package com.example.voicetutor.ui.screens
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
 import com.example.voicetutor.data.models.AssignmentStatus
+import com.example.voicetutor.di.NetworkModule
 import com.example.voicetutor.ui.theme.VoiceTutorTheme
 import dagger.hilt.android.testing.HiltAndroidRule
 import dagger.hilt.android.testing.HiltAndroidTest
 import dagger.hilt.android.testing.UninstallModules
-import com.example.voicetutor.di.NetworkModule
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import androidx.compose.foundation.layout.Column
 
 @HiltAndroidTest
 @UninstallModules(NetworkModule::class)
@@ -37,7 +37,6 @@ class AllAssignmentsScreenCoverageTest {
     fun testTypeBadge() {
         composeRule.setContent {
             VoiceTutorTheme {
-
                 Column {
                     TypeBadge("Quiz")
                     TypeBadge("Continuous")
@@ -48,11 +47,11 @@ class AllAssignmentsScreenCoverageTest {
         }
 
         composeRule.onNodeWithText("퀴즈").assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("연속").assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("토론").assertIsDisplayed()
-        
+
         composeRule.onNodeWithText("알 수 없음").assertIsDisplayed()
     }
 
@@ -60,7 +59,6 @@ class AllAssignmentsScreenCoverageTest {
     fun testCustomStatusBadge() {
         composeRule.setContent {
             VoiceTutorTheme {
-
                 Column {
                     CustomStatusBadge("시작 안함")
                     CustomStatusBadge("진행 중")
@@ -80,7 +78,6 @@ class AllAssignmentsScreenCoverageTest {
     fun testStatusBadge() {
         composeRule.setContent {
             VoiceTutorTheme {
-
                 Column {
                     StatusBadge(AssignmentStatus.IN_PROGRESS)
                     StatusBadge(AssignmentStatus.COMPLETED)

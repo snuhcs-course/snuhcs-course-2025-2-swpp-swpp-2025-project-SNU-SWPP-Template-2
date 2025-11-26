@@ -38,7 +38,6 @@ class AuthIntegrationTest {
 
     @Test
     fun studentSignupAndLogin_NavigatesToStudentDashboard() = runTest {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 val navController = rememberNavController()
@@ -84,7 +83,6 @@ class AuthIntegrationTest {
 
     @Test
     fun teacherSignupAndLogin_NavigatesToTeacherDashboard() = runTest {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 val navController = rememberNavController()
@@ -130,7 +128,6 @@ class AuthIntegrationTest {
 
     @Test
     fun existingStudentLogin_NavigatesToStudentDashboard() = runTest {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 val navController = rememberNavController()
@@ -157,7 +154,6 @@ class AuthIntegrationTest {
 
     @Test
     fun existingTeacherLogin_NavigatesToTeacherDashboard() = runTest {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 val navController = rememberNavController()

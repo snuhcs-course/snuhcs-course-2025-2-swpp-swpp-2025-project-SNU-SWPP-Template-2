@@ -451,7 +451,6 @@ class ComprehensiveScreenTests {
 
     @Test
     fun noRecentAssignmentScreen_multipleTimes() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 NoRecentAssignmentScreen()
@@ -582,7 +581,6 @@ class ComprehensiveScreenTests {
             .performClick()
 
         composeTestRule.waitForIdle()
-
     }
 
     @Test

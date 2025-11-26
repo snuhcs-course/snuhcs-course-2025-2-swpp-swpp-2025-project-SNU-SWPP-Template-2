@@ -82,7 +82,6 @@ class VoiceTutorNavigationRouteCoverageTest {
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
     }
 
-
     private fun waitForRoutePrefix(prefix: String, timeoutMillis: Long = 15_000) {
         composeRule.waitUntil(timeoutMillis) {
             var matches = false
@@ -97,13 +96,13 @@ class VoiceTutorNavigationRouteCoverageTest {
     private fun navigateAndAssert(route: String, expectedText: String, substring: Boolean = true, timeoutMillis: Long = 30_000) {
         val prefix = route.substringBefore("{")
         val targetRoute = prefix.ifEmpty { route }
-        
+
         var alreadyOnRoute = false
         composeRule.runOnIdle {
             val currentRoute = navController.currentBackStackEntry?.destination?.route
             alreadyOnRoute = currentRoute?.startsWith(targetRoute) == true
         }
-        
+
         if (!alreadyOnRoute) {
             composeRule.runOnIdle {
                 navController.navigate(route)
@@ -136,7 +135,6 @@ class VoiceTutorNavigationRouteCoverageTest {
 
     @org.junit.Test
     fun testTeacherDashboardRoute() {
-
         waitForRoutePrefix(VoiceTutorScreens.TeacherDashboard.route)
         composeRule.waitForIdle()
 

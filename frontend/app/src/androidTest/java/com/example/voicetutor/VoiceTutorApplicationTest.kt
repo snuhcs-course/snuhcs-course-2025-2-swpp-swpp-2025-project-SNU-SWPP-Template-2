@@ -46,7 +46,6 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun application_initializesSuccessfully() {
-
         assertNotNull(application)
 
         val context = application.applicationContext
@@ -60,7 +59,6 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun apiServiceEntryPoint_isAccessible() {
-
         val entryPoint = try {
             dagger.hilt.android.EntryPointAccessors.fromApplication(
                 application.applicationContext,
@@ -76,7 +74,6 @@ class VoiceTutorApplicationTest {
 
     @Test
     fun application_healthCheckExecutes_withoutCrashing() {
-
         Thread.sleep(1000)
 
         assertNotNull(application)

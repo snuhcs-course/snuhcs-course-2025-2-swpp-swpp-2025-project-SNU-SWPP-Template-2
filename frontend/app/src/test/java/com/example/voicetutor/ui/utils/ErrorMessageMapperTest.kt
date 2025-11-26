@@ -150,6 +150,7 @@ class ErrorMessageMapperTest {
         val result = ErrorMessageMapper.getErrorMessage(exception)
         assertEquals("알 수 없는 오류가 발생했습니다.", result)
     }
+
     @Test
     fun getErrorMessage_nullString_returnsDefaultMessage() {
         val result = ErrorMessageMapper.getErrorMessage(null as String?)
@@ -223,4 +224,3 @@ class ErrorMessageMapperTest {
         assertEquals("사용자 친화적인 메시지", result)
     }
 }
-

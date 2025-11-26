@@ -77,10 +77,10 @@ class EditAssignmentScreenHighCoverageTest {
                     subject = Subject(id = 1, name = "수학", code = "MATH"),
                     teacherName = "Teacher",
                     studentCount = 20,
-                    createdAt = "2024-01-01"
+                    createdAt = "2024-01-01",
                 ),
                 materials = emptyList(),
-                grade = "중학교 1학년"
+                grade = "중학교 1학년",
             )
         }
     }
@@ -106,12 +106,12 @@ class EditAssignmentScreenHighCoverageTest {
         composeRule.waitForIdle()
 
         waitForText("수학 A반")
-        
+
         composeRule.onAllNodesWithText("수학 A반", useUnmergedTree = true)
             .onLast()
             .assertIsDisplayed()
             .performClick()
-            
+
         composeRule.waitForIdle()
     }
 
@@ -119,7 +119,6 @@ class EditAssignmentScreenHighCoverageTest {
     fun testSaveButtonValidationAndSuccess() {
         composeRule.setContent {
             VoiceTutorTheme {
-
                 EditAssignmentScreen(teacherId = "2", assignmentId = 100)
             }
         }
@@ -128,25 +127,24 @@ class EditAssignmentScreenHighCoverageTest {
 
         val titleField = composeRule.onNodeWithText("기존 과제")
         titleField.performTextReplacement("")
-        
+
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("저장").performClick()
         composeRule.waitForIdle()
-        
+
         waitForText("입력 오류")
         waitForText("필수 항목을 모두 입력하고")
-        
+
         composeRule.onNodeWithText("확인").performClick()
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithTag("AssignmentTitleInput")
 
         composeRule.onAllNodes(hasSetTextAction())[0].performTextReplacement("수정된 과제")
-        
+
         composeRule.onNodeWithText("저장").performClick()
         composeRule.waitForIdle()
-        
     }
 
     @Test
@@ -156,26 +154,25 @@ class EditAssignmentScreenHighCoverageTest {
                 EditAssignmentScreen(teacherId = "2", assignmentId = 100)
             }
         }
-        
+
         waitForText("기존 과제")
-        
+
         composeRule.onNodeWithText("과제 삭제").performScrollTo()
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("과제 삭제").performClick()
         composeRule.waitForIdle()
-        
+
         waitForText("과제 삭제")
         waitForText("정말로 이 과제를 삭제하시겠습니까?")
-        
+
         composeRule.onNodeWithText("취소").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("정말로 이 과제를 삭제하시겠습니까?").assertDoesNotExist()
-        
+
         composeRule.onNodeWithText("과제 삭제").performClick()
         composeRule.waitForIdle()
         composeRule.onNodeWithText("삭제").performClick()
-        
     }
 
     @Test
@@ -185,25 +182,25 @@ class EditAssignmentScreenHighCoverageTest {
                 EditAssignmentScreen(teacherId = "2", assignmentId = 100)
             }
         }
-        
+
         waitForText("기존 과제")
-        
+
         composeRule.onNodeWithText("마감일").performScrollTo()
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("마감일").performClick()
         composeRule.waitForIdle()
-        
+
         waitForText("시간 선택")
-        
+
         composeRule.onNodeWithText("시간 선택").performClick()
         composeRule.waitForIdle()
-        
+
         waitForText("시간 선택")
-        
+
         composeRule.onNodeWithText("확인").performClick()
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("시간 선택").assertDoesNotExist()
     }
 
@@ -216,20 +213,20 @@ class EditAssignmentScreenHighCoverageTest {
         }
 
         waitForText("기존 과제")
-        
+
         val titleField = composeRule.onNodeWithText("기존 과제")
         titleField.performTextReplacement("")
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("저장").performClick()
         composeRule.waitForIdle()
-        
+
         waitForText("입력 오류")
         waitForText("필수 항목을 모두 입력하고")
-        
+
         composeRule.onNodeWithText("확인").performClick()
         composeRule.waitForIdle()
-        
+
         composeRule.onNodeWithText("입력 오류").assertDoesNotExist()
     }
 }

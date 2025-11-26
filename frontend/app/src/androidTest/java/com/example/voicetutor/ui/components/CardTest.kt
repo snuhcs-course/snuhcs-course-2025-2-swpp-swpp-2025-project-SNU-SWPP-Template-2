@@ -166,7 +166,6 @@ class CardTest {
         composeTestRule.setContent {
             VoiceTutorTheme {
                 VTCard {
-
                     Box(modifier = Modifier.semantics { testTag = "EmptyCard" })
                 }
             }
@@ -291,7 +290,6 @@ class CardTest {
 
     @Test
     fun card2_hasDifferentPadding() {
-
         composeTestRule.setContent {
             VoiceTutorTheme {
                 VTCard2 {

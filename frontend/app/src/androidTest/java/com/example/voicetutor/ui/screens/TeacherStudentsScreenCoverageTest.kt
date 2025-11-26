@@ -39,10 +39,10 @@ class TeacherStudentsScreenCoverageTest {
     @Before
     fun setUp() {
         hiltRule.inject()
-        
+
         fakeApi.classStudentsResponse = listOf(
             Student(id = 1, name = "Student1", email = "s1@test.com", role = UserRole.STUDENT),
-            Student(id = 2, name = "Student2", email = "s2@test.com", role = UserRole.STUDENT)
+            Student(id = 2, name = "Student2", email = "s2@test.com", role = UserRole.STUDENT),
         )
     }
 
@@ -64,7 +64,7 @@ class TeacherStudentsScreenCoverageTest {
             .filter(hasClickAction())
             .onFirst()
             .performClick()
-        
+
         composeRule.waitForIdle()
 
         composeRule.onNodeWithText("학생 제거").assertIsDisplayed()

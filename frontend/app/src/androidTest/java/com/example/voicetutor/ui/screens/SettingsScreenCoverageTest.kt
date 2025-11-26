@@ -185,7 +185,6 @@ class SettingsScreenCoverageTest {
         composeRule.onNodeWithText("취소", useUnmergedTree = true).performClick()
 
         composeRule.waitForIdle()
-
     }
 
     @Test
@@ -229,12 +228,10 @@ class SettingsScreenCoverageTest {
         composeRule.onNodeWithText("취소", useUnmergedTree = true).performClick()
 
         composeRule.waitForIdle()
-
     }
 
     @Test
     fun settingsScreen_displaysErrorState() {
-
         composeRule.setContent {
             VoiceTutorTheme {
                 SettingsScreen()
@@ -252,7 +249,6 @@ class SettingsScreenCoverageTest {
 
     @Test
     fun settingsScreen_errorState_showsRetryButton() {
-
         composeRule.setContent {
             VoiceTutorTheme {
                 SettingsScreen()
@@ -299,6 +295,5 @@ class SettingsScreenCoverageTest {
 
         waitForText("계정")
         composeRule.waitForIdle()
-
     }
 }
