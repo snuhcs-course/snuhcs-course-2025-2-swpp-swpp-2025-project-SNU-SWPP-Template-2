@@ -57,6 +57,8 @@ class AssignmentDetailedResultsScreenTest {
         val failingApi = FakeApiService().apply {
             shouldFailAssignmentCorrectness = true
             assignmentCorrectnessErrorMessage = "정답 데이터 오류"
+            shouldFailPersonalAssignmentStatistics = true
+            personalAssignmentStatisticsErrorMessage = "통계 로드 실패"
         }
         val viewModel = AssignmentViewModel(AssignmentRepository(failingApi))
 
@@ -70,8 +72,11 @@ class AssignmentDetailedResultsScreenTest {
             }
         }
 
-        waitForText("결과가 없습니다")
-        composeRule.onNodeWithText("결과가 없습니다", substring = true).assertIsDisplayed()
+        composeRule.waitUntil(timeoutMillis = 10_000) {
+            composeRule.onAllNodesWithText("오류가 발생했습니다", substring = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        composeRule.onNodeWithText("오류가 발생했습니다", substring = true).assertIsDisplayed()
     }
 
     @Test

@@ -27,11 +27,9 @@ class ComprehensiveScreenTests {
                     subject = "수학",
                     dueDate = "2024-12-31",
                     progress = 0f,
-                    solvedNum = 0,
                     totalQuestions = 10,
                     status = PersonalAssignmentStatus.NOT_STARTED,
                     onClick = {},
-                    onStartAssignment = {},
                 )
             }
         }
@@ -48,11 +46,9 @@ class ComprehensiveScreenTests {
                     subject = "과학",
                     dueDate = "2024-12-31",
                     progress = 0.5f,
-                    solvedNum = 5,
                     totalQuestions = 10,
                     status = PersonalAssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onStartAssignment = {},
                 )
             }
         }
@@ -69,11 +65,9 @@ class ComprehensiveScreenTests {
                     subject = "영어",
                     dueDate = "2024-12-31",
                     progress = 1f,
-                    solvedNum = 10,
                     totalQuestions = 10,
                     status = PersonalAssignmentStatus.SUBMITTED,
                     onClick = {},
-                    onStartAssignment = {},
                 )
             }
         }
@@ -91,10 +85,7 @@ class ComprehensiveScreenTests {
                     submittedCount = 0,
                     totalCount = 10,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.DRAFT,
                     onClick = {},
-                    onViewResults = {},
-                    onEdit = {},
                 )
             }
         }
@@ -112,10 +103,7 @@ class ComprehensiveScreenTests {
                     submittedCount = 5,
                     totalCount = 10,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onViewResults = {},
-                    onEdit = {},
                 )
             }
         }
@@ -133,10 +121,7 @@ class ComprehensiveScreenTests {
                     submittedCount = 10,
                     totalCount = 10,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.COMPLETED,
                     onClick = {},
-                    onViewResults = {},
-                    onEdit = {},
                 )
             }
         }

@@ -2,7 +2,6 @@ package com.example.voicetutor.data.network
 
 import android.content.Context
 import android.content.SharedPreferences
-import androidx.core.content.edit
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -19,9 +18,7 @@ class TokenManager @Inject constructor(
     }
 
     fun saveAccessToken(token: String) {
-        prefs.edit {
-            putString(KEY_ACCESS_TOKEN, token)
-        }
+        prefs.edit().putString(KEY_ACCESS_TOKEN, token).apply()
     }
 
     fun getAccessToken(): String? {
@@ -29,9 +26,7 @@ class TokenManager @Inject constructor(
     }
 
     fun saveRefreshToken(token: String) {
-        prefs.edit {
-            putString(KEY_REFRESH_TOKEN, token)
-        }
+        prefs.edit().putString(KEY_REFRESH_TOKEN, token).apply()
     }
 
     fun getRefreshToken(): String? {
@@ -39,10 +34,10 @@ class TokenManager @Inject constructor(
     }
 
     fun clearTokens() {
-        prefs.edit {
-            remove(KEY_ACCESS_TOKEN)
-            remove(KEY_REFRESH_TOKEN)
-        }
+        prefs.edit()
+            .remove(KEY_ACCESS_TOKEN)
+            .remove(KEY_REFRESH_TOKEN)
+            .apply()
     }
 
     fun hasToken(): Boolean {

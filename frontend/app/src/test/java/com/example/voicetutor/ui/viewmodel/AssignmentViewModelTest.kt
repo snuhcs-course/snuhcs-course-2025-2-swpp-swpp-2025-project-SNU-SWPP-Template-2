@@ -7,10 +7,14 @@ import com.example.voicetutor.data.network.CreateAssignmentResponse
 import com.example.voicetutor.data.network.UpdateAssignmentRequest
 import com.example.voicetutor.data.repository.AssignmentRepository
 import com.example.voicetutor.testing.MainDispatcherRule
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Assert.*
 import org.junit.Rule
 import org.junit.Test
@@ -253,26 +257,34 @@ class AssignmentViewModelTest {
 
     @Test
     fun isLoading_loadingOperation_setsTrueThenFalse() = runTest {
-        // Given
-        Mockito.`when`(assignmentRepository.getAllAssignments(null, null, null))
-            .thenReturn(Result.success(emptyList()))
+        val standardDispatcher = StandardTestDispatcher()
+        val originalDispatcher = mainDispatcherRule.testDispatcher
+        try {
+            Dispatchers.setMain(standardDispatcher)
+            
+            // Given
+            Mockito.`when`(assignmentRepository.getAllAssignments(null, null, null))
+                .thenReturn(Result.success(emptyList()))
 
-        val viewModel = AssignmentViewModel(assignmentRepository)
+            val viewModel = AssignmentViewModel(assignmentRepository)
 
-        // When
-        viewModel.isLoading.test {
-            assert(!awaitItem()) // initial false
+            // When
+            viewModel.isLoading.test {
+                assert(!awaitItem()) // initial false
 
-            viewModel.loadAllAssignments()
-            runCurrent()
+                viewModel.loadAllAssignments()
+                runCurrent()
 
-            // Then: 로딩 상태 변경 확인
-            val states = mutableListOf<Boolean>()
-            states.add(awaitItem())
-            states.add(awaitItem())
-            // 최소 한 번은 true여야 함
-            assert(states.any { it })
-            cancelAndIgnoreRemainingEvents()
+                // Then: 로딩 상태 변경 확인
+                val states = mutableListOf<Boolean>()
+                states.add(awaitItem())
+                states.add(awaitItem())
+                // 최소 한 번은 true여야 함
+                assert(states.any { it })
+                cancelAndIgnoreRemainingEvents()
+            }
+        } finally {
+            Dispatchers.setMain(originalDispatcher)
         }
     }
 
@@ -2479,70 +2491,81 @@ class AssignmentViewModelTest {
 
     @Test
     fun uploadPdfToS3_success_setsSuccessStateAndTriggersQuestionGeneration() = runTest {
-        // Given - uploadPdfToS3 성공 후 onSuccess 블록 테스트 (lines 1035-1078)
-        val createRequest = CreateAssignmentRequest(
-            title = "Test Assignment",
-            description = "Description",
-            total_questions = 10,
-            due_at = "2025-01-01",
-            class_id = 1,
-            grade = "Grade 1",
-            subject = "Math"
-        )
-        val createResponse = CreateAssignmentResponse(
-            assignment_id = 1,
-            material_id = 10,
-            s3_key = "some-key",
-            upload_url = "https://dummy-upload"
-        )
-        val pdfFile = File.createTempFile("test", ".pdf")
-        val viewModel = AssignmentViewModel(assignmentRepository)
+        val standardDispatcher = StandardTestDispatcher()
+        val originalDispatcher = mainDispatcherRule.testDispatcher
+        try {
+            Dispatchers.setMain(standardDispatcher)
+            
+            // Given - uploadPdfToS3 성공 후 onSuccess 블록 테스트 (lines 1035-1078)
+            val createRequest = CreateAssignmentRequest(
+                title = "Test Assignment",
+                description = "Description",
+                total_questions = 10,
+                due_at = "2025-01-01",
+                class_id = 1,
+                grade = "Grade 1",
+                subject = "Math"
+            )
+            val createResponse = CreateAssignmentResponse(
+                assignment_id = 1,
+                material_id = 10,
+                s3_key = "some-key",
+                upload_url = "https://dummy-upload"
+            )
+            val pdfFile = File.createTempFile("test", ".pdf")
+            val viewModel = AssignmentViewModel(assignmentRepository)
 
-        Mockito.`when`(assignmentRepository.createAssignment(createRequest))
-            .thenReturn(Result.success(createResponse))
-        Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny<File>()))
-            .thenReturn(Result.success(true))
-        Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
-            .thenReturn(Result.success(Unit))
-        Mockito.`when`(assignmentRepository.getAllAssignments(anyString(), isNull(), isNull()))
-            .thenReturn(Result.success(emptyList()))
-        Mockito.`when`(assignmentRepository.getAllAssignments(isNull(), isNull(), isNull()))
-            .thenReturn(Result.success(emptyList()))
+            Mockito.`when`(assignmentRepository.createAssignment(createRequest))
+                .thenReturn(Result.success(createResponse))
+            Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny<File>()))
+                .thenReturn(Result.success(true))
+            Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
+                .thenReturn(Result.success(Unit))
+            Mockito.`when`(assignmentRepository.getAllAssignments(anyString(), isNull(), isNull()))
+                .thenReturn(Result.success(emptyList()))
+            Mockito.`when`(assignmentRepository.getAllAssignments(isNull(), isNull(), isNull()))
+                .thenReturn(Result.success(emptyList()))
 
-        // When
-        viewModel.createAssignmentWithPdf(
-            assignment = createRequest,
-            pdfFile = pdfFile,
-            totalNumber = 10,
-            teacherId = "123"
-        )
+            // When
+            viewModel.createAssignmentWithPdf(
+                assignment = createRequest,
+                pdfFile = pdfFile,
+                totalNumber = 10,
+                teacherId = "123"
+            )
 
-        // Then - uploadPdfToS3 성공 후 onSuccess 블록에서 설정된 상태 확인
-        // GlobalScope.launch로 인해 비동기 작업이 완료될 때까지 기다림
-        viewModel.uploadSuccess.test {
-            awaitItem() // initial false
-            val success = awaitItem() // true after upload success
-            assertTrue(success)
-            cancelAndIgnoreRemainingEvents()
+            // Then - uploadPdfToS3 성공 후 onSuccess 블록에서 설정된 상태 확인
+            // GlobalScope.launch로 인해 비동기 작업이 완료될 때까지 기다림
+            viewModel.uploadSuccess.test {
+                awaitItem() // initial false
+                runCurrent()
+                val success = awaitItem() // true after upload success
+                assertTrue(success)
+                cancelAndIgnoreRemainingEvents()
+            }
+            
+            // 추가 상태 확인을 위해 잠시 대기
+            runCurrent()
+            advanceUntilIdle()
+            
+            assertFalse(viewModel.isUploading.value)
+            assertFalse(viewModel.isCreatingAssignment.value)
+            
+            // questionGenerationSuccess는 GlobalScope에서 설정되므로 별도로 확인
+            viewModel.questionGenerationSuccess.test {
+                awaitItem() // initial false
+                runCurrent()
+                advanceUntilIdle()
+                val success = awaitItem() // true after question generation
+                assertTrue(success)
+                cancelAndIgnoreRemainingEvents()
+            }
+            
+            runCurrent()
+            advanceUntilIdle()
+        } finally {
+            Dispatchers.setMain(originalDispatcher)
         }
-        
-        // 추가 상태 확인을 위해 잠시 대기
-        runCurrent()
-        advanceUntilIdle()
-        
-        assertFalse(viewModel.isUploading.value)
-        assertFalse(viewModel.isCreatingAssignment.value)
-        
-        // questionGenerationSuccess는 GlobalScope에서 설정되므로 별도로 확인
-        viewModel.questionGenerationSuccess.test {
-            awaitItem() // initial false
-            val success = awaitItem() // true after question generation
-            assertTrue(success)
-            cancelAndIgnoreRemainingEvents()
-        }
-        
-        runCurrent()
-        advanceUntilIdle()
     }
 
     @Test
@@ -3292,64 +3315,80 @@ class AssignmentViewModelTest {
 
     @Test
     fun createAssignmentWithPdf_questionGenerationSuccessButRefreshFails_handlesException() = runTest {
-        // Given
-        val viewModel = AssignmentViewModel(assignmentRepository)
-        val assignment = CreateAssignmentRequest(
-            title = "Test Assignment",
-            subject = "Math",
-            class_id = 1,
-            due_at = "2025-12-31T23:59:59Z",
-            grade = "1학년",
-            description = "Test",
-            total_questions = 5
-        )
-        val pdfFile = File.createTempFile("test", ".pdf")
-        pdfFile.deleteOnExit()
-
-        val createResponse = CreateAssignmentResponse(
-            assignment_id = 1,
-            material_id = 1,
-            s3_key = "test-key",
-            upload_url = "https://example.com/upload"
-        )
-
-        Mockito.`when`(assignmentRepository.createAssignment(assignment))
-            .thenReturn(Result.success(createResponse))
-        
-        Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
-            .thenReturn(Result.success(true))
+        val standardDispatcher = StandardTestDispatcher()
+        val originalDispatcher = mainDispatcherRule.testDispatcher
+        try {
+            Dispatchers.setMain(standardDispatcher)
             
-        Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
-            .thenReturn(Result.success(Unit))
-        
-        Mockito.`when`(assignmentRepository.getAllAssignments(nullable(String::class.java), isNull(), isNull()))
-            .thenReturn(Result.failure(RuntimeException("Refresh failed")))
+            // Given
+            val viewModel = AssignmentViewModel(assignmentRepository)
+            val assignment = CreateAssignmentRequest(
+                title = "Test Assignment",
+                subject = "Math",
+                class_id = 1,
+                due_at = "2025-12-31T23:59:59Z",
+                grade = "1학년",
+                description = "Test",
+                total_questions = 5
+            )
+            val pdfFile = File.createTempFile("test", ".pdf")
+            pdfFile.deleteOnExit()
 
-        // When
-        viewModel.createAssignmentWithPdf(assignment, pdfFile, 5)
-        advanceUntilIdle()
+            val createResponse = CreateAssignmentResponse(
+                assignment_id = 1,
+                material_id = 1,
+                s3_key = "test-key",
+                upload_url = "https://example.com/upload"
+            )
 
-        // Then
-        viewModel.uploadSuccess.test {
-            // 초기 상태 확인 후 성공 상태 확인
-            val initial = awaitItem()
-            val success = awaitItem()
-            assertTrue(success)
-            cancelAndIgnoreRemainingEvents()
-        }
-        
-        // 에러 상태 확인 (Repository가 Result.failure를 반환했으므로 error state가 업데이트 되었는지 확인)
-        // loadAllAssignments 실패 시 _error.value가 세팅됨
-        viewModel.error.test {
-            val error = awaitItem()
-            if (error == null) {
-                // 에러가 아직 방출되지 않았을 수 있으므로 다음 이벤트 대기
-                val nextError = awaitItem() 
-                assertNotNull(nextError)
-            } else {
-                 // assertNotNull(error) // 테스트 시나리오에 따라 다름
+            Mockito.`when`(assignmentRepository.createAssignment(assignment))
+                .thenReturn(Result.success(createResponse))
+            
+            Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
+                .thenReturn(Result.success(true))
+                
+            Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
+                .thenReturn(Result.success(Unit))
+            
+            Mockito.`when`(assignmentRepository.getAllAssignments(nullable(String::class.java), isNull(), isNull()))
+                .thenReturn(Result.failure(RuntimeException("Refresh failed")))
+
+            // When
+            viewModel.createAssignmentWithPdf(assignment, pdfFile, 5)
+            runCurrent()
+            advanceUntilIdle()
+
+            // Then
+            viewModel.uploadSuccess.test {
+                // 초기 상태 확인 후 성공 상태 확인
+                val initial = awaitItem()
+                runCurrent()
+                val success = awaitItem()
+                assertTrue(success)
+                cancelAndIgnoreRemainingEvents()
             }
-            cancelAndIgnoreRemainingEvents()
+            
+            // 에러 상태 확인 (Repository가 Result.failure를 반환했으므로 error state가 업데이트 되었는지 확인)
+            // loadAllAssignments 실패 시 _error.value가 세팅됨
+            // 하지만 silent=true로 호출되면 에러가 설정되지 않을 수 있음
+            runCurrent()
+            advanceUntilIdle()
+            
+            viewModel.error.test {
+                val error = awaitItem()
+                if (error == null) {
+                    // 에러가 아직 방출되지 않았을 수 있으므로 다음 이벤트 대기
+                    runCurrent()
+                    advanceUntilIdle()
+                    val nextError = awaitItem() 
+                    assertNotNull(nextError)
+                } else {
+                    assertNotNull(error)
+                }
+                cancelAndIgnoreRemainingEvents()
+            }
+        } finally {
+            Dispatchers.setMain(originalDispatcher)
         }
     }
 

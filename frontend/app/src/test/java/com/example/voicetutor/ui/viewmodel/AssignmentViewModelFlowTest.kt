@@ -78,10 +78,7 @@ class AssignmentViewModelFlowTest {
 
     @Before
     fun setup() {
-        // Note: getAssignmentResult is a suspend function, so it will be mocked per test if needed
     }
-
-    // Basic init and simple flows
     @Test
     fun assignments_initialState_emitsEmptyList() = runTest {
         val vm = AssignmentViewModel(assignmentRepository)
@@ -144,7 +141,6 @@ class AssignmentViewModelFlowTest {
         Mockito.verify(assignmentRepository, times(1)).completePersonalAssignment(pid)
     }
 
-    // Filters and lists
 
     @Test
     @Ignore("Filter test issue")
@@ -201,7 +197,6 @@ class AssignmentViewModelFlowTest {
         }
     }
 
-    // Questions and navigation
     @Test
     fun moveToQuestionByNumber_notFound_triggersLoadNextQuestion() = runTest {
         val vm = AssignmentViewModel(assignmentRepository)
@@ -219,7 +214,6 @@ class AssignmentViewModelFlowTest {
 
     @Test
     fun loadNextQuestion_noMoreQuestions_doesNotClearListButSetsErrorToNull() = runTest {
-        // 실제 구현: "No more questions" 에러가 오면 통계를 확인하여 처리
         val vm = AssignmentViewModel(assignmentRepository)
         val personalId = 88
         val initialQuestions = listOf(
@@ -232,12 +226,9 @@ class AssignmentViewModelFlowTest {
                 difficulty = "M",
             ),
         )
-        // Pre-populate with a question
         vm.updatePersonalAssignmentQuestions(initialQuestions)
         Mockito.`when`(assignmentRepository.getNextQuestion(personalId))
             .thenReturn(Result.failure(Exception("No more questions")))
-        // loadNextQuestion에서 "No more questions" 발생 시 통계를 확인
-        // totalProblem != solvedProblem이면 에러를 설정하지만, totalProblem == solvedProblem이면 리스트를 비움
         Mockito.`when`(assignmentRepository.getPersonalAssignmentStatistics(personalId))
             .thenReturn(
                 Result.success(
@@ -254,7 +245,6 @@ class AssignmentViewModelFlowTest {
                 ),
             )
 
-        // 초기 리스트 상태 확인
         vm.personalAssignmentQuestions.test {
             val initial = awaitItem()
             assert(initial.isNotEmpty())
@@ -262,17 +252,14 @@ class AssignmentViewModelFlowTest {
             cancelAndIgnoreRemainingEvents()
         }
 
-        // 초기 에러 상태 확인
         vm.error.test {
             assert(awaitItem() == null)
             cancelAndIgnoreRemainingEvents()
         }
 
-        // loadNextQuestion 호출
         vm.loadNextQuestion(personalId)
         advanceUntilIdle()
 
-        // totalProblem != solvedProblem이므로 리스트는 유지되고 에러가 설정됨
         assert(vm.personalAssignmentQuestions.value.isNotEmpty())
         assert(vm.error.value != null)
     }
@@ -287,19 +274,15 @@ class AssignmentViewModelFlowTest {
             ),
         )
         vm.currentQuestionIndex.test {
-            // 초기 인덱스는 0
             assert(awaitItem() == 0)
 
-            // 질문 "2"로 이동 (인덱스 1)
             vm.moveToQuestionByNumber("2", personalAssignmentId = 1)
             runCurrent()
 
-            // 인덱스가 1로 업데이트됨
             val idx = awaitItem()
             assert(idx == 1)
             cancelAndIgnoreRemainingEvents()
         }
-        // ensure repository is not called when item is found locally
         Mockito.verify(assignmentRepository, never()).getNextQuestion(Mockito.anyInt())
     }
 
@@ -332,7 +315,6 @@ class AssignmentViewModelFlowTest {
         }
     }
 
-    // Misc flows
     @Test
     fun errorFlows_propagateToErrorState() = runTest {
         val vm = AssignmentViewModel(assignmentRepository)
@@ -442,7 +424,6 @@ class AssignmentViewModelFlowTest {
         val a = AssignmentData(6, "Title", "d", 1, null, "", course(), null, null)
         Mockito.`when`(assignmentRepository.getAssignmentById(6)).thenReturn(Result.success(a))
         vm.currentAssignment.test {
-            // 초기값은 null
             val initial = awaitItem()
             assert(initial == null)
             vm.loadAssignmentById(6)
@@ -481,8 +462,6 @@ class AssignmentViewModelFlowTest {
 
     @Test
     fun setSelectedAssignmentIds_callsMetaThenStats_inOrder() = runTest {
-        // 실제 구현: setSelectedAssignmentIds는 단순히 StateFlow 값을 설정하고 repository를 호출하지 않음
-        // 이 메서드는 네비게이션용 ID만 저장하고, 실제 로딩은 다른 메서드에서 수행됨
         val vm = AssignmentViewModel(assignmentRepository)
         val assignmentId = 6
         val personalId = 16
@@ -490,11 +469,9 @@ class AssignmentViewModelFlowTest {
         vm.setSelectedAssignmentIds(assignmentId, personalId)
         advanceUntilIdle()
 
-        // StateFlow 값 확인
         assert(vm.selectedAssignmentId.value == assignmentId)
         assert(vm.selectedPersonalAssignmentId.value == personalId)
 
-        // repository 호출은 없음
         Mockito.verify(assignmentRepository, never()).getAssignmentById(any())
         Mockito.verify(assignmentRepository, never()).getPersonalAssignmentStatistics(any())
     }
@@ -509,7 +486,6 @@ class AssignmentViewModelFlowTest {
         val response = AnswerSubmissionResponse(isCorrect = true, numberStr = "2", tailQuestion = null)
         whenever(assignmentRepository.submitAnswer(eq(personalAssignmentId), eq(studentId), eq(questionId), any()))
             .thenReturn(Result.success(response))
-        // submitAnswer는 통계를 다시 로드하므로 mocking 필요
         whenever(assignmentRepository.getPersonalAssignmentStatistics(personalAssignmentId))
             .thenReturn(
                 Result.success(
@@ -585,11 +561,8 @@ class AssignmentViewModelFlowTest {
             .thenReturn(Result.success(emptyList()))
 
         vm.uploadProgress.test {
-            // initial 0f
             awaitItem()
-            // totalNumber를 명시적으로 전달 (request의 questions.size가 아니라 사용자가 입력한 값)
             vm.createAssignmentWithPdf(request, tmpPdf, totalNumber = 1)
-            // expect 0.3 then 1.0 in some order with scheduler advance
             advanceUntilIdle()
             val p1 = awaitItem()
             val p2 = awaitItem()
@@ -597,7 +570,6 @@ class AssignmentViewModelFlowTest {
             cancelAndIgnoreRemainingEvents()
         }
 
-        // end states
         vm.isUploading.test {
             val v = awaitItem()
             assert(!v)
@@ -686,21 +658,17 @@ class AssignmentViewModelFlowTest {
 
     @Test
     fun loadPersonalAssignmentStatistics_failure_doesNotSetError() = runTest {
-        // 실제 구현에서는 통계 로딩 실패 시 에러를 설정함 (line 1075)
         val vm = AssignmentViewModel(assignmentRepository)
         whenever(assignmentRepository.getPersonalAssignmentStatistics(5)).thenReturn(Result.failure(Exception("stats fail")))
 
-        // 초기 에러 상태 확인
         vm.error.test {
             assert(awaitItem() == null)
             cancelAndIgnoreRemainingEvents()
         }
 
-        // 통계 로드 시도
         vm.loadPersonalAssignmentStatistics(5)
         advanceUntilIdle()
 
-        // 실제 구현에서는 실패 시 에러를 설정함
         vm.error.test {
             val error = awaitItem()
             assert(error != null)
@@ -718,7 +686,6 @@ class AssignmentViewModelFlowTest {
                 PersonalAssignmentQuestion(id = 2, number = "2", question = "Q2", answer = "A2", explanation = "E2", difficulty = "M"),
             ),
         )
-        // initial index 0
         vm.moveToQuestionByNumber("2-1", personalAssignmentId = 99)
         vm.currentQuestionIndex.test {
             val idx = awaitItem()
@@ -822,10 +789,8 @@ class AssignmentViewModelFlowTest {
             PersonalAssignmentQuestion(id = 2, number = "2", question = "Q2", answer = "A2", explanation = "E2", difficulty = "M"),
         )
         vm.updatePersonalAssignmentQuestions(questions)
-        // 현재 인덱스는 0이므로 첫 번째 질문 반환
         assert(vm.getCurrentQuestion() == questions[0])
 
-        // 인덱스를 증가시켜서 두 번째 질문 반환 확인
         vm.nextQuestion()
         assert(vm.getCurrentQuestion() == questions[1])
     }
@@ -929,7 +894,6 @@ class AssignmentViewModelFlowTest {
     @Test
     fun resetUploadState_resetsUploadState() = runTest {
         val vm = AssignmentViewModel(assignmentRepository)
-        // 초기 상태 확인
         vm.uploadProgress.test {
             assert(awaitItem() == 0f)
             cancelAndIgnoreRemainingEvents()
@@ -943,8 +907,6 @@ class AssignmentViewModelFlowTest {
             cancelAndIgnoreRemainingEvents()
         }
 
-        // 업로드 상태를 변경 후 리셋
-        // Note: 실제로는 업로드 함수를 통해 상태가 변경되지만, 여기서는 리셋 함수만 테스트
         vm.resetUploadState()
 
         assert(vm.uploadProgress.value == 0f)
@@ -971,17 +933,13 @@ class AssignmentViewModelFlowTest {
     @Test
     fun setSelectedAssignmentIds_updatesSelectedIds() = runTest {
         val vm = AssignmentViewModel(assignmentRepository)
-        // setSelectedAssignmentIds는 단순히 StateFlow 값을 설정하고 repository를 호출하지 않음
 
-        // 초기 상태 확인
         assert(vm.selectedAssignmentId.value == null)
         assert(vm.selectedPersonalAssignmentId.value == null)
 
-        // setSelectedAssignmentIds 호출
         vm.setSelectedAssignmentIds(10, 20)
         advanceUntilIdle()
 
-        // 값이 업데이트되었는지 확인
         assert(vm.selectedAssignmentId.value == 10)
         assert(vm.selectedPersonalAssignmentId.value == 20)
     }
@@ -1040,7 +998,6 @@ class AssignmentViewModelFlowTest {
             progress = 0.6f,
             averageScore = 0.8f,
         )
-        // 실제 구현은 먼저 getPersonalAssignments를 호출한 후 getPersonalAssignmentStatistics를 호출
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = studentId, assignmentId = assignmentId))
             .thenReturn(Result.success(listOf(paData)))
         Mockito.`when`(assignmentRepository.getPersonalAssignmentStatistics(personalAssignmentId))
@@ -1060,7 +1017,6 @@ class AssignmentViewModelFlowTest {
         val vm = AssignmentViewModel(assignmentRepository)
         val studentId = 5
         val assignmentId = 10
-        // PersonalAssignment를 찾지 못한 경우
         Mockito.`when`(assignmentRepository.getPersonalAssignments(studentId = studentId, assignmentId = assignmentId))
             .thenReturn(Result.success(emptyList()))
 
@@ -1154,16 +1110,13 @@ class AssignmentViewModelFlowTest {
         Mockito.`when`(assignmentRepository.getRecentPersonalAssignment(studentId))
             .thenReturn(Result.failure(Exception("No assignments")))
 
-        // 최근 과제가 없는 경우는 에러가 아니므로 recentAssignment만 null이 됨
         vm.recentAssignment.test {
             assert(awaitItem() == null)
             vm.loadRecentAssignment(studentId)
             advanceUntilIdle()
-            // recentAssignment는 여전히 null
             cancelAndIgnoreRemainingEvents()
         }
 
-        // error는 설정되지 않아야 함
         assert(vm.error.value == null)
     }
 
@@ -1313,7 +1266,6 @@ class AssignmentViewModelFlowTest {
             vm.loadStudentAssignmentsWithFilter(123, AssignmentFilter.IN_PROGRESS)
             advanceUntilIdle()
             val result = awaitItem()
-            // IN_PROGRESS는 NOT_STARTED 또는 IN_PROGRESS 상태 포함
             assert(result.size == 2)
             cancelAndIgnoreRemainingEvents()
         }
@@ -1423,7 +1375,6 @@ class AssignmentViewModelFlowTest {
         Mockito.`when`(assignmentRepository.updateAssignment(assignmentId, updateRequest))
             .thenReturn(Result.success(updatedAssignment))
 
-        // 초기에 assignment를 리스트에 추가
         vm.updatePersonalAssignmentQuestions(emptyList())
         vm.setInitialAssignments(listOf(AssignmentData(assignmentId, "Original", "desc", 0, null, "", course(), null, null)))
 
@@ -1551,13 +1502,11 @@ class AssignmentViewModelFlowTest {
         Mockito.`when`(assignmentRepository.getRecentPersonalAssignment(studentId))
             .thenReturn(Result.failure(Exception("No recent assignment")))
 
-        // 초기 상태 확인
         assert(vm.error.value == null)
 
         vm.loadRecentAssignment(studentId)
         advanceUntilIdle()
 
-        // 과제가 없어도 에러가 설정되지 않아야 함 (null로 유지)
         assert(vm.recentAssignment.value == null)
         assert(vm.error.value == null)
     }
@@ -1570,12 +1519,10 @@ class AssignmentViewModelFlowTest {
         Mockito.`when`(assignmentRepository.getRecentPersonalAssignment(studentId))
             .thenReturn(Result.failure(Exception("Network error")))
 
-        // 네트워크 에러여도 최근 과제는 중요하지 않으므로 error를 설정하지 않음
         assert(vm.error.value == null)
         vm.loadRecentAssignment(studentId)
         advanceUntilIdle()
 
-        // error는 여전히 null
         assert(vm.error.value == null)
         assert(vm.recentAssignment.value == null)
     }
@@ -1678,7 +1625,6 @@ class AssignmentViewModelFlowTest {
 
         vm.personalAssignmentQuestions.test {
             val questions = awaitItem()
-            // getNextQuestion으로 받은 첫 번째 질문이 설정됨
             assert(questions.isNotEmpty())
             cancelAndIgnoreRemainingEvents()
         }
@@ -1691,7 +1637,6 @@ class AssignmentViewModelFlowTest {
         val baseQuestions = listOf(
             PersonalAssignmentQuestion(id = 1, number = "1", question = "Q1", answer = "A1", explanation = "E1", difficulty = "M"),
         )
-        // totalProblem == solvedProblem이면 모든 문제 완료, totalProblem != solvedProblem이면 아직 미완료
         val statistics = PersonalAssignmentStatistics(
             totalQuestions = 3,
             answeredQuestions = 2,
@@ -1714,14 +1659,10 @@ class AssignmentViewModelFlowTest {
 
         vm.personalAssignmentQuestions.test {
             val questions = awaitItem()
-            // totalProblem != solvedProblem이므로 리스트는 비워지지 않고 에러가 설정됨
-            // 실제 구현에서는 첫 번째 base question을 사용하지 않음
-            // 에러 상태를 확인
-            assert(questions.isEmpty() || questions.isNotEmpty()) // 구현에 따라 달라질 수 있음
+            assert(questions.isEmpty() || questions.isNotEmpty())
             cancelAndIgnoreRemainingEvents()
         }
 
-        // 에러 메시지 확인
         assert(vm.error.value != null)
         assert(vm.error.value?.contains("아직 모든 문제를 완료하지 못했습니다") == true)
     }
@@ -1733,7 +1674,6 @@ class AssignmentViewModelFlowTest {
         val questions = listOf(
             PersonalAssignmentQuestion(id = 1, number = "1", question = "Q1", answer = "A1", explanation = "E1", difficulty = "M"),
         )
-        // 이미 로드된 상태
         vm.updatePersonalAssignmentQuestions(questions)
         Mockito.`when`(assignmentRepository.getPersonalAssignmentQuestions(personalId))
             .thenReturn(Result.success(questions))
@@ -1741,8 +1681,6 @@ class AssignmentViewModelFlowTest {
         vm.loadPersonalAssignmentQuestions(personalId)
         advanceUntilIdle()
 
-        // 이미 로드되어 있으므로 재호출되지 않음 (내부 로직에 의해)
-        // 하지만 정확한 검증은 어려우므로 적어도 에러가 발생하지 않음을 확인
         assert(vm.personalAssignmentQuestions.value.isNotEmpty())
     }
 
@@ -1791,9 +1729,6 @@ class AssignmentViewModelFlowTest {
         val vm = AssignmentViewModel(assignmentRepository)
         val personalId = 99
         vm.updatePersonalAssignmentQuestions(emptyList())
-        // isLoading을 true로 설정하여 대기 상태 시뮬레이션
-        // 하지만 실제로는 코루틴 내부에서 처리되므로 직접 테스트하기 어려움
-        // 대신 질문을 찾지 못하고 서버에서 로드하는 경우 테스트
         val nextQuestion = PersonalAssignmentQuestion(id = 2, number = "5", question = "Q5", answer = "A5", explanation = "E5", difficulty = "M")
         Mockito.`when`(assignmentRepository.getNextQuestion(personalId))
             .thenReturn(Result.success(nextQuestion))
@@ -1834,7 +1769,6 @@ class AssignmentViewModelFlowTest {
             vm.loadStudentAssignmentsWithFilter(123, AssignmentFilter.COMPLETED)
             advanceUntilIdle()
             val result = awaitItem()
-            // COMPLETED는 SUBMITTED 상태만 필터링
             assert(result.size == 1)
             assert(result.first().personalAssignmentStatus == PersonalAssignmentStatus.SUBMITTED)
             cancelAndIgnoreRemainingEvents()
@@ -1940,13 +1874,11 @@ class AssignmentViewModelFlowTest {
             assert(awaitItem() == 0f)
             vm.createAssignmentWithPdf(request, pdfFile)
             advanceUntilIdle()
-            // 업로드 진행 상태 확인
             cancelAndIgnoreRemainingEvents()
         }
 
         Mockito.verify(assignmentRepository, times(1)).createAssignment(request)
         Mockito.verify(assignmentRepository, times(1)).uploadPdfToS3("https://test-url.com/upload", pdfFile)
-        // createQuestionsAfterUpload와 getAllAssignments는 내부 비동기로 실행되므로 호출 여부를 확인하지 않음
     }
 
     @Test
@@ -2057,8 +1989,6 @@ class AssignmentViewModelFlowTest {
             awaitItem() // initial null
             vm.loadPersonalAssignmentStatistics(personalId)
             advanceUntilIdle()
-            // loadPersonalAssignmentStatistics는 백그라운드 작업이므로 에러를 설정하지 않을 수 있음
-            // 하지만 실제 구현에 따라 다를 수 있으므로 테스트 작성
             cancelAndIgnoreRemainingEvents()
         }
     }

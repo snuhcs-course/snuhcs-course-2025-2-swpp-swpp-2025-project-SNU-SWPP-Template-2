@@ -9,6 +9,7 @@ import org.junit.runner.RunWith
 import org.mockito.Mock
 import org.mockito.junit.MockitoJUnitRunner
 import org.mockito.kotlin.*
+import org.mockito.Mockito.doReturn
 
 @RunWith(MockitoJUnitRunner::class)
 class TokenManagerTest {
@@ -31,10 +32,13 @@ class TokenManagerTest {
     fun setUp() {
         whenever(context.getSharedPreferences(eq("auth_prefs"), any())).thenReturn(sharedPreferences)
         whenever(sharedPreferences.edit()).thenReturn(editor)
-        whenever(editor.putString(any(), any())).thenReturn(editorAfterPut)
-        whenever(editor.remove(any())).thenReturn(editorAfterPut)
+        // Use doReturn().when() for method chaining to ensure proper return values
+        doReturn(editorAfterPut).`when`(editor).putString(any(), any())
+        doReturn(editorAfterPut).`when`(editor).remove(any())
         // editorAfterPut.remove() is used in clearTokens() for method chaining
-        whenever(editorAfterPut.remove(any())).thenReturn(editorAfterPut)
+        doReturn(editorAfterPut).`when`(editorAfterPut).remove(any())
+        // apply() returns void, so we use doNothing
+        doNothing().`when`(editorAfterPut).apply()
 
         tokenManager = TokenManager(context)
     }

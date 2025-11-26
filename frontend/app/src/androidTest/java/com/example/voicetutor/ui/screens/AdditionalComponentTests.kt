@@ -293,11 +293,9 @@ class AdditionalComponentTests {
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0.5f,
-                        solvedNum = 5,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
 
                     TeacherAssignmentCard(
@@ -306,10 +304,7 @@ class AdditionalComponentTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 5,
                         totalCount = 10,
-                        status = AssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
 
                     AssignmentCard(
@@ -405,11 +400,9 @@ class AdditionalComponentTests {
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0.5f,
-                        solvedNum = 5,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     TeacherAssignmentCard(
                         title = "과제 2",
@@ -417,10 +410,7 @@ class AdditionalComponentTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 5,
                         totalCount = 10,
-                        status = AssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
                     AssignmentCard(
                         assignment = createMockAssignmentData(

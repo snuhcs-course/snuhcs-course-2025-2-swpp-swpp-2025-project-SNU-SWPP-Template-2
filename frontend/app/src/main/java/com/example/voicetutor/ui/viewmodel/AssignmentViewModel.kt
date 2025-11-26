@@ -1314,10 +1314,10 @@ class AssignmentViewModel @Inject constructor(
             
             assignmentRepository.getPersonalAssignmentQuestions(personalAssignmentId)
                 .onSuccess { questions ->
-                    _personalAssignmentQuestions.value = questions
+                    _personalAssignmentQuestions.value = questions ?: emptyList()
                     _currentQuestionIndex.value = 0
                     lastLoadedPersonalAssignmentId = personalAssignmentId
-                    println("AssignmentViewModel - Successfully loaded ${questions.size} questions")
+                    println("AssignmentViewModel - Successfully loaded ${questions?.size ?: 0} questions")
                 }
                 .onFailure { exception ->
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)

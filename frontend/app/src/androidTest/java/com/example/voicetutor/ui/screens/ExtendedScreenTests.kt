@@ -122,11 +122,9 @@ class ExtendedScreenTests {
                             subject = "수학",
                             dueDate = "2024-12-31",
                             progress = progress,
-                            solvedNum = (progress * 10).toInt(),
                             totalQuestions = 10,
                             status = PersonalAssignmentStatus.IN_PROGRESS,
                             onClick = {},
-                            onStartAssignment = {},
                         )
                     }
                 }
@@ -153,10 +151,7 @@ class ExtendedScreenTests {
                             submittedCount = 5,
                             totalCount = 10,
                             dueDate = "2024-12-31T23:59:59Z",
-                            status = status,
                             onClick = {},
-                            onViewResults = {},
-                            onEdit = {},
                         )
                     }
                 }

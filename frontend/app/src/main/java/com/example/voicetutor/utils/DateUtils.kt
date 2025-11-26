@@ -38,6 +38,9 @@ private fun parseIsoDate(isoDate: String): Calendar? {
 
 fun formatDueDate(dueDate: String): String {
     return try {
+        if (dueDate.matches(Regex("^\\d{4}-\\d{2}-\\d{2}$"))) {
+            return dueDate
+        }
         val calendar = parseIsoDate(dueDate)
         if (calendar != null) {
             val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())

@@ -68,16 +68,13 @@ class ClassViewModelTest {
 
     @Test
     fun loadClasses_success_updatesClasses() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val classes = listOf(buildClassData(1), buildClassData(2))
         Mockito.`when`(classRepository.getClasses("1")).thenReturn(Result.success(classes))
 
-        // When
         vm.loadClasses("1")
         advanceUntilIdle()
 
-        // Then
         vm.classes.test {
             assertEquals(classes, awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -94,15 +91,12 @@ class ClassViewModelTest {
 
     @Test
     fun loadClasses_failure_setsError() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         Mockito.`when`(classRepository.getClasses("1")).thenReturn(Result.failure(Exception("Network error")))
 
-        // When
         vm.loadClasses("1")
         advanceUntilIdle()
 
-        // Then
         vm.error.test {
             assertEquals("Network error", awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -115,16 +109,13 @@ class ClassViewModelTest {
 
     @Test
     fun loadClassById_success_updatesCurrentClass() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val classData = buildClassData(1)
         Mockito.`when`(classRepository.getClassById(1)).thenReturn(Result.success(classData))
 
-        // When
         vm.loadClassById(1)
         advanceUntilIdle()
 
-        // Then
         vm.currentClass.test {
             assertEquals(classData, awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -137,15 +128,12 @@ class ClassViewModelTest {
 
     @Test
     fun loadClassById_failure_setsError() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         Mockito.`when`(classRepository.getClassById(1)).thenReturn(Result.failure(Exception("Not found")))
 
-        // When
         vm.loadClassById(1)
         advanceUntilIdle()
 
-        // Then
         vm.error.test {
             assertEquals("Not found", awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -154,7 +142,6 @@ class ClassViewModelTest {
 
     @Test
     fun loadClassStudents_success_updatesClassStudents() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val students = listOf(
             Student(id = 1, name = "Student1", email = "s1@test.com", role = UserRole.STUDENT),
@@ -162,11 +149,9 @@ class ClassViewModelTest {
         )
         Mockito.`when`(classRepository.getClassStudents(1)).thenReturn(Result.success(students))
 
-        // When
         vm.loadClassStudents(1)
         advanceUntilIdle()
 
-        // Then
         vm.classStudents.test {
             assertEquals(students, awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -179,15 +164,12 @@ class ClassViewModelTest {
 
     @Test
     fun loadClassStudents_failure_setsError() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         Mockito.`when`(classRepository.getClassStudents(1)).thenReturn(Result.failure(Exception("Failed")))
 
-        // When
         vm.loadClassStudents(1)
         advanceUntilIdle()
 
-        // Then
         vm.error.test {
             assertEquals("Failed", awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -196,7 +178,6 @@ class ClassViewModelTest {
 
     @Test
     fun createClass_success_addsToClasses() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val newClass = buildClassData(2, "New Class")
         val request = CreateClassRequest(
@@ -209,11 +190,9 @@ class ClassViewModelTest {
 
         Mockito.`when`(classRepository.createClass(request)).thenReturn(Result.success(newClass))
 
-        // When
         vm.createClass(request)
         advanceUntilIdle()
 
-        // Then
         vm.classes.test {
             val classes = awaitItem()
             assertTrue(classes.contains(newClass))
@@ -227,7 +206,6 @@ class ClassViewModelTest {
 
     @Test
     fun createClass_failure_setsError() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val request = CreateClassRequest(
             name = "New Class",
@@ -238,11 +216,9 @@ class ClassViewModelTest {
         )
         Mockito.`when`(classRepository.createClass(request)).thenReturn(Result.failure(Exception("Creation failed")))
 
-        // When
         vm.createClass(request)
         advanceUntilIdle()
 
-        // Then
         vm.error.test {
             assertEquals("Creation failed", awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -251,16 +227,13 @@ class ClassViewModelTest {
 
     @Test
     fun refreshClasses_callsLoadClasses() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val classes = listOf(buildClassData(1))
         Mockito.`when`(classRepository.getClasses("1")).thenReturn(Result.success(classes))
 
-        // When
         vm.loadClasses("1")
         advanceUntilIdle()
 
-        // Then
         vm.classes.test {
             assertEquals(classes, awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -269,7 +242,6 @@ class ClassViewModelTest {
 
     @Test
     fun enrollStudentToClass_success_refreshesClassStudents() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val enrollment = EnrollmentData(
             student = Student(id = 1, name = "Student1", email = "s1@test.com", role = UserRole.STUDENT),
@@ -282,11 +254,9 @@ class ClassViewModelTest {
         Mockito.`when`(classRepository.enrollStudentToClass(1, 1)).thenReturn(Result.success(enrollment))
         Mockito.`when`(classRepository.getClassStudents(1)).thenReturn(Result.success(students))
 
-        // When
         vm.enrollStudentToClass(1, 1)
         advanceUntilIdle()
 
-        // Then
         vm.classStudents.test {
             assertEquals(students, awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -299,15 +269,12 @@ class ClassViewModelTest {
 
     @Test
     fun enrollStudentToClass_failure_setsError() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         Mockito.`when`(classRepository.enrollStudentToClass(1, 1)).thenReturn(Result.failure(Exception("Enrollment failed")))
 
-        // When
         vm.enrollStudentToClass(1, 1)
         advanceUntilIdle()
 
-        // Then
         vm.error.test {
             assertEquals("Enrollment failed", awaitItem())
             cancelAndIgnoreRemainingEvents()
@@ -317,16 +284,13 @@ class ClassViewModelTest {
 
     @Test
     fun clearError_clearsError() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         Mockito.`when`(classRepository.getClasses("1")).thenReturn(Result.failure(Exception("Some error")))
         vm.loadClasses("1")
         advanceUntilIdle()
 
-        // When
         vm.clearError()
 
-        // Then
         vm.error.test {
             assert(awaitItem() == null)
             cancelAndIgnoreRemainingEvents()
@@ -335,7 +299,6 @@ class ClassViewModelTest {
 
     @Test
     fun loadClassStudentsStatistics_callsRepository() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val statistics = ClassStudentsStatistics(
             overallCompletionRate = 0.85f,
@@ -351,14 +314,12 @@ class ClassViewModelTest {
         )
         Mockito.`when`(classRepository.getClassStudentsStatistics(1)).thenReturn(Result.success(statistics))
 
-        // When
         var callbackResult: Result<ClassStudentsStatistics>? = null
         vm.loadClassStudentsStatistics(1) { result ->
             callbackResult = result
         }
         advanceUntilIdle()
 
-        // Then
         assert(callbackResult != null)
         assert(callbackResult?.isSuccess == true)
         assertEquals(statistics, callbackResult?.getOrNull())
@@ -366,14 +327,11 @@ class ClassViewModelTest {
 
     @Test
     fun deleteClass_success_removesFromClassesAndCallsCallback() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         val class1 = buildClassData(1, "Class 1")
         val class2 = buildClassData(2, "Class 2")
         vm.classes.test {
-            awaitItem() // initial empty
-            // Manually set classes for testing
-            // Since _classes is private, we'll test through the actual flow
+            awaitItem()
         }
 
         Mockito.`when`(classRepository.getClasses("1"))
@@ -381,11 +339,9 @@ class ClassViewModelTest {
         Mockito.`when`(classRepository.removeClassById(1))
             .thenReturn(Result.success(Unit))
 
-        // Load classes first
         vm.loadClasses("1")
         advanceUntilIdle()
 
-        // When
         var callbackCalled = false
         var callbackResult = false
         vm.deleteClass(1) { result ->
@@ -394,7 +350,6 @@ class ClassViewModelTest {
         }
         advanceUntilIdle()
 
-        // Then
         assert(callbackCalled)
         assert(callbackResult)
         vm.classes.test {
@@ -410,12 +365,10 @@ class ClassViewModelTest {
 
     @Test
     fun deleteClass_failure_setsErrorAndCallsCallback() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         Mockito.`when`(classRepository.removeClassById(1))
             .thenReturn(Result.failure(Exception("Deletion failed")))
 
-        // When
         var callbackCalled = false
         var callbackResult = false
         vm.deleteClass(1) { result ->
@@ -424,7 +377,6 @@ class ClassViewModelTest {
         }
         advanceUntilIdle()
 
-        // Then
         assert(callbackCalled)
         assert(!callbackResult)
         vm.error.test {
@@ -441,16 +393,13 @@ class ClassViewModelTest {
 
     @Test
     fun deleteClass_withDefaultCallback_handlesCorrectly() = runTest {
-        // Given
         val vm = ClassViewModel(classRepository)
         Mockito.`when`(classRepository.removeClassById(1))
             .thenReturn(Result.success(Unit))
 
-        // When - call without explicit callback (uses default empty callback)
         vm.deleteClass(1)
         advanceUntilIdle()
 
-        // Then - should complete without error
         vm.isLoading.test {
             assert(!awaitItem())
             cancelAndIgnoreRemainingEvents()

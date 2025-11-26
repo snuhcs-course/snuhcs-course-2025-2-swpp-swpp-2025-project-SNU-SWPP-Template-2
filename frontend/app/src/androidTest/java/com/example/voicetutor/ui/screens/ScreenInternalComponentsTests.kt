@@ -25,11 +25,9 @@ class ScreenInternalComponentsTests {
                     subject = "수학",
                     dueDate = "2024-12-31",
                     progress = 0.5f,
-                    solvedNum = 5,
                     totalQuestions = 10,
                     status = PersonalAssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onStartAssignment = {},
                 )
             }
         }
@@ -49,33 +47,27 @@ class ScreenInternalComponentsTests {
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0f,
-                        solvedNum = 0,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.NOT_STARTED,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     StudentAssignmentCard(
                         title = "진행중 과제",
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0.5f,
-                        solvedNum = 5,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     StudentAssignmentCard(
                         title = "제출된 과제",
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 1.0f,
-                        solvedNum = 10,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.SUBMITTED,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                 }
             }
@@ -94,55 +86,45 @@ class ScreenInternalComponentsTests {
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0f,
-                        solvedNum = 0,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     StudentAssignmentCard(
                         title = "과제 25%",
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0.25f,
-                        solvedNum = 2,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     StudentAssignmentCard(
                         title = "과제 50%",
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0.5f,
-                        solvedNum = 5,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     StudentAssignmentCard(
                         title = "과제 75%",
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0.75f,
-                        solvedNum = 7,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     StudentAssignmentCard(
                         title = "과제 100%",
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 1.0f,
-                        solvedNum = 10,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                 }
             }
@@ -161,11 +143,9 @@ class ScreenInternalComponentsTests {
                     subject = "수학",
                     dueDate = "2024-12-31",
                     progress = 0.5f,
-                    solvedNum = 5,
                     totalQuestions = 10,
-                    status = PersonalAssignmentStatus.IN_PROGRESS,
-                    onClick = { clicked = true },
-                    onStartAssignment = {},
+                        status = PersonalAssignmentStatus.IN_PROGRESS,
+                        onClick = { clicked = true },
                 )
             }
         }
@@ -188,10 +168,7 @@ class ScreenInternalComponentsTests {
                     dueDate = "2024-12-31T23:59:59Z",
                     submittedCount = 5,
                     totalCount = 10,
-                    status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onViewResults = {},
-                    onEdit = {},
                 )
             }
         }
@@ -212,10 +189,7 @@ class ScreenInternalComponentsTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 5,
                         totalCount = 10,
-                        status = AssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
                     TeacherAssignmentCard(
                         title = "완료된 과제",
@@ -223,10 +197,7 @@ class ScreenInternalComponentsTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 10,
                         totalCount = 10,
-                        status = AssignmentStatus.COMPLETED,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
                     TeacherAssignmentCard(
                         title = "초안 과제",
@@ -234,10 +205,7 @@ class ScreenInternalComponentsTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 0,
                         totalCount = 10,
-                        status = AssignmentStatus.DRAFT,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
                 }
             }
@@ -256,10 +224,7 @@ class ScreenInternalComponentsTests {
                     dueDate = "2024-12-31T23:59:59Z",
                     submittedCount = 5,
                     totalCount = 10,
-                    status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onViewResults = {},
-                    onEdit = {},
                 )
             }
         }
@@ -278,11 +243,9 @@ class ScreenInternalComponentsTests {
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0.5f,
-                        solvedNum = 5,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                     TeacherAssignmentCard(
                         title = "선생님 과제",
@@ -290,10 +253,7 @@ class ScreenInternalComponentsTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 5,
                         totalCount = 10,
-                        status = AssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
                 }
             }
@@ -315,11 +275,9 @@ class ScreenInternalComponentsTests {
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 0f,
-                        solvedNum = 0,
                         totalQuestions = 0,
                         status = PersonalAssignmentStatus.NOT_STARTED,
                         onClick = {},
-                        onStartAssignment = {},
                     )
 
                     StudentAssignmentCard(
@@ -327,11 +285,9 @@ class ScreenInternalComponentsTests {
                         subject = "수학",
                         dueDate = "2024-12-31",
                         progress = 1.0f,
-                        solvedNum = 10,
                         totalQuestions = 10,
                         status = PersonalAssignmentStatus.SUBMITTED,
                         onClick = {},
-                        onStartAssignment = {},
                     )
                 }
             }
@@ -352,10 +308,7 @@ class ScreenInternalComponentsTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 0,
                         totalCount = 10,
-                        status = AssignmentStatus.IN_PROGRESS,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
 
                     TeacherAssignmentCard(
@@ -364,10 +317,7 @@ class ScreenInternalComponentsTests {
                         dueDate = "2024-12-31T23:59:59Z",
                         submittedCount = 10,
                         totalCount = 10,
-                        status = AssignmentStatus.COMPLETED,
                         onClick = {},
-                        onViewResults = {},
-                        onEdit = {},
                     )
                 }
             }

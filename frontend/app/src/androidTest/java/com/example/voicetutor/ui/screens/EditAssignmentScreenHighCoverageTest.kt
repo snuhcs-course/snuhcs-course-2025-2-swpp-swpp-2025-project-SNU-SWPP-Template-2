@@ -102,7 +102,7 @@ class EditAssignmentScreenHighCoverageTest {
 
         waitForText("기존 과제")
 
-        composeRule.onNodeWithText("반 선택").performClick()
+        composeRule.onNodeWithText("수업 선택").performClick()
         composeRule.waitForIdle()
 
         waitForText("수학 A반")
