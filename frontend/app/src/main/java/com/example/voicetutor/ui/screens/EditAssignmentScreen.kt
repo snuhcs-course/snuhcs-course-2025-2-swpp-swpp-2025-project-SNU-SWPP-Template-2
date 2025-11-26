@@ -239,8 +239,8 @@ fun EditAssignmentScreen(
                                 value = selectedClass,
                                 onValueChange = {},
                                 readOnly = true,
-                                label = { Text("반 선택") },
-                                placeholder = { Text("과제를 배정할 반을 선택하세요") },
+                                label = { Text("수업 선택") },
+                                placeholder = { Text("과제를 배정할 수업을 선택하세요") },
                                 trailingIcon = {
                                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = classSelectionExpanded)
                                 },
