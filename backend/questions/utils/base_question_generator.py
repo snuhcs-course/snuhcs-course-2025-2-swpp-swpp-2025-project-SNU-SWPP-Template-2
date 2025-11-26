@@ -2,7 +2,7 @@ import json
 import re
 import sys
 import time
-from typing import List
+from typing import List, Optional
 
 from django.conf import settings
 from langchain_core.prompts import ChatPromptTemplate
@@ -64,13 +64,16 @@ Each quiz must:
 - Do NOT use any backslash-based notation.
 - Write math in plain text only, e.g., "x > 4", "y = 2x + 1".
 
+# achievement standards: 
+{achievement_standards_context}
+
 ---
 
 # Examples of Good Questions
 Good questions encourage reasoning and conceptual understanding rather than memorization.
 
 - 힘이 일정할 때, 질량이 커지면 가속도는 어떻게 변할까요?  
-  → Tests understanding of Newton’s Second Law.
+  → Tests understanding of Newton's Second Law.
 
 - 왜 같은 물체라도 달에서의 무게가 지구보다 작게 측정될까요?  
   → Invites reasoning about gravitational strength differences.
@@ -120,8 +123,15 @@ Return your output **only** as a valid JSON array with the following structure:
 )
 
 
-def generate_base_quizzes(material_text: str, n: int = 3) -> List[Quiz]:
-    """Generate N quizzes from summarized text."""
+def generate_base_quizzes(material_text: str, n: int = 3, achievement_codes: Optional[List[str]] = None) -> List[Quiz]:
+    """
+    Generate N quizzes from summarized text.
+
+    Args:
+        material_text: 학습 자료 요약 텍스트
+        n: 생성할 질문 개수
+        achievement_codes: 관련 성취기준 코드 리스트 (선택사항)
+    """
 
     # Python 인터프리터가 종료 중인지 확인
     if getattr(sys, "_exiting", False):
@@ -130,6 +140,29 @@ def generate_base_quizzes(material_text: str, n: int = 3) -> List[Quiz]:
     # 재시도 로직
     max_retries = 3
     retry_delay = 1.0  # 초
+
+    # 성취기준 컨텍스트 생성
+    achievement_context = ""
+    if achievement_codes:
+        # achievement_codes가 딕셔너리인 경우 처리
+        if isinstance(achievement_codes, dict) and "codes" in achievement_codes:
+            codes = achievement_codes["codes"]
+            details = achievement_codes.get("details", {})
+            # 코드와 내용을 함께 포함
+            standards_list = "\n".join([f"- {code}: {details.get(code, 'No description')}" for code in codes])
+            achievement_context = f"""
+- The questions should align with the following educational achievement standards:
+{standards_list}
+- Each question should relate to at least one of these achievement standards.
+- Consider the educational goals and objectives represented by these standards when creating questions.
+"""
+        else:
+            # 기존 리스트 형식 호환성 유지
+            achievement_context = f"""
+- The questions should align with the following educational achievement standards: {", ".join(achievement_codes) if isinstance(achievement_codes, list) else achievement_codes}
+- Each question should relate to at least one of these achievement standards.
+- Consider the educational goals and objectives represented by these standards when creating questions.
+"""
 
     for attempt in range(max_retries):
         try:
@@ -140,7 +173,12 @@ def generate_base_quizzes(material_text: str, n: int = 3) -> List[Quiz]:
                 timeout=60.0,  # 60초 타임아웃 설정
             )
             few_shot_str = json.dumps(FEW_SHOT_EXAMPLES, ensure_ascii=False, indent=2)
-            prompt = multi_quiz_prompt.format(n=n, examples=few_shot_str, learning_material=material_text)
+            prompt = multi_quiz_prompt.format(
+                n=n,
+                examples=few_shot_str,
+                learning_material=material_text,
+                achievement_standards_context=achievement_context,
+            )
 
             # 동기적으로 처리
             response = llm.invoke(prompt).content
