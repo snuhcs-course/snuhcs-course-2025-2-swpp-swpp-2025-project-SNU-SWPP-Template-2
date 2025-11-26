@@ -64,7 +64,7 @@ r은 두 물체 사이의 거리 (미터, m)입니다.
 # Rules
 - You must transcribe all the text shown in the image without leaving anything out.
 - Focus on educational meaning, not aesthetics.
-- Resources may contain both Korean and English.
+- Resources may contain both Korean and English, but use Korean primarily. Use English only for technical terms if necessary.
 """
 )
 
