@@ -2,6 +2,7 @@
 AI recommendation services for barter matching and book exploration.
 """
 import sys
+import logging
 from pathlib import Path
 from typing import List, Dict, Any
 
@@ -13,6 +14,8 @@ from accounts.models import UserTaste
 AI_MODEL_PATH = Path(settings.BASE_DIR).parent / "ai-model" / "src"
 if str(AI_MODEL_PATH) not in sys.path:
     sys.path.insert(0, str(AI_MODEL_PATH))
+
+logger = logging.getLogger(__name__)
 
 
 class AIRecommendationService:
@@ -227,6 +230,8 @@ class AIRecommendationService:
             recommendations = recommender.recommend(context, limit=limit)
             return [rec.candidate.item_id for rec in recommendations]
         except Exception as e:
+            # Log the exception for visibility and debugging
+            logger.exception("AI barter recommendation failed: %s", e)
             # 임시: 랜덤으로 선택 (AI 모델 통합 실패 시)
             available_books = BookCopy.objects.filter(
                 owner=requester,
@@ -269,6 +274,8 @@ class AIRecommendationService:
                 for rec in recommendations
             ]
         except Exception as e:
+            # Log the exception for visibility and debugging
+            logger.exception("AI exploration recommendation failed: %s", e)
             # 임시: 사용자가 갖고 있지 않은 교환 가능한 책들 반환
             owned_ids = BookCopy.objects.filter(owner=user).values_list('publication_id', flat=True)
             recommended_books = BookCopy.objects.filter(

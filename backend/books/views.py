@@ -199,6 +199,8 @@ def user_profile_detail(request, user_id: int):
     favorite_genres = []
     trade_location1 = None
     trade_spot1 = None
+    # Safe fallback: ensure taste is defined even if user has no taste profile
+    taste = None
     try:
         taste = user.taste
         favorite_genres = taste.favorite_genres or []
@@ -219,6 +221,7 @@ def user_profile_detail(request, user_id: int):
         fav_books = getattr(taste, "favorite_books", []) or []
         fav_authors = getattr(taste, "favorite_authors", []) or []
     except Exception:
+        # Safe fallback: if taste is None or attribute access fails
         fav_books = []
         fav_authors = []
     try:
