@@ -8,6 +8,7 @@ sending to GPT for final selection.
 
 import json
 import logging
+import threading
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 # Global cache for model and tokenizer to avoid reloading
 _model_cache: Dict[str, any] = {}
+_model_lock = threading.Lock()  # Thread-safe lock for model loading
 
 
 class AchievementClassifier(nn.Module):
@@ -98,92 +100,103 @@ def load_model(model_dir: Path, device: torch.device) -> Tuple[nn.Module, any, d
     """
     Load the trained model, tokenizer, config, and mappings.
     Uses caching to avoid reloading on every call.
+    Thread-safe with lock.
     """
     cache_key = str(model_dir)
 
+    # Check cache first (without lock for performance)
     if cache_key in _model_cache:
         cached = _model_cache[cache_key]
         return cached["model"], cached["tokenizer"], cached["config"], cached["mappings"]
 
-    model_dir = Path(model_dir)
+    # Acquire lock for thread-safe loading
+    with _model_lock:
+        # Double-check after acquiring lock (another thread might have loaded it)
+        if cache_key in _model_cache:
+            cached = _model_cache[cache_key]
+            return cached["model"], cached["tokenizer"], cached["config"], cached["mappings"]
 
-    # Try to load config
-    config_path = model_dir / "config.json"
-    if not config_path.exists():
-        config_path = model_dir.parent / "config.json"
+        model_dir = Path(model_dir)
 
-    if config_path.exists():
-        with open(config_path, "r", encoding="utf-8") as f:
-            config = json.load(f)
-    else:
-        logger.warning("config.json not found. Using default values.")
-        config = {
-            "base_model": "klue/roberta-large",
-            "max_length": 256,
-            "dropout": 0.1,
-            "pooling": "cls",
+        # Try to load config
+        config_path = model_dir / "config.json"
+        if not config_path.exists():
+            config_path = model_dir.parent / "config.json"
+
+        if config_path.exists():
+            with open(config_path, "r", encoding="utf-8") as f:
+                config = json.load(f)
+        else:
+            # Use default values silently (no warning spam)
+            config = {
+                "base_model": "klue/roberta-large",
+                "max_length": 256,
+                "dropout": 0.1,
+                "pooling": "cls",
+            }
+
+        # Load mappings
+        mappings_path = model_dir / "label_mappings.json"
+        if not mappings_path.exists():
+            mappings_path = model_dir.parent / "label_mappings.json"
+
+        if not mappings_path.exists():
+            raise FileNotFoundError(f"label_mappings.json not found in {model_dir} or {model_dir.parent}")
+
+        with open(mappings_path, "r", encoding="utf-8") as f:
+            mappings = json.load(f)
+
+        if "num_classes" not in config:
+            config["num_classes"] = mappings.get("num_classes", len(mappings.get("code_to_idx", {})))
+
+        # Load tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(model_dir)
+
+        # Infer base_model if not in config
+        if "base_model" not in config or not config["base_model"]:
+            tokenizer_config_path = model_dir / "tokenizer_config.json"
+            if tokenizer_config_path.exists():
+                with open(tokenizer_config_path, "r", encoding="utf-8") as f:
+                    tokenizer_config = json.load(f)
+                    if "model_type" in tokenizer_config:
+                        model_type = tokenizer_config["model_type"]
+                        if model_type == "roberta":
+                            config["base_model"] = "klue/roberta-large"
+                        elif model_type == "bert":
+                            config["base_model"] = "klue/bert-base"
+                        else:
+                            config["base_model"] = f"klue/{model_type}-base"
+                    else:
+                        config["base_model"] = "klue/roberta-large"
+            else:
+                config["base_model"] = "klue/roberta-large"
+
+        # Load model
+        model = AchievementClassifier(
+            model_name=config["base_model"],
+            num_classes=config["num_classes"],
+            dropout=config.get("dropout", 0.1),
+            pooling=config.get("pooling", "cls"),
+        )
+
+        model_pt_path = model_dir / "model.pt"
+        # Use weights_only=False for compatibility with different PyTorch versions
+        state_dict = torch.load(model_pt_path, map_location=device, weights_only=False)
+        model.load_state_dict(state_dict)
+        model.to(device)
+        model.eval()
+
+        # Cache the loaded model
+        _model_cache[cache_key] = {
+            "model": model,
+            "tokenizer": tokenizer,
+            "config": config,
+            "mappings": mappings,
         }
 
-    # Load mappings
-    mappings_path = model_dir.parent / "label_mappings.json"
-    if not mappings_path.exists():
-        mappings_path = model_dir / "label_mappings.json"
+        logger.info(f"Loaded achievement model from {model_dir} with {config['num_classes']} classes")
 
-    if not mappings_path.exists():
-        raise FileNotFoundError(f"label_mappings.json not found in {model_dir} or {model_dir.parent}")
-
-    with open(mappings_path, "r", encoding="utf-8") as f:
-        mappings = json.load(f)
-
-    if "num_classes" not in config:
-        config["num_classes"] = mappings.get("num_classes", len(mappings.get("code_to_idx", {})))
-
-    # Load tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(model_dir)
-
-    # Infer base_model if not in config
-    if "base_model" not in config or not config["base_model"]:
-        tokenizer_config_path = model_dir / "tokenizer_config.json"
-        if tokenizer_config_path.exists():
-            with open(tokenizer_config_path, "r", encoding="utf-8") as f:
-                tokenizer_config = json.load(f)
-                if "model_type" in tokenizer_config:
-                    model_type = tokenizer_config["model_type"]
-                    if model_type == "roberta":
-                        config["base_model"] = "klue/roberta-large"
-                    elif model_type == "bert":
-                        config["base_model"] = "klue/bert-base"
-                    else:
-                        config["base_model"] = f"klue/{model_type}-base"
-                else:
-                    config["base_model"] = "klue/roberta-large"
-        else:
-            config["base_model"] = "klue/roberta-large"
-
-    # Load model
-    model = AchievementClassifier(
-        model_name=config["base_model"],
-        num_classes=config["num_classes"],
-        dropout=config.get("dropout", 0.1),
-        pooling=config.get("pooling", "cls"),
-    )
-
-    model_pt_path = model_dir / "model.pt"
-    model.load_state_dict(torch.load(model_pt_path, map_location=device))
-    model.to(device)
-    model.eval()
-
-    # Cache the loaded model
-    _model_cache[cache_key] = {
-        "model": model,
-        "tokenizer": tokenizer,
-        "config": config,
-        "mappings": mappings,
-    }
-
-    logger.info(f"Loaded achievement model from {model_dir} with {config['num_classes']} classes")
-
-    return model, tokenizer, config, mappings
+        return model, tokenizer, config, mappings
 
 
 def predict_top_k(
@@ -270,6 +283,7 @@ def filter_standards_by_model(
     question_content: str,
     achievement_standards: List[Dict],
     top_k: int = 30,
+    min_results: int = 5,
 ) -> List[Dict]:
     """
     Use the trained model to filter achievement standards down to top-k candidates.
@@ -284,6 +298,8 @@ def filter_standards_by_model(
         question_content: The question text to classify
         achievement_standards: List of achievement standard dicts from CSV
         top_k: Number of top predictions to consider
+        min_results: Minimum number of filtered results required (default: 5).
+                     If fewer results, falls back to all standards.
 
     Returns:
         Filtered list of achievement standards (subset of input)
@@ -301,13 +317,12 @@ def filter_standards_by_model(
     # Filter provided standards by predicted codes
     filtered_standards = [std for std in achievement_standards if std["code"] in predicted_codes]
 
-    if not filtered_standards:
+    # Check if we have enough results
+    if len(filtered_standards) < min_results:
         logger.warning(
-            f"No overlap between model predictions and provided standards. "
-            f"Model predicted: {list(predicted_codes)[:5]}..., "
-            f"Provided: {[s['code'] for s in achievement_standards[:5]]}..."
+            f"Filtered results ({len(filtered_standards)}) below minimum ({min_results}). "
+            f"Model predicted codes may not match the subject. Using all standards as fallback."
         )
-        # Fall back to returning all provided standards
         return achievement_standards
 
     logger.info(
