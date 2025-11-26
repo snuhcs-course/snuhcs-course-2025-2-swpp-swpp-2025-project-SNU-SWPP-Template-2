@@ -244,7 +244,7 @@ fun CreateAssignmentScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             OutlinedTextField(
                                 value = assignmentTitle,
@@ -266,9 +266,9 @@ fun CreateAssignmentScreen(
                                 ),
                                 singleLine = true,
                                 isError = assignmentTitleError != null,
-                                supportingText = {
-                                    assignmentTitleError?.let {
-                                        Text(text = it, color = Error)
+                                supportingText = assignmentTitleError?.let { error ->
+                                    {
+                                        Text(text = error, color = Error)
                                     }
                                 },
                                 colors = OutlinedTextFieldDefaults.colors(
