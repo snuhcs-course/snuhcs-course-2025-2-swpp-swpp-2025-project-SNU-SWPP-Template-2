@@ -199,11 +199,46 @@ def user_profile_detail(request, user_id: int):
     favorite_genres = []
     trade_location1 = None
     trade_spot1 = None
-    taste = getattr(user, "taste", None)
-    if taste:
+    # Safe fallback: ensure taste is defined even if user has no taste profile
+    taste = None
+    try:
+        taste = user.taste
         favorite_genres = taste.favorite_genres or []
         trade_location1 = taste.trade_place_name or None
         trade_spot1 = taste.trade_address or None
+    except Exception:
+        pass
+
+    # UserPreferences에서 추가 필드 가져오기 (favorites from taste, notes & locations from preferences)
+    trade_location2 = None
+    trade_spot2 = None
+    fav_books = []
+    fav_book_notes = []
+    fav_authors = []
+    fav_author_notes = []
+    reading_habit = None
+    try:
+        fav_books = getattr(taste, "favorite_books", []) or []
+        fav_authors = getattr(taste, "favorite_authors", []) or []
+    except Exception:
+        # Safe fallback: if taste is None or attribute access fails
+        fav_books = []
+        fav_authors = []
+    try:
+        user_prefs = user.preferences
+        import json
+        if user_prefs.preferred_meeting_locations:
+            try:
+                meta = json.loads(user_prefs.preferred_meeting_locations)
+            except Exception:
+                meta = {}
+            trade_location2 = meta.get("tradeLocation2")
+            trade_spot2 = meta.get("tradeSpot2")
+            fav_book_notes = meta.get("favBookNotes", [])
+            fav_author_notes = meta.get("favAuthorNotes", [])
+            reading_habit = meta.get("readingHabit")
+    except Exception:
+        pass
 
     review_count = BookReview.objects.filter(reviewer=user).count()
     follower_count = user.follower_relationships.count()
@@ -217,17 +252,17 @@ def user_profile_detail(request, user_id: int):
             "reviewCount": review_count,
             "followerCount": follower_count,
             "followingCount": following_count,
-            "favoriteGenres": favorite_genres,
+            "favoriteGenres": favorite_genres or [],
             "preferences": {
                 "tradeLocation1": trade_location1,
-                "tradeLocation2": None,
+                "tradeLocation2": trade_location2,
                 "tradeSpot1": trade_spot1,
-                "tradeSpot2": None,
-                "favBook": None,
-                "favBookNote": None,
-                "favAuthor": None,
-                "favAuthorNote": None,
-                "readingHabit": None,
+                "tradeSpot2": trade_spot2,
+                "favBooks": fav_books or [],
+                "favBookNotes": fav_book_notes or [],
+                "favAuthors": fav_authors or [],
+                "favAuthorNotes": fav_author_notes or [],
+                "readingHabit": reading_habit,
             },
         },
         status=status.HTTP_200_OK,

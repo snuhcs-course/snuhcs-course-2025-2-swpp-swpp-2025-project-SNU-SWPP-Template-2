@@ -36,7 +36,8 @@ from accounts.models import (
     BookLength, BookMood, ReadingPurpose
 )
 from books.models import (
-    Genre, Author, Publisher, Book, BookReview,
+    Genre, Author, Publisher, Translator, 
+    BookPublication, BookCopy, BookReview,
     BookWishlist, BookCollection, ReadingStatus
 )
 from social.models import (
@@ -201,7 +202,7 @@ def create_users(count=20):
             allow_direct_messages=True,
             reputation_score=random.randint(0, 500),
             successful_trades=random.randint(0, 50),
-            has_initial_taste=random.choice([True, False]),
+            has_initial_taste=True,
         )
         users.append(user)
     
@@ -254,13 +255,58 @@ def create_user_tastes(users):
     print(f"  Created {count} user taste profiles")
 
 def create_user_preferences(users):
-    """Create user preferences."""
+    """Create user preferences with book/author notes and reading habits."""
     print("Creating user preferences...")
+    
+    import json
+    
+    book_notes = [
+        "이 책이 제 인생을 바꿨어요",
+        "여러 번 읽어도 새로운 감동",
+        "추천하고 싶은 책",
+        "깊은 여운이 남는 작품",
+        "잊을 수 없는 명작",
+    ]
+    
+    author_notes = [
+        "이 작가의 모든 작품을 읽었어요",
+        "독특한 문체가 매력적",
+        "깊이 있는 통찰력",
+        "감성적인 표현이 좋아요",
+        "철학적 사고를 자극해요",
+    ]
+    
+    reading_habits = [
+        "주로 저녁에 읽어요",
+        "카페에서 읽는 걸 좋아해요",
+        "매일 한 시간씩 읽기",
+        "주말에 몰아서 읽기",
+        "출퇴근 시간에 읽어요",
+        "자기 전 독서",
+    ]
     
     count = 0
     for user in users:
         if not hasattr(user, 'preferences'):
-            UserPreferences.objects.create(
+            # Create preference metadata
+            metadata = {}
+            
+            # Add random notes if user has initial taste
+            if user.has_initial_taste:
+                # Add book notes (1-3 notes)
+                num_book_notes = random.randint(1, 3)
+                metadata["favBookNotes"] = random.sample(book_notes, num_book_notes)
+                
+                # Add author notes (1-3 notes)
+                num_author_notes = random.randint(1, 3)
+                metadata["favAuthorNotes"] = random.sample(author_notes, num_author_notes)
+                
+                # Add reading habits (1-2 habits)
+                num_habits = random.randint(1, 2)
+                metadata["readingHabit"] = random.sample(reading_habits, num_habits)
+            
+            # Create UserPreferences with metadata
+            prefs = UserPreferences.objects.create(
                 user=user,
                 email_notifications=random.choice([True, False]),
                 push_notifications=random.choice([True, False]),
@@ -271,6 +317,7 @@ def create_user_preferences(users):
                 show_phone=False,
                 show_location=True,
                 max_barter_distance=random.choice([10, 20, 50, 100]),
+                preferred_meeting_locations=json.dumps(metadata) if metadata else "",
             )
             count += 1
     
@@ -299,8 +346,8 @@ def create_follows(users):
     return follows
 
 def create_books(users, genres, authors, publishers, count=50):
-    """Create books owned by users."""
-    print(f"Creating {count} books...")
+    """Create book publications and copies owned by users."""
+    print(f"Creating {count} book publications and copies...")
     
     book_titles = [
         "데미안", "사피엔스", "1984", "채식주의자", "코스모스",
@@ -311,7 +358,7 @@ def create_books(users, genres, authors, publishers, count=50):
         "미움받을 용기", "아몬드", "82년생 김지영", "완득이", "살인자의 기억법",
         "우리들의 일그러진 영웅", "장미의 이름", "참을 수 없는 존재의 가벼움",
         "백년의 고독", "죄와 벌", "카라마조프가의 형제들", "전쟁과 평화",
-        "변신", "그리스인 조르바", "수레바퀴 아래서", "데미안", "나르치스와 골드문트",
+        "변신", "그리스인 조르바", "수레바퀴 아래서", "나르치스와 골드문트",
         "모모", "끝없는 이야기", "소피의 세계", "연금술사", "오만과 편견",
         "제인 에어", "폭풍의 언덕", "위대한 유산", "오페라의 유령", "레미제라블",
     ]
@@ -330,45 +377,64 @@ def create_books(users, genres, authors, publishers, count=50):
     ]
     
     conditions = ["new", "like_new", "very_good", "good", "acceptable"]
-    trade_statuses = ["available", "available", "available", "available", "available", "available", "available", "available" 
-                      "pending", "not_available"]
+    trade_statuses = ["available", "available", "available", "available", "available", "available", "pending", "not_available"]
     
-    books = []
+    book_copies = []
+    publications = []
+    
+    # Track used ISBNs to avoid duplicates
+    used_isbns = set()
+    
     for i in range(count):
         owner = random.choice(users)
-        title = random.choice(book_titles) + f" (vol.{i+1})"
+        title = random.choice(book_titles)
         
-        book = Book.objects.create(
+        # Generate unique ISBN or use None
+        isbn_13 = None
+        if random.choice([True, False]):
+            # Try to generate unique ISBN (max 10 attempts)
+            for _ in range(10):
+                candidate_isbn = f"978{random.randint(1000000000, 9999999999)}"
+                if candidate_isbn not in used_isbns:
+                    isbn_13 = candidate_isbn
+                    used_isbns.add(isbn_13)
+                    break
+        
+        # Create or get publication
+        publication, created = BookPublication.objects.get_or_create(
             title=title,
-            subtitle=f"부제: {i+1}권" if random.choice([True, False]) else "",
-            publisher=random.choice(publishers),
-            publication_date=random_date_in_past(3650).date(),
-            pages=random.randint(150, 600),
-            language=random.choice(["Korean", "English"]),
-            description=random.choice(descriptions),
+            isbn_13=isbn_13,
+            defaults={
+                "subtitle": f"부제: {i+1}권" if random.choice([True, False]) else "",
+                "publisher": random.choice(publishers),
+                "publication_date": random_date_in_past(3650).date(),
+                "pages": random.randint(150, 600),
+                "language": random.choice(["Korean", "English"]),
+                "description": random.choice(descriptions),
+            }
+        )
+        
+        if created:
+            # Add authors
+            publication.authors.set(random.sample(authors, k=random.randint(1, 2)))
+            # Add genres
+            publication.genres.set(random.sample(genres, k=random.randint(1, 3)))
+            publications.append(publication)
+        
+        # Create user's copy of the publication
+        book_copy = BookCopy.objects.create(
+            publication=publication,
             owner=owner,
             condition=random.choice(conditions),
             trade_status=random.choice(trade_statuses),
             owner_notes=random.choice(["깨끗한 상태입니다", "밑줄 조금 있어요", "상태 좋아요", ""]),
             is_for_barter=random.choice([True, True, True, True, True, False]),  # 83% True
-            average_rating=Decimal(str(round(random.uniform(3.0, 5.0), 2))),
-            review_count=random.randint(0, 50),
         )
         
-        # Add authors
-        book.authors.set(random.sample(authors, k=random.randint(1, 2)))
-        
-        # Add genres
-        book.genres.set(random.sample(genres, k=random.randint(1, 3)))
-        
-        # Add preferred genres for trade
-        if book.is_for_barter:
-            book.preferred_genres_for_trade.set(random.sample(genres, k=random.randint(1, 2)))
-        
-        books.append(book)
+        book_copies.append(book_copy)
     
-    print(f"  Created {len(books)} books")
-    return books
+    print(f"  Created {len(publications)} unique publications and {len(book_copies)} book copies")
+    return book_copies
 
 def create_book_reviews(users, books, count=30):
     """Create book reviews."""
@@ -623,11 +689,14 @@ def create_reading_statuses(users, books):
         for book in status_books:
             status = random.choice(statuses)
             
+            # Get pages from publication
+            pages = book.publication.pages if book.publication.pages else 300
+            
             reading_status = ReadingStatus.objects.create(
                 user=user,
                 book=book,
                 status=status,
-                pages_read=random.randint(0, book.pages) if book.pages else 0,
+                pages_read=random.randint(0, pages),
                 start_date=random_date_in_past(180).date() if status != "want_to_read" else None,
                 finish_date=random_date_in_past(90).date() if status == "read" else None,
                 personal_rating=random.randint(3, 5) if status == "read" else None,
@@ -661,8 +730,8 @@ def create_barter_requests(users, books):
         recipient = random.choice([u for u in users if u != requester])
         
         # Get books from each user
-        requester_books = list(requester.books.filter(is_for_barter=True, trade_status="available"))
-        recipient_books = list(recipient.books.filter(is_for_barter=True, trade_status="available"))
+        requester_books = list(requester.book_copies.filter(is_for_barter=True, trade_status="available"))
+        recipient_books = list(recipient.book_copies.filter(is_for_barter=True, trade_status="available"))
         
         # Need at least 1 book from each user
         if not recipient_books or not requester_books:
@@ -843,7 +912,8 @@ def main():
         print("=" * 60)
         print("\nSummary:")
         print(f"  Users: {User.objects.count()}")
-        print(f"  Books: {Book.objects.count()}")
+        print(f"  Book Publications: {BookPublication.objects.count()}")
+        print(f"  Book Copies: {BookCopy.objects.count()}")
         print(f"  Reviews: {BookReview.objects.count()}")
         print(f"  Posts: {Post.objects.count()}")
         print(f"  Comments: {Comment.objects.count()}")

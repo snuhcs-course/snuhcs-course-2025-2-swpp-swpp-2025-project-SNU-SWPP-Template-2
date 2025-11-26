@@ -78,11 +78,11 @@ data class UserPreferences(
     val tradeLocation2: String?,
     val tradeSpot1: String?,
     val tradeSpot2: String?,
-    val favBook: String?,
-    val favBookNote: String?,
-    val favAuthor: String?,
-    val favAuthorNote: String?,
-    val readingHabit: String?
+    val favBooks: List<String>,  
+    val favBookNotes: List<String>,
+    val favAuthors: List<String>,  
+    val favAuthorNotes: List<String>,
+    val readingHabit: String?,
 )
 
 data class WishlistRequest(val book: PostBook)

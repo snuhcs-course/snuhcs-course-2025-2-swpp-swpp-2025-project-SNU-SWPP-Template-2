@@ -22,6 +22,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+from books.models import BookCopy, Author as BookAuthor, Genre as BookGenre
 from .models import Follow, UserPreferences, UserTaste
 from .serializers import (
     CustomTokenObtainPairSerializer,
@@ -671,25 +672,98 @@ class UserProfileMeView(APIView):
 
         # 2) Update preferences coming from nested object
         prefs = request.data.get("preferences") or {}
-        favorite_genres = request.data.get("favoriteGenres") or []
+        favorite_genres = request.data.get("favoriteGenres")
 
-        # Store trade locations in UserTaste (closest existing fields)
-        # Ensure taste exists
+        # Store in UserTaste and UserPreferences
         from .models import UserTaste
 
         taste, _ = UserTaste.objects.get_or_create(user=request.user)
-        # Map incoming fields to available fields
+        user_prefs, _ = UserPreferences.objects.get_or_create(user=request.user)
+        
+        # Map incoming fields to UserTaste model
         trade_location1 = prefs.get("tradeLocation1")
+        trade_location2 = prefs.get("tradeLocation2")
         trade_spot1 = prefs.get("tradeSpot1")
+        trade_spot2 = prefs.get("tradeSpot2")
+        fav_books = prefs.get("favBooks")  # List of book titles/IDs
+        fav_book_notes = prefs.get("favBookNotes")  # List of notes
+        fav_authors = prefs.get("favAuthors")  # List of author names/IDs
+        fav_author_notes = prefs.get("favAuthorNotes")  # List of notes
+        reading_habit = prefs.get("readingHabit")  # Single string
+
+        # Update UserTaste fields (source of truth for favorites)
         if trade_location1 is not None:
             taste.trade_place_name = trade_location1
         if trade_spot1 is not None:
             taste.trade_address = trade_spot1
-
-        # Save favorite genres if provided
-        if isinstance(favorite_genres, list):
+        if favorite_genres is not None and isinstance(favorite_genres, list):
             taste.favorite_genres = favorite_genres
+        if fav_books is not None:
+            if isinstance(fav_books, list):
+                taste.favorite_books = fav_books
+            elif isinstance(fav_books, str):
+                taste.favorite_books = [fav_books] if fav_books else []
+        if fav_authors is not None:
+            if isinstance(fav_authors, list):
+                taste.favorite_authors = fav_authors
+            elif isinstance(fav_authors, str):
+                taste.favorite_authors = [fav_authors] if fav_authors else []
         taste.save()
+
+        # Update UserPreferences fields (store additional fields here)
+        update_fields = []
+        
+        # Store trade location 2 and spot 2 in preferred_meeting_locations as JSON
+        meeting_locs = {}
+        if trade_location2 is not None:
+            meeting_locs["tradeLocation2"] = trade_location2
+            update_fields.append("preferred_meeting_locations")
+        if trade_spot2 is not None:
+            meeting_locs["tradeSpot2"] = trade_spot2
+            update_fields.append("preferred_meeting_locations")
+        
+        if meeting_locs:
+            import json
+            existing = {}
+            if user_prefs.preferred_meeting_locations:
+                try:
+                    existing = json.loads(user_prefs.preferred_meeting_locations)
+                except:
+                    pass
+            existing.update(meeting_locs)
+            user_prefs.preferred_meeting_locations = json.dumps(existing)
+        
+        # Store only notes & reading habit as metadata (favorites kept in taste)
+        metadata = {}
+        if fav_book_notes is not None:
+            if isinstance(fav_book_notes, list):
+                metadata["favBookNotes"] = fav_book_notes
+            elif isinstance(fav_book_notes, str):
+                metadata["favBookNotes"] = [fav_book_notes] if fav_book_notes else []
+        if fav_author_notes is not None:
+            if isinstance(fav_author_notes, list):
+                metadata["favAuthorNotes"] = fav_author_notes
+            elif isinstance(fav_author_notes, str):
+                metadata["favAuthorNotes"] = [fav_author_notes] if fav_author_notes else []
+        if reading_habit is not None:
+            if isinstance(reading_habit, str):
+                metadata["readingHabit"] = reading_habit
+            else:
+                metadata["readingHabit"] = str(reading_habit) if reading_habit else ""
+        if metadata:
+            import json
+            existing = {}
+            if user_prefs.preferred_meeting_locations:
+                try:
+                    existing = json.loads(user_prefs.preferred_meeting_locations)
+                except Exception:
+                    existing = {}
+            existing.update(metadata)
+            user_prefs.preferred_meeting_locations = json.dumps(existing)
+            update_fields.append("preferred_meeting_locations")
+        
+        if update_fields:
+            user_prefs.save(update_fields=list(set(update_fields)))
 
         # Mark initial taste as present if any taste data exists
         if (
@@ -713,13 +787,38 @@ class UserProfileMeView(APIView):
 
         # Taste and preferences mapping
         favorite_genres = []
+        favorite_books = []
+        favorite_authors = []
         trade_location1 = None
         trade_spot1 = None
         try:
             taste = user.taste
             favorite_genres = taste.favorite_genres or []
+            favorite_books = taste.favorite_books or []
+            favorite_authors = taste.favorite_authors or []
             trade_location1 = taste.trade_place_name or None
             trade_spot1 = taste.trade_address or None
+        except Exception:
+            pass
+
+        # Additional preferences & metadata (only notes & meeting locations; favorites from taste)
+        trade_location2 = None
+        trade_spot2 = None
+        fav_books = favorite_books
+        fav_book_notes = []
+        fav_authors = favorite_authors
+        fav_author_notes = []
+        reading_habit = None
+        try:
+            import json
+            user_prefs = user.preferences
+            if user_prefs.preferred_meeting_locations:
+                metadata = json.loads(user_prefs.preferred_meeting_locations)
+                trade_location2 = metadata.get("tradeLocation2")
+                trade_spot2 = metadata.get("tradeSpot2")
+                fav_book_notes = metadata.get("favBookNotes", [])
+                fav_author_notes = metadata.get("favAuthorNotes", [])
+                reading_habit = metadata.get("readingHabit")
         except Exception:
             pass
 
@@ -741,18 +840,17 @@ class UserProfileMeView(APIView):
             "reviewCount": review_count,
             "followerCount": follower_count,
             "followingCount": following_count,
-            "favoriteGenres": favorite_genres,
+            "favoriteGenres": favorite_genres or [],
             "preferences": {
-                # Provide non-null object with nullable fields to avoid NPE on client
                 "tradeLocation1": trade_location1,
-                "tradeLocation2": None,
+                "tradeLocation2": trade_location2,
                 "tradeSpot1": trade_spot1,
-                "tradeSpot2": None,
-                "favBook": None,
-                "favBookNote": None,
-                "favAuthor": None,
-                "favAuthorNote": None,
-                "readingHabit": None,
+                "tradeSpot2": trade_spot2,
+                "favBooks": fav_books or [],
+                "favBookNotes": fav_book_notes or [],
+                "favAuthors": fav_authors or [],
+                "favAuthorNotes": fav_author_notes or [],
+                "readingHabit": reading_habit,
             },
         }
 
@@ -1093,6 +1191,61 @@ class KakaoSignupView(APIView):
             return Response(data, status=status.HTTP_200_OK)
 
         return response
+
+
+@api_view(["POST"])
+@permission_classes([permissions.IsAuthenticated])
+def onboarding_submit(request):
+    """
+    Handle onboarding survey submission from frontend.
+    Expects: {"book_ids": [1,2,3], "author_ids": [1,2], "genre_ids": [1,2]}
+    """
+    try:
+        book_ids = request.data.get("book_ids", [])
+        author_ids = request.data.get("author_ids", [])
+        genre_ids = request.data.get("genre_ids", [])
+
+        # Validate that we have data
+        if not book_ids and not author_ids and not genre_ids:
+            return Response(
+                {"ok": False, "message": "At least one preference is required"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Get or create UserTaste
+        taste, created = UserTaste.objects.get_or_create(user=request.user)
+
+        # Store IDs directly (frontend sends hardcoded IDs)
+        # In future, these could be mapped to actual database objects
+        if book_ids:
+            taste.favorite_books = book_ids
+
+        if author_ids:
+            taste.favorite_authors = author_ids
+
+        if genre_ids:
+            taste.favorite_genres = genre_ids
+
+        taste.save()
+
+        # Mark user as having completed initial taste survey
+        request.user.has_initial_taste = True
+        request.user.save()
+
+        return Response(
+            {
+                "ok": True,
+                "message": "Onboarding completed successfully",
+                "has_initial_taste": True,
+            },
+            status=status.HTTP_200_OK,
+        )
+
+    except Exception as e:
+        return Response(
+            {"ok": False, "message": str(e)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
 
 @api_view(["POST", "DELETE"])

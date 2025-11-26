@@ -3,6 +3,7 @@ Views for the barter app.
 """
 
 from accounts.serializers import UserBarterInfoSerializer
+from ai_integration.services import AIRecommendationService
 from barter.models import BarterRequest
 from barter.serializers import (
     BarterCreateSerializer,
@@ -143,15 +144,35 @@ def create_barter_request(request):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    offered_books = list(
-        BookCopy.objects.filter(
-            owner=request.user,
-            is_for_barter=True,
-            trade_status="available",
-        )
-        .select_related("publication")
-        .order_by("?")[:3]
+    # AI 추천을 사용하여 적합한 책들 선택
+    recommended_book_ids = AIRecommendationService.recommend_books_for_barter(
+        requester=request.user,
+        recipient=recipient,
+        requested_book=requested_book,
+        limit=3
     )
+    
+    # 추천된 책 ID로 실제 BookCopy 객체 가져오기
+    if recommended_book_ids:
+        offered_books = list(
+            BookCopy.objects.filter(
+                id__in=recommended_book_ids,
+                owner=request.user,
+                is_for_barter=True,
+                trade_status="available"
+            ).select_related("publication")
+        )
+    else:
+        # AI 추천이 실패한 경우 fallback: 랜덤 선택
+        offered_books = list(
+            BookCopy.objects.filter(
+                owner=request.user,
+                is_for_barter=True,
+                trade_status="available",
+            )
+            .select_related("publication")
+            .order_by("?")[:3]
+        )
 
     message_templates = [
         "I'd like to offer '{}' for exchange.",
