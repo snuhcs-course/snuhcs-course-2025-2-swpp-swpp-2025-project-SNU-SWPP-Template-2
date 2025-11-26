@@ -215,6 +215,7 @@
     <string name="search_books">Search Books</string>
     <string name="search_empty_message">검색 결과가 없습니다.</string>
 
+    <string name="write_review_title">서평 작성</string>
 
 
 </resources>

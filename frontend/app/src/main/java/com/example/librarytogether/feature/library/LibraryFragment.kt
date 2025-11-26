@@ -165,10 +165,10 @@ class LibraryFragment : Fragment() {
             binding.tvTradeLocation2.text = profile.preferences.tradeLocation2
             binding.tvTradeSpot1.text = profile.preferences.tradeSpot1
             binding.tvTradeSpot2.text = profile.preferences.tradeSpot2
-            binding.tvFavBook.text = profile.preferences.favBooks[0]
-            binding.tvFavBookNote.text = profile.preferences.favBookNotes[0]
-            binding.tvFavAuthor.text = profile.preferences.favAuthors[0]
-            binding.tvFavAuthorNote.text = profile.preferences.favAuthorNotes[0]
+            binding.tvFavBook.text = profile.preferences.favBooks.firstOrNull().orEmpty()
+            binding.tvFavBookNote.text = profile.preferences.favBookNotes.firstOrNull().orEmpty()
+            binding.tvFavAuthor.text = profile.preferences.favAuthors.firstOrNull().orEmpty()
+            binding.tvFavAuthorNote.text = profile.preferences.favAuthorNotes.firstOrNull().orEmpty()
             binding.tvReadingHabit.text = profile.preferences.readingHabit
             isGenreEmpty = profile.favoriteGenres.isEmpty()
 
@@ -299,7 +299,7 @@ class LibraryFragment : Fragment() {
                                 newValue = binding.editFavAuthorNote.text.toString(),
                                 oldList = currentProfile.preferences.favAuthorNotes
                             ),
-                            readingHabit = binding.editReadingHabit.text.toString()
+                            readingHabit = binding.editReadingHabit.text.toString(),
                         )
 
                         val newProfile = currentProfile.copy(
@@ -368,10 +368,10 @@ class LibraryFragment : Fragment() {
             syncChipsFromProfile(profile)
             editTradeSpot1.setText(profile.preferences.tradeSpot1)
             editTradeSpot2.setText(profile.preferences.tradeSpot2)
-            editFavBook.setText(profile.preferences.favBooks[0])
-            editFavBookNote.setText(profile.preferences.favBookNotes[0])
-            editFavAuthor.setText(profile.preferences.favAuthors[0])
-            editFavAuthorNote.setText(profile.preferences.favAuthorNotes[0])
+            editFavBook.setText(profile.preferences.favBooks.firstOrNull().orEmpty())
+            editFavBookNote.setText(profile.preferences.favBookNotes.firstOrNull().orEmpty())
+            editFavAuthor.setText(profile.preferences.favAuthors.firstOrNull().orEmpty())
+            editFavAuthorNote.setText(profile.preferences.favAuthorNotes.firstOrNull().orEmpty())
             editReadingHabit.setText(profile.preferences.readingHabit)
             syncEditChipsFromViewModel(profile.favoriteGenres)
 
@@ -551,7 +551,7 @@ class LibraryFragment : Fragment() {
     private fun prependAndShift(
         newValue: String,
         oldList: List<String>,
-        maxSize: Int = 3
+        maxSize: Int = 10
     ): List<String> {
         val trimmed = newValue.trim()
         if (trimmed.isEmpty())
