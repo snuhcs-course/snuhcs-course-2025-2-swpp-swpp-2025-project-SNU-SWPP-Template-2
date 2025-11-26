@@ -283,7 +283,7 @@ def filter_standards_by_model(
     question_content: str,
     achievement_standards: List[Dict],
     top_k: int = 30,
-    min_results: int = 5,
+    min_results: int = 3,
 ) -> List[Dict]:
     """
     Use the trained model to filter achievement standards down to top-k candidates.
