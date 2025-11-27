@@ -58,7 +58,11 @@ jobs:
 
       - name: Add server to known hosts
         run: |
-          ssh-keyscan -p ${{ secrets.SSH_PORT || '2203' }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          touch ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.SSH_PORT || '2203' }} -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts || echo "Warning: ssh-keyscan failed, but continuing..."
 
       - name: Deploy to server
         env:
