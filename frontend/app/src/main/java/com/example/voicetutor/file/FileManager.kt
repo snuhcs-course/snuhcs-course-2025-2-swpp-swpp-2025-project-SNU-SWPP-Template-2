@@ -36,7 +36,6 @@ class FileManager(private val context: Context) {
     private val tempDir = File(context.cacheDir, "temp")
 
     init {
-        // 디렉토리 생성
         listOf(audioDir, documentDir, imageDir, tempDir).forEach { dir ->
             if (!dir.exists()) {
                 dir.mkdirs()
@@ -44,9 +43,6 @@ class FileManager(private val context: Context) {
         }
     }
 
-    /**
-     * 파일 저장
-     */
     suspend fun saveFile(
         uri: Uri,
         fileName: String? = null,
@@ -66,7 +62,6 @@ class FileManager(private val context: Context) {
             val finalFileName = fileName ?: generateFileName(uri, fileType)
             val targetFile = File(targetDir, finalFileName)
 
-            // 파일 복사
             FileOutputStream(targetFile).use { outputStream ->
                 inputStream.copyTo(outputStream)
             }
@@ -88,9 +83,6 @@ class FileManager(private val context: Context) {
         }
     }
 
-    /**
-     * 오디오 파일 저장
-     */
     suspend fun saveAudioFile(
         sourceFile: File,
         customName: String? = null,
@@ -116,9 +108,6 @@ class FileManager(private val context: Context) {
         }
     }
 
-    /**
-     * 파일 목록 조회
-     */
     suspend fun getFiles(fileType: FileType? = null): Result<List<FileInfo>> = withContext(Dispatchers.IO) {
         try {
             val directories = when (fileType) {
@@ -154,9 +143,6 @@ class FileManager(private val context: Context) {
         }
     }
 
-    /**
-     * 파일 삭제
-     */
     suspend fun deleteFile(filePath: String): Result<Unit> = withContext(Dispatchers.IO) {
         try {
             val file = File(filePath)
@@ -174,68 +160,44 @@ class FileManager(private val context: Context) {
         }
     }
 
-    /**
-     * 파일 크기 조회
-     */
     fun getFileSize(filePath: String): Long {
         return File(filePath).length()
     }
 
-    /**
-     * 파일 존재 여부 확인
-     */
     fun fileExists(filePath: String): Boolean {
         return File(filePath).exists()
     }
 
-    /**
-     * 파일명 생성
-     */
     private fun generateFileName(uri: Uri, fileType: FileType): String {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val extension = getFileExtension(uri) ?: getDefaultExtension(fileType)
         return "${fileType.name.lowercase()}_$timestamp.$extension"
     }
 
-    /**
-     * 오디오 파일명 생성
-     */
     private fun generateAudioFileName(): String {
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         return "voice_recording_$timestamp.wav"
     }
 
-    /**
-     * URI에서 파일 확장자 추출
-     */
     private fun getFileExtension(uri: Uri): String? {
         val fileName = uri.lastPathSegment
         val extension = fileName?.substringAfterLast('.', "")
         return if (extension.isNullOrBlank()) null else extension
     }
 
-    /**
-     * 파일 타입별 기본 확장자
-     */
     private fun getDefaultExtension(fileType: FileType): String {
         return when (fileType) {
             FileType.AUDIO -> "wav"
             FileType.IMAGE -> "jpg"
-            FileType.DOCUMENT -> "pdf" // PDF 파일의 기본 확장자를 pdf로 변경
+            FileType.DOCUMENT -> "pdf"
             FileType.OTHER -> "bin"
         }
     }
 
-    /**
-     * MIME 타입 조회
-     */
     private fun getMimeType(uri: Uri): String {
         return context.contentResolver.getType(uri) ?: "application/octet-stream"
     }
 
-    /**
-     * 확장자로부터 MIME 타입 조회
-     */
     private fun getMimeTypeFromExtension(extension: String): String {
         return when (extension.lowercase()) {
             "wav" -> "audio/wav"
@@ -255,25 +217,19 @@ class FileManager(private val context: Context) {
         }
     }
 
-    /**
-     * 파일 크기를 사람이 읽기 쉬운 형태로 변환
-     */
     fun formatFileSize(bytes: Long): String {
         val kb = bytes / 1024.0
         val mb = kb / 1024.0
         val gb = mb / 1024.0
 
         return when {
-            gb >= 1 -> String.format("%.1f GB", gb)
-            mb >= 1 -> String.format("%.1f MB", mb)
-            kb >= 1 -> String.format("%.1f KB", kb)
+            gb >= 1 -> String.format(Locale.getDefault(), "%.1f GB", gb)
+            mb >= 1 -> String.format(Locale.getDefault(), "%.1f MB", mb)
+            kb >= 1 -> String.format(Locale.getDefault(), "%.1f KB", kb)
             else -> "$bytes B"
         }
     }
 
-    /**
-     * 임시 파일 정리
-     */
     suspend fun cleanupTempFiles(): Result<Int> = withContext(Dispatchers.IO) {
         try {
             val tempFiles = tempDir.listFiles()

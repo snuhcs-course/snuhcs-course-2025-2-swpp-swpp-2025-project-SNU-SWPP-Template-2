@@ -17,7 +17,6 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.voicetutor.data.models.*
 import com.example.voicetutor.data.network.CreateClassRequest
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
@@ -27,7 +26,6 @@ import com.example.voicetutor.ui.viewmodel.ClassViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateClassScreen(
-    onBackClick: () -> Unit = {},
     onClassCreated: () -> Unit = {},
     teacherId: String? = null,
     classViewModel: ClassViewModel = hiltViewModel(),
@@ -41,7 +39,7 @@ fun CreateClassScreen(
     val error by classViewModel.error.collectAsStateWithLifecycle()
     val classes by classViewModel.classes.collectAsStateWithLifecycle()
 
-    var initialClassesSize by remember { mutableStateOf(classes.size) }
+    var initialClassesSize by remember { mutableIntStateOf(classes.size) }
     var isCreating by remember { mutableStateOf(false) }
 
     LaunchedEffect(classes.size, isLoading) {
@@ -104,10 +102,10 @@ fun CreateClassScreen(
                                 value = className,
                                 onValueChange = {
                                     val sanitized = it.replace("/", "")
-                                    if (sanitized.length != it.length) {
-                                        classNameError = "'/' 문자는 사용할 수 없어요."
+                                    classNameError = if (sanitized.length != it.length) {
+                                        "'/' 문자는 사용할 수 없어요."
                                     } else {
-                                        classNameError = null
+                                        null
                                     }
                                     className = sanitized
                                 },
@@ -216,7 +214,7 @@ private fun CreateClassButton(
     onClassCreate: (CreateClassRequest) -> Unit,
 ) {
     VTButton(
-        text = if (isLoading) "생성 중..." else "수업 생성",
+        text = "수업 생성",
         onClick = {
             if (teacherId == null) {
                 return@VTButton

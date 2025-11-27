@@ -112,9 +112,6 @@ fun VoiceTutorNavigation(
 
             SignupScreen(
                 authViewModel = authViewModel,
-                onSignupSuccess = {
-                    navController.popBackStack()
-                },
                 onLoginClick = {
                     navController.popBackStack()
                 },
@@ -128,8 +125,6 @@ fun VoiceTutorNavigation(
             val authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = hiltViewModel(graphBackStackEntry)
             val assignmentViewModel: com.example.voicetutor.ui.viewmodel.AssignmentViewModel = hiltViewModel(graphBackStackEntry)
 
-            val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
-
             MainLayout(
                 navController = navController,
                 userRole = UserRole.STUDENT,
@@ -137,9 +132,6 @@ fun VoiceTutorNavigation(
                 StudentDashboardScreen(
                     authViewModel = authViewModel,
                     assignmentViewModel = assignmentViewModel,
-                    onNavigateToAssignment = { assignmentId ->
-                        navController.navigate(VoiceTutorScreens.Assignment.createRoute(assignmentId, "과제"))
-                    },
                     onNavigateToAssignmentDetail = { assignmentId ->
                         navController.navigate(VoiceTutorScreens.AssignmentDetail.createRoute(assignmentId, "과제"))
                     },
@@ -240,9 +232,6 @@ fun VoiceTutorNavigation(
                 AssignmentDetailedResultsScreen(
                     personalAssignmentId = personalAssignmentId,
                     assignmentTitle = assignmentTitle,
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
                 )
             }
         }
@@ -278,15 +267,6 @@ fun VoiceTutorNavigation(
                     assignmentViewModel = assignmentViewModel,
                     refreshTimestamp = refreshTimestamp,
                     showDeletedToast = deleted,
-                    onNavigateToAllAssignments = {
-                        navController.navigate(VoiceTutorScreens.AllAssignments.route)
-                    },
-                    onNavigateToAllStudents = {
-                        navController.navigate(VoiceTutorScreens.AllStudents.route)
-                    },
-                    onNavigateToClasses = {
-                        navController.navigate(VoiceTutorScreens.TeacherClasses.route)
-                    },
                     onCreateNewAssignment = {
                         navController.navigate(VoiceTutorScreens.CreateAssignment.createRoute(null))
                     },
@@ -295,12 +275,6 @@ fun VoiceTutorNavigation(
                     },
                     onNavigateToAssignmentDetail = { assignmentId ->
                         navController.navigate(VoiceTutorScreens.TeacherAssignmentDetail.createRoute(assignmentId))
-                    },
-                    onNavigateToAssignmentResults = { assignmentId ->
-                        navController.navigate(VoiceTutorScreens.TeacherAssignmentResults.createRoute(assignmentId))
-                    },
-                    onNavigateToEditAssignment = { assignmentId ->
-                        navController.navigate(VoiceTutorScreens.EditAssignment.createRoute(assignmentId))
                     },
                 )
             }
@@ -368,7 +342,6 @@ fun VoiceTutorNavigation(
                 TeacherStudentsScreen(
                     classId = classId,
                     teacherId = currentUser?.id?.toString(),
-                    navController = navController,
                 )
             }
         }
@@ -697,9 +670,6 @@ fun VoiceTutorNavigation(
             ) {
                 CreateClassScreen(
                     teacherId = currentUser?.id?.toString(),
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
                     onClassCreated = {
                         navController.navigate("${VoiceTutorScreens.TeacherClasses.route}?created=true") {
                             popUpTo(VoiceTutorScreens.TeacherClasses.route) { inclusive = false }
@@ -736,9 +706,6 @@ fun VoiceTutorNavigation(
                     classId = classId,
                     studentId = studentId,
                     studentName = studentName,
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
                 )
             }
         }

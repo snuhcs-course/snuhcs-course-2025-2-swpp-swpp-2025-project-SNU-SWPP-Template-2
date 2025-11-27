@@ -22,7 +22,6 @@ data class ClassData(
     @SerializedName("createdAt")
     val createdAt: String? = null,
 ) {
-    // Helper property to get student count from either field
     val actualStudentCount: Int
         get() = studentCountAlt ?: studentCount
 }
@@ -49,12 +48,8 @@ data class MessageData(
     val teacherName: String,
     @SerializedName("classId")
     val classId: Int,
-    // @SerializedName("recipientIds")
-    // val recipientIds: List<Int>? = null,
     @SerializedName("sentAt")
     val sentAt: String,
-    // @SerializedName("isRead")
-    // val isRead: Boolean = false
 )
 
 data class StudentClassStatistics(

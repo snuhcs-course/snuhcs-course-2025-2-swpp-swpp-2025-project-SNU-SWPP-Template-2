@@ -6,12 +6,12 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -102,7 +102,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val tutorialPrefs = remember { TutorialPreferences(context) }
     var showResetDialog by remember { mutableStateOf(false) }
-    var tutorialResetTrigger by remember { mutableStateOf(0) }
+    var tutorialResetTrigger by remember { mutableIntStateOf(0) }
 
     // 튜토리얼 초기화 후 대시보드로 돌아가서 튜토리얼이 표시되도록
     LaunchedEffect(tutorialResetTrigger) {
@@ -142,7 +142,7 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .size(60.dp)
-                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .clip(CircleShape)
                                 .background(Gray200),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -176,7 +176,7 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .size(60.dp)
-                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .clip(CircleShape)
                                 .background(Error.copy(alpha = 0.1f)),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -227,7 +227,7 @@ fun SettingsScreen(
                         Box(
                             modifier = Modifier
                                 .size(60.dp)
-                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .clip(CircleShape)
                                 .background(PrimaryIndigo.copy(alpha = 0.1f)),
                             contentAlignment = Alignment.Center,
                         ) {
@@ -255,10 +255,9 @@ fun SettingsScreen(
                             )
                             Text(
                                 text = when (displayUser?.role) {
-                                    com.example.voicetutor.data.models.UserRole.TEACHER -> "선생님"
-                                    com.example.voicetutor.data.models.UserRole.STUDENT -> "학생"
+                                    UserRole.TEACHER -> "선생님"
+                                    UserRole.STUDENT -> "학생"
                                     null -> "역할 없음"
-                                    else -> "역할 없음"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
                                 color = PrimaryIndigo,

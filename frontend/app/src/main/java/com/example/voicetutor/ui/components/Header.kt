@@ -2,7 +2,7 @@ package com.example.voicetutor.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -32,7 +32,7 @@ fun VTHeader(
                 modifier = Modifier.size(24.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Filled.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "뒤로가기",
                     tint = Gray700,
                 )
@@ -49,7 +49,6 @@ fun VTHeader(
             modifier = Modifier.weight(1f),
         )
 
-        // Empty space for balance
         Spacer(modifier = Modifier.size(24.dp))
     }
 }

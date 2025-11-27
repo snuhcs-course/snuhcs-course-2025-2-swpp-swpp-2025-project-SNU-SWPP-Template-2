@@ -172,8 +172,6 @@ class TeacherDashboardScreenTest {
                 TeacherDashboardScreen(
                     authViewModel = mockAuthViewModel,
                     assignmentViewModel = mockAssignmentViewModel,
-                    onNavigateToAllAssignments = { assignmentsClicked = true },
-                    onNavigateToAllStudents = {},
                     onNavigateToCreateClass = {},
                 )
             }

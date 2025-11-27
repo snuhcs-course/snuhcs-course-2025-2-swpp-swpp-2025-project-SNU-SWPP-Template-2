@@ -612,6 +612,7 @@ class MainLayoutCoverageTest {
         composeRule.runOnIdle {
             val recentAssignmentField = AssignmentViewModel::class.java.getDeclaredField("_recentAssignment")
             recentAssignmentField.isAccessible = true
+            @Suppress("UNCHECKED_CAST")
             val recentAssignmentFlow = recentAssignmentField.get(assignmentViewModel) as MutableStateFlow<RecentAssignment?>
             recentAssignmentFlow.value = null
         }

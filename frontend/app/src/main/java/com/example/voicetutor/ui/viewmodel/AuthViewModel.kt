@@ -95,17 +95,13 @@ class AuthViewModel @Inject constructor(
 
             authRepository.signup(name, email, password, role)
                 .onSuccess { user ->
-                    println("AuthViewModel - Signup success! User: ${user.email}, id: ${user.id}, role: ${user.role}")
-                    println("AuthViewModel - Setting currentUser and isLoggedIn...")
                     _autoFillCredentials.value = Pair(email, password)
                     _currentUser.value = user
                     _isLoggedIn.value = true
                     _error.value = null
                     _signupError.value = null
-                    println("AuthViewModel -  User set: ${_currentUser.value?.email}, isLoggedIn: ${_isLoggedIn.value}")
                 }
                 .onFailure { exception ->
-                    println("AuthViewModel - Signup failed: ${exception.message}")
                     val signupError = when (exception) {
                         is SignupException.DuplicateEmail -> SignupError.General.DuplicateEmail(
                             exception.message ?: "이미 사용 중인 이메일입니다. 다른 이메일을 사용하거나 로그인하세요.",

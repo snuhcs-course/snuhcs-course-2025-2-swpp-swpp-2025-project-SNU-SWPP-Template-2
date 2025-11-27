@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -108,13 +109,9 @@ fun TeacherStudentAssignmentDetailScreen(
         }
     }
 
-    val studentName = currentStudent?.name ?: "학생"
-    val dynamicAssignmentTitle = currentAssignment?.title ?: (targetAssignment?.title ?: assignmentTitle)
-
     var loadedDataForKey by remember { mutableStateOf<String?>(null) }
     var loadedStatsForKey by remember { mutableStateOf<String?>(null) }
     var loadedCorrectnessForKey by remember { mutableStateOf<String?>(null) }
-    val dataKey = "$studentId-$assignmentId"
 
     val existingStudentResult = assignmentResults.find { it.studentId == studentId }
     val hasExistingData = existingStudentResult != null
@@ -294,7 +291,7 @@ fun TeacherStudentAssignmentDetailScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Icon(
-                        imageVector = Icons.Filled.Assignment,
+                        imageVector = Icons.AutoMirrored.Filled.Assignment,
                         contentDescription = null,
                         tint = Gray400,
                         modifier = Modifier.size(EMPTY_STATE_ICON_SIZE.dp),
@@ -383,7 +380,7 @@ fun TeacherStudentAssignmentDetailScreen(
                             )
                         }
 
-                        Divider()
+                        HorizontalDivider()
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),

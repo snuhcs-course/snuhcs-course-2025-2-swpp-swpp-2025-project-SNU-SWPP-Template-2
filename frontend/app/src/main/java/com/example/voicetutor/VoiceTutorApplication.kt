@@ -20,11 +20,8 @@ class VoiceTutorApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Hilt 초기화 후 health check 호출
-        // EntryPoint를 사용하여 안전하게 의존성 주입 받기
         applicationScope.launch {
             try {
-                // Application이 완전히 초기화될 때까지 약간 대기
                 kotlinx.coroutines.delay(500)
                 performHealthCheck()
             } catch (e: Exception) {

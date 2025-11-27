@@ -5,6 +5,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -42,42 +46,31 @@ fun AllAssignmentsScreen(
     // Compute actual teacher ID
     val actualTeacherId = teacherId ?: currentUser?.id?.toString()
 
-    // Load assignments for the specific teacher
     LaunchedEffect(actualTeacherId) {
         if (actualTeacherId != null) {
-            println("AllAssignmentsScreen - Loading assignments for teacher ID: $actualTeacherId")
             viewModel.loadAllAssignments(teacherId = actualTeacherId)
         } else {
-            println("AllAssignmentsScreen - No teacher ID available, loading all assignments")
             viewModel.loadAllAssignments()
         }
     }
 
-    // Reload when screen becomes visible (for refresh after creating assignment)
     LaunchedEffect(Unit) {
-        // This will run when the composable is first created
-        // Additional reload can be triggered by navigation lifecycle
         if (actualTeacherId != null) {
-            println("AllAssignmentsScreen - Screen visible, ensuring assignments are loaded for teacher ID: $actualTeacherId")
             viewModel.loadAllAssignments(teacherId = actualTeacherId)
         }
     }
 
-    // Handle filter changes for teachers
     LaunchedEffect(selectedFilter, actualTeacherId) {
         if (actualTeacherId != null) {
-            // 교사용: 상태별 필터링
             val status = when (selectedFilter) {
                 AssignmentFilter.ALL -> null
                 AssignmentFilter.IN_PROGRESS -> AssignmentStatus.IN_PROGRESS
                 AssignmentFilter.COMPLETED -> AssignmentStatus.COMPLETED
             }
-            println("AllAssignmentsScreen - Filter changed: $selectedFilter, loading assignments for teacher ID: $actualTeacherId")
             viewModel.loadAllAssignments(teacherId = actualTeacherId, status = status)
         }
     }
 
-    // Handle error
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             // Show error message (you can implement a snackbar or dialog)
@@ -91,7 +84,6 @@ fun AllAssignmentsScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -117,7 +109,6 @@ fun AllAssignmentsScreen(
             }
         }
 
-        // Filter tabs (Teacher only)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -128,7 +119,7 @@ fun AllAssignmentsScreen(
                 label = { Text("전체") },
                 leadingIcon = {
                     Icon(
-                        imageVector = Icons.Filled.List,
+                        imageVector = Icons.AutoMirrored.Filled.List,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
@@ -148,7 +139,6 @@ fun AllAssignmentsScreen(
             )
         }
 
-        // Loading indicator
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -159,7 +149,6 @@ fun AllAssignmentsScreen(
                 )
             }
         } else {
-            // Assignment list
             if (assignments.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -169,7 +158,7 @@ fun AllAssignmentsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Assignment,
+                            imageVector = Icons.AutoMirrored.Filled.Assignment,
                             contentDescription = null,
                             tint = Gray400,
                             modifier = Modifier.size(48.dp),
@@ -183,10 +172,8 @@ fun AllAssignmentsScreen(
                     }
                 }
             } else {
-                // 제출 현황을 저장하는 StateMap
                 val assignmentStatsMap = remember { mutableStateMapOf<Int, Pair<Int, Int>>() }
 
-                // 각 과제의 제출 현황을 로드
                 assignments.forEach { assignment ->
                     LaunchedEffect(assignment.id) {
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -293,7 +280,6 @@ fun AssignmentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Progress bar
             val progress = if (totalCount > 0) {
                 submittedCount.toFloat() / totalCount
             } else {
@@ -309,7 +295,6 @@ fun AssignmentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Action buttons (Teacher only)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -386,8 +371,8 @@ fun TypeBadge(type: String) {
     val (text, color, icon) = when (type) {
         "Quiz" -> Triple("퀴즈", Warning, Icons.Filled.Quiz)
         "Continuous" -> Triple("연속", Success, Icons.Filled.Schedule)
-        "Discussion" -> Triple("토론", PrimaryPurple, Icons.Filled.Chat)
-        else -> Triple("알 수 없음", MaterialTheme.colorScheme.onSurface, Icons.Filled.Help)
+        "Discussion" -> Triple("토론", PrimaryPurple, Icons.AutoMirrored.Filled.Chat)
+        else -> Triple("알 수 없음", MaterialTheme.colorScheme.onSurface, Icons.AutoMirrored.Filled.Help)
     }
 
     Box(

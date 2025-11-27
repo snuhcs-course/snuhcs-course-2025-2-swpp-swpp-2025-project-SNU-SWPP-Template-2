@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -25,15 +26,6 @@ import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 
-/**
- * 선생님 과제 상세 화면
- *
- * @param assignmentViewModel 과제 관련 ViewModel (테스트용으로 주입 가능)
- * @param assignmentId 과제 ID
- * @param assignmentTitle 과제 제목 (ID가 없을 때 사용)
- * @param onNavigateToEditAssignment 과제 편집 화면으로 이동하는 콜백
- * @param onNavigateToStudentDetail 학생 상세 화면으로 이동하는 콜백
- */
 @Composable
 fun TeacherAssignmentDetailScreen(
     assignmentViewModel: AssignmentViewModel? = null,
@@ -72,39 +64,29 @@ fun TeacherAssignmentDetailScreen(
     val hasBasicAssignmentData = assignment != null || targetAssignment != null
     val isInitialLoading = isLoading && !hasBasicAssignmentData
 
-    // 과제 데이터 로드: assignmentId가 있으면 직접 로드, 없으면 targetAssignment를 찾아서 로드
     LaunchedEffect(assignmentId) {
         if (assignmentId > 0 && assignmentId != loadedAssignmentId) {
-            println("TeacherAssignmentDetail - Loading assignment ID: $assignmentId")
             loadedAssignmentId = assignmentId
             viewModel.loadAssignmentById(assignmentId)
         } else if (assignmentId == 0) {
             targetAssignment?.let { target ->
                 if (target.id != loadedAssignmentId) {
-                    println("TeacherAssignmentDetail - Loading assignment: ${target.title} (ID: ${target.id})")
                     loadedAssignmentId = target.id
                     viewModel.loadAssignmentById(target.id)
                 }
             }
-        } else {
-            println("TeacherAssignmentDetail - Assignment $assignmentId already loaded, skipping loadAssignmentById")
         }
     }
 
-    // 과제 통계 및 학생 결과 로드: 과제가 로드되면 통계와 학생 결과를 함께 로드
     LaunchedEffect(assignment?.id) {
         assignment?.let { a ->
             if (a.id != loadedStatsForAssignmentId) {
-                println("TeacherAssignmentDetail - Assignment loaded, loading statistics and student results: ${a.title} (ID: ${a.id})")
                 loadedStatsForAssignmentId = a.id
                 viewModel.loadAssignmentStatisticsAndResults(a.id, a.courseClass.studentCount)
-            } else {
-                println("TeacherAssignmentDetail - Statistics already loaded for assignment ${a.id}, skipping")
             }
         }
     }
 
-    // 에러 처리: 에러가 발생하면 자동으로 클리어
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             viewModel.clearError()
@@ -140,7 +122,7 @@ fun TeacherAssignmentDetailScreen(
             }
             assignmentDetail == null && !hasBasicAssignmentData -> {
                 EmptyState(
-                    icon = Icons.Filled.Assignment,
+                    icon = Icons.AutoMirrored.Filled.Assignment,
                     message = "과제 정보를 찾을 수 없습니다",
                 )
             }
@@ -178,7 +160,7 @@ fun TeacherAssignmentDetailScreen(
                         VTStatsCard(
                             title = "제출률",
                             value = "${detail.completionRate}%",
-                            icon = Icons.Filled.Assignment,
+                            icon = Icons.AutoMirrored.Filled.Assignment,
                             iconColor = PrimaryIndigo,
                             variant = CardVariant.Elevated,
                             modifier = Modifier.weight(1f),
@@ -225,9 +207,9 @@ fun TeacherAssignmentDetailScreen(
                             VTButton(
                                 text = "과제 편집",
                                 onClick = {
-                                    val assignmentId = assignment?.id ?: targetAssignment?.id ?: 0
-                                    if (assignmentId > 0) {
-                                        onNavigateToEditAssignment(assignmentId)
+                                    val editAssignmentId = assignment?.id ?: targetAssignment?.id ?: 0
+                                    if (editAssignmentId > 0) {
+                                        onNavigateToEditAssignment(editAssignmentId)
                                     }
                                 },
                                 variant = ButtonVariant.Outline,
@@ -289,7 +271,6 @@ fun TeacherAssignmentDetailScreen(
                             )
                         }
                         else -> {
-                            // 학생 목록 정렬: 완료 > 진행중 > 미시작
                             val sortedStudents = remember(students) {
                                 students.sortedBy { student ->
                                     when (student.status) {
@@ -324,9 +305,6 @@ fun TeacherAssignmentDetailScreen(
     }
 }
 
-/**
- * 로딩 인디케이터 컴포넌트
- */
 @Composable
 private fun LoadingIndicator() {
     Box(
@@ -339,9 +317,6 @@ private fun LoadingIndicator() {
     }
 }
 
-/**
- * 빈 상태 표시 컴포넌트
- */
 @Composable
 private fun EmptyState(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
@@ -370,9 +345,6 @@ private fun EmptyState(
     }
 }
 
-/**
- * 학생별 과제 결과 카드
- */
 @Composable
 fun TeacherAssignmentResultCard(
     student: StudentResult,
@@ -522,9 +494,6 @@ private fun formatSubmittedTime(isoTime: String): String {
     return com.example.voicetutor.utils.formatSubmittedTime(isoTime)
 }
 
-/**
- * 과제 상세 정보 데이터 클래스
- */
 data class AssignmentDetail(
     val title: String,
     val subject: String,
@@ -540,9 +509,6 @@ data class AssignmentDetail(
     val completionRate: Int,
 )
 
-/**
- * 학생 제출 정보 데이터 클래스
- */
 data class StudentSubmission(
     val name: String,
     val studentId: String,

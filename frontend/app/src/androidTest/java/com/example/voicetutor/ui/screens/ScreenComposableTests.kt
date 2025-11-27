@@ -42,11 +42,9 @@ class ScreenComposableTests {
                     subject = "수학",
                     dueDate = "2024-12-31",
                     progress = 0.5f,
-                    solvedNum = 5,
                     totalQuestions = 10,
                     status = PersonalAssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onStartAssignment = {},
                 )
             }
         }
@@ -66,10 +64,7 @@ class ScreenComposableTests {
                     submittedCount = 15,
                     totalCount = 20,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
-                    onViewResults = {},
-                    onEdit = {},
                 )
             }
         }
@@ -89,7 +84,6 @@ class ScreenComposableTests {
                     submittedCount = 10,
                     totalCount = 20,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
                 )
             }
@@ -231,7 +225,6 @@ class ScreenComposableTests {
                     submittedCount = 10,
                     totalCount = 20,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.IN_PROGRESS,
                     onClick = {},
                 )
             }
@@ -250,7 +243,6 @@ class ScreenComposableTests {
                     submittedCount = 20,
                     totalCount = 20,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.COMPLETED,
                     onClick = {},
                 )
             }
@@ -269,7 +261,6 @@ class ScreenComposableTests {
                     submittedCount = 0,
                     totalCount = 20,
                     dueDate = "2024-12-31T23:59:59Z",
-                    status = AssignmentStatus.DRAFT,
                     onClick = {},
                 )
             }

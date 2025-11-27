@@ -29,10 +29,8 @@ import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 fun AssignmentDetailedResultsScreen(
     personalAssignmentId: Int,
     assignmentTitle: String = "리포트",
-    onBackClick: () -> Unit = {},
     viewModel: AssignmentViewModel = hiltViewModel(),
 ) {
-    // API에서 정답 여부 데이터 로드
     LaunchedEffect(personalAssignmentId) {
         viewModel.loadAssignmentCorrectness(personalAssignmentId)
         viewModel.loadPersonalAssignmentStatistics(personalAssignmentId)
@@ -43,7 +41,6 @@ fun AssignmentDetailedResultsScreen(
     val error by viewModel.error.collectAsState()
     val statistics by viewModel.personalAssignmentStatistics.collectAsState()
 
-    // API 데이터를 더미 데이터 형식으로 변환
     val detailedResults = remember(correctnessData) {
         correctnessData.map { item ->
             DetailedQuestionResult(
@@ -57,12 +54,10 @@ fun AssignmentDetailedResultsScreen(
         }
     }
 
-    // base question과 tail question으로 그룹화 (Factory pattern 사용)
     val questionGroups = remember(detailedResults) {
         QuestionGroupFactory.createQuestionGroups(detailedResults)
     }
 
-    // 각 그룹의 토글 상태 관리
     val expandedStates = remember(questionGroups) {
         mutableStateMapOf<String, Boolean>().apply {
             questionGroups.forEach { group ->
@@ -71,9 +66,7 @@ fun AssignmentDetailedResultsScreen(
         }
     }
 
-    // base 질문 개수만 세기 (꼬리질문 제외)
     val totalQuestions = questionGroups.size
-    // API에서 평균 점수를 가져옴 (0~100 사이의 값)
     val averageScore = statistics?.averageScore?.toInt() ?: 0
 
     if (isLoading) {
@@ -123,7 +116,6 @@ fun AssignmentDetailedResultsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -149,7 +141,6 @@ fun AssignmentDetailedResultsScreen(
                 }
             }
 
-            // Summary stats (위에 크게 표시)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -175,7 +166,6 @@ fun AssignmentDetailedResultsScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Questions list (아래에 문제별 상세)
             Column {
                 Text(
                     text = "문제별 상세 결과",
@@ -214,7 +204,6 @@ fun QuestionGroupCard(
     Column(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        // Base question card with toggle
         VTCard(
             variant = CardVariant.Outlined,
             onClick = if (group.tailQuestions.isNotEmpty()) onToggle else null,
@@ -223,13 +212,11 @@ fun QuestionGroupCard(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                // Question header with toggle icon
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    // Left: Question number + Result badge
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
@@ -241,7 +228,6 @@ fun QuestionGroupCard(
                             color = Gray800,
                         )
 
-                        // Result badge
                         Box(
                             modifier = Modifier
                                 .background(
@@ -259,7 +245,6 @@ fun QuestionGroupCard(
                         }
                     }
 
-                    // Right: Toggle with tail count (if exists)
                     if (group.tailQuestions.isNotEmpty()) {
                         Row(
                             modifier = Modifier
@@ -271,7 +256,6 @@ fun QuestionGroupCard(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            // Tail question toggle text
                             Text(
                                 text = if (isExpanded) "꼬리질문 접기" else "꼬리질문 펼치기",
                                 style = MaterialTheme.typography.bodySmall,
@@ -279,7 +263,6 @@ fun QuestionGroupCard(
                                 fontWeight = FontWeight.Bold,
                             )
 
-                            // Toggle icon
                             Icon(
                                 imageVector = if (isExpanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                                 contentDescription = if (isExpanded) "접기" else "펼치기",
@@ -290,7 +273,6 @@ fun QuestionGroupCard(
                     }
                 }
 
-                // Question text
                 Text(
                     text = group.baseQuestion.question,
                     style = MaterialTheme.typography.bodyMedium,
@@ -298,7 +280,6 @@ fun QuestionGroupCard(
                     color = Gray800,
                 )
 
-                // My answer
                 if (group.baseQuestion.myAnswer.isNotEmpty()) {
                     Column {
                         Text(
@@ -321,7 +302,6 @@ fun QuestionGroupCard(
                     }
                 }
 
-                // Correct answer
                 Column {
                     Text(
                         text = "정답",
@@ -342,7 +322,6 @@ fun QuestionGroupCard(
                     )
                 }
 
-                // Explanation
                 group.baseQuestion.explanation?.let { explanation ->
                     if (explanation.isNotEmpty()) {
                         Column {
@@ -369,16 +348,13 @@ fun QuestionGroupCard(
             }
         }
 
-        // Tail questions (shown when expanded)
         if (isExpanded && group.tailQuestions.isNotEmpty()) {
-            // 각 카드의 Y 위치를 저장
             val cardPositions = remember { mutableStateListOf<Float>() }
             val density = androidx.compose.ui.platform.LocalDensity.current
 
             Row(
                 modifier = Modifier.padding(start = 12.dp),
             ) {
-                // 세로 선 + 가지 그리기
                 Box(
                     modifier = Modifier.width(20.dp),
                 ) {
@@ -392,52 +368,50 @@ fun QuestionGroupCard(
                             val strokeWidth = 3.dp.toPx()
                             val verticalLineX = 0.dp.toPx()
                             val branchLength = 16.dp.toPx()
-                            val curveRadius = 8.dp.toPx() // 곡선 반경
+                            val curveRadius = 8.dp.toPx()
 
                             cardPositions.forEachIndexed { index, yPosition ->
                                 val path = androidx.compose.ui.graphics.Path()
 
-                                if (index == 0) {
-                                    // 첫 번째: 위에서 곡선으로 연결
-                                    path.moveTo(verticalLineX, 0f)
-                                    path.lineTo(verticalLineX, yPosition - curveRadius)
+                                when {
+                                    index == 0 -> {
+                                        path.moveTo(verticalLineX, 0f)
+                                        path.lineTo(verticalLineX, yPosition - curveRadius)
 
-                                    // 곡선으로 꺾기
-                                    path.quadraticTo(
-                                        verticalLineX,
-                                        yPosition,
-                                        verticalLineX + curveRadius,
-                                        yPosition,
-                                    )
-                                    path.lineTo(branchLength, yPosition)
-                                } else if (index == cardPositions.size - 1) {
-                                    // 마지막: 이전에서 곡선으로 끝
-                                    val prevYPosition = cardPositions[index - 1]
-                                    path.moveTo(verticalLineX, prevYPosition)
-                                    path.lineTo(verticalLineX, yPosition - curveRadius)
+                                        path.quadraticTo(
+                                            verticalLineX,
+                                            yPosition,
+                                            verticalLineX + curveRadius,
+                                            yPosition,
+                                        )
+                                        path.lineTo(branchLength, yPosition)
+                                    }
+                                    index == cardPositions.size - 1 -> {
+                                        val prevYPosition = cardPositions[index - 1]
+                                        path.moveTo(verticalLineX, prevYPosition)
+                                        path.lineTo(verticalLineX, yPosition - curveRadius)
 
-                                    // 곡선으로 꺾기
-                                    path.quadraticTo(
-                                        verticalLineX,
-                                        yPosition,
-                                        verticalLineX + curveRadius,
-                                        yPosition,
-                                    )
-                                    path.lineTo(branchLength, yPosition)
-                                } else {
-                                    // 중간: 이전에서 현재까지 + 곡선 가지
-                                    val prevYPosition = cardPositions[index - 1]
-                                    path.moveTo(verticalLineX, prevYPosition)
-                                    path.lineTo(verticalLineX, yPosition - curveRadius)
+                                        path.quadraticTo(
+                                            verticalLineX,
+                                            yPosition,
+                                            verticalLineX + curveRadius,
+                                            yPosition,
+                                        )
+                                        path.lineTo(branchLength, yPosition)
+                                    }
+                                    else -> {
+                                        val prevYPosition = cardPositions[index - 1]
+                                        path.moveTo(verticalLineX, prevYPosition)
+                                        path.lineTo(verticalLineX, yPosition - curveRadius)
 
-                                    // 곡선으로 꺾기
-                                    path.quadraticTo(
-                                        verticalLineX,
-                                        yPosition,
-                                        verticalLineX + curveRadius,
-                                        yPosition,
-                                    )
-                                    path.lineTo(branchLength, yPosition)
+                                        path.quadraticTo(
+                                            verticalLineX,
+                                            yPosition,
+                                            verticalLineX + curveRadius,
+                                            yPosition,
+                                        )
+                                        path.lineTo(branchLength, yPosition)
+                                    }
                                 }
 
                                 drawPath(
@@ -450,7 +424,6 @@ fun QuestionGroupCard(
                     }
                 }
 
-                // 카드들
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -458,9 +431,7 @@ fun QuestionGroupCard(
                     group.tailQuestions.forEachIndexed { index, tailQuestion ->
                         Box(
                             modifier = Modifier.onGloballyPositioned { coordinates ->
-                                // 제목 높이에 맞춤 (카드 패딩 16dp + 제목 높이 대략 24dp = 약 28dp)
                                 val yPos = coordinates.positionInParent().y + with(density) { 28.dp.toPx() }
-                                // 위치 업데이트
                                 if (index < cardPositions.size) {
                                     cardPositions[index] = yPos
                                 } else {
@@ -472,7 +443,6 @@ fun QuestionGroupCard(
                         }
                     }
 
-                    // 꼬리 질문 접기 버튼
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -520,7 +490,6 @@ fun DetailedQuestionResultCard(
             modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // Question header
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -532,7 +501,6 @@ fun DetailedQuestionResultCard(
                     color = Gray800,
                 )
 
-                // Result badge
                 Box(
                     modifier = Modifier
                         .background(
@@ -550,7 +518,6 @@ fun DetailedQuestionResultCard(
                 }
             }
 
-            // Question text
             Text(
                 text = question.question,
                 style = MaterialTheme.typography.bodyMedium,
@@ -558,7 +525,6 @@ fun DetailedQuestionResultCard(
                 color = Gray800,
             )
 
-            // My answer
             if (question.myAnswer.isNotEmpty()) {
                 Column {
                     Text(
@@ -581,7 +547,6 @@ fun DetailedQuestionResultCard(
                 }
             }
 
-            // Correct answer
             Column {
                 Text(
                     text = "정답",
@@ -602,7 +567,6 @@ fun DetailedQuestionResultCard(
                 )
             }
 
-            // Explanation
             question.explanation?.let { explanation ->
                 if (explanation.isNotEmpty()) {
                     Column {

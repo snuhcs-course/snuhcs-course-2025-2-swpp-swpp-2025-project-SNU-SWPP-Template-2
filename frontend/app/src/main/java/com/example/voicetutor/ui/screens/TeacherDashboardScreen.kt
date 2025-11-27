@@ -8,6 +8,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,17 +19,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.data.models.AssignmentFilter
-import com.example.voicetutor.data.models.AssignmentStatus
 import com.example.voicetutor.data.models.TeacherOnboardingData
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
@@ -50,14 +51,9 @@ fun TeacherDashboardScreen(
     teacherId: String? = null,
     refreshTimestamp: Long = 0L,
     showDeletedToast: Boolean = false,
-    onNavigateToAllAssignments: () -> Unit = {},
-    onNavigateToAllStudents: () -> Unit = {},
-    onNavigateToClasses: () -> Unit = {},
     onCreateNewAssignment: () -> Unit = {},
     onNavigateToCreateClass: () -> Unit = {},
     onNavigateToAssignmentDetail: (Int) -> Unit = {},
-    onNavigateToAssignmentResults: (Int) -> Unit = {},
-    onNavigateToEditAssignment: (Int) -> Unit = {},
 ) {
     val actualAssignmentViewModel: AssignmentViewModel = assignmentViewModel ?: hiltViewModel()
     val actualAuthViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel = authViewModel ?: hiltViewModel()
@@ -175,18 +171,6 @@ fun TeacherDashboardScreen(
                 showTutorial = false
             },
         )
-    }
-
-    val dueTodayCount = remember(assignments) {
-        val todayStr = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            java.time.LocalDate.now().toString()
-        } else {
-            java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault()).format(java.util.Date())
-        }
-        assignments.count { a ->
-            val due = a.dueAt
-            due.isNotBlank() && due.length >= DATE_SUBSTRING_LENGTH && due.substring(0, DATE_SUBSTRING_LENGTH) == todayStr
-        }
     }
 
     Column(
@@ -313,16 +297,14 @@ fun TeacherDashboardScreen(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 AssignmentFilterChipWithCount(
-                    filter = AssignmentFilter.ALL,
                     label = "전체",
                     count = allCount,
                     selected = selectedFilter == AssignmentFilter.ALL,
                     onClick = { selectedFilter = AssignmentFilter.ALL },
-                    leadingIcon = Icons.Filled.List,
+                    leadingIcon = Icons.AutoMirrored.Filled.List,
                 )
 
                 AssignmentFilterChipWithCount(
-                    filter = AssignmentFilter.IN_PROGRESS,
                     label = "진행중",
                     count = inProgressCount,
                     selected = selectedFilter == AssignmentFilter.IN_PROGRESS,
@@ -330,7 +312,6 @@ fun TeacherDashboardScreen(
                 )
 
                 AssignmentFilterChipWithCount(
-                    filter = AssignmentFilter.COMPLETED,
                     label = "마감",
                     count = completedCount,
                     selected = selectedFilter == AssignmentFilter.COMPLETED,
@@ -358,7 +339,7 @@ fun TeacherDashboardScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Assignment,
+                            imageVector = Icons.AutoMirrored.Filled.Assignment,
                             contentDescription = null,
                             tint = Gray400,
                             modifier = Modifier.size(EMPTY_STATE_ICON_SIZE.dp),
@@ -392,10 +373,7 @@ fun TeacherDashboardScreen(
                         submittedCount = stats.first,
                         totalCount = stats.second,
                         dueDate = assignment.dueAt,
-                        status = AssignmentStatus.IN_PROGRESS,
                         onClick = { onNavigateToAssignmentDetail(assignment.id) },
-                        onViewResults = { onNavigateToAssignmentResults(assignment.id) },
-                        onEdit = { onNavigateToEditAssignment(assignment.id) },
                     )
 
                     if (index < filteredAssignments.size - 1) {
@@ -468,10 +446,7 @@ fun TeacherAssignmentCard(
     submittedCount: Int,
     totalCount: Int,
     dueDate: String,
-    status: AssignmentStatus,
     onClick: () -> Unit = {},
-    onViewResults: () -> Unit = {},
-    onEdit: () -> Unit = {},
 ) {
     VTCard(
         variant = CardVariant.Elevated,
@@ -593,7 +568,6 @@ private fun parseDueDate(dueAt: String, defaultForError: Long = Long.MAX_VALUE):
 
 @Composable
 private fun AssignmentFilterChipWithCount(
-    filter: AssignmentFilter,
     label: String,
     count: Int,
     selected: Boolean,

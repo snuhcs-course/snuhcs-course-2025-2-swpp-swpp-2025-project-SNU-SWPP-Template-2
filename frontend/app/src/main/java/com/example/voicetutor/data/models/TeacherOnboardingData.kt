@@ -1,21 +1,8 @@
 package com.example.voicetutor.data.models
 
-import androidx.compose.material.icons.filled.*
 import com.example.voicetutor.R
 import com.example.voicetutor.ui.components.OnboardingPage
 
-/**
- * 선생님용 온보딩 튜토리얼 데이터
- *
- * 7단계 온보딩:
- * 1. Teacher Home Dashboard 화면
- * 2. 수업 관리(클래스 목록) 화면
- * 3. 과제 생성 화면
- * 4. 수업별 과제 목록 화면
- * 5. 과제 결과 화면 (학생별 결과)
- * 6. 학생 관리 화면
- * 7. 성취기준 리포트 화면
- */
 object TeacherOnboardingData {
 
     val teacherOnboardingPages = listOf(

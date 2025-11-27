@@ -20,16 +20,8 @@ open class AuthRepository @Inject constructor(
             val response = apiService.login(request)
             val responseBody = response.body()
 
-            println("AuthRepository - Login response code: ${response.code()}")
-            println("AuthRepository - Login response success: ${responseBody?.success}")
-
             if (response.isSuccessful && responseBody?.success == true) {
-                val user = responseBody.user // 'data' 필드가 'user'로 매핑됨
-                println("AuthRepository - User: ${user?.email}")
-                println("AuthRepository - User.assignments: ${user?.assignments?.size}")
-                user?.assignments?.forEach {
-                    println("  - ${it.title}")
-                }
+                val user = responseBody.user
 
                 if (user != null) {
                     Result.success(user)
@@ -42,7 +34,6 @@ open class AuthRepository @Inject constructor(
                     ?: responseBody?.message
                     ?: parseErrorMessage(response)
                     ?: "로그인에 실패했습니다"
-                println("AuthRepository - Login failed: $rawMessage (status: $statusCode)")
 
                 val normalized = rawMessage.lowercase()
                 val exception = when {
@@ -65,8 +56,6 @@ open class AuthRepository @Inject constructor(
                 Result.failure(exception)
             }
         } catch (e: Exception) {
-            println("AuthRepository - Login error: ${e.message}")
-            e.printStackTrace()
             val exception = when (e) {
                 is LoginException -> e
                 is IOException -> LoginException.Network("네트워크 연결을 확인하고 다시 시도해주세요.", e)
@@ -82,23 +71,17 @@ open class AuthRepository @Inject constructor(
                 name = name,
                 email = email,
                 password = password,
-                role = role.name, // UserRole enum을 String으로 변환
+                role = role.name,
             )
             val response = apiService.signup(signupRequest)
-
-            println("AuthRepository - Signup response code: ${response.code()}")
-            println("AuthRepository - Signup response success: ${response.body()?.success}")
-            println("AuthRepository - Signup response body: ${response.body()}")
 
             val responseBody = response.body()
             if (response.isSuccessful && responseBody?.success == true) {
                 val user = responseBody.user
-                println("AuthRepository - Signup User parsed: ${user?.email}, id: ${user?.id}, role: ${user?.role}")
 
                 if (user != null) {
                     Result.success(user)
                 } else {
-                    println("AuthRepository - Signup User is null!")
                     Result.failure(SignupException.Unknown("회원가입에 실패했습니다 - 사용자 정보를 받을 수 없습니다"))
                 }
             } else {
@@ -107,7 +90,6 @@ open class AuthRepository @Inject constructor(
                     ?: responseBody?.message
                     ?: parseErrorMessage(response)
                     ?: "회원가입에 실패했습니다"
-                println("AuthRepository - Signup failed: $errorMsg (status: $statusCode)")
 
                 val exception = when {
                     statusCode == 409 -> SignupException.DuplicateEmail(errorMsg)
@@ -118,8 +100,6 @@ open class AuthRepository @Inject constructor(
                 Result.failure(exception)
             }
         } catch (e: Exception) {
-            println("AuthRepository - Signup error: ${e.message}")
-            e.printStackTrace()
             val exception = when (e) {
                 is SignupException -> e
                 is IOException -> SignupException.Network("네트워크 연결을 확인하고 다시 시도해주세요.", e)
@@ -133,9 +113,6 @@ open class AuthRepository @Inject constructor(
         return try {
             val response = apiService.deleteAccount()
             val responseBody = response.body()
-
-            println("AuthRepository - DeleteAccount response code: ${response.code()}")
-            println("AuthRepository - DeleteAccount response success: ${responseBody?.success}")
 
             if (response.isSuccessful) {
                 if (responseBody?.success == false) {
@@ -153,16 +130,14 @@ open class AuthRepository @Inject constructor(
                     ?: parseErrorMessage(response)
                     ?: "계정 삭제에 실패했습니다."
 
-                val exception = when {
-                    statusCode == 401 || statusCode == 403 -> DeleteAccountException.Unauthorized("계정 삭제를 위해 다시 로그인해주세요.")
-                    statusCode in 500..599 -> DeleteAccountException.Server("서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
+                val exception = when (statusCode) {
+                    401, 403 -> DeleteAccountException.Unauthorized("계정 삭제를 위해 다시 로그인해주세요.")
+                    in 500..599 -> DeleteAccountException.Server("서버에서 오류가 발생했습니다. 잠시 후 다시 시도해주세요.")
                     else -> DeleteAccountException.Unknown(message)
                 }
                 Result.failure(exception)
             }
         } catch (e: Exception) {
-            println("AuthRepository - DeleteAccount error: ${e.message}")
-            e.printStackTrace()
             val exception = when (e) {
                 is DeleteAccountException -> e
                 is IOException -> DeleteAccountException.Network("네트워크 연결을 확인하고 다시 시도해주세요.", e)
@@ -186,7 +161,6 @@ open class AuthRepository @Inject constructor(
                 }
             }
         } catch (e: Exception) {
-            println("AuthRepository - parseErrorMessage error: ${e.message}")
             null
         }
     }

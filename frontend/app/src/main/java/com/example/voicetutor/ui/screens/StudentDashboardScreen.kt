@@ -5,20 +5,21 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.Assignment
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.components.*
@@ -31,7 +32,6 @@ import com.example.voicetutor.utils.formatDueDate
 fun StudentDashboardScreen(
     authViewModel: com.example.voicetutor.ui.viewmodel.AuthViewModel? = null,
     assignmentViewModel: AssignmentViewModel? = null,
-    onNavigateToAssignment: (String) -> Unit = {},
     onNavigateToAssignmentDetail: (String) -> Unit = {},
 ) {
     val viewModelAssignment = assignmentViewModel ?: hiltViewModel()
@@ -243,7 +243,7 @@ fun StudentDashboardScreen(
                     },
                     leadingIcon = {
                         Icon(
-                            imageVector = Icons.Filled.List,
+                            imageVector = Icons.AutoMirrored.Filled.List,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),
                         )
@@ -334,7 +334,7 @@ fun StudentDashboardScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            imageVector = Icons.Filled.Assignment,
+                            imageVector = Icons.AutoMirrored.Filled.Assignment,
                             contentDescription = null,
                             tint = Gray400,
                             modifier = Modifier.size(48.dp),
@@ -362,7 +362,6 @@ fun StudentDashboardScreen(
                         className = assignment.courseClass.name,
                         dueDate = formatDueDate(assignment.dueAt),
                         progress = progress,
-                        solvedNum = assignment.solvedNum ?: 0,
                         totalQuestions = assignment.totalQuestions,
                         status = assignment.personalAssignmentStatus,
                         onClick = {
@@ -373,10 +372,6 @@ fun StudentDashboardScreen(
                             )
                             val detailId = assignment.personalAssignmentId ?: assignment.id
                             onNavigateToAssignmentDetail(detailId.toString())
-                        },
-                        onStartAssignment = {
-                            val personalId = assignment.personalAssignmentId ?: assignment.id
-                            onNavigateToAssignment(personalId.toString())
                         },
                     )
 
@@ -395,12 +390,10 @@ fun StudentAssignmentCard(
     subject: String,
     dueDate: String,
     progress: Float,
-    solvedNum: Int = 0,
     totalQuestions: Int = 0,
     status: PersonalAssignmentStatus? = null,
     className: String = "",
     onClick: () -> Unit = {},
-    onStartAssignment: () -> Unit = {},
 ) {
     VTCard(
         variant = CardVariant.Elevated,

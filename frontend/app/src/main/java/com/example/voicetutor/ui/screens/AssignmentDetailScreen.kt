@@ -24,8 +24,8 @@ import com.example.voicetutor.utils.formatDueDate
 
 @Composable
 fun AssignmentDetailScreen(
-    assignmentId: Int? = null, // PersonalAssignment ID 사용
-    assignmentTitle: String? = null, // 실제 과제 제목 사용
+    assignmentId: Int? = null,
+    assignmentTitle: String? = null,
     onStartAssignment: () -> Unit = {},
     assignmentViewModelParam: AssignmentViewModel? = null,
 ) {
@@ -37,42 +37,19 @@ fun AssignmentDetailScreen(
     val selectedAssignmentId by assignmentViewModel.selectedAssignmentId.collectAsStateWithLifecycle()
     val selectedPersonalAssignmentId by assignmentViewModel.selectedPersonalAssignmentId.collectAsStateWithLifecycle()
 
-    // Load assignment data and statistics
     LaunchedEffect(assignmentId, selectedAssignmentId, selectedPersonalAssignmentId) {
-        // 우선순위: ViewModel에 저장된 선택값 → 네비게이션 파라미터
         val personalId = selectedPersonalAssignmentId ?: assignmentId
         val assignId = selectedAssignmentId
 
-        // selectedAssignmentId가 있으면 Assignment 메타데이터 로드
-        // 없으면 PersonalAssignment 통계만 로드 (Assignment 메타데이터는 선택사항)
         if (assignId != null) {
-            println("AssignmentDetailScreen - Loading assignment meta by assignment.id: $assignId")
             assignmentViewModel.loadAssignmentById(assignId)
-        } else {
-            println("AssignmentDetailScreen - selectedAssignmentId is null, skipping loadAssignmentById")
-            println("AssignmentDetailScreen - PersonalAssignment ID: $personalId")
         }
 
-        // personal_assignment_id로 통계 로드
         personalId?.let { pid ->
-            println("AssignmentDetailScreen - Loading statistics by personal_assignment.id: $pid")
             assignmentViewModel.loadPersonalAssignmentStatistics(pid)
         }
     }
 
-    // Debug statistics data
-    LaunchedEffect(personalAssignmentStatistics) {
-        println("AssignmentDetailScreen - PersonalAssignmentStatistics updated:")
-        println("  - progress: ${personalAssignmentStatistics?.progress}")
-        println("  - totalProblem: ${personalAssignmentStatistics?.totalProblem}")
-        println("  - solvedProblem: ${personalAssignmentStatistics?.solvedProblem}")
-        println("  - totalQuestions: ${personalAssignmentStatistics?.totalQuestions}")
-        println("  - answeredQuestions: ${personalAssignmentStatistics?.answeredQuestions}")
-        println("  - correctAnswers: ${personalAssignmentStatistics?.correctAnswers}")
-        println("  - accuracy: ${personalAssignmentStatistics?.accuracy}")
-    }
-
-    // Use actual assignment title or fallback
     val actualTitle = currentAssignment?.title ?: assignmentTitle ?: "과제"
 
     Column(
@@ -81,9 +58,6 @@ fun AssignmentDetailScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Header removed - now handled by MainLayout
-
-        // Loading state
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -93,7 +67,6 @@ fun AssignmentDetailScreen(
             }
         }
 
-        // Error state
         if (error != null) {
             VTCard(
                 variant = CardVariant.Outlined,
@@ -108,7 +81,6 @@ fun AssignmentDetailScreen(
             }
         }
 
-        // Assignment info card
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -118,7 +90,6 @@ fun AssignmentDetailScreen(
                 )
                 .padding(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 14.dp),
         ) {
-            // Left side: Title and subject/class info
             Column(
                 modifier = Modifier.fillMaxWidth(),
             ) {
@@ -198,7 +169,6 @@ fun AssignmentDetailScreen(
                 }
             }
 
-            // Right side: Due date badge (absolute positioned)
             currentAssignment?.dueAt?.let { dueDate ->
                 Box(
                     modifier = Modifier
@@ -232,7 +202,6 @@ fun AssignmentDetailScreen(
             }
         }
 
-        // Progress section
         VTCard(variant = CardVariant.Elevated) {
             Column {
                 Text(
@@ -263,7 +232,6 @@ fun AssignmentDetailScreen(
             }
         }
 
-        // Assignment content
         VTCard(variant = CardVariant.Elevated) {
             Column {
                 Text(
@@ -287,7 +255,6 @@ fun AssignmentDetailScreen(
             }
         }
 
-        // Instructions
         VTCard(variant = CardVariant.Outlined) {
             Column {
                 Row(
@@ -317,7 +284,6 @@ fun AssignmentDetailScreen(
             }
         }
 
-        // Action buttons
         Row(
             modifier = Modifier.fillMaxWidth(),
         ) {

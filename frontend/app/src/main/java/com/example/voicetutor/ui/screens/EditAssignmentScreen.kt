@@ -28,21 +28,17 @@ import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Locale
+import java.util.TimeZone
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditAssignmentScreen(
     assignmentViewModel: AssignmentViewModel? = null,
-    teacherId: String? = null, // 실제 선생님 ID 사용
+    teacherId: String? = null,
     assignmentId: Int = 0,
-    assignmentTitle: String? = null, // For backward compatibility
+    assignmentTitle: String? = null,
     onSaveAssignment: () -> Unit = {},
     onDeleteAssignment: () -> Unit = {},
 ) {
@@ -57,7 +53,6 @@ fun EditAssignmentScreen(
     val assignmentStats by viewModel.assignmentStatistics.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    // Find assignment by ID or title from the assignments list
     val targetAssignment = remember(assignments, assignmentId, assignmentTitle) {
         if (assignmentId > 0) {
             assignments.find { it.id == assignmentId }
@@ -68,30 +63,26 @@ fun EditAssignmentScreen(
         }
     }
 
-    // 동적 과제 제목 가져오기
     val dynamicAssignmentTitle = currentAssignment?.title ?: targetAssignment?.title ?: assignmentTitle ?: "과제"
     var title: String by remember { mutableStateOf(dynamicAssignmentTitle) }
     var titleError by remember { mutableStateOf<String?>(null) }
     var description by remember { mutableStateOf("") }
 
-    // 삭제 확인 다이얼로그 상태
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedClass by remember { mutableStateOf("") }
-    var selectedClassId by remember { mutableStateOf<Int?>(null) }
     var selectedGrade by remember { mutableStateOf("") }
     var selectedSubject by remember { mutableStateOf("") }
     var dueDateText by remember { mutableStateOf("") }
     var dueDateRequest by remember { mutableStateOf("") }
-    var dueDateTime by remember { mutableStateOf<LocalDateTime?>(null) }
+    var dueDateTime by remember { mutableStateOf<Calendar?>(null) }
     var dueShowDatePicker by remember { mutableStateOf(false) }
     var dueShowTimePicker by remember { mutableStateOf(false) }
-    var duePendingDate by remember { mutableStateOf<LocalDate?>(null) }
+    var duePendingDate by remember { mutableStateOf<Calendar?>(null) }
     var validationDialogMessage by remember { mutableStateOf<String?>(null) }
 
-    val displayDateFormatter = remember { DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm") }
-    val zoneId = remember { ZoneId.systemDefault() }
+    val displayDateFormatter = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
+    val isoDateFormatter = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault()).apply { timeZone = TimeZone.getTimeZone("UTC") } }
 
-    // 학년 리스트
     val grades = listOf(
         "초등학교 1학년", "초등학교 2학년", "초등학교 3학년",
         "초등학교 4학년", "초등학교 5학년", "초등학교 6학년",
@@ -99,21 +90,17 @@ fun EditAssignmentScreen(
         "고등학교 1학년", "고등학교 2학년", "고등학교 3학년",
     )
 
-    // 과목 리스트
     val subjects = listOf("국어", "영어", "수학", "과학", "사회")
 
     var classSelectionExpanded by remember { mutableStateOf(false) }
     var gradeSelectionExpanded by remember { mutableStateOf(false) }
     var subjectSelectionExpanded by remember { mutableStateOf(false) }
 
-    // Load data on first composition
     LaunchedEffect(assignmentId, targetAssignment?.id, teacherId) {
         if (assignmentId > 0) {
-            println("EditAssignment - Loading assignment by ID: $assignmentId")
             viewModel.loadAssignmentById(assignmentId)
         } else {
             targetAssignment?.let { target ->
-                println("EditAssignment - Loading assignment: ${target.title} (ID: ${target.id})")
                 viewModel.loadAssignmentById(target.id)
             }
         }
@@ -122,41 +109,38 @@ fun EditAssignmentScreen(
         }
     }
 
-    // Update form data when assignment is loaded
     LaunchedEffect(currentAssignment) {
         currentAssignment?.let { assignment ->
             title = assignment.title
             description = assignment.description ?: ""
-            selectedClassId = assignment.courseClass.id
             selectedClass = assignment.courseClass.name
 
-            // 학년과 과목 설정
-            // assignment.grade가 있으면 사용, 없으면 빈 문자열
             selectedGrade = assignment.grade ?: ""
             selectedSubject = assignment.courseClass.subject.name
 
-            // 마감일 파싱
             val normalizedDate = normalizeDateTime(assignment.dueAt)
             if (normalizedDate != null) {
                 try {
-                    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-                    dueDateTime = LocalDateTime.parse(normalizedDate, formatter)
-                    dueDateText = normalizedDate
-                    dueDateRequest = dueDateTime
-                        ?.atZone(zoneId)
-                        ?.toOffsetDateTime()
-                        ?.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME) ?: ""
+                    val formatter = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                    val date = formatter.parse(normalizedDate)
+                    if (date != null) {
+                        dueDateTime = Calendar.getInstance().apply {
+                            time = date
+                        }
+                        dueDateText = normalizedDate
+                        val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                            time = date
+                        }
+                        dueDateRequest = isoDateFormatter.format(utcCalendar.time)
+                    }
                 } catch (e: Exception) {
-                    println("EditAssignment - Error parsing due date: ${e.message}")
                 }
             }
         }
     }
 
-    // Handle error
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
-            // Show error message
             viewModel.clearError()
         }
     }
@@ -167,9 +151,6 @@ fun EditAssignmentScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Header removed - now handled by MainLayout
-
-        // Loading indicator
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -180,7 +161,6 @@ fun EditAssignmentScreen(
                 )
             }
         } else {
-            // Basic info section
             VTCard(variant = CardVariant.Elevated) {
                 Column {
                     Text(
@@ -194,15 +174,14 @@ fun EditAssignmentScreen(
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        // Assignment title
                         OutlinedTextField(
                             value = title,
                             onValueChange = {
                                 val sanitized = it.replace("/", "")
-                                if (sanitized.length != it.length) {
-                                    titleError = "'/' 문자는 사용할 수 없어요."
+                                titleError = if (sanitized.length != it.length) {
+                                    "'/' 문자는 사용할 수 없어요."
                                 } else {
-                                    titleError = null
+                                    null
                                 }
                                 title = sanitized
                             },
@@ -229,7 +208,6 @@ fun EditAssignmentScreen(
                             ),
                         )
 
-                        // Class selection
                         ExposedDropdownMenuBox(
                             expanded = classSelectionExpanded,
                             onExpandedChange = { classSelectionExpanded = !classSelectionExpanded },
@@ -266,7 +244,7 @@ fun EditAssignmentScreen(
                                 expanded = classSelectionExpanded,
                                 onDismissRequest = { classSelectionExpanded = false },
                             ) {
-                                classes.forEachIndexed { index, classData ->
+                                classes.forEachIndexed { _, classData ->
                                     val className = classData.name
                                     DropdownMenuItem(
                                         text = {
@@ -277,7 +255,6 @@ fun EditAssignmentScreen(
                                         },
                                         onClick = {
                                             selectedClass = className
-                                            selectedClassId = classData.id
                                             classSelectionExpanded = false
                                         },
                                         leadingIcon = {
@@ -292,7 +269,6 @@ fun EditAssignmentScreen(
                             }
                         }
 
-                        // Grade selection
                         ExposedDropdownMenuBox(
                             expanded = gradeSelectionExpanded,
                             onExpandedChange = { gradeSelectionExpanded = !gradeSelectionExpanded },
@@ -334,7 +310,6 @@ fun EditAssignmentScreen(
                             }
                         }
 
-                        // Subject selection
                         ExposedDropdownMenuBox(
                             expanded = subjectSelectionExpanded,
                             onExpandedChange = { subjectSelectionExpanded = !subjectSelectionExpanded },
@@ -376,7 +351,6 @@ fun EditAssignmentScreen(
                             }
                         }
 
-                        // Assignment description
                         OutlinedTextField(
                             value = description,
                             onValueChange = { description = it },
@@ -399,7 +373,6 @@ fun EditAssignmentScreen(
                             ),
                         )
 
-                        // Due date
                         val dueDateInteractionSource = remember { MutableInteractionSource() }
                         LaunchedEffect(dueDateInteractionSource) {
                             dueDateInteractionSource.interactions.collect { interaction ->
@@ -438,7 +411,6 @@ fun EditAssignmentScreen(
             }
         }
 
-        // Statistics card
         VTCard(variant = CardVariant.Outlined) {
             Column {
                 Text(
@@ -504,7 +476,6 @@ fun EditAssignmentScreen(
             }
         }
 
-        // Action button
         VTButton(
             text = "저장",
             onClick = {
@@ -553,7 +524,6 @@ fun EditAssignmentScreen(
             },
         )
 
-        // Danger zone
         VTCard(
             variant = CardVariant.Outlined,
             modifier = Modifier.fillMaxWidth(),
@@ -602,7 +572,6 @@ fun EditAssignmentScreen(
             }
         }
 
-        // 삭제 확인 다이얼로그
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
@@ -623,11 +592,9 @@ fun EditAssignmentScreen(
                     VTButton(
                         text = "삭제",
                         onClick = {
-                            // 실제 삭제 API 호출
                             targetAssignment?.id?.let { id ->
                                 viewModel.deleteAssignment(id)
                                 showDeleteDialog = false
-                                // 삭제 후 대시보드로 이동
                                 onDeleteAssignment()
                             }
                         },
@@ -646,13 +613,9 @@ fun EditAssignmentScreen(
             )
         }
 
-        // DatePicker Dialog
         if (dueShowDatePicker) {
-            val initialDateMillis = dueDateTime
-                ?.atZone(zoneId)
-                ?.toInstant()
-                ?.toEpochMilli()
-                ?: Instant.now().toEpochMilli()
+            val initialDateMillis = dueDateTime?.timeInMillis
+                ?: Calendar.getInstance().timeInMillis
             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
             DatePickerDialog(
@@ -665,9 +628,9 @@ fun EditAssignmentScreen(
                         onClick = {
                             val selectedMillis = datePickerState.selectedDateMillis
                             if (selectedMillis != null) {
-                                duePendingDate = Instant.ofEpochMilli(selectedMillis)
-                                    .atZone(zoneId)
-                                    .toLocalDate()
+                                duePendingDate = Calendar.getInstance().apply {
+                                    timeInMillis = selectedMillis
+                                }
                                 dueShowDatePicker = false
                                 dueShowTimePicker = true
                             }
@@ -706,10 +669,10 @@ fun EditAssignmentScreen(
             }
         }
 
-        // TimePicker Dialog
         if (dueShowTimePicker) {
-            val initialHour = dueDateTime?.hour ?: LocalTime.now().hour
-            val initialMinute = dueDateTime?.minute ?: LocalTime.now().minute
+            val now = Calendar.getInstance()
+            val initialHour = dueDateTime?.get(Calendar.HOUR_OF_DAY) ?: now.get(Calendar.HOUR_OF_DAY)
+            val initialMinute = dueDateTime?.get(Calendar.MINUTE) ?: now.get(Calendar.MINUTE)
             val timePickerState = rememberTimePickerState(
                 initialHour = initialHour,
                 initialMinute = initialMinute,
@@ -724,15 +687,20 @@ fun EditAssignmentScreen(
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            val selectedDate = duePendingDate ?: dueDateTime?.toLocalDate() ?: LocalDate.now()
-                            val selectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
-                            val finalDateTime = LocalDateTime.of(selectedDate, selectedTime)
+                            val selectedDateCalendar = duePendingDate ?: dueDateTime ?: Calendar.getInstance()
+                            val finalDateTime = Calendar.getInstance().apply {
+                                timeInMillis = selectedDateCalendar.timeInMillis
+                                set(Calendar.HOUR_OF_DAY, timePickerState.hour)
+                                set(Calendar.MINUTE, timePickerState.minute)
+                                set(Calendar.SECOND, 0)
+                                set(Calendar.MILLISECOND, 0)
+                            }
                             dueDateTime = finalDateTime
-                            dueDateText = finalDateTime.format(displayDateFormatter)
-                            dueDateRequest = finalDateTime
-                                .atZone(zoneId)
-                                .toOffsetDateTime()
-                                .format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+                            dueDateText = displayDateFormatter.format(finalDateTime.time)
+                            val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+                                timeInMillis = finalDateTime.timeInMillis
+                            }
+                            dueDateRequest = isoDateFormatter.format(utcCalendar.time)
                             dueShowTimePicker = false
                             duePendingDate = null
                         },

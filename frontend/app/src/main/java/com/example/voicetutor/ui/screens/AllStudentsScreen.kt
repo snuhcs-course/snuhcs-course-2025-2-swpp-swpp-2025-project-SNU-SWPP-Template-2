@@ -25,13 +25,11 @@ import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.StudentViewModel
 
-// AllStudentsStudent는 StudentModels.kt에서 정의된 것을 사용
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AllStudentsScreen(
     teacherId: String,
-    onNavigateToStudentDetail: (Int, Int, String) -> Unit = { _, _, _ -> }, // 리포트용
+    onNavigateToStudentDetail: (Int, Int, String) -> Unit = { _, _, _ -> },
 ) {
     val studentViewModel: StudentViewModel = hiltViewModel()
     val classViewModel: ClassViewModel = hiltViewModel()
@@ -50,47 +48,37 @@ fun AllStudentsScreen(
     ) { mutableStateOf<Int?>(null) }
     var expandedClassDropdown by remember { mutableStateOf(false) }
 
-    // Load classes for teacher
     LaunchedEffect(teacherId) {
-        println("AllStudentsScreen - Loading classes for teacher ID: $teacherId")
         classViewModel.loadClasses(teacherId)
     }
 
-    // Auto-select first class if not already selected
     LaunchedEffect(classes) {
         if (classes.isNotEmpty() && selectedClassId == null) {
             selectedClassId = classes.first().id
-            println("AllStudentsScreen - Auto-selecting first class: ${classes.first().id}")
         }
     }
 
-    // Load students when class is selected
     LaunchedEffect(selectedClassId) {
         if (selectedClassId != null) {
-            println("AllStudentsScreen - Loading students for class ID: $selectedClassId")
             studentViewModel.loadAllStudents(teacherId = teacherId, classId = selectedClassId.toString())
         }
     }
 
-    // Handle error
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
-            // Show error message
             studentViewModel.clearError()
         }
     }
 
-    // Convert Student to AllStudentsStudent for UI
     val allStudents = apiStudents.map { student ->
         AllStudentsStudent(
             id = student.id,
-            name = student.name ?: "이름 없음", // null 체크 추가
+            name = student.name ?: "이름 없음",
             email = student.email,
             role = student.role,
         )
     }
 
-    // Calculate stats
     val totalStudents = allStudents.size
 
     LazyColumn(
@@ -98,7 +86,6 @@ fun AllStudentsScreen(
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         item {
-            // Header
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -126,7 +113,6 @@ fun AllStudentsScreen(
         }
 
         item {
-            // Compact stats without card background
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -169,7 +155,6 @@ fun AllStudentsScreen(
         }
 
         item {
-            // Class selector dropdown only (no search)
             ExposedDropdownMenuBox(
                 expanded = expandedClassDropdown,
                 onExpandedChange = { expandedClassDropdown = it },
@@ -212,7 +197,6 @@ fun AllStudentsScreen(
         }
 
         item {
-            // Students list header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -234,7 +218,6 @@ fun AllStudentsScreen(
             }
         }
 
-        // Students list
         if (isLoading) {
             item {
                 Box(
@@ -273,13 +256,12 @@ fun AllStudentsScreen(
         } else {
             itemsIndexed(
                 items = allStudents,
-                key = { _, student -> student.id }, // 각 학생의 고유 ID를 키로 사용
-            ) { index, student ->
+                key = { _, student -> student.id },
+            ) { _, student ->
 
                 AllStudentsCard(
                     student = student,
                     onReportClick = {
-                        // 리포트 페이지로 이동
                         val classId = selectedClassId ?: 0
                         onNavigateToStudentDetail(classId, student.id, student.name)
                     },

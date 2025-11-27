@@ -120,11 +120,9 @@ class ExtendedScreenTests {
                             subject = "수학",
                             dueDate = "2024-12-31",
                             progress = progress,
-                            solvedNum = (progress * 10).toInt(),
                             totalQuestions = 10,
                             status = PersonalAssignmentStatus.IN_PROGRESS,
                             onClick = {},
-                            onStartAssignment = {},
                         )
                     }
                 }
@@ -151,10 +149,7 @@ class ExtendedScreenTests {
                             submittedCount = 5,
                             totalCount = 10,
                             dueDate = "2024-12-31T23:59:59Z",
-                            status = status,
                             onClick = {},
-                            onViewResults = {},
-                            onEdit = {},
                         )
                     }
                 }
@@ -467,6 +462,22 @@ class ExtendedScreenTests {
             }
         }
         composeTestRule.waitForIdle()
+
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            try {
+                composeTestRule.onAllNodesWithText("튜토리얼 다시 보기", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        composeTestRule.waitUntil(timeoutMillis = 10000) {
+            try {
+                composeTestRule.onAllNodesWithText("앱 정보", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty()
+            } catch (e: Exception) {
+                false
+            }
+        }
 
         composeTestRule.onNodeWithText("튜토리얼 다시 보기", useUnmergedTree = true).assertExists()
         composeTestRule.onNodeWithText("앱 정보", useUnmergedTree = true).assertExists()
