@@ -188,6 +188,9 @@ Here is the list of achievement standards for the subject ({subject_name}) and s
 - From the list above, select and return only the achievement standard codes that are most directly relevant to the learning material, up to {max_codes} codes, in a JSON array format.
 - Select only the codes that clearly align with the key concepts in the summary.
 - Return only the codes with no additional explanation.
+- If there are only 1~2 clearly relevant codes, return only those 1~2 codes.
+- If none of the achievement standards clearly match the summary, return an empty array [].
+- Do NOT include codes that are only vaguely or indirectly related.
 Example: ["2과03-01", "2과03-02", "2과04-01"]
 """
 
