@@ -170,7 +170,12 @@ class TestAnalyzeAchievementEdgeCases:
         # RequestException 발생
         mock_post.side_effect = requests.exceptions.RequestException("Connection error")
 
-        result = find_best_achievement_code("Test question", [{"code": "M-1-1", "content": "Test", "grade": "1"}])
+        result = find_best_achievement_code(
+            question_content="Test question",
+            answer=None,
+            explanation=None,
+            achievement_standards=[{"code": "M-1-1", "content": "Test", "grade": "1"}],
+        )
 
         assert result is None
 
@@ -182,7 +187,12 @@ class TestAnalyzeAchievementEdgeCases:
         # 일반 예외 발생
         mock_post.side_effect = Exception("Unexpected error")
 
-        result = find_best_achievement_code("Test question", [{"code": "M-1-1", "content": "Test", "grade": "1"}])
+        result = find_best_achievement_code(
+            question_content="Test question",
+            answer=None,
+            explanation=None,
+            achievement_standards=[{"code": "M-1-1", "content": "Test", "grade": "1"}],
+        )
 
         assert result is None
 

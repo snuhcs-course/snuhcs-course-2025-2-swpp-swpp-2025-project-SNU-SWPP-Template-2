@@ -304,7 +304,12 @@ class TestFindBestAchievementCodeUnit:
         ]
 
         # 함수 실행
-        result = find_best_achievement_code(question_content, achievement_standards)
+        result = find_best_achievement_code(
+            question_content=question_content,
+            answer=None,
+            explanation=None,
+            achievement_standards=achievement_standards,
+        )
 
         # 검증
         assert result == "4과01-01"
@@ -321,7 +326,12 @@ class TestFindBestAchievementCodeUnit:
         achievement_standards = [{"code": "4과01-01", "content": "테스트 성취기준", "grade": "2학년"}]
 
         # 함수 실행
-        result = find_best_achievement_code(question_content, achievement_standards)
+        result = find_best_achievement_code(
+            question_content=question_content,
+            answer=None,
+            explanation=None,
+            achievement_standards=achievement_standards,
+        )
 
         # 검증
         assert result is None
@@ -344,7 +354,12 @@ class TestFindBestAchievementCodeUnit:
         achievement_standards = [{"code": "4과01-01", "content": "테스트 성취기준", "grade": "2학년"}]
 
         # 함수 실행
-        result = find_best_achievement_code(question_content, achievement_standards)
+        result = find_best_achievement_code(
+            question_content=question_content,
+            answer=None,
+            explanation=None,
+            achievement_standards=achievement_standards,
+        )
 
         # 검증
         assert result is None
@@ -367,7 +382,12 @@ class TestFindBestAchievementCodeUnit:
         achievement_standards = [{"code": "4과01-01", "content": "테스트 성취기준", "grade": "2학년"}]
 
         # 함수 실행
-        result = find_best_achievement_code(question_content, achievement_standards)
+        result = find_best_achievement_code(
+            question_content=question_content,
+            answer=None,
+            explanation=None,
+            achievement_standards=achievement_standards,
+        )
 
         # 검증
         assert result is None
@@ -387,7 +407,12 @@ class TestFindBestAchievementCodeUnit:
         achievement_standards = [{"code": "4과01-01", "content": "테스트 성취기준", "grade": "2학년"}]
 
         # 함수 실행
-        result = find_best_achievement_code(question_content, achievement_standards)
+        result = find_best_achievement_code(
+            question_content=question_content,
+            answer=None,
+            explanation=None,
+            achievement_standards=achievement_standards,
+        )
 
         # 검증
         assert result is None
