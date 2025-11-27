@@ -96,7 +96,7 @@ fun CreateClassScreen(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Column(
-                            verticalArrangement = Arrangement.spacedBy(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             OutlinedTextField(
                                 value = className,
@@ -118,9 +118,9 @@ fun CreateClassScreen(
                                 ),
                                 singleLine = true,
                                 isError = classNameError != null,
-                                supportingText = {
-                                    classNameError?.let {
-                                        Text(text = it, color = Error)
+                                supportingText = classNameError?.let { error ->
+                                    {
+                                        Text(text = error, color = Error)
                                     }
                                 },
                                 colors = OutlinedTextFieldDefaults.colors(
@@ -178,6 +178,7 @@ fun CreateClassScreen(
                 }
 
                 CreateClassButton(
+                    isLoading = isLoading,
                     className = className,
                     classNameError = classNameError,
                     subject = subject,
@@ -204,6 +205,7 @@ fun CreateClassScreen(
 
 @Composable
 private fun CreateClassButton(
+    isLoading: Boolean,
     className: String,
     classNameError: String?,
     subject: String,
@@ -233,7 +235,7 @@ private fun CreateClassButton(
             onClassCreate(createClassRequest)
         },
         modifier = Modifier.fillMaxWidth(),
-        enabled = className.isNotBlank() && classNameError == null,
+        enabled = !isLoading && className.isNotBlank() && subject.isNotBlank() && classNameError == null,
         variant = ButtonVariant.Gradient,
         leadingIcon = {
             Icon(
