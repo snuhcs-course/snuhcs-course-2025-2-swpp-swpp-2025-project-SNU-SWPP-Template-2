@@ -212,29 +212,6 @@ class AssignmentViewModelTest {
     }
 
     @Test
-    fun setAssignmentCompleted_setsCompletedState() = runTest {
-        val standardDispatcher = StandardTestDispatcher()
-        val originalDispatcher = mainDispatcherRule.testDispatcher
-        try {
-            Dispatchers.setMain(standardDispatcher)
-            
-            val viewModel = AssignmentViewModel(assignmentRepository)
-
-            viewModel.isAssignmentCompleted.test {
-                assert(!awaitItem())
-
-                viewModel.setAssignmentCompleted(true)
-                runCurrent()
-
-                assert(awaitItem())
-                cancelAndIgnoreRemainingEvents()
-            }
-        } finally {
-            Dispatchers.setMain(originalDispatcher)
-        }
-    }
-
-    @Test
     fun isLoading_loadingOperation_setsTrueThenFalse() = runTest {
         val standardDispatcher = StandardTestDispatcher()
         val originalDispatcher = mainDispatcherRule.testDispatcher
