@@ -29,7 +29,6 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.data.models.AssignmentFilter
-import com.example.voicetutor.data.models.AssignmentStatus
 import com.example.voicetutor.data.models.TeacherOnboardingData
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*

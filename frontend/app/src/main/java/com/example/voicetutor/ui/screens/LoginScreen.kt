@@ -119,7 +119,7 @@ fun LoginScreen(
                     ),
                 ),
             ),
-        ) {
+    ) {
         Box(
             modifier = Modifier
                 .size(288.dp)

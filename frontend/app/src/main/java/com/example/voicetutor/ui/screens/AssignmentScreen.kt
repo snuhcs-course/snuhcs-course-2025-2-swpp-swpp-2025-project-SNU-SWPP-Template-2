@@ -586,52 +586,52 @@ fun AssignmentScreen(
                                                     val audioFilePath =
                                                         audioRecordingState.audioFilePath
                                                     if (isPlaying) {
-                                                            mediaPlayer?.stop()
+                                                        mediaPlayer?.stop()
+                                                        mediaPlayer?.release()
+                                                        mediaPlayer = null
+                                                        isPlaying = false
+                                                        playbackCurrentPosition = 0
+                                                    } else {
+                                                        try {
                                                             mediaPlayer?.release()
-                                                            mediaPlayer = null
-                                                            isPlaying = false
-                                                            playbackCurrentPosition = 0
-                                                        } else {
-                                                            try {
-                                                                mediaPlayer?.release()
-                                                                mediaPlayer =
-                                                                    android.media.MediaPlayer()
-                                                                        .apply {
-                                                                            setDataSource(
-                                                                                audioFilePath,
-                                                                            )
-                                                                            prepare()
-                                                                            playbackDuration =
-                                                                                duration / 1000
+                                                            mediaPlayer =
+                                                                android.media.MediaPlayer()
+                                                                    .apply {
+                                                                        setDataSource(
+                                                                            audioFilePath,
+                                                                        )
+                                                                        prepare()
+                                                                        playbackDuration =
+                                                                            duration / 1000
+                                                                        playbackCurrentPosition =
+                                                                            0
+                                                                        start()
+                                                                        isPlaying = true
+
+                                                                        setOnCompletionListener {
+                                                                            isPlaying = false
                                                                             playbackCurrentPosition =
                                                                                 0
-                                                                            start()
-                                                                            isPlaying = true
-
-                                                                            setOnCompletionListener {
-                                                                                isPlaying = false
-                                                                                playbackCurrentPosition =
-                                                                                    0
-                                                                                release()
-                                                                                mediaPlayer = null
-                                                                            }
-
-                                                                            setOnErrorListener { _, _, _ ->
-                                                                                isPlaying = false
-                                                                                playbackCurrentPosition =
-                                                                                    0
-                                                                                release()
-                                                                                mediaPlayer = null
-                                                                                true
-                                                                            }
+                                                                            release()
+                                                                            mediaPlayer = null
                                                                         }
-                                                            } catch (_: Exception) {
-                                                                isPlaying = false
-                                                                playbackCurrentPosition = 0
-                                                                mediaPlayer?.release()
-                                                                mediaPlayer = null
-                                                            }
+
+                                                                        setOnErrorListener { _, _, _ ->
+                                                                            isPlaying = false
+                                                                            playbackCurrentPosition =
+                                                                                0
+                                                                            release()
+                                                                            mediaPlayer = null
+                                                                            true
+                                                                        }
+                                                                    }
+                                                        } catch (_: Exception) {
+                                                            isPlaying = false
+                                                            playbackCurrentPosition = 0
+                                                            mediaPlayer?.release()
+                                                            mediaPlayer = null
                                                         }
+                                                    }
                                                 },
                                                 modifier = Modifier
                                                     .background(

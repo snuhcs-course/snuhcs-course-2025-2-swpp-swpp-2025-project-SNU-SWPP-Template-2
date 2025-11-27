@@ -267,7 +267,7 @@ fun EditAssignmentScreen(
                                     )
                                 }
                             }
-                            }
+                        }
 
                         ExposedDropdownMenuBox(
                             expanded = gradeSelectionExpanded,

@@ -42,7 +42,6 @@ import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
-import java.util.Date
 import java.util.Locale
 import java.util.TimeZone
 
@@ -827,7 +826,7 @@ fun CreateAssignmentScreen(
         if (dueShowDatePicker) {
             val initialDateMillis = dueDateTime?.timeInMillis
                 ?: Calendar.getInstance().timeInMillis
-            
+
             val todayCalendar = Calendar.getInstance().apply {
                 set(Calendar.HOUR_OF_DAY, 0)
                 set(Calendar.MINUTE, 0)
@@ -835,7 +834,7 @@ fun CreateAssignmentScreen(
                 set(Calendar.MILLISECOND, 0)
             }
             val todayMillis = todayCalendar.timeInMillis
-            
+
             val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
 
             DatePickerDialog(
@@ -909,7 +908,7 @@ fun CreateAssignmentScreen(
                 set(Calendar.MILLISECOND, 0)
             }
             val isToday = selectedDateOnly.timeInMillis == todayCalendar.timeInMillis
-            
+
             val initialHour = if (isToday && dueDateTime == null) {
                 now.get(Calendar.HOUR_OF_DAY)
             } else {
@@ -942,7 +941,7 @@ fun CreateAssignmentScreen(
                                 set(Calendar.SECOND, 0)
                                 set(Calendar.MILLISECOND, 0)
                             }
-                            
+
                             val isValid = if (isToday) {
                                 finalDateTime.after(Calendar.getInstance())
                             } else {
@@ -952,12 +951,12 @@ fun CreateAssignmentScreen(
                             if (isValid) {
                                 dueDateTime = finalDateTime
                                 dueDateText = displayDateFormatter.format(finalDateTime.time)
-                                
+
                                 val utcCalendar = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
                                     timeInMillis = finalDateTime.timeInMillis
                                 }
                                 dueDateRequest = isoDateFormatter.format(utcCalendar.time)
-                                
+
                                 dueShowTimePicker = false
                                 duePendingDate = null
                             }

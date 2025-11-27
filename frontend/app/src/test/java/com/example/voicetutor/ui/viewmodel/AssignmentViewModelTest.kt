@@ -9,11 +9,11 @@ import com.example.voicetutor.data.repository.AssignmentRepository
 import com.example.voicetutor.testing.MainDispatcherRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import kotlinx.coroutines.test.StandardTestDispatcher
 import org.junit.Assert.*
 import org.junit.Ignore
 import org.junit.Rule
@@ -217,7 +217,7 @@ class AssignmentViewModelTest {
         val originalDispatcher = mainDispatcherRule.testDispatcher
         try {
             Dispatchers.setMain(standardDispatcher)
-            
+
             Mockito.`when`(assignmentRepository.getAllAssignments(null, null, null))
                 .thenReturn(Result.success(emptyList()))
 
@@ -1967,7 +1967,7 @@ class AssignmentViewModelTest {
 
         viewModel.error.test {
             val error = awaitItem()
-                    assert(error != null)
+            assert(error != null)
             cancelAndIgnoreRemainingEvents()
         }
     }
@@ -2363,7 +2363,7 @@ class AssignmentViewModelTest {
         val originalDispatcher = mainDispatcherRule.testDispatcher
         try {
             Dispatchers.setMain(standardDispatcher)
-            
+
             val createRequest = CreateAssignmentRequest(
                 title = "Test Assignment",
                 description = "Description",
@@ -2371,13 +2371,13 @@ class AssignmentViewModelTest {
                 due_at = "2025-01-01",
                 class_id = 1,
                 grade = "Grade 1",
-                subject = "Math"
+                subject = "Math",
             )
             val createResponse = CreateAssignmentResponse(
                 assignment_id = 1,
                 material_id = 10,
                 s3_key = "some-key",
-                upload_url = "https://dummy-upload"
+                upload_url = "https://dummy-upload",
             )
             val pdfFile = File.createTempFile("test", ".pdf")
             val viewModel = AssignmentViewModel(assignmentRepository)
@@ -2397,7 +2397,7 @@ class AssignmentViewModelTest {
                 assignment = createRequest,
                 pdfFile = pdfFile,
                 totalNumber = 10,
-                teacherId = "123"
+                teacherId = "123",
             )
 
             viewModel.uploadSuccess.test {
@@ -2407,13 +2407,13 @@ class AssignmentViewModelTest {
                 assertTrue(success)
                 cancelAndIgnoreRemainingEvents()
             }
-            
+
             runCurrent()
             advanceUntilIdle()
-            
+
             assertFalse(viewModel.isUploading.value)
             assertFalse(viewModel.isCreatingAssignment.value)
-            
+
             viewModel.questionGenerationSuccess.test {
                 awaitItem()
                 runCurrent()
@@ -2422,7 +2422,7 @@ class AssignmentViewModelTest {
                 assertTrue(success)
                 cancelAndIgnoreRemainingEvents()
             }
-            
+
             runCurrent()
             advanceUntilIdle()
         } finally {
@@ -3174,7 +3174,7 @@ class AssignmentViewModelTest {
         val originalDispatcher = mainDispatcherRule.testDispatcher
         try {
             Dispatchers.setMain(standardDispatcher)
-            
+
             val viewModel = AssignmentViewModel(assignmentRepository)
             val assignment = CreateAssignmentRequest(
                 title = "Test Assignment",
@@ -3183,7 +3183,7 @@ class AssignmentViewModelTest {
                 due_at = "2025-12-31T23:59:59Z",
                 grade = "1학년",
                 description = "Test",
-                total_questions = 5
+                total_questions = 5,
             )
             val pdfFile = File.createTempFile("test", ".pdf")
             pdfFile.deleteOnExit()
@@ -3192,18 +3192,18 @@ class AssignmentViewModelTest {
                 assignment_id = 1,
                 material_id = 1,
                 s3_key = "test-key",
-                upload_url = "https://example.com/upload"
+                upload_url = "https://example.com/upload",
             )
 
             Mockito.`when`(assignmentRepository.createAssignment(assignment))
                 .thenReturn(Result.success(createResponse))
-            
+
             Mockito.`when`(assignmentRepository.uploadPdfToS3(anyString(), kotlinAny()))
                 .thenReturn(Result.success(true))
-                
+
             Mockito.`when`(assignmentRepository.createQuestionsAfterUpload(anyInt(), anyInt(), anyInt()))
                 .thenReturn(Result.success(Unit))
-            
+
             Mockito.`when`(assignmentRepository.getAllAssignments(nullable(String::class.java), isNull(), isNull()))
                 .thenReturn(Result.failure(RuntimeException("Refresh failed")))
 
@@ -3218,16 +3218,16 @@ class AssignmentViewModelTest {
                 assertTrue(success)
                 cancelAndIgnoreRemainingEvents()
             }
-            
+
             runCurrent()
             advanceUntilIdle()
-            
+
             viewModel.error.test {
                 val error = awaitItem()
                 if (error == null) {
                     runCurrent()
                     advanceUntilIdle()
-                    val nextError = awaitItem() 
+                    val nextError = awaitItem()
                     assertNotNull(nextError)
                 } else {
                     assertNotNull(error)

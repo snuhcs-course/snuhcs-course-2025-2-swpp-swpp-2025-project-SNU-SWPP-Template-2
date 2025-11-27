@@ -79,6 +79,7 @@ class AssignmentViewModelFlowTest {
     @Before
     fun setup() {
     }
+
     @Test
     fun assignments_initialState_emitsEmptyList() = runTest {
         val vm = AssignmentViewModel(assignmentRepository)
@@ -140,7 +141,6 @@ class AssignmentViewModelFlowTest {
         }
         Mockito.verify(assignmentRepository, times(1)).completePersonalAssignment(pid)
     }
-
 
     @Test
     @Ignore("Filter test issue")

@@ -144,8 +144,8 @@ class ScreenInternalComponentsTests {
                     dueDate = "2024-12-31",
                     progress = 0.5f,
                     totalQuestions = 10,
-                        status = PersonalAssignmentStatus.IN_PROGRESS,
-                        onClick = { clicked = true },
+                    status = PersonalAssignmentStatus.IN_PROGRESS,
+                    onClick = { clicked = true },
                 )
             }
         }

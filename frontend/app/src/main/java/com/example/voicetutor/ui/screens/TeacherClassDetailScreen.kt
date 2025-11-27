@@ -335,7 +335,7 @@ private fun parseIsoDate(isoDate: String): Calendar? {
             "yyyy-MM-dd'T'HH:mm:ss",
             "yyyy-MM-dd HH:mm:ss",
         )
-        
+
         for (pattern in formats) {
             try {
                 val sdf = SimpleDateFormat(pattern, Locale.getDefault())

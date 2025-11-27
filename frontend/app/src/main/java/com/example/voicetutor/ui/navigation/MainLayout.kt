@@ -232,7 +232,7 @@ fun MainLayout(
                     ),
                 ),
             ),
-        ) {
+    ) {
         TopAppBar(
             title = {
                 Row(
