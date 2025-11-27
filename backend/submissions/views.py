@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import tempfile
@@ -33,6 +34,82 @@ Account = get_user_model()
 def create_api_response(success=True, data=None, message="성공", error=None, status_code=status.HTTP_200_OK):
     """API 응답을 생성하는 헬퍼 함수"""
     return Response({"success": success, "data": data, "message": message, "error": error}, status=status_code)
+
+
+def collect_student_context(question, student, personal_assignment):
+    """
+    현재 질문 체인과 과제에서의 학생 학습 이력을 수집합니다.
+
+    Args:
+        question: 현재 Question 객체
+        student: 학생 Account 객체
+        personal_assignment: PersonalAssignment 객체
+
+    Returns:
+        dict: 학생의 학습 컨텍스트
+            - question_chain: 이 문항 체인에서의 이전 시도들
+            - overall_accuracy: 전체 정답률
+            - avg_confidence: 평균 자신감 점수
+            - total_answered: 답변한 총 문제 수
+            - recent_trend: 최근 정답 여부 리스트 (최신순)
+    """
+    from django.db.models import Avg
+
+    # 1. 같은 문항 체인의 이전 Q/A 수집 (base_question FK를 따라가며)
+    question_chain = []
+    current_q = question
+
+    while current_q.base_question:
+        prev_q = current_q.base_question
+        try:
+            prev_answer = Answer.objects.get(question=prev_q, student=student)
+            question_chain.append(
+                {
+                    "question": prev_q.content,
+                    "model_answer": prev_q.model_answer,
+                    "student_answer": prev_answer.text_answer,
+                    "is_correct": prev_answer.state == Answer.State.CORRECT,
+                    "confidence": prev_answer.eval_grade,
+                    "difficulty": prev_q.difficulty,
+                }
+            )
+        except Answer.DoesNotExist:
+            # 이전 질문에 대한 답변이 없으면 체인 탐색 중단
+            break
+        current_q = prev_q
+
+    # 시간순 정렬 (가장 오래된 시도가 먼저)
+    question_chain.reverse()
+
+    # 2. 전체 과제 통계 계산
+    all_answers = (
+        Answer.objects.filter(question__personal_assignment=personal_assignment, student=student)
+        .exclude(state=Answer.State.PROCESSING)
+        .select_related("question")
+    )
+
+    total_answered = all_answers.count()
+    correct_count = all_answers.filter(state=Answer.State.CORRECT).count()
+
+    # 평균 자신감 계산 (eval_grade가 있는 것만)
+    avg_result = all_answers.exclude(eval_grade__isnull=True).aggregate(avg=Avg("eval_grade"))
+    avg_confidence = avg_result["avg"] or 0.0
+
+    # 전체 정답률
+    overall_accuracy = correct_count / total_answered if total_answered > 0 else 0.0
+
+    # 3. 최근 5개 답변의 정답 패턴 (학습 추세 파악)
+    recent_answers = all_answers.filter(submitted_at__isnull=False).order_by("-submitted_at")[:5]
+
+    recent_trend = [answer.state == Answer.State.CORRECT for answer in recent_answers]
+
+    return {
+        "question_chain": question_chain,
+        "overall_accuracy": overall_accuracy,
+        "avg_confidence": avg_confidence,
+        "total_answered": total_answered,
+        "recent_trend": recent_trend,
+    }
 
 
 # 개인 과제 조회
@@ -578,6 +655,40 @@ class AnswerSubmitView(APIView):
                 logger.info("[AnswerSubmitView] Tail Question 생성 시작")
 
                 try:
+                    personal_assignment = question.personal_assignment
+                    # 학생 학습 컨텍스트 수집
+                    student_context = collect_student_context(question, student, personal_assignment)
+
+                    # Context 상세 로깅
+                    logger.info(
+                        f"[AnswerSubmitView] Student context collected:\n"
+                        f"  - Question chain length: {len(student_context.get('question_chain', []))}\n"
+                        f"  - Overall accuracy: {student_context.get('overall_accuracy', 0) * 100:.1f}%\n"
+                        f"  - Average confidence: {student_context.get('avg_confidence', 0):.2f}/5\n"
+                        f"  - Total answered: {student_context.get('total_answered', 0)}\n"
+                        f"  - Recent trend: {student_context.get('recent_trend', [])}"
+                    )
+
+                    # Question chain 상세 로깅
+                    question_chain = student_context.get("question_chain", [])
+                    if question_chain:
+                        logger.info(f"[AnswerSubmitView] Question chain details ({len(question_chain)} attempts):")
+                        for i, item in enumerate(question_chain, 1):
+                            logger.info(
+                                f"  Attempt {i}:\n"
+                                f"    - Correct: {item.get('is_correct', False)}\n"
+                                f"    - Confidence: {item.get('confidence', 0):.2f}/5\n"
+                                f"    - Difficulty: {item.get('difficulty', 'N/A')}\n"
+                                f"    - Question: {item.get('question', '')[:80]}...\n"
+                                f"    - Student answer: {item.get('student_answer', '')[:80]}..."
+                            )
+
+                    # Context 전체를 JSON으로 로깅 (디버깅용)
+                    logger.debug(
+                        f"[AnswerSubmitView] Full student context JSON:\n"
+                        f"{json.dumps(student_context, ensure_ascii=False, indent=2)}"
+                    )
+
                     tail_payload = generate_tail_question(
                         question=question.content,
                         model_answer=question.model_answer,
@@ -585,6 +696,7 @@ class AnswerSubmitView(APIView):
                         eval_grade=confidence_score,
                         recalled_time=question.recalled_num,
                         high_thr=3.45,
+                        student_context=student_context,
                     )
 
                     if not tail_payload:
