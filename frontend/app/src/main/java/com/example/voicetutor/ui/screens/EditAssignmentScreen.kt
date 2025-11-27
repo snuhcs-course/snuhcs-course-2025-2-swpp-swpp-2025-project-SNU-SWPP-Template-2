@@ -25,7 +25,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
-import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -42,11 +41,9 @@ fun EditAssignmentScreen(
     onSaveAssignment: () -> Unit = {},
     onDeleteAssignment: () -> Unit = {},
 ) {
-    val classViewModel: ClassViewModel = hiltViewModel()
     val viewModel: AssignmentViewModel = assignmentViewModel ?: hiltViewModel()
 
     val assignments by viewModel.assignments.collectAsStateWithLifecycle()
-    val classes by classViewModel.classes.collectAsStateWithLifecycle()
     val currentAssignment by viewModel.currentAssignment.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
@@ -83,15 +80,6 @@ fun EditAssignmentScreen(
     val displayDateFormatter = remember { SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()) }
     val isoDateFormatter = remember { SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.getDefault()).apply { timeZone = TimeZone.getTimeZone("UTC") } }
 
-    val grades = listOf(
-        "초등학교 1학년", "초등학교 2학년", "초등학교 3학년",
-        "초등학교 4학년", "초등학교 5학년", "초등학교 6학년",
-        "중학교 1학년", "중학교 2학년", "중학교 3학년",
-        "고등학교 1학년", "고등학교 2학년", "고등학교 3학년",
-    )
-
-    val subjects = listOf("국어", "영어", "수학", "과학", "사회")
-
     LaunchedEffect(assignmentId, targetAssignment?.id, teacherId) {
         if (assignmentId > 0) {
             viewModel.loadAssignmentById(assignmentId)
@@ -99,9 +87,6 @@ fun EditAssignmentScreen(
             targetAssignment?.let { target ->
                 viewModel.loadAssignmentById(target.id)
             }
-        }
-        teacherId?.let { id ->
-            classViewModel.loadClasses(id)
         }
     }
 
@@ -129,7 +114,7 @@ fun EditAssignmentScreen(
                         }
                         dueDateRequest = isoDateFormatter.format(utcCalendar.time)
                     }
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                 }
             }
         }
@@ -230,9 +215,7 @@ fun EditAssignmentScreen(
                                         tint = Gray400,
                                     )
                                 },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(),
+                                modifier = Modifier.fillMaxWidth(),
                                 colors = OutlinedTextFieldDefaults.colors(
                                     focusedBorderColor = Gray300,
                                     unfocusedBorderColor = Gray300,
@@ -261,9 +244,7 @@ fun EditAssignmentScreen(
                                 enabled = false,
                                 label = { Text("학년 (변경 불가)") },
                                 placeholder = { Text("학년을 선택하세요") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(),
+                                modifier = Modifier.fillMaxWidth(),
                                 trailingIcon = {
                                     Icon(
                                         imageVector = Icons.Filled.ArrowDropDown,
@@ -299,9 +280,7 @@ fun EditAssignmentScreen(
                                 enabled = false,
                                 label = { Text("과목 (변경 불가)") },
                                 placeholder = { Text("과목을 선택하세요") },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .menuAnchor(),
+                                modifier = Modifier.fillMaxWidth(),
                                 trailingIcon = {
                                     Icon(
                                         imageVector = Icons.Filled.ArrowDropDown,
