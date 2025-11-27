@@ -174,10 +174,10 @@ def generate_base_quizzes(material_text: str, n: int = 3, achievement_codes: Opt
     for attempt in range(max_retries):
         try:
             llm = ChatOpenAI(
-                model="gpt-4o-mini",
+                model="gpt-4o",
                 temperature=0.5,
                 api_key=settings.OPENAI_API_KEY,
-                timeout=60.0,  # 60초 타임아웃 설정
+                timeout=90.0,  # 90초 타임아웃 설정
             )
             few_shot_str = json.dumps(FEW_SHOT_EXAMPLES, ensure_ascii=False, indent=2)
             prompt = multi_quiz_prompt.format(
