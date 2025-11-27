@@ -183,7 +183,12 @@ def parse_curriculum(student_id, class_id):
             logger.info(f"Found {len(relevant_standards)} relevant achievement standards")
 
             # roberta와 GPT API를 통해 가장 적합한 성취기준 찾기
-            best_achievement_code = find_best_achievement_code(question.content, relevant_standards)
+            best_achievement_code = find_best_achievement_code(
+                question_content=question.content,
+                answer=question.model_answer,
+                explanation=question.explanation,
+                achievement_standards=relevant_standards,
+            )
 
             if best_achievement_code:
                 # achievement_code 업데이트
@@ -322,7 +327,9 @@ def calculate_statistics(student_id, class_id):
     }
 
 
-def find_best_achievement_code(question_content, achievement_standards, use_model_filtering=True, top_k=20):
+def find_best_achievement_code(
+    question_content, answer, explanation, achievement_standards, use_model_filtering=True, top_k=20
+):
     """
     GPT API를 사용하여 질문 내용에 가장 적합한 성취기준을 찾는 함수
 
@@ -331,9 +338,11 @@ def find_best_achievement_code(question_content, achievement_standards, use_mode
 
     Args:
         question_content: 질문 내용
+        answer: 모범 답안
+        explanation: 해설
         achievement_standards: 성취기준 리스트
         use_model_filtering: True이면 trained model로 먼저 필터링 (기본값: True)
-        top_k: model filtering 시 상위 몇 개를 사용할지 (기본값: 30)
+        top_k: model filtering 시 상위 몇 개를 사용할지 (기본값: 20)
 
     Returns:
         가장 적합한 성취기준의 code 또는 None
@@ -373,6 +382,13 @@ def find_best_achievement_code(question_content, achievement_standards, use_mode
         [f"Code: {std['code']}\nContent: {std['content']}\nGrade: {std['grade']}\n" for std in filtered_standards]
     )
 
+    # 문제 정보를 문자열로 구성 (answer와 explanation이 있으면 포함)
+    question_info = f"Question: {question_content}"
+    if answer:
+        question_info += f"\nAnswer: {answer}"
+    if explanation:
+        question_info += f"\nExplanation: {explanation}"
+
     # GPT API 요청 구성
     headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
@@ -381,9 +397,9 @@ The following are educational achievement standards:
 
 {standards_text}
 
-Please determine which of the above standards is the most appropriate for the following question:
+Please determine which of the above standards is the most appropriate for the following question, answer, and explanation:
 
-Question: {question_content}
+{question_info}
 
 Only return the Code of the most appropriate standard. No additional explanation is needed.
 Do not return anything other than the Code. For example, just return '2과03-01' if that is the best match.
