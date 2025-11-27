@@ -159,7 +159,8 @@ fun CreateClassScreen(
                                 placeholder = { Text("수업에 대한 간단한 설명을 입력하세요...") },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(80.dp),
+                                    .heightIn(min = 80.dp),
+                                minLines = 3,
                                 maxLines = 3,
                                 keyboardOptions = KeyboardOptions(
                                     capitalization = KeyboardCapitalization.Sentences,
