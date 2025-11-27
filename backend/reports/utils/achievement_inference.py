@@ -204,6 +204,7 @@ def predict_top_k(
     top_k: int = 30,
     model_dir: Optional[Path] = None,
     device: str = "cuda",
+    filter_codes: Optional[set] = None,
 ) -> List[Dict]:
     """
     Predict top-k achievement standards for a given text.
@@ -213,6 +214,8 @@ def predict_top_k(
         top_k: Number of top predictions to return (default: 30)
         model_dir: Path to model directory (optional, uses default if not provided)
         device: Device to use ("cuda" or "cpu")
+        filter_codes: Optional set of achievement codes to filter by.
+                      If provided, only returns top-k from these codes.
 
     Returns:
         List of dictionaries with 'code', 'content', and 'probability' keys,
@@ -257,7 +260,30 @@ def predict_top_k(
         logits = outputs["logits"]
         probs = F.softmax(logits, dim=-1)
 
-    # Get top-k
+    # If filter_codes is provided, filter by those codes only
+    if filter_codes is not None:
+        # Get all predictions, filter by codes, then take top-k
+        all_probs = probs[0].cpu().numpy()
+
+        # Build list of (code, content, probability) for filtered codes only
+        filtered_results = []
+        for idx, prob in enumerate(all_probs):
+            code = idx_to_code.get(idx, f"unknown_{idx}")
+            if code in filter_codes:
+                content = code_to_content.get(code, "")
+                filtered_results.append(
+                    {
+                        "code": code,
+                        "content": content,
+                        "probability": float(prob),
+                    }
+                )
+
+        # Sort by probability (highest first) and take top-k
+        filtered_results.sort(key=lambda x: x["probability"], reverse=True)
+        return filtered_results[:top_k]
+
+    # Original behavior: get top-k from all classes
     num_classes = probs.size(1)
     effective_top_k = min(top_k, num_classes)
 
@@ -282,52 +308,65 @@ def predict_top_k(
 def filter_standards_by_model(
     question_content: str,
     achievement_standards: List[Dict],
-    top_k: int = 30,
+    top_k: int = 20,
     min_results: int = 3,
 ) -> List[Dict]:
     """
     Use the trained model to filter achievement standards down to top-k candidates.
 
     This function:
-    1. Gets top-k predictions from the model
-    2. Filters the provided achievement_standards to only include those in top-k
-    3. If model prediction doesn't cover enough from the provided standards,
-       falls back to returning all provided standards
+    1. Extracts codes from the provided achievement_standards (subject/school filtered)
+    2. Gets top-k predictions from the model, only considering those codes
+    3. Returns the filtered standards sorted by model probability
 
     Args:
         question_content: The question text to classify
         achievement_standards: List of achievement standard dicts from CSV
-        top_k: Number of top predictions to consider
-        min_results: Minimum number of filtered results required (default: 5).
+                               (already filtered by subject/school)
+        top_k: Number of top predictions to return (default: 20)
+        min_results: Minimum number of filtered results required (default: 3).
                      If fewer results, falls back to all standards.
 
     Returns:
-        Filtered list of achievement standards (subset of input)
+        Filtered list of achievement standards (subset of input), sorted by model probability
     """
-    # Get model predictions
-    predictions = predict_top_k(question_content, top_k=top_k)
+    if not achievement_standards:
+        logger.warning("No achievement standards provided")
+        return []
+
+    # Extract codes from the provided standards (already filtered by subject/school)
+    available_codes = {std["code"] for std in achievement_standards}
+
+    # Get model predictions filtered by available codes
+    # This ensures we only consider standards for the current subject/school
+    predictions = predict_top_k(
+        question_content,
+        top_k=top_k,
+        filter_codes=available_codes,
+    )
 
     if not predictions:
         logger.warning("Model prediction failed, using all standards as fallback")
         return achievement_standards
 
-    # Get predicted codes
-    predicted_codes = {pred["code"] for pred in predictions}
+    # Get predicted codes (already filtered and sorted by probability)
+    predicted_codes = [pred["code"] for pred in predictions]
 
-    # Filter provided standards by predicted codes
-    filtered_standards = [std for std in achievement_standards if std["code"] in predicted_codes]
+    # Build filtered standards in the order of model probability
+    code_to_standard = {std["code"]: std for std in achievement_standards}
+    filtered_standards = [code_to_standard[code] for code in predicted_codes if code in code_to_standard]
 
     # Check if we have enough results
     if len(filtered_standards) < min_results:
         logger.warning(
             f"Filtered results ({len(filtered_standards)}) below minimum ({min_results}). "
-            f"Model predicted codes may not match the subject. Using all standards as fallback."
+            f"Using all standards as fallback."
         )
         return achievement_standards
 
     logger.info(
         f"Filtered {len(achievement_standards)} standards down to {len(filtered_standards)} "
-        f"using model predictions (top-{top_k})"
+        f"using model predictions (top-{top_k} from subject/school filtered codes)"
     )
 
     return filtered_standards

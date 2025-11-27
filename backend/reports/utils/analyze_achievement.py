@@ -322,7 +322,7 @@ def calculate_statistics(student_id, class_id):
     }
 
 
-def find_best_achievement_code(question_content, achievement_standards, use_model_filtering=True, top_k=30):
+def find_best_achievement_code(question_content, achievement_standards, use_model_filtering=True, top_k=20):
     """
     GPT API를 사용하여 질문 내용에 가장 적합한 성취기준을 찾는 함수
 
