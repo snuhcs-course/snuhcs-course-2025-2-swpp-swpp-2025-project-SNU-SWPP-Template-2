@@ -172,7 +172,7 @@ def parse_curriculum(student_id, class_id):
             logger.debug(f"Question content: {question.content}")
             logger.info(f"Found {len(relevant_standards)} relevant achievement standards")
 
-            # GPT API를 통해 가장 적합한 성취기준 찾기
+            # roberta와 GPT API를 통해 가장 적합한 성취기준 찾기
             best_achievement_code = find_best_achievement_code(question.content, relevant_standards)
 
             if best_achievement_code:
@@ -395,7 +395,6 @@ Do not return anything other than the Code. For example, just return '2과03-01'
         if response.status_code == 200:
             result = response.json()
 
-            # TODO: 여기서 단원명도 추출하도록 구현 예정
             achievement_code = result["choices"][0]["message"]["content"].strip()
 
             # 응답이 유효한 코드인지 확인 (filtered standards 기준)
