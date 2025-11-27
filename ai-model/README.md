@@ -143,6 +143,53 @@ curl -X POST http://localhost:8000/api/exchange/counter-proposal \
 The API returns RF-ranked books plus the LLM-authored counter message that user
 B can send back to user A.
 
+### Multi-book Recommendations (with reasons)
+
+Use the GPU-hosted FastAPI to fetch several recommended books and a short reason
+for each:
+
+```bash
+curl -X POST http://localhost:8000/api/recommendations/books \
+  -H 'Content-Type: application/json' \
+  -d '{
+        "user": {
+          "id": "user-b",
+          "name": "Bob",
+          "preferred_genres": ["NOVEL", "SCIENCE_TECH"],
+          "preferred_moods": ["IMMERSIVE"]
+        },
+        "candidate_books": [
+          {"id": "bk-1", "title": "Project Hail Mary", "genres": ["SCIENCE_TECH"], "moods": ["IMMERSIVE"], "popularity": 0.9}
+        ],
+        "reading_history": [],
+        "max_results": 3
+     }'
+```
+
+Example response:
+
+```json
+{
+  "recommendations": [
+    {
+      "id": "bk-1",
+      "title": "Project Hail Mary",
+      "reason": "SF/과학 테크 무드를 좋아하는 취향과 잘 맞아요",
+      "score": 0.92
+    }
+  ],
+  "reasoning": {
+    "recommended_books": ["Project Hail Mary"],
+    "recommendations": [
+      {"id": "bk-1", "title": "Project Hail Mary", "reason": "...", "score": 0.92}
+    ],
+    "conversation": [...],
+    "final_recommendation": "최종 요약 메시지",
+    "confidence_score": 0.85
+  }
+}
+```
+
 Need the two-LLM reasoning dialogue? Call
 `POST /api/exchange/reasoned-proposal` with the same payload — the response adds
 `reasoning`, which contains the recommender/critic conversation (3~5 books are

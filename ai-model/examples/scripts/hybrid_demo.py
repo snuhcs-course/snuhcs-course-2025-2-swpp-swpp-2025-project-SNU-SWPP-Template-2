@@ -141,6 +141,12 @@ def summarize_llm_step(pipeline: HybridExchangePipeline, scenario: ExchangeScena
 
     typer.echo("[Step 4] Two-LLM Reasoning 🧠🗣️")
     reasoned = pipeline.generate_reasoned_counter_proposal(scenario, top_k=top_k)
+    if reasoned.reasoning.recommendations:
+        typer.echo("Multi-book picks with reasons:")
+        for rec in reasoned.reasoning.recommendations:
+            score = f"{rec.score:.2f}" if rec.score is not None else "n/a"
+            typer.echo(f"  - {rec.title} (score={score}) → {rec.reason}")
+        typer.echo("")
     typer.echo("Conversation:")
     for turn in reasoned.reasoning.conversation:
         typer.echo(f"  [{turn.speaker.upper()}] {turn.message}")

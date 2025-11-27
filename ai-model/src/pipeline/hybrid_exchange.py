@@ -183,6 +183,7 @@ class HybridExchangePipeline:
             user_profile=user_profile,
             candidate_books=items,
             user_reading_history=None,
+            max_recommendations=len(subset),
         )
 
     @staticmethod
