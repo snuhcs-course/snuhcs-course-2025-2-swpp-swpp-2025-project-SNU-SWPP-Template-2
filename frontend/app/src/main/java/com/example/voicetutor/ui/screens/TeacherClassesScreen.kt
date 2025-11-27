@@ -67,14 +67,8 @@ fun TeacherClassesScreen(
     LaunchedEffect(currentUser?.id) {
         val actualTeacherId = teacherId ?: currentUser?.id?.toString()
         if (actualTeacherId == null) return@LaunchedEffect
-
-        if (assignments.isEmpty()) {
-            actualAssignmentViewModel.loadAllAssignments(teacherId = actualTeacherId)
-        }
-
-        if (classes.isEmpty()) {
-            classViewModel.loadClasses(actualTeacherId)
-        }
+        actualAssignmentViewModel.loadAllAssignments(teacherId = actualTeacherId)
+        classViewModel.loadClasses(actualTeacherId)
     }
 
     error?.let { errorMessage ->
