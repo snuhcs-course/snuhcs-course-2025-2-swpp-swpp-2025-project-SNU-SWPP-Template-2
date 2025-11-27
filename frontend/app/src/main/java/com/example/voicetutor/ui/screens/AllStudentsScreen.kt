@@ -29,7 +29,7 @@ import com.example.voicetutor.ui.viewmodel.StudentViewModel
 @Composable
 fun AllStudentsScreen(
     teacherId: String,
-    onNavigateToStudentDetail: (Int, Int, String) -> Unit = { _, _, _ -> }, // 리포트용
+    onNavigateToStudentDetail: (Int, Int, String) -> Unit = { _, _, _ -> },
 ) {
     val studentViewModel: StudentViewModel = hiltViewModel()
     val classViewModel: ClassViewModel = hiltViewModel()
@@ -49,21 +49,17 @@ fun AllStudentsScreen(
     var expandedClassDropdown by remember { mutableStateOf(false) }
 
     LaunchedEffect(teacherId) {
-        println("AllStudentsScreen - Loading classes for teacher ID: $teacherId")
         classViewModel.loadClasses(teacherId)
     }
 
-    // Auto-select first class if not already selected
     LaunchedEffect(classes) {
         if (classes.isNotEmpty() && selectedClassId == null) {
             selectedClassId = classes.first().id
-            println("AllStudentsScreen - Auto-selecting first class: ${classes.first().id}")
         }
     }
 
     LaunchedEffect(selectedClassId) {
         if (selectedClassId != null) {
-            println("AllStudentsScreen - Loading students for class ID: $selectedClassId")
             studentViewModel.loadAllStudents(teacherId = teacherId, classId = selectedClassId.toString())
         }
     }
@@ -77,7 +73,7 @@ fun AllStudentsScreen(
     val allStudents = apiStudents.map { student ->
         AllStudentsStudent(
             id = student.id,
-            name = student.name ?: "이름 없음", // null 체크 추가
+            name = student.name ?: "이름 없음",
             email = student.email,
             role = student.role,
         )
@@ -260,13 +256,12 @@ fun AllStudentsScreen(
         } else {
             itemsIndexed(
                 items = allStudents,
-                key = { _, student -> student.id }, // 각 학생의 고유 ID를 키로 사용
+                key = { _, student -> student.id },
             ) { _, student ->
 
                 AllStudentsCard(
                     student = student,
                     onReportClick = {
-                        // 리포트 페이지로 이동
                         val classId = selectedClassId ?: 0
                         onNavigateToStudentDetail(classId, student.id, student.name)
                     },

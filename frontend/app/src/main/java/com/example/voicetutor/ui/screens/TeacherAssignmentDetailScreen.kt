@@ -66,30 +66,23 @@ fun TeacherAssignmentDetailScreen(
 
     LaunchedEffect(assignmentId) {
         if (assignmentId > 0 && assignmentId != loadedAssignmentId) {
-            println("TeacherAssignmentDetail - Loading assignment ID: $assignmentId")
             loadedAssignmentId = assignmentId
             viewModel.loadAssignmentById(assignmentId)
         } else if (assignmentId == 0) {
             targetAssignment?.let { target ->
                 if (target.id != loadedAssignmentId) {
-                    println("TeacherAssignmentDetail - Loading assignment: ${target.title} (ID: ${target.id})")
                     loadedAssignmentId = target.id
                     viewModel.loadAssignmentById(target.id)
                 }
             }
-        } else {
-            println("TeacherAssignmentDetail - Assignment $assignmentId already loaded, skipping loadAssignmentById")
         }
     }
 
     LaunchedEffect(assignment?.id) {
         assignment?.let { a ->
             if (a.id != loadedStatsForAssignmentId) {
-                println("TeacherAssignmentDetail - Assignment loaded, loading statistics and student results: ${a.title} (ID: ${a.id})")
                 loadedStatsForAssignmentId = a.id
                 viewModel.loadAssignmentStatisticsAndResults(a.id, a.courseClass.studentCount)
-            } else {
-                println("TeacherAssignmentDetail - Statistics already loaded for assignment ${a.id}, skipping")
             }
         }
     }
@@ -278,7 +271,6 @@ fun TeacherAssignmentDetailScreen(
                             )
                         }
                         else -> {
-                            // 학생 목록 정렬: 완료 > 진행중 > 미시작
                             val sortedStudents = remember(students) {
                                 students.sortedBy { student ->
                                     when (student.status) {
@@ -313,9 +305,6 @@ fun TeacherAssignmentDetailScreen(
     }
 }
 
-/**
- * 로딩 인디케이터 컴포넌트
- */
 @Composable
 private fun LoadingIndicator() {
     Box(
@@ -505,9 +494,6 @@ private fun formatSubmittedTime(isoTime: String): String {
     return com.example.voicetutor.utils.formatSubmittedTime(isoTime)
 }
 
-/**
- * 과제 상세 정보 데이터 클래스
- */
 data class AssignmentDetail(
     val title: String,
     val subject: String,

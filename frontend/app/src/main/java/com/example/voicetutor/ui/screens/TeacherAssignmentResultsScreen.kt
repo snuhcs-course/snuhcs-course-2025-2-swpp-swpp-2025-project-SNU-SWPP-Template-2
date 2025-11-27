@@ -20,14 +20,6 @@ import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 
-/**
- * 선생님 과제 결과 화면
- *
- * @param assignmentViewModel 과제 관련 ViewModel (테스트용으로 주입 가능)
- * @param assignmentId 과제 ID
- * @param assignmentTitle 과제 제목 (ID가 없을 때 사용, 하위 호환성을 위해 유지)
- * @param onNavigateToStudentDetail 학생 상세 화면으로 이동하는 콜백
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TeacherAssignmentResultsScreen(
@@ -62,12 +54,10 @@ fun TeacherAssignmentResultsScreen(
 
     LaunchedEffect(assignmentId, targetAssignment?.id) {
         if (assignmentId > 0) {
-            println("TeacherAssignmentResults - Loading assignment by ID: $assignmentId")
             viewModel.loadAssignmentById(assignmentId)
             viewModel.loadAssignmentStudentResults(assignmentId)
         } else {
             targetAssignment?.let { target ->
-                println("TeacherAssignmentResults - Loading assignment: ${target.title} (ID: ${target.id})")
                 viewModel.loadAssignmentById(target.id)
                 viewModel.loadAssignmentStudentResults(target.id)
             }

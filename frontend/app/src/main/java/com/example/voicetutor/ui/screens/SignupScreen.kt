@@ -65,7 +65,6 @@ fun SignupScreen(
     val confirmPasswordErrorMessage = if (inputError?.field == SignupField.CONFIRM_PASSWORD) inputError.message else null
     val generalError = signupError as? SignupError.General
 
-    // 회원가입 로직을 함수로 분리
     val performSignup = {
         viewModelAuth.clearSignupError()
         when {
@@ -93,20 +92,13 @@ fun SignupScreen(
         }
     }
 
-    // Error handling은 signupError를 통해 처리됨
-
-    // 회원가입 성공 시 새 사용자 플래그 설정
     val context = LocalContext.current
     val tutorialPrefs = remember { TutorialPreferences(context) }
     val isLoggedIn by viewModelAuth.isLoggedIn.collectAsStateWithLifecycle()
 
     LaunchedEffect(isLoggedIn, currentUser) {
-        // 회원가입 화면에서 회원가입 성공 후 로그인 상태가 되고 사용자 정보가 설정된 경우
-        // (회원가입 성공 시 자동으로 로그인되므로)
         if (isLoggedIn && currentUser != null) {
-            // 새로 가입한 사용자로 표시
             tutorialPrefs.setNewUser()
-            println("SignupScreen - New user flag set for: ${currentUser?.email}")
         }
     }
 

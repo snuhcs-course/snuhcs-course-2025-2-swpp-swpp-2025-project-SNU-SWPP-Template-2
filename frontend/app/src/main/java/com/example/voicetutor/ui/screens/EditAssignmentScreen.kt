@@ -36,9 +36,9 @@ import java.util.TimeZone
 @Composable
 fun EditAssignmentScreen(
     assignmentViewModel: AssignmentViewModel? = null,
-    teacherId: String? = null, // 실제 선생님 ID 사용
+    teacherId: String? = null,
     assignmentId: Int = 0,
-    assignmentTitle: String? = null, // For backward compatibility
+    assignmentTitle: String? = null,
     onSaveAssignment: () -> Unit = {},
     onDeleteAssignment: () -> Unit = {},
 ) {
@@ -98,11 +98,9 @@ fun EditAssignmentScreen(
 
     LaunchedEffect(assignmentId, targetAssignment?.id, teacherId) {
         if (assignmentId > 0) {
-            println("EditAssignment - Loading assignment by ID: $assignmentId")
             viewModel.loadAssignmentById(assignmentId)
         } else {
             targetAssignment?.let { target ->
-                println("EditAssignment - Loading assignment: ${target.title} (ID: ${target.id})")
                 viewModel.loadAssignmentById(target.id)
             }
         }
@@ -136,7 +134,6 @@ fun EditAssignmentScreen(
                         dueDateRequest = isoDateFormatter.format(utcCalendar.time)
                     }
                 } catch (e: Exception) {
-                    println("EditAssignment - Error parsing due date: ${e.message}")
                 }
             }
         }

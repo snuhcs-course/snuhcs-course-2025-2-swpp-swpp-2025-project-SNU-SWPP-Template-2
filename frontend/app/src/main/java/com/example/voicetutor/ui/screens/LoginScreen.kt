@@ -97,12 +97,8 @@ fun LoginScreen(
 
     LaunchedEffect(currentUser) {
         if (currentUser != null) {
-            println("LoginScreen - currentUser: ${currentUser?.email}")
-            println("LoginScreen - assignments: ${currentUser?.assignments?.size}")
-
             currentUser?.assignments?.let { assignments ->
                 if (assignments.isNotEmpty()) {
-                    println("LoginScreen - Setting ${assignments.size} assignments to ViewModel")
                     viewModelAssignment.setInitialAssignments(assignments)
                 }
             }

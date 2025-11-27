@@ -46,42 +46,31 @@ fun AllAssignmentsScreen(
     // Compute actual teacher ID
     val actualTeacherId = teacherId ?: currentUser?.id?.toString()
 
-    // Load assignments for the specific teacher
     LaunchedEffect(actualTeacherId) {
         if (actualTeacherId != null) {
-            println("AllAssignmentsScreen - Loading assignments for teacher ID: $actualTeacherId")
             viewModel.loadAllAssignments(teacherId = actualTeacherId)
         } else {
-            println("AllAssignmentsScreen - No teacher ID available, loading all assignments")
             viewModel.loadAllAssignments()
         }
     }
 
-    // Reload when screen becomes visible (for refresh after creating assignment)
     LaunchedEffect(Unit) {
-        // This will run when the composable is first created
-        // Additional reload can be triggered by navigation lifecycle
         if (actualTeacherId != null) {
-            println("AllAssignmentsScreen - Screen visible, ensuring assignments are loaded for teacher ID: $actualTeacherId")
             viewModel.loadAllAssignments(teacherId = actualTeacherId)
         }
     }
 
-    // Handle filter changes for teachers
     LaunchedEffect(selectedFilter, actualTeacherId) {
         if (actualTeacherId != null) {
-            // 교사용: 상태별 필터링
             val status = when (selectedFilter) {
                 AssignmentFilter.ALL -> null
                 AssignmentFilter.IN_PROGRESS -> AssignmentStatus.IN_PROGRESS
                 AssignmentFilter.COMPLETED -> AssignmentStatus.COMPLETED
             }
-            println("AllAssignmentsScreen - Filter changed: $selectedFilter, loading assignments for teacher ID: $actualTeacherId")
             viewModel.loadAllAssignments(teacherId = actualTeacherId, status = status)
         }
     }
 
-    // Handle error
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             // Show error message (you can implement a snackbar or dialog)
@@ -95,7 +84,6 @@ fun AllAssignmentsScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        // Header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -121,7 +109,6 @@ fun AllAssignmentsScreen(
             }
         }
 
-        // Filter tabs (Teacher only)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -152,7 +139,6 @@ fun AllAssignmentsScreen(
             )
         }
 
-        // Loading indicator
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxWidth(),
@@ -163,7 +149,6 @@ fun AllAssignmentsScreen(
                 )
             }
         } else {
-            // Assignment list
             if (assignments.isEmpty()) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
@@ -187,10 +172,8 @@ fun AllAssignmentsScreen(
                     }
                 }
             } else {
-                // 제출 현황을 저장하는 StateMap
                 val assignmentStatsMap = remember { mutableStateMapOf<Int, Pair<Int, Int>>() }
 
-                // 각 과제의 제출 현황을 로드
                 assignments.forEach { assignment ->
                     LaunchedEffect(assignment.id) {
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
@@ -297,7 +280,6 @@ fun AssignmentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Progress bar
             val progress = if (totalCount > 0) {
                 submittedCount.toFloat() / totalCount
             } else {
@@ -313,7 +295,6 @@ fun AssignmentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Action buttons (Teacher only)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),

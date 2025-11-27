@@ -158,15 +158,11 @@ class AssignmentViewModel @Inject constructor(
             }
             _error.value = null
 
-            println("AssignmentViewModel - loadAllAssignments called with teacherId=$teacherId, classId=$classId, status=$status, silent=$silent")
-
             assignmentRepository.getAllAssignments(teacherId, classId, status)
                 .onSuccess { assignments ->
-                    println("AssignmentViewModel - Successfully loaded ${assignments.size} assignments")
                     _assignments.value = assignments
                 }
                 .onFailure { exception ->
-                    println("AssignmentViewModel - Failed to load assignments: ${exception.message}")
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                 }
 
@@ -181,22 +177,12 @@ class AssignmentViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            println("AssignmentViewModel - Loading all assignments for student ID: $studentId")
             assignmentRepository.getAllAssignments()
                 .onSuccess { allAssignments ->
-                    println("AssignmentViewModel - Received ${allAssignments.size} total assignments")
                     _assignments.value = allAssignments
-                    allAssignments.forEach { assignment ->
-                        println("  - ${assignment.title}")
-                        println("    courseClass: ${assignment.courseClass.name}")
-                        println("    subject: ${assignment.courseClass.subject.name}")
-                        println("    dueAt: ${assignment.dueAt}")
-                    }
-
                     calculateStudentStats(allAssignments)
                 }
                 .onFailure { exception ->
-                    println("AssignmentViewModel - Error: ${exception.message}")
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                 }
 
@@ -220,7 +206,6 @@ class AssignmentViewModel @Inject constructor(
         )
 
         _studentStats.value = stats
-        println("StudentStats - Total: $totalAssignments, Completed: $completedAssignments, InProgress: $inProgressAssignments")
     }
 
     private fun calculateStudentStatsFromPersonalAssignments(personalAssignments: List<PersonalAssignmentData>) {
@@ -245,7 +230,6 @@ class AssignmentViewModel @Inject constructor(
         )
 
         _studentStats.value = stats
-        println("AssignmentViewModel - Personal assignment stats calculated: $stats")
     }
 
     fun loadAssignmentById(id: Int) {
@@ -290,14 +274,8 @@ class AssignmentViewModel @Inject constructor(
     fun loadAssignmentStatistics(assignmentId: Int, totalStudents: Int) {
         viewModelScope.launch {
             try {
-                println("AssignmentViewModel - loadAssignmentStatistics called: assignmentId=$assignmentId, totalStudents=$totalStudents")
-
                 assignmentRepository.getPersonalAssignments(assignmentId = assignmentId)
                     .onSuccess { personalAssignments ->
-                        println("AssignmentViewModel - Loaded ${personalAssignments.size} personal assignments for assignment $assignmentId")
-                        personalAssignments.forEach { pa ->
-                            println("  - PersonalAssignment ID: ${pa.id}, Student: ${pa.student.displayName}, Status: ${pa.status}")
-                        }
 
                         val actualTotalStudents = personalAssignments.size
 
@@ -316,56 +294,29 @@ class AssignmentViewModel @Inject constructor(
                                 val solvedNum = personalAssignment.solvedNum
 
                                 val isCompleted = when {
-                                    personalAssignment.status == PersonalAssignmentStatus.SUBMITTED -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by status: SUBMITTED")
-                                        true
-                                    }
-                                    !personalAssignment.submittedAt.isNullOrEmpty() -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by submitted_at: ${personalAssignment.submittedAt}")
-                                        true
-                                    }
-                                    !personalAssignment.startedAt.isNullOrEmpty() && assignmentTotalQuestions > 0 && solvedNum >= assignmentTotalQuestions -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by solved_num: started=true, solved=$solvedNum, total=$assignmentTotalQuestions")
-                                        true
-                                    }
-                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalProblem > 0 && stats.totalProblem == stats.solvedProblem -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by statistics: started=true, total=${stats.totalProblem}, solved=${stats.solvedProblem}")
-                                        true
-                                    }
-                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalQuestions > 0 && stats.answeredQuestions >= stats.totalQuestions -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by answeredQuestions: started=true, answered=${stats.answeredQuestions}, total=${stats.totalQuestions}")
-                                        true
-                                    }
-                                    else -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} NOT completed: status=${personalAssignment.status}, submittedAt=${personalAssignment.submittedAt}, startedAt=${personalAssignment.startedAt}, solvedNum=$solvedNum, totalQuestions=$assignmentTotalQuestions, statsTotal=${stats?.totalProblem}, statsSolved=${stats?.solvedProblem}, answeredQuestions=${stats?.answeredQuestions}, totalQuestions=${stats?.totalQuestions}")
-                                        false
-                                    }
+                                    personalAssignment.status == PersonalAssignmentStatus.SUBMITTED -> true
+                                    !personalAssignment.submittedAt.isNullOrEmpty() -> true
+                                    !personalAssignment.startedAt.isNullOrEmpty() && assignmentTotalQuestions > 0 && solvedNum >= assignmentTotalQuestions -> true
+                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalProblem > 0 && stats.totalProblem == stats.solvedProblem -> true
+                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalQuestions > 0 && stats.answeredQuestions >= stats.totalQuestions -> true
+                                    else -> false
                                 }
                                 isCompleted
                             }
 
                             val submittedCount = submittedAssignments.size
-                            println("AssignmentViewModel - Submitted count: $submittedCount, Total students: $actualTotalStudents")
 
                             if (submittedCount > 0) {
-                                println("AssignmentViewModel - Loading statistics for $submittedCount submitted assignments")
-
                                 val statisticsList = submittedAssignments.mapNotNull { (_, stats) -> stats }
 
-                                println("AssignmentViewModel - Loaded ${statisticsList.size} statistics")
-
                                 val averageScore = if (statisticsList.isNotEmpty()) {
-                                    val avg = statisticsList.map { it.accuracy }.average().toInt()
-                                    println("AssignmentViewModel - Average score: $avg")
-                                    avg
+                                    statisticsList.map { it.accuracy }.average().toInt()
                                 } else {
                                     0
                                 }
 
                                 val completionRate = if (actualTotalStudents > 0) {
-                                    val rate = (submittedCount * 100) / actualTotalStudents
-                                    println("AssignmentViewModel - Completion rate: $rate%")
-                                    rate
+                                    (submittedCount * 100) / actualTotalStudents
                                 } else {
                                     0
                                 }
@@ -377,24 +328,19 @@ class AssignmentViewModel @Inject constructor(
                                     completionRate = completionRate,
                                 )
 
-                                println("AssignmentViewModel - Setting statistics: $stats")
                                 _assignmentStatistics.value = stats
                             } else {
-                                println("AssignmentViewModel - No submitted assignments found")
                                 val stats = AssignmentStatistics(
                                     submittedStudents = 0,
                                     totalStudents = actualTotalStudents,
                                     averageScore = 0,
                                     completionRate = 0,
                                 )
-                                println("AssignmentViewModel - Setting statistics: $stats")
                                 _assignmentStatistics.value = stats
                             }
                         }
                     }
                     .onFailure { exception ->
-                        println("AssignmentViewModel - Failed to load personal assignments: ${exception.message}")
-                        exception.printStackTrace()
                         _assignmentStatistics.value = AssignmentStatistics(
                             submittedStudents = 0,
                             totalStudents = totalStudents,
@@ -403,8 +349,6 @@ class AssignmentViewModel @Inject constructor(
                         )
                     }
             } catch (e: Exception) {
-                println("AssignmentViewModel - Exception loading assignment statistics: ${e.message}")
-                e.printStackTrace()
                 _assignmentStatistics.value = AssignmentStatistics(
                     submittedStudents = 0,
                     totalStudents = totalStudents,
@@ -420,14 +364,8 @@ class AssignmentViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
             try {
-                println("AssignmentViewModel - loadAssignmentStatisticsAndResults called: assignmentId=$assignmentId, totalStudents=$totalStudents")
-
                 assignmentRepository.getPersonalAssignments(assignmentId = assignmentId)
                     .onSuccess { personalAssignments ->
-                        println("AssignmentViewModel - Loaded ${personalAssignments.size} personal assignments for assignment $assignmentId")
-                        personalAssignments.forEach { pa ->
-                            println("  - PersonalAssignment ID: ${pa.id}, Student: ${pa.student.displayName}, Status: ${pa.status}")
-                        }
 
                         val actualTotalStudents = personalAssignments.size
 
@@ -467,53 +405,29 @@ class AssignmentViewModel @Inject constructor(
                                 val solvedNum = personalAssignment.solvedNum
 
                                 val isCompleted = when {
-                                    personalAssignment.status == PersonalAssignmentStatus.SUBMITTED -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by status: SUBMITTED")
-                                        true
-                                    }
-                                    !personalAssignment.submittedAt.isNullOrEmpty() -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by submitted_at: ${personalAssignment.submittedAt}")
-                                        true
-                                    }
-                                    !personalAssignment.startedAt.isNullOrEmpty() && assignmentTotalQuestions > 0 && solvedNum >= assignmentTotalQuestions -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by solved_num: started=true, solved=$solvedNum, total=$assignmentTotalQuestions")
-                                        true
-                                    }
-                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalProblem > 0 && stats.totalProblem == stats.solvedProblem -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by statistics: started=true, total=${stats.totalProblem}, solved=${stats.solvedProblem}")
-                                        true
-                                    }
-                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalQuestions > 0 && stats.answeredQuestions >= stats.totalQuestions -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} completed by answeredQuestions: started=true, answered=${stats.answeredQuestions}, total=${stats.totalQuestions}")
-                                        true
-                                    }
-                                    else -> {
-                                        println("AssignmentViewModel - PA ${personalAssignment.id} NOT completed: status=${personalAssignment.status}, submittedAt=${personalAssignment.submittedAt}, startedAt=${personalAssignment.startedAt}, solvedNum=$solvedNum, totalQuestions=$assignmentTotalQuestions, statsTotal=${stats?.totalProblem}, statsSolved=${stats?.solvedProblem}, answeredQuestions=${stats?.answeredQuestions}, totalQuestions=${stats?.totalQuestions}")
-                                        false
-                                    }
+                                    personalAssignment.status == PersonalAssignmentStatus.SUBMITTED -> true
+                                    !personalAssignment.submittedAt.isNullOrEmpty() -> true
+                                    !personalAssignment.startedAt.isNullOrEmpty() && assignmentTotalQuestions > 0 && solvedNum >= assignmentTotalQuestions -> true
+                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalProblem > 0 && stats.totalProblem == stats.solvedProblem -> true
+                                    !personalAssignment.startedAt.isNullOrEmpty() && stats != null && stats.totalQuestions > 0 && stats.answeredQuestions >= stats.totalQuestions -> true
+                                    else -> false
                                 }
                                 isCompleted
                             }
 
                             val submittedCount = submittedAssignments.size
-                            println("AssignmentViewModel - Submitted count: $submittedCount, Total students: $actualTotalStudents")
 
                             if (submittedCount > 0) {
                                 val statisticsList = submittedAssignments.mapNotNull { (_, stats) -> stats }
-                                println("AssignmentViewModel - Loaded ${statisticsList.size} statistics")
 
                                 val averageScore = if (statisticsList.isNotEmpty()) {
-                                    val avg = statisticsList.map { it.accuracy }.average().toInt()
-                                    println("AssignmentViewModel - Average score: $avg")
-                                    avg
+                                    statisticsList.map { it.accuracy }.average().toInt()
                                 } else {
                                     0
                                 }
 
                                 val completionRate = if (actualTotalStudents > 0) {
-                                    val rate = (submittedCount * 100) / actualTotalStudents
-                                    println("AssignmentViewModel - Completion rate: $rate%")
-                                    rate
+                                    (submittedCount * 100) / actualTotalStudents
                                 } else {
                                     0
                                 }
@@ -525,24 +439,19 @@ class AssignmentViewModel @Inject constructor(
                                     completionRate = completionRate,
                                 )
 
-                                println("AssignmentViewModel - Setting statistics: $stats")
                                 _assignmentStatistics.value = stats
                             } else {
-                                println("AssignmentViewModel - No submitted assignments found")
                                 val stats = AssignmentStatistics(
                                     submittedStudents = 0,
                                     totalStudents = actualTotalStudents,
                                     averageScore = 0,
                                     completionRate = 0,
                                 )
-                                println("AssignmentViewModel - Setting statistics: $stats")
                                 _assignmentStatistics.value = stats
                             }
                         }
                     }
                     .onFailure { exception ->
-                        println("AssignmentViewModel - Failed to load personal assignments: ${exception.message}")
-                        exception.printStackTrace()
                         _error.value = ErrorMessageMapper.getErrorMessage(exception)
                         _assignmentResults.value = emptyList()
                         _assignmentStatistics.value = AssignmentStatistics(
@@ -553,8 +462,6 @@ class AssignmentViewModel @Inject constructor(
                         )
                     }
             } catch (e: Exception) {
-                println("AssignmentViewModel - Exception loading assignment statistics and results: ${e.message}")
-                e.printStackTrace()
                 _error.value = ErrorMessageMapper.getErrorMessage(e)
                 _assignmentResults.value = emptyList()
                 _assignmentStatistics.value = AssignmentStatistics(
@@ -656,11 +563,8 @@ class AssignmentViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            println("AssignmentViewModel - Loading personal assignments with filter for student ID: $studentId, filter: $filter")
             assignmentRepository.getPersonalAssignments(studentId)
                 .onSuccess { personalAssignments: List<PersonalAssignmentData> ->
-                    println("AssignmentViewModel - Received ${personalAssignments.size} personal assignments")
-
                     val filteredAssignments = when (filter) {
                         AssignmentFilter.ALL -> personalAssignments
                         AssignmentFilter.IN_PROGRESS -> personalAssignments.filter {
@@ -673,7 +577,6 @@ class AssignmentViewModel @Inject constructor(
                     }
 
                     val convertedAssignments: List<AssignmentData> = filteredAssignments.map { personalAssignment: PersonalAssignmentData ->
-                        println("AssignmentViewModel - Converting Filtered PersonalAssignment: ID=${personalAssignment.id}, Assignment ID=${personalAssignment.assignment.id}, Title=${personalAssignment.assignment.title}")
                         AssignmentData(
                             id = personalAssignment.assignment.id,
                             title = personalAssignment.assignment.title,
@@ -704,12 +607,9 @@ class AssignmentViewModel @Inject constructor(
                     }
 
                     _assignments.value = convertedAssignments
-                    println("AssignmentViewModel - Filtered to ${convertedAssignments.size} assignments")
-
                     calculateStudentStatsFromPersonalAssignments(personalAssignments)
                 }
                 .onFailure { exception ->
-                    println("AssignmentViewModel - Error: ${exception.message}")
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                 }
 
@@ -722,41 +622,24 @@ class AssignmentViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            println("AssignmentViewModel - Loading personal assignments with personal filter for student ID: $studentId, filter: $filter")
             assignmentRepository.getPersonalAssignments(studentId)
                 .onSuccess { personalAssignments: List<PersonalAssignmentData> ->
-                    println("AssignmentViewModel - Received ${personalAssignments.size} personal assignments")
-
-                    println("AssignmentViewModel - Filtering with filter: $filter")
-                    personalAssignments.forEach { assignment ->
-                        println("  - Assignment: ${assignment.assignment.title}, Status: ${assignment.status}")
-                    }
-
                     val filteredAssignments = when (filter) {
-                        PersonalAssignmentFilter.ALL -> {
-                            println("AssignmentViewModel - Filter: ALL - returning all ${personalAssignments.size} assignments")
-                            personalAssignments
-                        }
+                        PersonalAssignmentFilter.ALL -> personalAssignments
                         PersonalAssignmentFilter.NOT_STARTED -> {
-                            val filtered = personalAssignments.filter {
+                            personalAssignments.filter {
                                 it.status == PersonalAssignmentStatus.NOT_STARTED
                             }
-                            println("AssignmentViewModel - Filter: NOT_STARTED - found ${filtered.size} assignments")
-                            filtered
                         }
                         PersonalAssignmentFilter.IN_PROGRESS -> {
-                            val filtered = personalAssignments.filter {
+                            personalAssignments.filter {
                                 it.status == PersonalAssignmentStatus.IN_PROGRESS
                             }
-                            println("AssignmentViewModel - Filter: IN_PROGRESS - found ${filtered.size} assignments")
-                            filtered
                         }
                         PersonalAssignmentFilter.SUBMITTED -> {
-                            val filtered = personalAssignments.filter {
+                            personalAssignments.filter {
                                 it.status == PersonalAssignmentStatus.SUBMITTED
                             }
-                            println("AssignmentViewModel - Filter: SUBMITTED - found ${filtered.size} assignments")
-                            filtered
                         }
                     }
 
@@ -791,12 +674,9 @@ class AssignmentViewModel @Inject constructor(
                     }
 
                     _assignments.value = convertedAssignments
-                    println("AssignmentViewModel - Personal filter applied, showing ${convertedAssignments.size} assignments")
-
                     calculateStudentStatsFromPersonalAssignments(personalAssignments)
                 }
                 .onFailure { exception ->
-                    println("AssignmentViewModel - Error: ${exception.message}")
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                 }
 
@@ -809,23 +689,16 @@ class AssignmentViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            println("AssignmentViewModel - Loading pending assignments for student ID: $studentId")
             assignmentRepository.getPersonalAssignments(studentId)
                 .onSuccess { personalAssignments: List<PersonalAssignmentData> ->
-                    println("AssignmentViewModel - Received ${personalAssignments.size} personal assignments")
-
                     val pendingAssignments = personalAssignments.filter {
                         it.status == PersonalAssignmentStatus.NOT_STARTED ||
                             it.status == PersonalAssignmentStatus.IN_PROGRESS
                     }
 
-                    println("AssignmentViewModel - Found ${pendingAssignments.size} pending assignments")
-
                     val convertedAssignments: MutableList<AssignmentData> = mutableListOf()
 
                     pendingAssignments.forEach { personalAssignment ->
-                        println("AssignmentViewModel - Converting Pending PersonalAssignment: ID=${personalAssignment.id}, Assignment ID=${personalAssignment.assignment.id}, Title=${personalAssignment.assignment.title}")
-
                         assignmentRepository.getAssignmentById(personalAssignment.assignment.id)
                             .onSuccess { fullAssignment ->
                                 val assignmentData = AssignmentData(
@@ -843,15 +716,12 @@ class AssignmentViewModel @Inject constructor(
                                     personalAssignmentId = personalAssignment.id,
                                 )
                                 convertedAssignments.add(assignmentData)
-                                println("AssignmentViewModel - Added assignment with courseClass: ${fullAssignment.courseClass.name}, subject: ${fullAssignment.courseClass.subject.name}")
 
                                 if (convertedAssignments.size == pendingAssignments.size) {
                                     _assignments.value = convertedAssignments.toList()
-                                    println("AssignmentViewModel - All pending assignments loaded with courseClass info, showing ${convertedAssignments.size} assignments")
                                 }
                             }
                             .onFailure { e ->
-                                println("AssignmentViewModel - Failed to load full assignment ${personalAssignment.assignment.id}: ${e.message}")
                                 val assignmentData = AssignmentData(
                                     id = personalAssignment.assignment.id,
                                     title = personalAssignment.assignment.title,
@@ -884,13 +754,11 @@ class AssignmentViewModel @Inject constructor(
 
                     if (pendingAssignments.isEmpty()) {
                         _assignments.value = emptyList()
-                        println("AssignmentViewModel - No pending assignments found")
                     }
 
                     calculateStudentStatsFromPersonalAssignments(personalAssignments)
                 }
                 .onFailure { exception ->
-                    println("AssignmentViewModel - Error: ${exception.message}")
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                 }
 
@@ -903,16 +771,11 @@ class AssignmentViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            println("AssignmentViewModel - Loading completed assignments for student ID: $studentId")
             assignmentRepository.getPersonalAssignments(studentId)
                 .onSuccess { personalAssignments: List<PersonalAssignmentData> ->
-                    println("AssignmentViewModel - Received ${personalAssignments.size} personal assignments")
-
                     val completedAssignments = personalAssignments.filter {
                         it.status == PersonalAssignmentStatus.SUBMITTED
                     }
-
-                    println("AssignmentViewModel - Found ${completedAssignments.size} completed assignments")
 
                     val convertedAssignments: MutableList<AssignmentData> = mutableListOf()
 
@@ -938,11 +801,9 @@ class AssignmentViewModel @Inject constructor(
 
                                 if (convertedAssignments.size == completedAssignments.size) {
                                     _assignments.value = convertedAssignments.toList()
-                                    println("AssignmentViewModel - All completed assignments loaded with courseClass info")
                                 }
                             }
                             .onFailure { e ->
-                                println("AssignmentViewModel - Failed to load full assignment ${personalAssignment.assignment.id}: ${e.message}")
                                 val assignmentData = AssignmentData(
                                     id = personalAssignment.assignment.id,
                                     title = personalAssignment.assignment.title,
@@ -976,13 +837,11 @@ class AssignmentViewModel @Inject constructor(
 
                     if (completedAssignments.isEmpty()) {
                         _assignments.value = emptyList()
-                        println("AssignmentViewModel - No completed assignments found")
                     }
 
                     calculateStudentStatsFromPersonalAssignments(personalAssignments)
                 }
                 .onFailure { exception ->
-                    println("AssignmentViewModel - Error: ${exception.message}")
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                 }
 
@@ -992,9 +851,6 @@ class AssignmentViewModel @Inject constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     fun createAssignmentWithPdf(assignment: CreateAssignmentRequest, pdfFile: File, totalNumber: Int = 5, teacherId: String? = null) {
-        println("=== AssignmentViewModel.createAssignmentWithPdf 시작 ===")
-        println("PDF 파일: ${pdfFile.name}")
-
         viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
             kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                 _isCreatingAssignment.value = true
@@ -1004,12 +860,9 @@ class AssignmentViewModel @Inject constructor(
             }
 
             try {
-                println("1단계: 과제 생성")
                 val createResult = assignmentRepository.createAssignment(assignment)
 
                 createResult.onSuccess { createResponse ->
-                    println("과제 생성 성공: ${createResponse.assignment_id}")
-
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                         _uploadProgress.value = 0.3f
                         _currentAssignment.value = AssignmentData(
@@ -1033,27 +886,20 @@ class AssignmentViewModel @Inject constructor(
                         )
                     }
 
-                    println("2단계: PDF 업로드")
                     val uploadResult = assignmentRepository.uploadPdfToS3(createResponse.upload_url, pdfFile)
 
                     uploadResult.onSuccess {
-                        println("PDF 업로드 완료")
-
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                             _uploadProgress.value = 1f
                             _uploadSuccess.value = true
                             _isUploading.value = false
                             _isCreatingAssignment.value = false
-                            println("모든 로딩 상태 해제 완료")
                         }
 
                         kotlinx.coroutines.GlobalScope.launch(kotlinx.coroutines.Dispatchers.IO) {
                             try {
-                                println("[별도 스레드] 과제 목록 새로고침 (teacherId: $teacherId)")
                                 loadAllAssignments(teacherId = teacherId, silent = true)
-                                println("[별도 스레드] 과제 목록 새로고침 완료")
                             } catch (e: Exception) {
-                                println("[별도 스레드] 과제 목록 새로고침 실패: ${e.message}")
                             }
                         }
 
@@ -1065,7 +911,6 @@ class AssignmentViewModel @Inject constructor(
                             }
 
                             try {
-                                println("[별도 스레드] 문제 생성 시작")
                                 val result = assignmentRepository.createQuestionsAfterUpload(
                                     assignmentId = createResponse.assignment_id,
                                     materialId = createResponse.material_id,
@@ -1073,7 +918,6 @@ class AssignmentViewModel @Inject constructor(
                                 )
 
                                 result.onSuccess {
-                                    println("[별도 스레드] 문제 생성 완료")
                                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                                         _questionGenerationSuccess.value = true
                                         _isGeneratingQuestions.value = false
@@ -1082,14 +926,10 @@ class AssignmentViewModel @Inject constructor(
                                     }
 
                                     try {
-                                        println("[별도 스레드] 과제 목록 새로고침 (질문 생성 완료 후)")
                                         loadAllAssignments(silent = true)
-                                        println("[별도 스레드] 과제 목록 새로고침 완료 (질문 생성 완료 후)")
                                     } catch (e: Exception) {
-                                        println("[별도 스레드] 과제 목록 새로고침 실패 (질문 생성 완료 후): ${e.message}")
                                     }
                                 }.onFailure { e ->
-                                    println("[별도 스레드] 문제 생성 실패: ${e.message}")
                                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                                         _questionGenerationError.value = e.message
                                         _isGeneratingQuestions.value = false
@@ -1098,7 +938,6 @@ class AssignmentViewModel @Inject constructor(
                                     }
                                 }
                             } catch (e: Exception) {
-                                println("[별도 스레드] 문제 생성 예외: ${e.message}")
                                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                                     _questionGenerationError.value = e.message
                                     _isGeneratingQuestions.value = false
@@ -1108,7 +947,6 @@ class AssignmentViewModel @Inject constructor(
                             }
                         }
                     }.onFailure { e ->
-                        println("PDF 업로드 실패: ${e.message}")
                         kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                             _error.value = "PDF 업로드 실패: ${ErrorMessageMapper.getErrorMessage(e)}"
                             _isUploading.value = false
@@ -1116,7 +954,6 @@ class AssignmentViewModel @Inject constructor(
                         }
                     }
                 }.onFailure { e ->
-                    println("과제 생성 실패: ${e.message}")
                     kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                         _error.value = "과제 생성 실패: ${ErrorMessageMapper.getErrorMessage(e)}"
                         _isUploading.value = false
@@ -1124,8 +961,6 @@ class AssignmentViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
-                println("예외 발생: ${e.message}")
-                e.printStackTrace()
                 kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
                     _error.value = ErrorMessageMapper.getErrorMessage(e)
                     _isUploading.value = false
@@ -1216,7 +1051,6 @@ class AssignmentViewModel @Inject constructor(
 
     fun resetUploadState() {
         _uploadProgress.value = 0f.coerceIn(0f, 1f)
-        println("DEBUG: uploadProgress reset to 0f")
         _isUploading.value = false
         _uploadSuccess.value = false
         _isGeneratingQuestions.value = false
@@ -1234,7 +1068,6 @@ class AssignmentViewModel @Inject constructor(
     }
 
     fun cancelQuestionGeneration() {
-        println("AssignmentViewModel - Cancelling question generation")
         val assignmentId = generatingAssignmentId
 
         _isGeneratingQuestions.value = false
@@ -1244,7 +1077,6 @@ class AssignmentViewModel @Inject constructor(
         _questionGenerationCancelled.value = true
 
         if (assignmentId != null) {
-            println("AssignmentViewModel - Updating assignment $assignmentId: totalQuestions = 0")
             viewModelScope.launch {
                 try {
                     val updateRequest = UpdateAssignmentRequest.builder()
@@ -1252,20 +1084,16 @@ class AssignmentViewModel @Inject constructor(
                         .build()
                     assignmentRepository.updateAssignment(assignmentId, updateRequest)
                         .onSuccess {
-                            println("Assignment $assignmentId: totalQuestions가 0으로 업데이트됨")
                             generatingAssignmentId = null
                         }
                         .onFailure { e ->
-                            println("Assignment $assignmentId 업데이트 실패: ${e.message}")
                             generatingAssignmentId = null
                         }
                 } catch (e: Exception) {
-                    println("Assignment $assignmentId 업데이트 예외: ${e.message}")
                     generatingAssignmentId = null
                 }
             }
         } else {
-            println("AssignmentViewModel - No assignment ID to cancel")
             generatingAssignmentId = null
         }
     }
@@ -1278,17 +1106,6 @@ class AssignmentViewModel @Inject constructor(
             assignmentRepository.checkS3Upload(assignmentId)
                 .onSuccess { status ->
                     _s3UploadStatus.value = status
-                    println("=== S3 업로드 상태 확인 ===")
-                    println("과제 ID: ${status.assignment_id}")
-                    println("자료 ID: ${status.material_id}")
-                    println("S3 키: ${status.s3_key}")
-                    println("파일 존재: ${status.file_exists}")
-                    if (status.file_exists) {
-                        println("파일 크기: ${status.file_size} bytes")
-                        println("Content-Type: ${status.content_type}")
-                        println("마지막 수정: ${status.last_modified}")
-                    }
-                    println("버킷: ${status.bucket}")
                 }
                 .onFailure { exception ->
                     _error.value = "S3 확인 실패: ${ErrorMessageMapper.getErrorMessage(exception)}"
@@ -1303,16 +1120,13 @@ class AssignmentViewModel @Inject constructor(
     fun loadPersonalAssignmentQuestions(personalAssignmentId: Int) {
         viewModelScope.launch {
             if (lastLoadedPersonalAssignmentId == personalAssignmentId && _personalAssignmentQuestions.value.isNotEmpty()) {
-                println("AssignmentViewModel - Questions already loaded for personal assignment $personalAssignmentId")
                 return@launch
             }
 
             if (_isLoading.value) {
-                println("AssignmentViewModel - Already loading questions")
                 return@launch
             }
 
-            println("AssignmentViewModel - Loading questions for personal assignment $personalAssignmentId")
             _isLoading.value = true
             _error.value = null
 
@@ -1322,11 +1136,9 @@ class AssignmentViewModel @Inject constructor(
                     _personalAssignmentQuestions.value = safeQuestions
                     _currentQuestionIndex.value = 0
                     lastLoadedPersonalAssignmentId = personalAssignmentId
-                    println("AssignmentViewModel - Successfully loaded ${safeQuestions.size} questions")
                 }
                 .onFailure { exception ->
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
-                    println("AssignmentViewModel - Failed to load questions: ${exception.message}")
                 }
 
             _isLoading.value = false
@@ -1335,10 +1147,7 @@ class AssignmentViewModel @Inject constructor(
 
     fun loadAllQuestions(personalAssignmentId: Int) {
         viewModelScope.launch {
-            println("AssignmentViewModel - loadAllQuestions CALLED for personalAssignmentId: $personalAssignmentId")
-
             if (_isLoading.value) {
-                println("AssignmentViewModel - Already loading questions - RETURNING EARLY")
                 return@launch
             }
 
@@ -1346,36 +1155,23 @@ class AssignmentViewModel @Inject constructor(
             _error.value = null
 
             try {
-                println("AssignmentViewModel - Loading all base questions for progress calculation")
                 assignmentRepository.getPersonalAssignmentQuestions(personalAssignmentId)
                     .onSuccess { baseQuestions ->
-                        println("AssignmentViewModel - Loaded ${baseQuestions.size} base questions")
                         _totalBaseQuestions.value = baseQuestions.size
 
-                        println("AssignmentViewModel - Finding next question to solve")
                         assignmentRepository.getNextQuestion(personalAssignmentId)
                             .onSuccess { nextQuestion ->
-                                println("AssignmentViewModel - Found next question: ${nextQuestion.number}")
-
                                 _personalAssignmentQuestions.value = listOf(nextQuestion)
                                 _currentQuestionIndex.value = 0
-                                println("AssignmentViewModel - Set current question to next question")
                             }
                             .onFailure { exception ->
-                                println("AssignmentViewModel - No next question found: ${exception.message}")
-
                                 val message = exception.message ?: ""
                                 if (message.contains("모든 문제를 완료했습니다") ||
                                     message.contains("No more questions")
                                 ) {
-                                    println("AssignmentViewModel - All questions completed! Message: $message")
-
                                     assignmentRepository.getPersonalAssignmentStatistics(personalAssignmentId)
                                         .onSuccess { stats ->
-                                            println("AssignmentViewModel - Statistics: totalProblem=${stats.totalProblem}, solvedProblem=${stats.solvedProblem}")
-
                                             if (stats.totalProblem == stats.solvedProblem) {
-                                                println("AssignmentViewModel - All problems solved, completing assignment")
                                                 _personalAssignmentQuestions.value = emptyList()
                                                 _currentQuestionIndex.value = 0
                                                 _error.value = null
@@ -1383,23 +1179,19 @@ class AssignmentViewModel @Inject constructor(
 
                                                 completeAssignment(personalAssignmentId)
                                             } else {
-                                                println("AssignmentViewModel - Not all problems solved yet (totalProblem=${stats.totalProblem}, solvedProblem=${stats.solvedProblem})")
                                                 _personalAssignmentStatistics.value = stats
                                                 _error.value = "아직 모든 문제를 완료하지 못했습니다. (${stats.solvedProblem}/${stats.totalProblem})"
                                             }
                                         }
                                         .onFailure { statsException ->
-                                            println("AssignmentViewModel - Failed to load statistics: ${statsException.message}")
                                             _error.value = "통계를 확인할 수 없습니다: ${ErrorMessageMapper.getErrorMessage(statsException)}"
                                         }
                                 } else {
-                                    println("AssignmentViewModel - Other error: $message")
                                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                                 }
                             }
                     }
                     .onFailure { exception ->
-                        println("AssignmentViewModel - Failed to load base questions: ${exception.message}")
                         _error.value = ErrorMessageMapper.getErrorMessage(exception)
                     }
             } finally {
@@ -1410,79 +1202,54 @@ class AssignmentViewModel @Inject constructor(
 
     fun loadNextQuestion(personalAssignmentId: Int) {
         viewModelScope.launch {
-            println("AssignmentViewModel - loadNextQuestion CALLED for personalAssignmentId: $personalAssignmentId")
-            println("AssignmentViewModel - Current isLoading state: ${_isLoading.value}")
-
             if (_isLoading.value) {
-                println("AssignmentViewModel - Already loading next question - RETURNING EARLY")
                 return@launch
             }
 
-            println("AssignmentViewModel - Setting isLoading to true")
             _isLoading.value = true
             _error.value = null
 
             try {
-                println("AssignmentViewModel - Calling assignmentRepository.getNextQuestion")
                 assignmentRepository.getNextQuestion(personalAssignmentId)
                     .onSuccess { question ->
-                        println("AssignmentViewModel - SUCCESS: Received question: ${question.question}")
-
                         _isProcessing.value = question.isProcessing
-                        if (question.isProcessing) {
-                            println("AssignmentViewModel - Question is still processing")
-                        } else {
+                        if (!question.isProcessing) {
                             _personalAssignmentQuestions.value = listOf(question)
                             _currentQuestionIndex.value = 0
-                            println("AssignmentViewModel - Successfully loaded next question: ${question.question}")
                         }
                     }
                     .onFailure { exception ->
-                        println("AssignmentViewModel - FAILURE: ${exception.message}")
-
                         if (exception.message?.contains("No more questions") == true ||
                             exception.message?.contains("모든 문제를 완료했습니다") == true
                         ) {
-                            println("AssignmentViewModel - All questions completed - checking statistics")
-
                             assignmentRepository.getPersonalAssignmentStatistics(personalAssignmentId)
                                 .onSuccess { stats ->
-                                    println("AssignmentViewModel - Statistics: totalProblem=${stats.totalProblem}, solvedProblem=${stats.solvedProblem}")
-
                                     if (stats.totalProblem == stats.solvedProblem) {
-                                        println("AssignmentViewModel - All problems solved - setting empty list")
                                         _personalAssignmentQuestions.value = emptyList()
                                         _error.value = null
                                         _personalAssignmentStatistics.value = stats
                                     } else {
-                                        println("AssignmentViewModel - Not all problems solved yet (totalProblem=${stats.totalProblem}, solvedProblem=${stats.solvedProblem})")
                                         _personalAssignmentStatistics.value = stats
                                         _error.value = "아직 모든 문제를 완료하지 못했습니다. (${stats.solvedProblem}/${stats.totalProblem})"
                                     }
                                 }
                                 .onFailure { statsException ->
-                                    println("AssignmentViewModel - Failed to load statistics: ${statsException.message}")
                                     _error.value = "통계를 확인할 수 없습니다: ${statsException.message}"
                                 }
                         } else {
                             _error.value = ErrorMessageMapper.getErrorMessage(exception)
-                            println("AssignmentViewModel - Failed to load next question: ${exception.message}")
                         }
                     }
             } finally {
-                println("AssignmentViewModel - Setting isLoading to false")
                 _isLoading.value = false
-                println("AssignmentViewModel - loadNextQuestion COMPLETED")
             }
         }
     }
     fun refreshProcessingStatus(personalAssignmentId: Int) {
         viewModelScope.launch {
-            println("AssignmentViewModel - refreshProcessingStatus CALLED for personalAssignmentId: $personalAssignmentId")
             assignmentRepository.getNextQuestion(personalAssignmentId)
                 .onSuccess { question ->
                     _isProcessing.value = question.isProcessing
-                    println("AssignmentViewModel - refreshProcessingStatus: isProcessing=${question.isProcessing}")
 
                     if (!question.isProcessing) {
                         _personalAssignmentQuestions.value = listOf(question)
@@ -1491,7 +1258,6 @@ class AssignmentViewModel @Inject constructor(
                 }
                 .onFailure { e ->
                     val msg = e.message ?: ""
-                    println("AssignmentViewModel - Failed to refresh processing status: ${e.message}")
                     if (msg.contains("모든 문제를 완료했습니다")) {
                         _isProcessing.value = false
                         _isAssignmentCompleted.value = true
@@ -1507,21 +1273,11 @@ class AssignmentViewModel @Inject constructor(
             _isLoading.value = true
             _error.value = null
 
-            println("AssignmentViewModel - Loading statistics for PersonalAssignment ID: $personalAssignmentId")
             assignmentRepository.getPersonalAssignmentStatistics(personalAssignmentId)
                 .onSuccess { statistics ->
-                    println("AssignmentViewModel - Statistics loaded successfully:")
-                    println("  - progress: ${statistics.progress}")
-                    println("  - totalProblem: ${statistics.totalProblem}")
-                    println("  - solvedProblem: ${statistics.solvedProblem}")
-                    println("  - totalQuestions: ${statistics.totalQuestions}")
-                    println("  - answeredQuestions: ${statistics.answeredQuestions}")
-                    println("  - correctAnswers: ${statistics.correctAnswers}")
-                    println("  - accuracy: ${statistics.accuracy}")
                     _personalAssignmentStatistics.value = statistics
                 }
                 .onFailure { exception ->
-                    println("AssignmentViewModel - Failed to load statistics: ${exception.message}")
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
                 }
 
@@ -1577,23 +1333,15 @@ class AssignmentViewModel @Inject constructor(
                 .onSuccess { response ->
                     _answerSubmissionResponse.value = response
 
-                    println("AssignmentViewModel - Answer submitted successfully")
-                    println("AssignmentViewModel - isCorrect: ${response.isCorrect}, numberStr: ${response.numberStr}")
-
                     assignmentRepository.getPersonalAssignmentStatistics(personalAssignmentId)
                         .onSuccess { stats ->
-                            println("AssignmentViewModel - Statistics updated after answer submission:")
-                            println("  - solvedProblem: ${stats.solvedProblem}")
-                            println("  - totalProblem: ${stats.totalProblem}")
                             _personalAssignmentStatistics.value = stats
                         }
                         .onFailure { statsException ->
-                            println("AssignmentViewModel - Failed to reload statistics: ${statsException.message}")
                         }
                 }
                 .onFailure { exception ->
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
-                    println("AssignmentViewModel - Failed to submit answer: ${exception.message}")
                 }
 
             _isSubmitting.value = false
@@ -1616,14 +1364,12 @@ class AssignmentViewModel @Inject constructor(
     }
 
     fun stopRecordingImmediately() {
-        println("AssignmentViewModel - Stopping recording immediately")
         _audioRecordingState.value = _audioRecordingState.value.copy(
             isRecording = false,
         )
     }
 
     fun stopRecordingWithFilePath(audioFilePath: String) {
-        println("AssignmentViewModel - Stopping recording with file path: $audioFilePath")
         _audioRecordingState.value = _audioRecordingState.value.copy(
             isRecording = false,
             audioFilePath = audioFilePath,
@@ -1646,24 +1392,18 @@ class AssignmentViewModel @Inject constructor(
     }
 
     fun moveToQuestionByNumber(questionNumber: String, personalAssignmentId: Int) {
-        println("AssignmentViewModel - moveToQuestionByNumber called with: $questionNumber")
-
         if (!QuestionGroupFactory.isBaseQuestion(questionNumber)) {
-            println("AssignmentViewModel - This is a tail question: $questionNumber")
             return
         }
 
         val targetNumber = questionNumber.toIntOrNull() ?: return
-        println("AssignmentViewModel - Target question number: $targetNumber")
 
         val questions = _personalAssignmentQuestions.value
         val targetIndex = questions.indexOfFirst { it.number == questionNumber }
 
         if (targetIndex != -1) {
-            println("AssignmentViewModel - Found question at index: $targetIndex")
             _currentQuestionIndex.value = targetIndex
         } else {
-            println("AssignmentViewModel - Question $questionNumber not found in current list, loading from server")
             loadNextQuestion(personalAssignmentId)
         }
     }
@@ -1717,7 +1457,6 @@ class AssignmentViewModel @Inject constructor(
 
     fun completeAssignment(personalAssignmentId: Int) {
         viewModelScope.launch {
-            println("AssignmentViewModel - Completing assignment: $personalAssignmentId")
             try {
                 var assignmentId: Int? = null
                 assignmentRepository.getPersonalAssignments(assignmentId = null)
@@ -1728,8 +1467,6 @@ class AssignmentViewModel @Inject constructor(
 
                 assignmentRepository.completePersonalAssignment(personalAssignmentId)
                     .onSuccess {
-                        println("AssignmentViewModel - Assignment completed successfully")
-
                         _isAssignmentCompleted.value = true
                         _personalAssignmentQuestions.value = emptyList()
                         _currentQuestionIndex.value = 0
@@ -1749,11 +1486,9 @@ class AssignmentViewModel @Inject constructor(
                         }
                     }
                     .onFailure { exception ->
-                        println("AssignmentViewModel - Error completing assignment: ${exception.message}")
                         _error.value = ErrorMessageMapper.getErrorMessage(exception)
                     }
             } catch (e: Exception) {
-                println("AssignmentViewModel - Error completing assignment: ${e.message}")
                 _error.value = e.message
             }
         }
@@ -1812,26 +1547,21 @@ class AssignmentViewModel @Inject constructor(
                 )
             }
         } catch (e: Exception) {
-            println("AssignmentViewModel - Error getting assignment stats: ${e.message}")
-            e.printStackTrace()
             AssignmentStatistics(0, 0, 0, 0)
         }
     }
 
     fun loadAssignmentCorrectness(personalAssignmentId: Int) {
         viewModelScope.launch {
-            println("AssignmentViewModel - Loading correctness for personal assignment $personalAssignmentId")
             _isLoading.value = true
             _error.value = null
 
             assignmentRepository.getAssignmentCorrectness(personalAssignmentId)
                 .onSuccess { correctnessData ->
                     _assignmentCorrectness.value = correctnessData
-                    println("AssignmentViewModel - Successfully loaded ${correctnessData.size} correctness items")
                 }
                 .onFailure { exception ->
                     _error.value = ErrorMessageMapper.getErrorMessage(exception)
-                    println("AssignmentViewModel - Failed to load correctness: ${exception.message}")
                 }
 
             _isLoading.value = false

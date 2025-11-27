@@ -44,9 +44,7 @@ class AudioRecorder(private val context: Context) {
 
     fun startRecording(): Boolean {
         return try {
-            println("AudioRecorder - Starting recording...")
             if (_recordingState.value.isRecording) {
-                println("AudioRecorder - Already recording, returning false")
                 return false
             }
 
@@ -108,11 +106,6 @@ class AudioRecorder(private val context: Context) {
             startTimer()
             startRecordingJob(audioFile, bufferSize)
 
-            println("AudioRecorder - Recording started successfully")
-            println("AudioRecorder - Audio file: ${audioFile.absolutePath}")
-            println("AudioRecorder - Buffer size: $bufferSize")
-            println("AudioRecorder - Sample rate: ${audioConfig.sampleRate}")
-
             true
         } catch (e: Exception) {
             _recordingState.value = _recordingState.value.copy(
@@ -142,15 +135,12 @@ class AudioRecorder(private val context: Context) {
 
             val currentFilePath = _recordingState.value.audioFilePath
             if (currentFilePath != null && currentFilePath.endsWith(".pcm")) {
-                println("AudioRecorder - Converting PCM to WAV: $currentFilePath")
                 val wavFilePath = convertPcmToWav(currentFilePath)
                 if (wavFilePath != null) {
-                    println("AudioRecorder - Successfully converted to WAV: $wavFilePath")
                     _recordingState.value = _recordingState.value.copy(
                         audioFilePath = wavFilePath,
                     )
                 } else {
-                    println("AudioRecorder - Failed to convert PCM to WAV")
                     _recordingState.value = _recordingState.value.copy(
                         error = "PCM to WAV 변환 실패",
                     )
@@ -171,7 +161,6 @@ class AudioRecorder(private val context: Context) {
                 _recordingState.value = _recordingState.value.copy(recordingTime = elapsedTime)
 
                 if (elapsedTime >= audioConfig.maxRecordingDurationSeconds) {
-                    println("AudioRecorder - 최대 녹음 시간 도달, 자동 중지")
                     stopRecording()
                     break
                 }
@@ -224,60 +213,36 @@ class AudioRecorder(private val context: Context) {
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val fileName = "voice_recording_$timestamp.pcm"
 
-            println("AudioRecorder - Creating audio file: $fileName")
-
             val audioDir = File(context.filesDir, "audio_recordings")
             if (!audioDir.exists()) {
                 audioDir.mkdirs()
-                println("AudioRecorder - Created audio directory: ${audioDir.absolutePath}")
             }
 
             val audioFile = File(audioDir, fileName)
-            println("AudioRecorder - Audio file path: ${audioFile.absolutePath}")
-
             audioFile
         } catch (e: Exception) {
-            println("AudioRecorder - Error creating audio file: ${e.message}")
-            e.printStackTrace()
             null
         }
     }
 
     fun convertPcmToWav(pcmFilePath: String): String? {
         return try {
-            println("AudioRecorder - Starting PCM to WAV conversion")
-            println("AudioRecorder - PCM file path: $pcmFilePath")
-
             val pcmFile = File(pcmFilePath)
             if (!pcmFile.exists()) {
-                println("AudioRecorder - PCM file does not exist: $pcmFilePath")
                 return null
             }
-
-            println("AudioRecorder - PCM file size: ${pcmFile.length()} bytes")
 
             val wavFilePath = pcmFilePath.replace(".pcm", ".wav")
             val wavFile = File(wavFilePath)
 
-            println("AudioRecorder - Target WAV file path: $wavFilePath")
-
             val pcmData = pcmFile.readBytes()
-            println("AudioRecorder - Read ${pcmData.size} bytes from PCM file")
-
             val wavData = createWavFile(pcmData, audioConfig.sampleRate)
-            println("AudioRecorder - Created WAV data: ${wavData.size} bytes")
 
             wavFile.writeBytes(wavData)
-            println("AudioRecorder - WAV file written successfully")
-            println("AudioRecorder - WAV file size: ${wavFile.length()} bytes")
-
             pcmFile.delete()
-            println("AudioRecorder - PCM file deleted")
 
             wavFilePath
         } catch (e: Exception) {
-            println("AudioRecorder - Error converting PCM to WAV: ${e.message}")
-            e.printStackTrace()
             null
         }
     }
@@ -416,8 +381,6 @@ class AudioRecorder(private val context: Context) {
 
     fun createEmptyWavFile(): File? {
         return try {
-            println("AudioRecorder - Creating empty WAV file for skip")
-
             val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
             val fileName = "voice_skip_$timestamp.wav"
 
@@ -439,11 +402,8 @@ class AudioRecorder(private val context: Context) {
                 outputStream.write(silentData)
             }
 
-            println("AudioRecorder - Empty WAV file created: ${wavFile.absolutePath}")
             wavFile
         } catch (e: Exception) {
-            println("AudioRecorder - Error creating empty WAV file: ${e.message}")
-            e.printStackTrace()
             null
         }
     }

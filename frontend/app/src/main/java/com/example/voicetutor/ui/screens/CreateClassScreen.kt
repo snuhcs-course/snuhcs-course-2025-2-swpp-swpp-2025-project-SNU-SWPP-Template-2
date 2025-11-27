@@ -235,7 +235,7 @@ private fun CreateClassButton(
             onClassCreate(createClassRequest)
         },
         modifier = Modifier.fillMaxWidth(),
-        enabled = !isLoading && className.isNotBlank() && subject.isNotBlank() && description.isNotBlank() && classNameError == null,
+        enabled = !isLoading && className.isNotBlank() && subject.isNotBlank() && classNameError == null,
         variant = ButtonVariant.Gradient,
         leadingIcon = {
             Icon(

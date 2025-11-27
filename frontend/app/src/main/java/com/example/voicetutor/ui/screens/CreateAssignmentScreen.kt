@@ -88,38 +88,13 @@ fun CreateAssignmentScreen(
         contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
         uri?.let {
-            println("=== PDF 파일 선택 디버그 ===")
-            println("선택된 URI: $uri")
-            println("URI 스키마: ${uri.scheme}")
-            println("URI 호스트: ${uri.host}")
-            println("URI 경로: ${uri.path}")
-            println("URI 쿼리: ${uri.query}")
-
-            try {
-                val fileName = uri.lastPathSegment
-                println("URI에서 추출한 파일명: $fileName")
-            } catch (e: Exception) {
-                println("URI에서 파일명 추출 실패: ${e.message}")
-            }
-
             coroutineScope.launch {
                 fileManager.saveFile(uri, fileType = FileType.DOCUMENT)
                     .onSuccess { fileInfo ->
-                        println("파일 저장 성공")
-                        println("원본 파일명: ${fileInfo.name}")
-                        println("파일 경로: ${fileInfo.path}")
-                        println("파일 크기: ${fileInfo.size} bytes")
-                        println("파일 타입: ${fileInfo.type}")
-                        println("파일 확장자: ${fileInfo.name.substringAfterLast('.', "")}")
-
                         selectedFiles = listOf(fileInfo)
                         selectedPdfFile = File(fileInfo.path)
-                        println("selectedPdfFile 설정됨: ${selectedPdfFile?.name}")
-                        println("selectedPdfFile 절대 경로: ${selectedPdfFile?.absolutePath}")
                     }
-                    .onFailure { exception ->
-                        println("파일 저장 실패: ${exception.message}")
-                    }
+                    .onFailure { }
             }
         }
     }
@@ -191,7 +166,6 @@ fun CreateAssignmentScreen(
     LaunchedEffect(currentAssignment, assignmentCreated, uploadSuccess) {
         if (assignmentCreated && uploadSuccess) {
             currentAssignment?.let { assignment ->
-                println("Assignment and PDF upload completed successfully: ${assignment.title}")
                 onCreateAssignment(assignment.title)
             }
         }
@@ -826,24 +800,10 @@ fun CreateAssignmentScreen(
                                 .totalQuestions(questionCountInt)
                                 .build()
 
-                            println("=== 과제 생성 디버그 ===")
-                            println("Creating assignment: $createRequest")
-                            println("Grade: $selectedGrade, Subject: $selectedSubject")
-                            println("PDF files: ${selectedFiles.map { it.name }}")
-                            println("selectedPdfFile: ${selectedPdfFile?.name}")
-                            println("selectedPdfFile != null: ${selectedPdfFile != null}")
-                            println("selectedFiles.size: ${selectedFiles.size}")
-                            println("문제 개수: $questionCountInt (입력값: $questionCount)")
-                            println("total_questions: ${createRequest.total_questions}")
-
                             val pdfFile = selectedPdfFile
                             if (pdfFile != null) {
-                                println("PDF 업로드와 함께 과제 생성")
-                                println("PDF 파일: ${pdfFile.name}")
-                                println("파일 크기: ${pdfFile.length()} bytes")
                                 actualAssignmentViewModel.createAssignmentWithPdf(createRequest, pdfFile, totalNumber = questionCountInt, teacherId = actualTeacherId)
                             } else {
-                                println("PDF 파일이 없음 - 일반 과제 생성")
                                 actualAssignmentViewModel.createAssignment(createRequest, teacherId = actualTeacherId)
                             }
 
