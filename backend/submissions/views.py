@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from questions.factories import TailQuestionFactory
 from questions.models import Question
 from questions.serializers import TailQuestionSerializer
 from rest_framework import status
@@ -699,15 +700,14 @@ class AnswerSubmitView(APIView):
                                 tail_question_obj = existing_tail_question
                             else:
                                 # Tail Question 생성
-                                tail_question_obj = Question.objects.create(
-                                    personal_assignment=personal_assignment,
-                                    number=question.number,  # 원본 질문과 동일한 번호 사용 (base question number)
+                                tail_question_factory = TailQuestionFactory()
+                                tail_question_obj = tail_question_factory.create_question(
+                                    base_question=question,
                                     content=tail_question_data.get("question", ""),
                                     model_answer=tail_question_data.get("model_answer", ""),
                                     explanation=tail_question_data.get("explanation", ""),
                                     difficulty=tail_question_data.get("difficulty", Question.Difficulty.MEDIUM),
                                     recalled_num=recalled_time,
-                                    base_question=question,  # 원본 질문 연결
                                 )
                                 logger.info(
                                     f"[AnswerSubmitView] Tail Question 객체 생성 완료 - Question ID: {tail_question_obj.id}"

@@ -13,10 +13,10 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from submissions.models import PersonalAssignment
 
+from .factories import BaseQuestionFactory
 from .models import Question
 from .request_serializers import QuestionCreateRequestSerializer
 from .serializers import QuestionCreateSerializer
-from .utils.achievement_mapper import infer_relevant_achievement_codes_from_summary
 from .utils.base_question_generator import generate_base_quizzes
 from .utils.pdf_to_text import summarize_pdf_from_s3
 
@@ -42,6 +42,7 @@ class QuestionCreateView(APIView):
         },
     )
     def post(self, request):
+        base_question_factory = BaseQuestionFactory()
         try:
             serializer = QuestionCreateRequestSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
@@ -108,36 +109,8 @@ class QuestionCreateView(APIView):
                 material.summary = summarized_text
                 material.save()
 
-            # 과목명과 학년 정보 추출
-            subject_name = assignment.subject.name
-            grade = assignment.grade
-
-            # PDF summary 기반으로 관련 성취기준 코드들을 한 번에 추론 (API 호출 1회)
-            achievement_result = {}
             try:
-                achievement_result = infer_relevant_achievement_codes_from_summary(
-                    summary_text=summarized_text,
-                    subject_name=subject_name,
-                    grade=grade,
-                    max_codes=5,
-                )
-                if achievement_result.get("codes"):
-                    print(
-                        f"Inferred {len(achievement_result['codes'])} achievement codes: {achievement_result['codes']}"
-                    )
-                else:
-                    print("Warning: No achievement codes inferred from summary")
-            except Exception as achievement_error:
-                # achievement_code 추론 실패는 경고만 출력하고 계속 진행
-                print(f"Warning: Failed to infer achievement codes: {str(achievement_error)}")
-
-            try:
-                # 추론된 성취기준을 활용하여 질문 생성
-                quizzes = generate_base_quizzes(
-                    material_text=summarized_text,
-                    n=data["total_number"],
-                    achievement_codes=achievement_result if achievement_result.get("codes") else None,
-                )
+                quizzes = generate_base_quizzes(summarized_text, n=data["total_number"])
             except RuntimeError as e:
                 if "interpreter shutdown" in str(e).lower() or "cannot schedule" in str(e).lower():
                     error_msg = "문제 생성 중 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
@@ -171,11 +144,10 @@ class QuestionCreateView(APIView):
                 for personal_assignment in personal_assignments:
                     for i, quiz in enumerate(quizzes, 1):
                         try:
-                            q = Question.objects.create(
+                            q = base_question_factory.create_question(
                                 personal_assignment=personal_assignment,
                                 number=i,
                                 content=quiz.question,
-                                recalled_num=0,
                                 explanation=quiz.explanation,
                                 model_answer=quiz.model_answer,
                                 difficulty=quiz.difficulty.lower(),
