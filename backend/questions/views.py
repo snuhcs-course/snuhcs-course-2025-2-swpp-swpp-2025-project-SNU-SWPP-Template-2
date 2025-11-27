@@ -114,7 +114,8 @@ class QuestionCreateView(APIView):
             subject_name = assignment.subject.name
             grade = assignment.grade
 
-            # PDF summary 기반으로 관련 성취기준 코드들을 한 번에 추론 (API 호출 1회)
+            # PDF summary 기반으로 관련 성취기준 코드들을 한 번에 추론
+            # RoBERTa 모델로 top-20 필터링 후 GPT API 호출
             achievement_result = {}
             try:
                 achievement_result = infer_relevant_achievement_codes_from_summary(
@@ -122,6 +123,7 @@ class QuestionCreateView(APIView):
                     subject_name=subject_name,
                     grade=grade,
                     max_codes=5,
+                    top_k=20,
                 )
                 if achievement_result.get("codes"):
                     print(
