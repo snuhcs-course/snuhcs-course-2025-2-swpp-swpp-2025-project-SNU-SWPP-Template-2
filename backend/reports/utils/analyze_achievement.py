@@ -49,13 +49,13 @@ def parse_curriculum(student_id, class_id):
     achievement_standards = []
 
     try:
-        with open(csv_file_path, "r", encoding="utf-8") as file:
+        with open(csv_file_path, "r", encoding="cp949") as file:
             reader = csv.DictReader(file)
             for row in reader:
                 achievement_standards.append(row)
     except UnicodeDecodeError:
         # cp949로 읽기 실패시 utf-8로 시도
-        with open(csv_file_path, "r", encoding="cp949") as file:
+        with open(csv_file_path, "r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             for row in reader:
                 achievement_standards.append(row)

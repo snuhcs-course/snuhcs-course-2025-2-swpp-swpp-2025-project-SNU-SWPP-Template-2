@@ -13,6 +13,7 @@ import com.example.voicetutor.data.models.PersonalAssignmentFilter
 import com.example.voicetutor.data.models.PersonalAssignmentQuestion
 import com.example.voicetutor.data.models.PersonalAssignmentStatistics
 import com.example.voicetutor.data.models.PersonalAssignmentStatus
+import com.example.voicetutor.data.models.QuestionGroupFactory
 import com.example.voicetutor.data.models.StudentResult
 import com.example.voicetutor.data.models.Subject
 import com.example.voicetutor.data.network.CreateAssignmentRequest
@@ -1647,7 +1648,7 @@ class AssignmentViewModel @Inject constructor(
     fun moveToQuestionByNumber(questionNumber: String, personalAssignmentId: Int) {
         println("AssignmentViewModel - moveToQuestionByNumber called with: $questionNumber")
 
-        if (questionNumber.contains("-")) {
+        if (!QuestionGroupFactory.isBaseQuestion(questionNumber)) {
             println("AssignmentViewModel - This is a tail question: $questionNumber")
             return
         }

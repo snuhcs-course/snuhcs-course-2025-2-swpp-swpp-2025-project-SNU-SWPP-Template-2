@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.voicetutor.audio.AudioRecorder
+import com.example.voicetutor.data.models.QuestionGroupFactory
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
@@ -178,7 +179,7 @@ fun AssignmentScreen(
                     }
 
                     // numberStr에 하이픈이 포함되면 꼬리 질문, 아니면 다음 기본 질문
-                    val isTailQuestion = response.numberStr.contains("-")
+                    val isTailQuestion = response.numberStr?.let { QuestionGroupFactory.isBaseQuestion(it).not() } ?: false
 
                     if (isTailQuestion) {
                         currentTailQuestionNumber = response.numberStr
@@ -371,7 +372,7 @@ fun AssignmentScreen(
                                             )
                                         }
                                         // Case 2: 꼬리 질문으로 이동
-                                        response.numberStr.contains("-") -> {
+                                        response.numberStr?.let { !QuestionGroupFactory.isBaseQuestion(it) } == true -> {
                                             VTButton(
                                                 text = "꼬리질문으로 넘어가기",
                                                 onClick = {
@@ -423,11 +424,11 @@ fun AssignmentScreen(
                             ) {
                                 // 질문 번호 표시
                                 val questionNumber = currentTailQuestionNumber?.let { tailNumber ->
-                                    if (tailNumber.contains("-")) "꼬리 질문 $tailNumber" else "질문 $tailNumber"
+                                    if (!QuestionGroupFactory.isBaseQuestion(tailNumber)) "꼬리 질문 $tailNumber" else "질문 $tailNumber"
                                 } ?: run {
                                     val response = answerSubmissionResponse
-                                    if (response?.numberStr != null && !response.numberStr.contains(
-                                            "-",
+                                    if (response?.numberStr != null && QuestionGroupFactory.isBaseQuestion(
+                                            response.numberStr,
                                         )
                                     ) {
                                         "질문 ${response.numberStr}"
