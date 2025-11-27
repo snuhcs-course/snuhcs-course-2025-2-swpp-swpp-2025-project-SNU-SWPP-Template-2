@@ -445,7 +445,7 @@ Input:
 "Student: 백도요"),
 
 Output:
-{{"is_correct": true}}
+{{"is_correct": false}}
 
 # Contradiction
 
@@ -456,7 +456,7 @@ Input:
 "Student: 어.. 양전하였나?"),
 
 Output:
-{{"is_correct": true}}
+{{"is_correct": false}}
 
 # Concise entailment
 
