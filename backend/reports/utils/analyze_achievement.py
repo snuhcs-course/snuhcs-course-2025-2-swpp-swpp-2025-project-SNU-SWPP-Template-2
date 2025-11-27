@@ -8,12 +8,17 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import requests
 from django.conf import settings
+from django.db.models import Q
 from questions.models import Question
 from submissions.models import Answer, PersonalAssignment
 
 from .achievement_inference import filter_standards_by_model
 
 logger = logging.getLogger(__name__)
+
+# 성취기준을 찾을 수 없음을 나타내는 특별한 값
+# 이 값이 저장되면 다음 실행 시 다시 처리하지 않음
+ACHIEVEMENT_CODE_NOT_FOUND = "__NOT_FOUND__"
 
 # Thread-safe storage for timing statistics
 _timing_stats_lock = threading.Lock()
@@ -107,11 +112,16 @@ def parse_curriculum(student_id, class_id):
     """
 
     # 1. 해당 학생과 클래스에 해당하는 질문들 찾기
-    questions = Question.objects.filter(
-        personal_assignment__student_id=student_id,
-        personal_assignment__assignment__course_class_id=class_id,
-        achievement_code__isnull=True,  # achievement_code가 null인 것만
-    ).select_related("personal_assignment__assignment__subject", "personal_assignment__assignment")
+    # achievement_code가 null이거나 빈 문자열인 것만 처리
+    # ACHIEVEMENT_CODE_NOT_FOUND 값이 있으면 이미 처리된 것이므로 제외
+    questions = (
+        Question.objects.filter(
+            personal_assignment__student_id=student_id,
+            personal_assignment__assignment__course_class_id=class_id,
+        )
+        .filter(Q(achievement_code__isnull=True) | Q(achievement_code=""))
+        .select_related("personal_assignment__assignment__subject", "personal_assignment__assignment")
+    )
 
     logger.info(
         f"Found {questions.count()} questions without achievement_code for student {student_id} in class {class_id}"
@@ -181,7 +191,14 @@ def parse_curriculum(student_id, class_id):
                 question.save()
                 logger.info(f"Updated achievement_code to: {best_achievement_code}")
             else:
-                logger.warning(f"Could not determine best achievement code for question {question.id}")
+                # 성취기준을 찾지 못한 경우 NOT_FOUND로 저장하여
+                # 다음 실행 시 다시 처리하지 않도록 함
+                question.achievement_code = ACHIEVEMENT_CODE_NOT_FOUND
+                question.save()
+                logger.warning(
+                    f"Could not determine best achievement code for question {question.id}, "
+                    f"marked as {ACHIEVEMENT_CODE_NOT_FOUND}"
+                )
 
         except Exception as e:
             logger.error(f"Error processing question {question.id}: {str(e)}")
@@ -221,12 +238,18 @@ def calculate_statistics(student_id, class_id):
     """
 
     # SUBMITTED 상태의 PersonalAssignment에 해당하는 질문들과 답안들 조회
-    submitted_questions = Question.objects.filter(
-        personal_assignment__student_id=student_id,
-        personal_assignment__assignment__course_class_id=class_id,
-        personal_assignment__status=PersonalAssignment.Status.SUBMITTED,
-        achievement_code__isnull=False,  # 성취기준이 설정된 것만
-    ).select_related("personal_assignment")
+    # 성취기준이 유효하게 설정된 것만 (null, 빈 문자열, NOT_FOUND 제외)
+    submitted_questions = (
+        Question.objects.filter(
+            personal_assignment__student_id=student_id,
+            personal_assignment__assignment__course_class_id=class_id,
+            personal_assignment__status=PersonalAssignment.Status.SUBMITTED,
+            achievement_code__isnull=False,
+        )
+        .exclude(achievement_code="")
+        .exclude(achievement_code=ACHIEVEMENT_CODE_NOT_FOUND)
+        .select_related("personal_assignment")
+    )
 
     # 해당 질문들에 대한 답안들 조회
     answers = Answer.objects.filter(question__in=submitted_questions, student_id=student_id).select_related("question")
