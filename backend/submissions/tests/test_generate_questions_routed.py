@@ -1,18 +1,3 @@
-"""
-Tests for generate_questions_routed.py
-
-Covers:
-- format_student_context function
-- decide_bucket_confidence function
-- decide_plan function
-- only_correct_node function
-- route_after_derive function
-- derive_and_route_node function
-- planner_node function (mocked LLM)
-- actor_node function (mocked LLM)
-- generate_tail_question function (mocked LLM)
-"""
-
 import json
 from unittest.mock import MagicMock, patch
 
