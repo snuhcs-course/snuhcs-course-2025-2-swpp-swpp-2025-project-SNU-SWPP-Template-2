@@ -41,6 +41,16 @@ fun AssignmentDetailedResultsScreen(
     val error by viewModel.error.collectAsState()
     val statistics by viewModel.personalAssignmentStatistics.collectAsState()
 
+    // 네트워크 에러가 아닌 경우에만 에러를 클리어합니다.
+    // 네트워크 에러는 detailedResults.isEmpty()일 때 구분하기 위해 유지합니다.
+    error?.let { errorMessage ->
+        LaunchedEffect(errorMessage) {
+            if (!ErrorMessageMapper.isNetworkError(errorMessage)) {
+                viewModel.clearError()
+            }
+        }
+    }
+
     val detailedResults = remember(correctnessData) {
         correctnessData.map { item ->
             DetailedQuestionResult(
@@ -76,38 +86,68 @@ fun AssignmentDetailedResultsScreen(
         ) {
             CircularProgressIndicator()
         }
-    } else if (error != null) {
+    } else if (error != null && detailedResults.isNotEmpty()) {
+        // 에러가 있지만 결과 데이터가 있는 경우 (통계 로딩 실패 등)
+        // 네트워크 에러가 아닌 경우에만 표시
+        val isNetworkError = ErrorMessageMapper.isNetworkError(error)
+        if (!isNetworkError) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Error,
+                        contentDescription = null,
+                        tint = Error,
+                        modifier = Modifier.size(48.dp),
+                    )
+                    Text(
+                        text = "오류가 발생했습니다",
+                        color = Error,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text = ErrorMessageMapper.getErrorMessage(error),
+                        color = Gray600,
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
+                }
+            }
+        }
+    } else if (detailedResults.isEmpty()) {
+        // detailedResults.isEmpty()일 때 네트워크 에러인지 확인
+        val isNetworkErrorState = error != null && ErrorMessageMapper.isNetworkError(error)
+        val emptyStateMessage = if (isNetworkErrorState) {
+            "네트워크가 불안정합니다"
+        } else {
+            "결과가 없습니다"
+        }
+        
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                Text(
-                    text = "오류가 발생했습니다",
-                    color = Error,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                Icon(
+                    imageVector = Icons.Filled.Description,
+                    contentDescription = null,
+                    tint = Gray400,
+                    modifier = Modifier.size(48.dp),
                 )
                 Text(
-                    text = ErrorMessageMapper.getErrorMessage(error),
+                    text = emptyStateMessage,
                     color = Gray600,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyLarge,
                 )
             }
-        }
-    } else if (detailedResults.isEmpty()) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text(
-                text = "결과가 없습니다",
-                color = Gray600,
-                style = MaterialTheme.typography.bodyLarge,
-            )
         }
     } else {
         Column(
