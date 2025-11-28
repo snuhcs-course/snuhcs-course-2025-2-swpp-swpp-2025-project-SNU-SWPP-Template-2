@@ -37,6 +37,29 @@ private const val PROGRESS_BAR_HEIGHT = 12
 private const val PROGRESS_BAR_CORNER_RADIUS = 6
 private const val GRADIENT_ALPHA = 0.8f
 
+/**
+ * 에러 메시지가 네트워크 관련 에러인지 확인합니다.
+ */
+private fun isNetworkError(errorMessage: String?): Boolean {
+    if (errorMessage == null) return false
+    
+    val networkErrorKeywords = listOf(
+        "네트워크",
+        "연결",
+        "timeout",
+        "timed out",
+        "Failed to connect",
+        "Unable to resolve host",
+        "Connection refused",
+        "SSL",
+        "보안 연결"
+    )
+    
+    return networkErrorKeywords.any { keyword ->
+        errorMessage.contains(keyword, ignoreCase = true)
+    }
+}
+
 @Composable
 fun TeacherStudentReportScreen(
     classId: Int,
@@ -92,9 +115,13 @@ fun TeacherStudentReportScreen(
         }
     }
 
-    error?.let {
-        LaunchedEffect(it) {
-            reportViewModel.clearError()
+    // 네트워크 에러가 아닌 경우에만 에러를 클리어합니다.
+    // 네트워크 에러는 report == null일 때 구분하기 위해 유지합니다.
+    error?.let { errorMessage ->
+        LaunchedEffect(errorMessage) {
+            if (!isNetworkError(errorMessage)) {
+                reportViewModel.clearError()
+            }
         }
     }
 
@@ -379,6 +406,14 @@ fun TeacherStudentReportScreen(
                 }
             }
         } else {
+            // report == null일 때 네트워크 에러인지 확인
+            val isNetworkErrorState = error != null && isNetworkError(error)
+            val emptyStateMessage = if (isNetworkErrorState) {
+                "네트워크가 불안정합니다"
+            } else {
+                "리포트 데이터가 없습니다"
+            }
+            
             item {
                 VTCard(
                     variant = CardVariant.Elevated,
@@ -401,7 +436,7 @@ fun TeacherStudentReportScreen(
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
-                                text = "리포트 데이터가 없습니다",
+                                text = emptyStateMessage,
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = Gray600,
                             )
