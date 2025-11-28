@@ -50,6 +50,16 @@ fun AssignmentDetailScreen(
         }
     }
 
+    // 네트워크 에러가 아닌 경우에만 에러를 클리어합니다.
+    // 네트워크 에러는 currentAssignment == null일 때 구분하기 위해 유지합니다.
+    error?.let { errorMessage ->
+        LaunchedEffect(errorMessage) {
+            if (!ErrorMessageMapper.isNetworkError(errorMessage)) {
+                assignmentViewModel.clearError()
+            }
+        }
+    }
+
     val actualTitle = currentAssignment?.title ?: assignmentTitle ?: "과제"
 
     Column(
@@ -67,17 +77,57 @@ fun AssignmentDetailScreen(
             }
         }
 
-        if (error != null) {
+        // 에러가 있고 과제 데이터가 없을 때만 에러를 표시
+        // 네트워크 에러인 경우 더 명확한 메시지 표시
+        if (error != null && currentAssignment == null) {
+            val isNetworkError = ErrorMessageMapper.isNetworkError(error)
+            val errorMessage = if (isNetworkError) {
+                "네트워크가 불안정합니다"
+            } else {
+                ErrorMessageMapper.getErrorMessage(error)
+            }
+            
             VTCard(
                 variant = CardVariant.Outlined,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(
-                    text = ErrorMessageMapper.getErrorMessage(error),
-                    color = Error,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Error,
+                        contentDescription = null,
+                        tint = Error,
+                        modifier = Modifier.size(48.dp),
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = errorMessage,
+                        color = Error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    )
+                }
+            }
+        } else if (error != null && currentAssignment != null) {
+            // 과제 데이터가 있지만 에러가 있는 경우 (통계 로딩 실패 등)
+            // 네트워크 에러가 아닌 경우에만 표시
+            val isNetworkError = ErrorMessageMapper.isNetworkError(error)
+            if (!isNetworkError) {
+                VTCard(
+                    variant = CardVariant.Outlined,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(
+                        text = ErrorMessageMapper.getErrorMessage(error),
+                        color = Error,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(16.dp),
+                    )
+                }
             }
         }
 
