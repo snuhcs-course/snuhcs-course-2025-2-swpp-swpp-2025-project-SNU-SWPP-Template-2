@@ -65,12 +65,10 @@ jobs:
         run: |
           echo "Starting backend deployment..."
 
+          set +e
+
           # 서버에 접속하여 배포 수행
-          ssh -o StrictHostKeyChecking=no -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST "SERVER_PATH='$SERVER_PATH' bash -s" << 'ENDSSH' || { 
-            echo "Connection Refused or Reset by Peer!"
-            echo "[Skipped] Deployment not executed. Contact server administrator."
-            exit 0
-          }
+          ssh -o StrictHostKeyChecking=no -T -p $SSH_PORT $SERVER_USER@$SERVER_HOST "SERVER_PATH='$SERVER_PATH' bash -s" << 'ENDSSH'
             set -e
             echo "Pulling latest code from develop branch..."
             cd "$SERVER_PATH" || { echo "Server path not found: $SERVER_PATH"; exit 1; }
@@ -117,6 +115,16 @@ jobs:
               exit 1
             fi
           ENDSSH
+
+          SSH_EXIT_CODE=$?
+          set -e
+
+          if [ $SSH_EXIT_CODE -ne 0 ]; then
+            echo "Connection Refused or Reset by Peer!"
+            echo "[Skipped] Deployment was not executed, contact server administrator."
+            exit 0
+          fi
+
           echo "Deployment completed successfully!"
 
       - name: Health check
