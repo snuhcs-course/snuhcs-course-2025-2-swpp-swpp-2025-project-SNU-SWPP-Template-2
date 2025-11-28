@@ -118,4 +118,27 @@ object ErrorMessageMapper {
             }
         }
     }
+
+    /**
+     * 에러 메시지가 네트워크 관련 에러인지 확인합니다.
+     */
+    fun isNetworkError(errorMessage: String?): Boolean {
+        if (errorMessage == null) return false
+
+        val networkErrorKeywords = listOf(
+            "네트워크",
+            "연결",
+            "timeout",
+            "timed out",
+            "Failed to connect",
+            "Unable to resolve host",
+            "Connection refused",
+            "SSL",
+            "보안 연결",
+        )
+
+        return networkErrorKeywords.any { keyword ->
+            errorMessage.contains(keyword, ignoreCase = true)
+        }
+    }
 }

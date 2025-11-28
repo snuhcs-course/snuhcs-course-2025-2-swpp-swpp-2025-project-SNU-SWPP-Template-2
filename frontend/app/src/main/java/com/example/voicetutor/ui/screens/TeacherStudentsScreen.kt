@@ -25,6 +25,7 @@ import com.example.voicetutor.data.models.*
 import com.example.voicetutor.data.repository.StudentRepository
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
+import com.example.voicetutor.ui.utils.ErrorMessageMapper
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.StudentViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -42,29 +43,6 @@ private const val SCORE_BADGE_ALPHA = 0.08f
 private const val PROGRESS_BAR_HEIGHT = 6
 private const val EMAIL_MAX_LENGTH = 24
 private const val DELAY_AFTER_ENROLL = 500L
-
-/**
- * 에러 메시지가 네트워크 관련 에러인지 확인합니다.
- */
-private fun isNetworkError(errorMessage: String?): Boolean {
-    if (errorMessage == null) return false
-    
-    val networkErrorKeywords = listOf(
-        "네트워크",
-        "연결",
-        "timeout",
-        "timed out",
-        "Failed to connect",
-        "Unable to resolve host",
-        "Connection refused",
-        "SSL",
-        "보안 연결"
-    )
-    
-    return networkErrorKeywords.any { keyword ->
-        errorMessage.contains(keyword, ignoreCase = true)
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -132,7 +110,7 @@ fun TeacherStudentsScreen(
     // 네트워크 에러는 students.isEmpty()일 때 구분하기 위해 유지합니다.
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
-            if (!isNetworkError(errorMessage)) {
+            if (!ErrorMessageMapper.isNetworkError(errorMessage)) {
                 viewModel.clearError()
             }
         }
@@ -313,7 +291,7 @@ fun TeacherStudentsScreen(
                 }
             } else if (students.isEmpty()) {
                 // students.isEmpty()일 때 네트워크 에러인지 확인
-                val isNetworkErrorState = error != null && isNetworkError(error)
+                val isNetworkErrorState = error != null && ErrorMessageMapper.isNetworkError(error)
                 val emptyStateMessage = if (isNetworkErrorState) {
                     "네트워크가 불안정합니다"
                 } else {

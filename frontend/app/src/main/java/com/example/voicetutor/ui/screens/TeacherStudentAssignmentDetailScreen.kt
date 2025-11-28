@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.voicetutor.data.models.*
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
+import com.example.voicetutor.ui.utils.ErrorMessageMapper
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 
 private const val HEADER_ALPHA = 0.08f
@@ -217,9 +218,13 @@ fun TeacherStudentAssignmentDetailScreen(
         }
     }
 
+    // 네트워크 에러가 아닌 경우에만 에러를 클리어합니다.
+    // 네트워크 에러는 studentResult == null일 때 구분하기 위해 유지합니다.
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
-            viewModel.clearError()
+            if (!ErrorMessageMapper.isNetworkError(errorMessage)) {
+                viewModel.clearError()
+            }
         }
     }
 
@@ -283,6 +288,14 @@ fun TeacherStudentAssignmentDetailScreen(
                 }
             }
         } else if (studentResult == null && !hasBasicData && !isLoading && loadedDataForKey != null) {
+            // studentResult == null일 때 네트워크 에러인지 확인
+            val isNetworkErrorState = error != null && ErrorMessageMapper.isNetworkError(error)
+            val emptyStateMessage = if (isNetworkErrorState) {
+                "네트워크가 불안정합니다"
+            } else {
+                "학생 결과를 찾을 수 없습니다"
+            }
+            
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center,
@@ -298,7 +311,7 @@ fun TeacherStudentAssignmentDetailScreen(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "학생 결과를 찾을 수 없습니다",
+                        text = emptyStateMessage,
                         style = MaterialTheme.typography.bodyLarge,
                         color = Gray600,
                     )
