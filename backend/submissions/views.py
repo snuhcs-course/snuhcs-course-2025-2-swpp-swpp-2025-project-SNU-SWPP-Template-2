@@ -447,7 +447,7 @@ class AnswerSubmitView(APIView):
         operation_description="""
         학생이 문제에 대한 음성 답안을 제출합니다.
         
-        **Content-Type**: multipart/form-data
+        Content-Type: multipart/form-data
         
         **Request Body (form-data)**:
         - studentId (integer): 제출하는 학생의 ID
