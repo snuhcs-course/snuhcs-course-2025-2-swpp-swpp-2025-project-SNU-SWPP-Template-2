@@ -63,6 +63,8 @@ fun AllStudentsScreen(
 
     LaunchedEffect(selectedClassId) {
         if (selectedClassId != null) {
+            // 수업이 변경되면 이전 학생 목록을 먼저 클리어
+            studentViewModel.clearStudents()
             studentViewModel.loadAllStudents(teacherId = teacherId, classId = selectedClassId.toString())
         }
     }
