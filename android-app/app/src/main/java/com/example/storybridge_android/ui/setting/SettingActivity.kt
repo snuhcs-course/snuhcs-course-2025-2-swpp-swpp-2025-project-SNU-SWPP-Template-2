@@ -86,6 +86,7 @@ class SettingActivity : BaseActivity() {
                     }
 
                     AppSettings.setLanguage(this@SettingActivity, selectedLang)
+                    StoryBridgeApplication.applyLanguage(this@SettingActivity)
                     setResult(RESULT_OK)
                     finish()
 

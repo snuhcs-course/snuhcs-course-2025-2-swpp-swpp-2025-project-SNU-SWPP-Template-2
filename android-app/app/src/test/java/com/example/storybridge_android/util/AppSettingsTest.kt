@@ -1,5 +1,6 @@
 import android.content.Context
 import android.content.SharedPreferences
+import com.example.storybridge_android.StoryBridgeApplication
 import com.example.storybridge_android.ui.setting.AppSettings
 import io.mockk.*
 import org.junit.After
@@ -14,18 +15,20 @@ class AppSettingsTest {
 
     @Before
     fun setup() {
+        // Mock the static companion object method
+        mockkObject(StoryBridgeApplication.Companion)
+        every { StoryBridgeApplication.applyLanguage(any()) } just Runs
+
         context = mockk()
         prefs = mockk()
         editor = mockk()
 
-        every { context.applicationContext } returns context
         every { context.getSharedPreferences("AppSettings", Context.MODE_PRIVATE) } returns prefs
         every { prefs.edit() } returns editor
 
         every { editor.putString(any(), any()) } returns editor
         every { editor.clear() } returns editor
         every { editor.apply() } just Runs
-        every { editor.commit() } returns true
 
         // getString default behavior: return null unless specified
         every { prefs.getString(any(), any()) } answers { secondArg() }
@@ -33,7 +36,7 @@ class AppSettingsTest {
 
     @After
     fun tearDown() {
-        // No cleanup needed
+        unmockkObject(StoryBridgeApplication.Companion)
     }
 
     @Test
@@ -41,7 +44,8 @@ class AppSettingsTest {
         AppSettings.setLanguage(context, "zh")
 
         verify { editor.putString("language", "zh") }
-        verify { editor.commit() }
+        verify { editor.apply() }
+        verify { StoryBridgeApplication.applyLanguage(context) }
     }
 
     @Test
@@ -49,7 +53,8 @@ class AppSettingsTest {
         AppSettings.setLanguage(context, "vi")
 
         verify { editor.putString("language", "vi") }
-        verify { editor.commit() }
+        verify { editor.apply() }
+        verify { StoryBridgeApplication.applyLanguage(context) }
     }
 
     @Test
