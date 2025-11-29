@@ -35,6 +35,7 @@ import com.example.voicetutor.file.FileManager
 import com.example.voicetutor.file.FileType
 import com.example.voicetutor.ui.components.*
 import com.example.voicetutor.ui.theme.*
+import com.example.voicetutor.ui.utils.ErrorMessageMapper
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.StudentViewModel
@@ -63,6 +64,8 @@ fun CreateAssignmentScreen(
     val actualTeacherId = teacherId ?: currentUser?.id?.toString() ?: "1"
 
     val classes by classViewModel.classes.collectAsStateWithLifecycle()
+    val classError by classViewModel.error.collectAsStateWithLifecycle()
+    val classIsLoading by classViewModel.isLoading.collectAsStateWithLifecycle()
     val students by studentViewModel.students.collectAsStateWithLifecycle()
     val isCreatingAssignment by actualAssignmentViewModel.isCreatingAssignment.collectAsStateWithLifecycle()
     val error by actualAssignmentViewModel.error.collectAsStateWithLifecycle()
@@ -114,6 +117,7 @@ fun CreateAssignmentScreen(
     var assignToAll by remember { mutableStateOf(true) }
     var showClassSelectionWarning by remember { mutableStateOf(false) }
     var classSelectionExpanded by remember { mutableStateOf(false) }
+    var hasRetriedLoadClasses by remember { mutableStateOf(false) }
     var gradeSelectionExpanded by remember { mutableStateOf(false) }
     var subjectSelectionExpanded by remember { mutableStateOf(false) }
     var dueShowDatePicker by remember { mutableStateOf(false) }
@@ -138,6 +142,7 @@ fun CreateAssignmentScreen(
         classViewModel.loadClasses(actualTeacherId)
         studentViewModel.loadAllStudents(teacherId = actualTeacherId)
         actualAssignmentViewModel.resetUploadState()
+        hasRetriedLoadClasses = false // 화면 진입 시 재시도 플래그 리셋
     }
 
     LaunchedEffect(selectedClassId) {
@@ -173,6 +178,16 @@ fun CreateAssignmentScreen(
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             actualAssignmentViewModel.clearError()
+        }
+    }
+
+    // classViewModel의 에러도 네트워크 에러가 아닌 경우에만 클리어합니다.
+    classError?.let { errorMessage ->
+        LaunchedEffect(errorMessage, classIsLoading) {
+            // 로딩이 완료되고, 네트워크 에러가 아닌 경우에만 클리어
+            if (!classIsLoading && !ErrorMessageMapper.isNetworkError(errorMessage)) {
+                classViewModel.clearError()
+            }
         }
     }
 
@@ -250,9 +265,31 @@ fun CreateAssignmentScreen(
                                 ),
                             )
 
+                            val isNetworkErrorState = remember(classIsLoading, classes.size, classError) {
+                                !classIsLoading && classes.isEmpty() && classError != null && ErrorMessageMapper.isNetworkError(classError)
+                            }
+
+                            // 네트워크 에러가 해결되면 재시도 플래그 리셋
+                            LaunchedEffect(isNetworkErrorState) {
+                                if (!isNetworkErrorState) {
+                                    hasRetriedLoadClasses = false
+                                }
+                            }
+
                             ExposedDropdownMenuBox(
                                 expanded = classSelectionExpanded,
-                                onExpandedChange = { classSelectionExpanded = !classSelectionExpanded },
+                                onExpandedChange = { expanded ->
+                                    val wasExpanded = classSelectionExpanded
+                                    classSelectionExpanded = expanded
+                                    // 드롭다운이 닫혔다가 다시 열릴 때만 재시도 (false -> true 전환)
+                                    if (expanded && !wasExpanded) {
+                                        val currentIsNetworkError = !classIsLoading && classes.isEmpty() && classError != null && ErrorMessageMapper.isNetworkError(classError)
+                                        if (currentIsNetworkError && !hasRetriedLoadClasses) {
+                                            hasRetriedLoadClasses = true
+                                            classViewModel.loadClasses(actualTeacherId)
+                                        }
+                                    }
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .onGloballyPositioned { coordinates ->
@@ -264,7 +301,15 @@ fun CreateAssignmentScreen(
                                     onValueChange = {},
                                     readOnly = true,
                                     label = { Text("수업 선택") },
-                                    placeholder = { Text("과제를 배정할 수업을 선택하세요") },
+                                    placeholder = { 
+                                        Text(
+                                            if (isNetworkErrorState) {
+                                                "네트워크가 불안정합니다"
+                                            } else {
+                                                "과제를 배정할 수업을 선택하세요"
+                                            }
+                                        )
+                                    },
                                     trailingIcon = {
                                         ExposedDropdownMenuDefaults.TrailingIcon(expanded = classSelectionExpanded)
                                     },
@@ -275,7 +320,9 @@ fun CreateAssignmentScreen(
                                             tint = PrimaryIndigo,
                                         )
                                     },
-                                    modifier = Modifier.menuAnchor(),
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .menuAnchor(),
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = PrimaryIndigo,
                                         focusedLabelColor = PrimaryIndigo,

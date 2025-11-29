@@ -97,7 +97,7 @@ fun TeacherStudentReportScreen(
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             if (!ErrorMessageMapper.isNetworkError(errorMessage)) {
-                reportViewModel.clearError()
+            reportViewModel.clearError()
             }
         }
     }

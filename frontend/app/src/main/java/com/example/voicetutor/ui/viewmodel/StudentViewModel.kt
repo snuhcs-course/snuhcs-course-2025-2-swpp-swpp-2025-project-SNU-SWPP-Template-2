@@ -66,4 +66,8 @@ class StudentViewModel @Inject constructor(
     fun clearError() {
         _error.value = null
     }
+
+    fun clearStudents() {
+        _students.value = emptyList()
+    }
 }

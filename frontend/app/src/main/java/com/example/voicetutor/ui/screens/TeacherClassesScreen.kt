@@ -77,7 +77,7 @@ fun TeacherClassesScreen(
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             if (!ErrorMessageMapper.isNetworkError(errorMessage)) {
-                classViewModel.clearError()
+            classViewModel.clearError()
             }
         }
     }
