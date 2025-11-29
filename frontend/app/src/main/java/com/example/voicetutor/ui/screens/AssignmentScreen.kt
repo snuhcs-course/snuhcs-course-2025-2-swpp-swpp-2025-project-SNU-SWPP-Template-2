@@ -1,5 +1,6 @@
 package com.example.voicetutor.ui.screens
 
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -67,6 +68,7 @@ fun AssignmentScreen(
 
     val audioRecorderState by audioRecorder.recordingState.collectAsStateWithLifecycle()
     val isProcessing by viewModel.isProcessing.collectAsStateWithLifecycle()
+    val error by viewModel.error.collectAsStateWithLifecycle()
 
     // 채점 상태 polling
     var pollingJob by remember { mutableStateOf<Job?>(null) }
@@ -89,6 +91,14 @@ fun AssignmentScreen(
             }
         } else {
             pollingJob?.cancel()
+        }
+    }
+
+    // 네트워크 오류 시 Toast 표시
+    LaunchedEffect(error) {
+        error?.let {
+            Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
+            viewModel.clearError()
         }
     }
 
