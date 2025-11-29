@@ -60,6 +60,8 @@ fun TeacherStudentsScreen(
     val currentClass by classViewModel.currentClass.collectAsStateWithLifecycle()
     val isLoading by viewModel.isLoading.collectAsStateWithLifecycle()
     val error by viewModel.error.collectAsStateWithLifecycle()
+    val classError by classViewModel.error.collectAsStateWithLifecycle()
+    val classIsLoading by classViewModel.isLoading.collectAsStateWithLifecycle()
     val currentUser by authViewModel.currentUser.collectAsStateWithLifecycle()
 
     val className = currentClass?.name ?: "고등학교 1학년 A반"
@@ -120,6 +122,7 @@ fun TeacherStudentsScreen(
     val selectedToEnroll = remember { mutableStateListOf<Int>() }
     val allStudentsForEnroll = remember { mutableStateListOf<Student>() }
     var isLoadingAllStudents by remember { mutableStateOf(false) }
+    var enrollNetworkError by remember { mutableStateOf<String?>(null) }
     var enrollSearchQuery by remember { mutableStateOf("") }
 
     var showDeleteSheet by remember { mutableStateOf(false) }
@@ -148,6 +151,7 @@ fun TeacherStudentsScreen(
     LaunchedEffect(showEnrollSheet) {
         if (showEnrollSheet) {
             isLoadingAllStudents = true
+            enrollNetworkError = null
             try {
                 val result = studentRepository.getAllStudents(teacherId = null, classId = null)
                 result.onSuccess { allStudents ->
@@ -155,21 +159,35 @@ fun TeacherStudentsScreen(
                         allStudentsForEnroll.clear()
                         allStudentsForEnroll.addAll(allStudents)
                         isLoadingAllStudents = false
+                        enrollNetworkError = null
                     }
-                }.onFailure {
+                }.onFailure { exception ->
                     withContext(Dispatchers.Main) {
                         isLoadingAllStudents = false
+                        val errorMessage = ErrorMessageMapper.getErrorMessage(exception)
+                        enrollNetworkError = if (ErrorMessageMapper.isNetworkError(errorMessage)) {
+                            errorMessage
+                        } else {
+                            null
+                        }
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     isLoadingAllStudents = false
+                    val errorMessage = ErrorMessageMapper.getErrorMessage(e)
+                    enrollNetworkError = if (ErrorMessageMapper.isNetworkError(errorMessage)) {
+                        errorMessage
+                    } else {
+                        null
+                    }
                 }
             }
         } else {
             allStudentsForEnroll.clear()
             selectedToEnroll.clear()
             enrollSearchQuery = ""
+            enrollNetworkError = null
         }
     }
 
@@ -421,7 +439,9 @@ fun TeacherStudentsScreen(
                         }
                     }
 
-                    if (allCandidates.isEmpty()) {
+                    if (enrollNetworkError != null) {
+                        Text("네트워크가 불안정합니다", color = Gray600)
+                    } else if (allCandidates.isEmpty()) {
                         Text("등록 가능한 학생이 없습니다.", color = Gray600)
                     } else if (candidates.isEmpty()) {
                         Text("검색 결과가 없습니다.", color = Gray600)
@@ -473,6 +493,7 @@ fun TeacherStudentsScreen(
                         },
                         variant = ButtonVariant.Primary,
                         modifier = Modifier.weight(1f),
+                        enabled = selectedToEnroll.isNotEmpty(),
                     )
                 }
                 Spacer(Modifier.height(8.dp))
@@ -553,7 +574,10 @@ fun TeacherStudentsScreen(
                     }
                 }
 
-                if (enrolledStudents.isEmpty()) {
+                val isDeleteNetworkError = !classIsLoading && enrolledStudents.isEmpty() && classError != null && ErrorMessageMapper.isNetworkError(classError)
+                if (isDeleteNetworkError) {
+                    Text("네트워크가 불안정합니다", color = Gray600)
+                } else if (enrolledStudents.isEmpty()) {
                     Text("삭제할 학생이 없습니다.", color = Gray600)
                 } else if (filteredStudents.isEmpty()) {
                     Text("검색 결과가 없습니다.", color = Gray600)
