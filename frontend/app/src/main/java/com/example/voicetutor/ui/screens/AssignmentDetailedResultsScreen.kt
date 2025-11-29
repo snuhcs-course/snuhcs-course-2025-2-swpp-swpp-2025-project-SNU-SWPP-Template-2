@@ -79,7 +79,8 @@ fun AssignmentDetailedResultsScreen(
     val totalQuestions = questionGroups.size
     val averageScore = statistics?.averageScore?.toInt() ?: 0
 
-    if (isLoading) {
+    // 로딩 중이거나, 아직 데이터가 로드되지 않은 초기 상태(결과가 비어있고 에러도 없는 경우)에는 로딩 표시
+    if (isLoading || (detailedResults.isEmpty() && error == null)) {
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
@@ -119,15 +120,8 @@ fun AssignmentDetailedResultsScreen(
                 }
             }
         }
-    } else if (detailedResults.isEmpty()) {
-        // detailedResults.isEmpty()일 때 네트워크 에러인지 확인
-        val isNetworkErrorState = error != null && ErrorMessageMapper.isNetworkError(error)
-        val emptyStateMessage = if (isNetworkErrorState) {
-            "네트워크가 불안정합니다"
-        } else {
-            "결과가 없습니다"
-        }
-        
+    } else if (detailedResults.isEmpty() && error != null) {
+        // 네트워크 에러로 인해 결과를 불러오지 못한 경우
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.Center,
@@ -137,16 +131,16 @@ fun AssignmentDetailedResultsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Description,
+                    imageVector = Icons.Filled.WifiOff,
                     contentDescription = null,
                     tint = Gray400,
                     modifier = Modifier.size(48.dp),
                 )
-            Text(
-                    text = emptyStateMessage,
-                color = Gray600,
-                style = MaterialTheme.typography.bodyLarge,
-            )
+                Text(
+                    text = "네트워크가 불안정합니다",
+                    color = Gray600,
+                    style = MaterialTheme.typography.bodyLarge,
+                )
             }
         }
     } else {
