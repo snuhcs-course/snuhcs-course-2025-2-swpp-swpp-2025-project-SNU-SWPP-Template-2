@@ -1,6 +1,7 @@
 package com.example.voicetutor.ui.screens
 
 import android.net.Uri
+import android.provider.OpenableColumns
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -39,7 +40,9 @@ import com.example.voicetutor.ui.utils.ErrorMessageMapper
 import com.example.voicetutor.ui.viewmodel.AssignmentViewModel
 import com.example.voicetutor.ui.viewmodel.ClassViewModel
 import com.example.voicetutor.ui.viewmodel.StudentViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -78,6 +81,9 @@ fun CreateAssignmentScreen(
     val fileManager = remember { FileManager(context) }
     val coroutineScope = rememberCoroutineScope()
 
+    // PDF 파일 크기 제한: 10MB
+    val MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024L // 10MB in bytes
+
     var assignmentCreated by remember { mutableStateOf(false) }
 
     val scrollState = rememberScrollState()
@@ -85,18 +91,53 @@ fun CreateAssignmentScreen(
 
     var selectedFiles by remember { mutableStateOf<List<FileInfo>>(emptyList()) }
     var selectedPdfFile by remember { mutableStateOf<File?>(null) }
+    var pdfFileSizeError by remember { mutableStateOf<String?>(null) }
 
     val pdfPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
     ) { uri: Uri? ->
         uri?.let {
             coroutineScope.launch {
-                fileManager.saveFile(uri, fileType = FileType.DOCUMENT)
-                    .onSuccess { fileInfo ->
-                        selectedFiles = listOf(fileInfo)
-                        selectedPdfFile = File(fileInfo.path)
+                // 먼저 파일 크기 확인 시도
+                val fileSize = withContext(Dispatchers.IO) {
+                    try {
+                        context.contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+                            val sizeIndex = cursor.getColumnIndex(OpenableColumns.SIZE)
+                            if (sizeIndex >= 0 && cursor.moveToFirst()) {
+                                val size = cursor.getLong(sizeIndex)
+                                if (size > 0) size else null
+                            } else {
+                                null
+                            }
+                        }
+                    } catch (e: Exception) {
+                        null
                     }
-                    .onFailure { }
+                }
+
+                // 파일 크기를 가져올 수 있는 경우 미리 검증
+                if (fileSize != null && fileSize > MAX_PDF_SIZE_BYTES) {
+                    // 파일이 너무 크면 선택하지 않고 에러 메시지 표시
+                    pdfFileSizeError = "파일 용량이 너무 큽니다. 최대 10MB까지 업로드 가능합니다."
+                } else {
+                    // 파일 크기를 미리 알 수 없거나 적절한 경우 저장 후 검증
+                    fileManager.saveFile(uri, fileType = FileType.DOCUMENT)
+                        .onSuccess { fileInfo ->
+                            // 저장 후 실제 파일 크기로 다시 검증
+                            if (fileInfo.size > MAX_PDF_SIZE_BYTES) {
+                                // 파일이 너무 크면 선택하지 않고 에러 메시지 표시
+                                pdfFileSizeError = "파일 용량이 너무 큽니다. 최대 10MB까지 업로드 가능합니다."
+                                // 임시로 저장된 파일 삭제
+                                fileManager.deleteFile(fileInfo.path)
+                            } else {
+                                // 파일 크기가 적절하면 정상적으로 선택
+                                pdfFileSizeError = null // 에러 클리어
+                                selectedFiles = listOf(fileInfo)
+                                selectedPdfFile = File(fileInfo.path)
+                            }
+                        }
+                        .onFailure { }
+                }
             }
         }
     }
@@ -516,6 +557,7 @@ fun CreateAssignmentScreen(
                         VTButton(
                             text = if (selectedFiles.isEmpty()) "파일 선택" else "파일 추가",
                             onClick = {
+                                pdfFileSizeError = null // 에러 클리어
                                 pdfPickerLauncher.launch("application/pdf")
                             },
                             variant = ButtonVariant.Outline,
@@ -533,6 +575,35 @@ fun CreateAssignmentScreen(
                             style = MaterialTheme.typography.bodySmall,
                             color = Gray600,
                         )
+
+                        // 파일 크기 에러 메시지 표시
+                        if (pdfFileSizeError != null) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = Error.copy(alpha = 0.1f),
+                                        shape = MaterialTheme.shapes.small,
+                                    )
+                                    .padding(12.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.Warning,
+                                    contentDescription = null,
+                                    tint = Error,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = pdfFileSizeError!!,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Error,
+                                    fontWeight = FontWeight.Medium,
+                                )
+                            }
+                        }
 
                         if (isUploading) {
                             Spacer(modifier = Modifier.height(16.dp))
