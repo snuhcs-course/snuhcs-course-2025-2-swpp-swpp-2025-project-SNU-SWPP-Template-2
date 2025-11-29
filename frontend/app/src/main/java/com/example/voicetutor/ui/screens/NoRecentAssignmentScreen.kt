@@ -68,12 +68,12 @@ fun NoRecentAssignmentScreen() {
                 )
 
                 if (!isNetworkErrorState) {
-                    Text(
-                        text = "홈 화면에서 새로운 과제를 확인해보세요",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = Gray600,
-                        textAlign = TextAlign.Center,
-                    )
+                Text(
+                    text = "홈 화면에서 새로운 과제를 확인해보세요",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Gray600,
+                    textAlign = TextAlign.Center,
+                )
                 }
             }
         }

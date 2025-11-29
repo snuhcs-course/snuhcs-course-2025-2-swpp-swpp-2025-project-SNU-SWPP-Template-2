@@ -141,7 +141,7 @@ fun StudentDashboardScreen(
     error?.let { errorMessage ->
         LaunchedEffect(errorMessage) {
             if (!ErrorMessageMapper.isNetworkError(errorMessage)) {
-                viewModelAssignment.clearError()
+            viewModelAssignment.clearError()
             }
         }
     }
