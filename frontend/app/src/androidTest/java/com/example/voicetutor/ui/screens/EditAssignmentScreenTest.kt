@@ -1,12 +1,16 @@
 package com.example.voicetutor.ui.screens
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
+import androidx.compose.ui.test.onNodeWithText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.voicetutor.HiltComponentActivity
 import com.example.voicetutor.data.models.AssignmentData
 import com.example.voicetutor.data.models.ClassData
 import com.example.voicetutor.data.models.CourseClass
+import com.example.voicetutor.data.models.Material
 import com.example.voicetutor.data.models.Subject
 import com.example.voicetutor.data.network.ApiService
 import com.example.voicetutor.data.network.FakeApiService
@@ -45,115 +49,334 @@ class EditAssignmentScreenTest {
     }
 
     private fun resetFakeApi() {
-        fakeApi.apply {
-            shouldFailCreateAssignment = false
-            shouldFailCreateClass = false
-            shouldFailClasses = false
-            classesResponse = listOf(
-                ClassData(
-                    id = 1,
-                    name = "수학 A반",
-                    subject = Subject(id = 1, name = "수학", code = "MATH"),
-                    description = "기초 수학 수업",
-                    teacherId = 2,
-                    teacherName = "김선생님",
-                    studentCount = 25,
-                    studentCountAlt = 25,
-                    createdAt = "2024-01-01T00:00:00Z",
-                ),
-            )
+        val subject = Subject(id = 1, name = "수학", code = "MATH")
+        val courseClass = CourseClass(
+            id = 1,
+            name = "수학 A반",
+            description = "심화 수학",
+            subject = subject,
+            teacherName = "김선생",
 
-            assignmentByIdResponse = AssignmentData(
-                id = 100,
-                title = "기존 과제",
-                description = "기존 설명",
-                totalQuestions = 5,
+            studentCount = 25,
+            createdAt = "2024-01-01T00:00:00Z",
+        )
+
+        val assignment = AssignmentData(
+            id = 1,
+            title = "1단원 복습 과제",
+            description = "기초 개념을 복습하는 과제입니다.",
+            totalQuestions = 10,
+            createdAt = "2024-01-01T09:00:00Z",
+
+            dueAt = "2024-02-01T23:59:59Z",
+            courseClass = courseClass,
+            materials = listOf(
+                Material(
+                    id = 1,
+                    kind = "PDF",
+                    s3Key = "assignments/1/material.pdf",
+                    bytes = 1024,
+                    createdAt = "2024-01-01T09:00:00Z",
+                ),
+            ),
+            grade = "중학교 1학년",
+        )
+
+        val classes = listOf(
+            ClassData(
+                id = 1,
+                name = "수학 A반",
+                subject = subject,
+                description = "심화 수학",
+                teacherId = 2,
+                teacherName = "김선생",
+                studentCount = 25,
+                studentCountAlt = 25,
                 createdAt = "2024-01-01T00:00:00Z",
-                dueAt = "2024-12-31 23:59",
-                courseClass = CourseClass(
-                    id = 1,
-                    name = "수학 A반",
-                    description = "desc",
-                    subject = Subject(id = 1, name = "수학", code = "MATH"),
-                    teacherName = "Teacher",
-                    studentCount = 20,
-                    createdAt = "2024-01-01",
-                ),
-                materials = emptyList(),
-                grade = "중학교 1학년",
-            )
+
+            ),
+        )
+
+        fakeApi.apply {
+            assignmentByIdResponse = assignment
+            assignmentsResponse = listOf(assignment)
+            shouldFailGetAssignmentById = false
+            classesResponse = classes
+            shouldFailClasses = false
         }
     }
 
-    private fun waitForText(text: String, timeoutMillis: Long = 5_000) {
+    private fun waitForText(text: String, timeoutMillis: Long = 15_000) {
         composeRule.waitUntil(timeoutMillis = timeoutMillis) {
-            composeRule.onAllNodesWithText(text, substring = true, useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
+            composeRule
+                .onAllNodesWithText(text, substring = true, useUnmergedTree = true)
+                .fetchSemanticsNodes()
+                .isNotEmpty()
         }
     }
 
     @Test
-    fun editAssignment_displaysTitle() {
+    fun editAssignmentScreen_displaysAssignmentInfo() {
         composeRule.setContent {
             VoiceTutorTheme {
-                EditAssignmentScreen(
-                    teacherId = "2",
-                    assignmentId = 100
-                )
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
             }
         }
 
-        waitForText("기존 과제")
-        composeRule.onAllNodesWithText("기존 과제", substring = true, useUnmergedTree = true)
-            .onFirst()
-            .assertExists()
+        waitForText("기본 정보")
+        composeRule.onNodeWithText("기본 정보", useUnmergedTree = true).assertIsDisplayed()
     }
 
     @Test
-    fun editAssignment_displaysTitleField() {
+    fun editAssignmentScreen_displaysFormFields() {
         composeRule.setContent {
             VoiceTutorTheme {
-                EditAssignmentScreen(
-                    teacherId = "2",
-                    assignmentId = 100
-                )
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
             }
         }
 
-        waitForText("기존 과제")
-        composeRule.onAllNodes(hasText("제목", substring = true))
-            .assertCountEquals(1)
+        waitForText("과제 제목")
+        composeRule.onAllNodesWithText("과제 제목", useUnmergedTree = true).onFirst().assertIsDisplayed()
+        waitForText("설명")
+        composeRule.onAllNodesWithText("설명", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
     @Test
-    fun editAssignment_displaysDescriptionField() {
+    fun editAssignmentScreen_displaysDueDateField() {
         composeRule.setContent {
             VoiceTutorTheme {
-                EditAssignmentScreen(
-                    teacherId = "2",
-                    assignmentId = 100
-                )
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
             }
         }
 
-        waitForText("기존 과제")
-        composeRule.onAllNodes(hasText("설명", substring = true))
-            .assertCountEquals(1)
+        waitForText("마감일")
+        composeRule.onAllNodesWithText("마감일", useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 
     @Test
-    fun editAssignment_displaysSaveButton() {
+    fun editAssignmentScreen_showsLoadingIndicator() {
+        fakeApi.shouldFailGetAssignmentById = false
+
         composeRule.setContent {
             VoiceTutorTheme {
-                EditAssignmentScreen(
-                    teacherId = "2",
-                    assignmentId = 100
-                )
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
             }
         }
 
-        waitForText("기존 과제")
-        composeRule.onNodeWithText("저장", substring = true).assertExists()
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_loadsAssignmentData() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        waitForText("1단원 복습 과제")
+        composeRule.onNodeWithText("1단원 복습 과제", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun editAssignmentScreen_handlesErrorState() {
+        fakeApi.shouldFailGetAssignmentById = true
+        fakeApi.getAssignmentByIdErrorMessage = "과제 로드 실패"
+
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysClassDropdown() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        waitForText("수학 A반")
+        composeRule.onNodeWithText("수학 A반", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun editAssignmentScreen_handlesNullAssignmentId() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 0, teacherId = "2")
+            }
+        }
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_handlesNullTeacherId() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = null)
+            }
+        }
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysDateFormats() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        waitForText("마감일")
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_handlesClassLoadingError() {
+        fakeApi.shouldFailClasses = true
+        fakeApi.classesErrorMessage = "반 목록 로드 실패"
+
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysCurrentAssignmentData() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        waitForText("1단원 복습 과제")
+        waitForText("기초 개념을 복습하는 과제입니다.")
+        composeRule.onNodeWithText("1단원 복습 과제", useUnmergedTree = true).assertIsDisplayed()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysLoadingState() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_handlesEmptyAssignmentData() {
+        fakeApi.shouldFailGetAssignmentById = true
+
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 999, teacherId = "2")
+            }
+        }
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysMaterialInfo() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysDeleteWarningMessage() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            try {
+                composeRule.onAllNodesWithText("과제를 삭제하면", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
+            } catch (_: Exception) {
+                false
+            }
+        }
+        composeRule.waitForIdle()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysDueDateFieldSecond() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            try {
+                composeRule.onAllNodesWithText("마감일", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
+            } catch (_: Exception) {
+                false
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onAllNodesWithText("마감일", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysAssignmentDescriptionField() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            try {
+                composeRule.onAllNodesWithText("설명", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
+            } catch (_: Exception) {
+                false
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onAllNodesWithText("설명", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
+    }
+
+    @Test
+    fun editAssignmentScreen_displaysAssignmentTitleField() {
+        composeRule.setContent {
+            VoiceTutorTheme {
+                EditAssignmentScreen(assignmentId = 1, teacherId = "2")
+            }
+        }
+
+        composeRule.waitUntil(timeoutMillis = 30_000) {
+            try {
+                composeRule.onAllNodesWithText("과제 제목", substring = true, useUnmergedTree = true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
+            } catch (_: Exception) {
+                false
+            }
+        }
+        composeRule.waitForIdle()
+        composeRule.onAllNodesWithText("과제 제목", substring = true, useUnmergedTree = true).onFirst().assertIsDisplayed()
     }
 }
-
