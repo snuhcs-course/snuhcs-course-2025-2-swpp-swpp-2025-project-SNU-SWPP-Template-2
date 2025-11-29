@@ -61,7 +61,6 @@ fun CreateClassScreen(
             if (isCreating) {
                 isCreating = false
             }
-            classViewModel.clearError()
         }
     }
 
@@ -194,7 +193,11 @@ fun CreateClassScreen(
 
                 error?.let { errorMessage ->
                     Text(
-                        text = ErrorMessageMapper.getErrorMessage(errorMessage),
+                        text = if (ErrorMessageMapper.isNetworkError(errorMessage)) {
+                            "네트워크가 불안정합니다"
+                        } else {
+                            ErrorMessageMapper.getErrorMessage(errorMessage)
+                        },
                         color = Error,
                         style = MaterialTheme.typography.bodyMedium,
                     )
