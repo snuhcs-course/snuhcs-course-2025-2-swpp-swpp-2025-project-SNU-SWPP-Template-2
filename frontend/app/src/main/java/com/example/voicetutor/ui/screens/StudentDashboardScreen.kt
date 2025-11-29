@@ -79,6 +79,15 @@ fun StudentDashboardScreen(
 
     var selectedFilter by remember { mutableStateOf(PersonalAssignmentFilter.ALL) }
 
+    // isLoading이 한 번이라도 true가 된 적이 있는지 추적
+    var hasSeenLoadingTrue by remember { mutableStateOf(false) }
+
+    LaunchedEffect(isLoading) {
+        if (isLoading) {
+            hasSeenLoadingTrue = true
+        }
+    }
+
     val validAssignments = remember(assignments, selectedFilter) {
         val filtered = assignments.filter {
             it.totalQuestions > 0 &&
@@ -95,6 +104,20 @@ fun StudentDashboardScreen(
                 it.personalAssignmentStatus == PersonalAssignmentStatus.IN_PROGRESS
             }
             else -> filtered
+        }
+    }
+
+    // 로딩이 끝났고 데이터가 비어있는 상태가 확정적인지 확인 (깜빡임 방지)
+    var isListEmptyConfirmed by remember { mutableStateOf(false) }
+    val isEmptyAndNotLoading = validAssignments.isEmpty() && !isLoading && hasSeenLoadingTrue && error == null
+
+    LaunchedEffect(isEmptyAndNotLoading) {
+        if (isEmptyAndNotLoading) {
+            // StateFlow 업데이트 시차로 인한 깜빡임 방지를 위해 잠시 대기
+            kotlinx.coroutines.delay(1000)
+            isListEmptyConfirmed = true
+        } else {
+            isListEmptyConfirmed = false
         }
     }
 
@@ -321,7 +344,9 @@ fun StudentDashboardScreen(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Student assignments from API
-            if (isLoading) {
+            // 로딩 중이거나, 아직 로딩 시작 전이거나, 
+            // 데이터가 없는데 에러도 없고, 아직 "없음" 상태가 확정되지 않은 경우 (잠깐의 딜레이)
+            if (isLoading || !hasSeenLoadingTrue || (validAssignments.isEmpty() && error == null && !isListEmptyConfirmed)) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center,
@@ -330,15 +355,8 @@ fun StudentDashboardScreen(
                         color = PrimaryIndigo,
                     )
                 }
-            } else if (validAssignments.isEmpty()) {
-                // validAssignments.isEmpty()일 때 네트워크 에러인지 확인
-                val isNetworkErrorState = error != null && ErrorMessageMapper.isNetworkError(error)
-                val emptyStateMessage = if (isNetworkErrorState) {
-                    "네트워크가 불안정합니다"
-                } else {
-                    "과제가 없습니다"
-                }
-                
+            } else if (validAssignments.isEmpty() && error != null) {
+                // 네트워크 에러로 인해 과제를 불러오지 못한 경우
                 Box(
                     modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center,
@@ -354,7 +372,30 @@ fun StudentDashboardScreen(
                         )
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = emptyStateMessage,
+                            text = "네트워크가 불안정합니다",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = Gray600,
+                        )
+                    }
+                }
+            } else if (validAssignments.isEmpty()) {
+                // 실제로 과제가 없는 경우
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.Assignment,
+                            contentDescription = null,
+                            tint = Gray400,
+                            modifier = Modifier.size(48.dp),
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "과제가 없습니다",
                             style = MaterialTheme.typography.bodyLarge,
                             color = Gray600,
                         )
