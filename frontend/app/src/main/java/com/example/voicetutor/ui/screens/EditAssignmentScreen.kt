@@ -715,7 +715,7 @@ fun EditAssignmentScreen(
 
         LaunchedEffect(error) {
             error?.let {
-                Toast.makeText(context, "과제 수정에 문제가 발생했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, "네트워크가 불안정합니다.", Toast.LENGTH_SHORT).show()
                 viewModel.clearError()
             }
         }
