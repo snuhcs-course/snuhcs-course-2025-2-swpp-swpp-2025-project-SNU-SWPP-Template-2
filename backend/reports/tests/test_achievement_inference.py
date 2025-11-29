@@ -1,17 +1,7 @@
 """
 Test coverage for achievement_inference.py
 
-This test file covers the uncovered lines in achievement_inference.py:
-- Lines 50-51: hidden_size parameter in AchievementClassifier
-- Lines 59-83: forward method branches (pooling modes, intermediate layer, loss calculation)
-- Lines 109-110, 116-117: Model caching logic
-- Lines 124, 131: Config loading fallback paths
-- Lines 141, 144: Mappings loading fallback and error handling
-- Lines 157-172: base_model inference from tokenizer_config
-- Lines 185-199: Model loading and caching
-- Lines 237-305: predict_top_k exception handling and filtering
-- Lines 334-335, 353-372: filter_standards_by_model edge cases
-- Line 392: get_top_k_with_content
+This test file covers the uncovered lines in achievement_inference.py
 """
 
 import json
@@ -38,7 +28,7 @@ class TestAchievementClassifier:
     """Test AchievementClassifier model architecture"""
 
     def test_classifier_with_hidden_size(self):
-        """Test classifier with hidden_size parameter (lines 50-51)"""
+        """Test classifier with hidden_size parameter"""
         model_name = "klue/roberta-base"
         num_classes = 10
         hidden_size = 512
@@ -72,7 +62,7 @@ class TestAchievementClassifier:
         assert result["loss"] is None
 
     def test_classifier_forward_mean_pooling(self):
-        """Test forward method with mean pooling (lines 63-68)"""
+        """Test forward method with mean pooling"""
         classifier = AchievementClassifier(model_name="klue/roberta-base", num_classes=10, pooling="mean")
         batch_size = 2
         seq_len = 10
@@ -92,7 +82,7 @@ class TestAchievementClassifier:
         assert result["logits"].shape == (batch_size, 10)
 
     def test_classifier_forward_pooler_output(self):
-        """Test forward method with pooler_output (line 70)"""
+        """Test forward method with pooler_output"""
         classifier = AchievementClassifier(model_name="klue/roberta-base", num_classes=10, pooling="pooler")
         batch_size = 2
         seq_len = 10
@@ -112,7 +102,7 @@ class TestAchievementClassifier:
         assert result["logits"].shape == (batch_size, 10)
 
     def test_classifier_forward_with_intermediate(self):
-        """Test forward method with intermediate layer (line 72-73)"""
+        """Test forward method with intermediate layer"""
         classifier = AchievementClassifier(model_name="klue/roberta-base", num_classes=10, hidden_size=512)
         batch_size = 2
         seq_len = 10
@@ -131,7 +121,7 @@ class TestAchievementClassifier:
         assert result["logits"].shape == (batch_size, 10)
 
     def test_classifier_forward_with_labels(self):
-        """Test forward method with labels for loss calculation (lines 78-81)"""
+        """Test forward method with labels for loss calculation"""
         classifier = AchievementClassifier(model_name="klue/roberta-base", num_classes=10)
         batch_size = 2
         seq_len = 10
@@ -170,7 +160,7 @@ class TestModelLoading:
     @patch("reports.utils.achievement_inference.torch.load")
     @patch("reports.utils.achievement_inference.logger")
     def test_load_model_caching(self, mock_logger, mock_torch_load, mock_config, mock_model, mock_tokenizer, mock_lock):
-        """Test model caching (lines 109-110, 116-117)"""
+        """Test model caching"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir)
             device = torch.device("cpu")
@@ -208,7 +198,7 @@ class TestModelLoading:
             # First load
             model1, tokenizer1, config1, mappings1 = load_model(model_dir, device)
 
-            # Second load should use cache (lines 109-110)
+            # Second load should use cache
             model2, tokenizer2, config2, mappings2 = load_model(model_dir, device)
 
             # Should return cached model
@@ -222,7 +212,7 @@ class TestModelLoading:
     @patch("reports.utils.achievement_inference.AutoConfig.from_pretrained")
     @patch("reports.utils.achievement_inference.torch.load")
     def test_load_model_config_in_parent_dir(self, mock_torch_load, mock_config, mock_model, mock_tokenizer, mock_lock):
-        """Test config.json loading from parent directory (line 124)"""
+        """Test config.json loading from parent directory"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir) / "models"
             model_dir.mkdir()
@@ -271,7 +261,7 @@ class TestModelLoading:
     @patch("reports.utils.achievement_inference.AutoConfig.from_pretrained")
     @patch("reports.utils.achievement_inference.torch.load")
     def test_load_model_default_config(self, mock_torch_load, mock_config, mock_model, mock_tokenizer, mock_lock):
-        """Test default config when config.json doesn't exist (line 131)"""
+        """Test default config when config.json doesn't exist"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir)
             device = torch.device("cpu")
@@ -320,7 +310,7 @@ class TestModelLoading:
     def test_load_model_mappings_in_parent_dir(
         self, mock_torch_load, mock_config, mock_model, mock_tokenizer, mock_lock
     ):
-        """Test label_mappings.json loading from parent directory (line 141)"""
+        """Test label_mappings.json loading from parent directory"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir) / "models"
             model_dir.mkdir()
@@ -362,7 +352,7 @@ class TestModelLoading:
     @patch("reports.utils.achievement_inference._model_cache", {})
     @patch("reports.utils.achievement_inference._model_lock")
     def test_load_model_missing_mappings(self, mock_lock):
-        """Test FileNotFoundError when mappings file doesn't exist (line 144)"""
+        """Test FileNotFoundError when mappings file doesn't exist"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir)
             device = torch.device("cpu")
@@ -381,7 +371,7 @@ class TestModelLoading:
     def test_load_model_infer_base_model_from_tokenizer_config(
         self, mock_torch_load, mock_config, mock_model, mock_tokenizer, mock_lock
     ):
-        """Test base_model inference from tokenizer_config.json (lines 157-172)"""
+        """Test base_model inference from tokenizer_config.json"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir)
             device = torch.device("cpu")
@@ -428,7 +418,7 @@ class TestModelLoading:
     def test_load_model_infer_base_model_bert_type(
         self, mock_torch_load, mock_config, mock_model, mock_tokenizer, mock_lock
     ):
-        """Test base_model inference for bert type (line 166)"""
+        """Test base_model inference for bert type"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir)
             device = torch.device("cpu")
@@ -476,7 +466,7 @@ class TestModelLoading:
     def test_load_model_caching_and_logging(
         self, mock_logger, mock_torch_load, mock_config, mock_model, mock_tokenizer, mock_lock
     ):
-        """Test model loading, caching, and logging (lines 185-199)"""
+        """Test model loading, caching, and logging"""
         with tempfile.TemporaryDirectory() as tmpdir:
             model_dir = Path(tmpdir)
             device = torch.device("cpu")
@@ -526,7 +516,7 @@ class TestPredictTopK:
     @patch("reports.utils.achievement_inference.load_model")
     @patch("reports.utils.achievement_inference.logger")
     def test_predict_top_k_file_not_found(self, mock_logger, mock_load_model):
-        """Test predict_top_k with FileNotFoundError (lines 234-236)"""
+        """Test predict_top_k with FileNotFoundError"""
         mock_load_model.side_effect = FileNotFoundError("Model not found")
 
         result = predict_top_k("test text", top_k=10)
@@ -537,7 +527,7 @@ class TestPredictTopK:
     @patch("reports.utils.achievement_inference.load_model")
     @patch("reports.utils.achievement_inference.logger")
     def test_predict_top_k_general_exception(self, mock_logger, mock_load_model):
-        """Test predict_top_k with general exception (lines 237-239)"""
+        """Test predict_top_k with general exception"""
         mock_load_model.side_effect = Exception("Unexpected error")
 
         result = predict_top_k("test text", top_k=10)
@@ -547,7 +537,7 @@ class TestPredictTopK:
 
     @patch("reports.utils.achievement_inference.load_model")
     def test_predict_top_k_with_filter_codes(self, mock_load_model):
-        """Test predict_top_k with filter_codes parameter (lines 264-284)"""
+        """Test predict_top_k with filter_codes parameter"""
         # Mock model, tokenizer, config, mappings
         mock_model = Mock()
         mock_tokenizer = Mock()
@@ -581,7 +571,7 @@ class TestPredictTopK:
 
     @patch("reports.utils.achievement_inference.load_model")
     def test_predict_top_k_without_filter_codes(self, mock_load_model):
-        """Test predict_top_k without filter_codes (lines 286-305)"""
+        """Test predict_top_k without filter_codes"""
         # Mock model, tokenizer, config, mappings
         mock_model = Mock()
         mock_tokenizer = Mock()
@@ -619,7 +609,7 @@ class TestFilterStandardsByModel:
     @patch("reports.utils.achievement_inference.logger")
     @patch("reports.utils.achievement_inference.predict_top_k")
     def test_filter_standards_empty_list(self, mock_predict, mock_logger):
-        """Test filter_standards_by_model with empty list (lines 334-335)"""
+        """Test filter_standards_by_model with empty list"""
         result = filter_standards_by_model("test", [])
 
         assert result == []
@@ -628,7 +618,7 @@ class TestFilterStandardsByModel:
     @patch("reports.utils.achievement_inference.logger")
     @patch("reports.utils.achievement_inference.predict_top_k")
     def test_filter_standards_prediction_failed(self, mock_predict, mock_logger):
-        """Test filter_standards_by_model when prediction fails (lines 348-350)"""
+        """Test filter_standards_by_model when prediction fails"""
         mock_predict.return_value = []
 
         standards = [{"code": "CODE1", "content": "Content1"}]
@@ -640,7 +630,7 @@ class TestFilterStandardsByModel:
     @patch("reports.utils.achievement_inference.logger")
     @patch("reports.utils.achievement_inference.predict_top_k")
     def test_filter_standards_below_min_results(self, mock_predict, mock_logger):
-        """Test filter_standards_by_model when results below minimum (lines 360-365)"""
+        """Test filter_standards_by_model when results below minimum"""
         mock_predict.return_value = [
             {"code": "CODE1", "content": "Content1", "probability": 0.9},
             {"code": "CODE2", "content": "Content2", "probability": 0.8},
@@ -660,7 +650,7 @@ class TestFilterStandardsByModel:
     @patch("reports.utils.achievement_inference.logger")
     @patch("reports.utils.achievement_inference.predict_top_k")
     def test_filter_standards_success(self, mock_predict, mock_logger):
-        """Test filter_standards_by_model successful filtering (lines 353-372)"""
+        """Test filter_standards_by_model successful filtering"""
         mock_predict.return_value = [
             {"code": "CODE2", "content": "Content2", "probability": 0.9},
             {"code": "CODE1", "content": "Content1", "probability": 0.8},
@@ -687,7 +677,7 @@ class TestGetTopKWithContent:
 
     @patch("reports.utils.achievement_inference.predict_top_k")
     def test_get_top_k_with_content(self, mock_predict):
-        """Test get_top_k_with_content (line 392)"""
+        """Test get_top_k_with_content"""
         mock_predict.return_value = [{"code": "CODE1", "content": "Content1", "probability": 0.9}]
 
         result = get_top_k_with_content("test", top_k=10)
