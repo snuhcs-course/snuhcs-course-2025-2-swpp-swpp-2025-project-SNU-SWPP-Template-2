@@ -25,6 +25,15 @@ export const ScrapScreen: React.FC<ScrapScreenProps> = observer(function ScrapSc
 
   // Get scrapped menus from store
   const scrappedMenus = menuScrapStore.scrappedMenusList
+  
+  // Debug logging to track what data ScrapScreen has
+  React.useEffect(() => {
+    console.log(`🔍 ScrapScreen: Rendered with ${scrappedMenus.length} scraped menus`)
+    if (scrappedMenus.length > 0) {
+      console.log("🔍 ScrapScreen: Menu names:", scrappedMenus.map(m => m.menu_name))
+    }
+  }, [scrappedMenus.length])
+  
 
   return (
     <View style={$container}>
@@ -48,37 +57,54 @@ export const ScrapScreen: React.FC<ScrapScreenProps> = observer(function ScrapSc
               {scrappedMenus.map((menu) => (
                 <View
                   key={menu.id}
-                  style={[$photoCard, { width: imageSize, height: imageSize }]}
+                  style={[$photoCard, { width: imageSize, height: imageSize + 48 }]}
                 >
-                  {menu.image_url ? (
-                    <Image
-                      source={{ uri: menu.image_url }}
-                      style={$photoImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={[$photoImage, $placeholderImage]}>
-                      <Text style={$placeholderText}>이미지 없음</Text>
+                  <View style={[$imageContainer, { height: imageSize }]}>
+                    {menu.image_url && menu.image_url.trim() ? (
+                      <Image
+                        source={{ uri: menu.image_url }}
+                        style={$photoImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={[$photoImage, $placeholderImage]}>
+                        <Text style={$placeholderText}>이미지 없음</Text>
+                      </View>
+                    )}
+                    
+                    {/* Category Badge */}
+                    {menu.category && menu.category !== "restaurant" && (
+                      <View style={$categoryBadge}>
+                        <Text style={$categoryText}>{menu.category}</Text>
+                      </View>
+                    )}
+
+                    {/* X Remove Button */}
+                    <TouchableOpacity
+                      style={$removeButton}
+                      onPress={() => menuScrapStore.removeScrappedMenu(menu.id)}
+                    >
+                      <View style={$removeButtonBackground}>
+                        <X size={14} color="#FFFFFF" strokeWidth={2.5} />
+                      </View>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Bottom info bar - matches FoodCard style */}
+                  <View style={$infoBar}>
+                    <View style={$infoBarContent}>
+                      <Text style={$infoBarTitle} numberOfLines={1}>
+                        {menu.menu_name}
+                      </Text>
+                      <Text style={$infoBarSubtitle} numberOfLines={1}>
+                        {menu.place_name}
+                      </Text>
                     </View>
-                  )}
-                  <TouchableOpacity
-                    style={$removeButton}
-                    onPress={() => menuScrapStore.removeScrappedMenu(menu.id)}
-                  >
-                    <View style={$removeButtonBackground}>
-                      <X size={12} color="#FFFFFF" strokeWidth={2.5} />
+                    <View style={$priceContainer}>
+                      <Text style={$priceText}>
+                        ₩{(menu.price || 0).toLocaleString()}
+                      </Text>
                     </View>
-                  </TouchableOpacity>
-                  <View style={$menuOverlay}>
-                    <Text style={$menuOverlayTitle} numberOfLines={1}>
-                      {menu.menu_name}
-                    </Text>
-                    <Text style={$menuOverlaySubtitle} numberOfLines={1}>
-                      {menu.place_name}
-                    </Text>
-                    <Text style={$menuOverlayPrice}>
-                      ₩{menu.price?.toLocaleString() || '0'}
-                    </Text>
                   </View>
                 </View>
               ))}
@@ -171,9 +197,16 @@ const $photoGrid: ViewStyle = {
 }
 
 const $photoCard: ViewStyle = {
-  borderRadius: 24,
+  borderRadius: 12,
   overflow: "hidden",
-  backgroundColor: colors.palette.neutral200,
+  backgroundColor: colors.background,
+  marginBottom: spacing.sm,
+}
+
+const $imageContainer: ViewStyle = {
+  position: "relative",
+  width: "100%",
+  flex: 1,
 }
 
 const $photoImage: ImageStyle = {
@@ -193,33 +226,63 @@ const $placeholderText: TextStyle = {
   fontWeight: "500",
 }
 
-const $menuOverlay: ViewStyle = {
+const $categoryBadge: ViewStyle = {
   position: "absolute",
-  bottom: 0,
-  left: 0,
-  right: 0,
-  backgroundColor: "rgba(0,0,0,0.7)",
+  top: spacing.xs,
+  left: spacing.xs,
+  backgroundColor: colors.palette.primary100,
+  paddingHorizontal: spacing.xs,
+  paddingVertical: 2,
+  borderRadius: 6,
+  shadowColor: "#000",
+  shadowOffset: { width: 0, height: 1 },
+  shadowOpacity: 0.2,
+  shadowRadius: 2,
+  elevation: 3,
+}
+
+const $categoryText: TextStyle = {
+  fontSize: 9,
+  color: colors.palette.primary600,
+  fontWeight: "600",
+}
+
+
+const $infoBar: ViewStyle = {
+  backgroundColor: colors.palette.neutral100,
   paddingVertical: spacing.xs,
   paddingHorizontal: spacing.sm,
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  minHeight: 48,
 }
 
-const $menuOverlayTitle: TextStyle = {
-  color: "#fff",
+const $infoBarContent: ViewStyle = {
+  flex: 1,
+  marginRight: spacing.sm,
+}
+
+const $infoBarTitle: TextStyle = {
+  fontSize: 14,
+  fontWeight: "600",
+  color: colors.text,
+  marginBottom: 2,
+}
+
+const $infoBarSubtitle: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral600,
+}
+
+const $priceContainer: ViewStyle = {
+  alignItems: "flex-end",
+}
+
+const $priceText: TextStyle = {
   fontSize: 13,
   fontWeight: "700",
-  marginBottom: 2,
-}
-
-const $menuOverlaySubtitle: TextStyle = {
-  color: "rgba(255,255,255,0.85)",
-  fontSize: 11,
-  marginBottom: 2,
-}
-
-const $menuOverlayPrice: TextStyle = {
-  color: "#fff",
-  fontSize: 11,
-  fontWeight: "600",
+  color: colors.palette.primary500,
 }
 
 const $removeButton: ViewStyle = {

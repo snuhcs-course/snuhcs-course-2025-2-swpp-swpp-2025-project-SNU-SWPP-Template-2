@@ -39,6 +39,7 @@ export interface ApiFeedResponse {
  */
 export interface MenuRecommendationItem {
   id: string | number  // ChromaDB ID can be a string
+  restaurant_id: string | number | null  // Backend restaurant ID for scrapping
   menu_name: string
   place_name: string
   price: number | null

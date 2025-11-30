@@ -1,6 +1,8 @@
 import { useAlbumScanner } from "app/services/albums/useAlbumScanner"
 import { api } from "app/services/api"
 import { userAuthFacade } from "app/services/registration"
+import * as Location from "expo-location"
+import * as storage from "app/utils/storage"
 import { Bookmark, Check, Home, Image as ImageIcon, LogOut, Settings, User, UtensilsCrossed } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
 import React, { useEffect, useState, useRef } from "react"
@@ -17,7 +19,7 @@ import {
   View,
   ViewStyle
 } from "react-native"
-import { GalleryImageCard, RestaurantDetailModal, Text, PreferencesModal } from "../components"
+import { GalleryImageCard, RestaurantDetailModal, Text, PreferencesModal, SettingsModal, AccountDeletionWarningModal, PasswordConfirmationModal, AccountDeletionSuccessModal, AccountDeletionErrorModal, LogoutConfirmationModal } from "../components"
 import { useStores } from "../models"
 import { AppStackScreenProps } from "../navigators"
 import { colors, spacing } from "../theme"
@@ -25,7 +27,8 @@ import { colors, spacing } from "../theme"
 interface ProfileScreenProps extends AppStackScreenProps<"Profile"> {}
 
 export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function ProfileScreen({ navigation }) {
-  const { foodHistoryStore } = useStores()
+  const rootStore = useStores()
+  const { foodHistoryStore } = rootStore
   const { scanAlbums } = useAlbumScanner();
   const screenWidth = Dimensions.get('window').width
   const imageSize = (screenWidth - spacing.lg * 2 - spacing.sm) / 2 // 2 columns with padding
@@ -38,6 +41,29 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   const [selectedImageIds, setSelectedImageIds] = useState<Set<number>>(new Set())
   const [isLoading, setIsLoading] = useState(false)
   const [deleteConfirmationVisible, setDeleteConfirmationVisible] = useState(false)
+  const [deletionWarningVisible, setDeletionWarningVisible] = useState(false)
+  const [passwordConfirmationVisible, setPasswordConfirmationVisible] = useState(false)
+  const [deletionSuccessVisible, setDeletionSuccessVisible] = useState(false)
+  const [deletionErrorVisible, setDeletionErrorVisible] = useState(false)
+  const [deletionErrorMessage, setDeletionErrorMessage] = useState("")
+  const [logoutConfirmationVisible, setLogoutConfirmationVisible] = useState(false)
+  
+  // Location states
+  const [userCoordinates, setUserCoordinates] = useState<[number, number] | null>(null)
+  const [showLocationCoordinates, setShowLocationCoordinates] = useState(true) // Always show, but content varies
+  const [isLocationRestricted, setIsLocationRestricted] = useState(false)
+  const [isLocationLoading, setIsLocationLoading] = useState(true)
+  const [locationLoadingDots, setLocationLoadingDots] = useState("")
+  
+  // Gallery permission modal
+  const [galleryPermissionModalVisible, setGalleryPermissionModalVisible] = useState(false)
+  
+  // Album scan completion modal
+  const [albumScanCompleteModalVisible, setAlbumScanCompleteModalVisible] = useState(false)
+  const [foundImageCount, setFoundImageCount] = useState(0)
+  
+  // Gallery access state
+  const [isGalleryAccessEnabled, setIsGalleryAccessEnabled] = useState(true)
 
   const [userImages, setUserImages] = useState<Array<any>>([])
   const rotationValue = useRef(new Animated.Value(0)).current
@@ -55,6 +81,106 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       ).start()
     }
   }, [isLoading, rotationValue])
+
+  // Animate loading dots for location text
+  useEffect(() => {
+    if (!isLocationLoading) return
+
+    const interval = setInterval(() => {
+      setLocationLoadingDots(prev => {
+        if (prev === "") return "."
+        if (prev === ".") return ".."
+        if (prev === "..") return "..."
+        return ""
+      })
+    }, 1000) // Change dots every second
+
+    return () => clearInterval(interval)
+  }, [isLocationLoading])
+
+  // Check location permission and get coordinates if enabled
+  const checkLocationAndUpdateCoordinates = async () => {
+    setIsLocationLoading(true)
+    
+    try {
+      // Check stored permission states from onboarding
+      const storedLocationGranted = await storage.loadString("LOCATION_PERMISSION_GRANTED")
+      const useDummyLocation = await storage.loadString("USE_DUMMY_LOCATION")
+      
+      if (__DEV__) {
+        console.log('📍 ProfileScreen location check:', {
+          storedLocationGranted,
+          useDummyLocation,
+        })
+      }
+      
+      // Only show coordinates if permission was granted in onboarding AND not using dummy location
+      const shouldShowCoordinates = storedLocationGranted === 'true' && useDummyLocation !== 'true'
+      
+      if (__DEV__) {
+        console.log('📍 ProfileScreen shouldShowCoordinates:', shouldShowCoordinates)
+      }
+      
+      if (shouldShowCoordinates) {
+        // Check current system permission status
+        const { status } = await Location.getForegroundPermissionsAsync()
+        
+        if (status === 'granted') {
+          try {
+            const location = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            })
+            
+            const coordinates: [number, number] = [
+              location.coords.longitude,
+              location.coords.latitude
+            ]
+            
+            setUserCoordinates(coordinates)
+            setIsLocationRestricted(false)
+            setIsLocationLoading(false)
+          } catch (error) {
+            console.log('Failed to get current location:', error)
+            // Location permission granted but failed to get location - show restriction
+            setUserCoordinates([126.952741, 37.481227]) // Seoul National University Station
+            setIsLocationRestricted(true)
+            setIsLocationLoading(false)
+          }
+        } else {
+          // System permission not granted - show restriction message
+          setUserCoordinates([126.952741, 37.481227]) // Seoul National University Station
+          setIsLocationRestricted(true)
+          setIsLocationLoading(false)
+        }
+      } else {
+        // Location permission not granted in onboarding - show restriction message with default coordinates
+        setUserCoordinates([126.952741, 37.481227]) // Seoul National University Station
+        setIsLocationRestricted(true)
+        setIsLocationLoading(false)
+      }
+    } catch (error) {
+      console.log('Error checking location permission:', error)
+      // On error, show restriction message with default coordinates  
+      setUserCoordinates([126.952741, 37.481227]) // Seoul National University Station
+      setIsLocationRestricted(true)
+      setIsLocationLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    checkLocationAndUpdateCoordinates()
+    updateGalleryAccessState()
+  }, [])
+
+  // Also check location and gallery access when screen comes into focus
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      checkLocationAndUpdateCoordinates()
+      updateGalleryAccessState()
+    })
+
+    return unsubscribe
+  }, [navigation])
 
   useEffect(() => {
     let mounted = true
@@ -145,11 +271,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       setSelectedImageIds(new Set())
       setIsSelectMode(false)
       setDeleteConfirmationVisible(false)
-      // Signal FoodigramScreen to refresh recommendations (user updated images)
-      navigation.navigate("Foodigram", {
-        refreshRecommendations: true,
-        refreshReason: "food_image_deleted"
-      } as any)
+      
+      // Note: Recommendations will be refreshed when user visits Foodigram tab
+      // Staying on Profile tab as requested
     } catch (e) {
       console.error("Delete error:", e)
       Alert.alert("오류", "사진 삭제 중 오류가 발생했습니다.")
@@ -167,19 +291,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   // Get scrapped items from store
   const scrappedFoods = foodHistoryStore.scrappedItemsList
 
-  // Convert scrapped foods to consistent format
-  const scrappedImages = scrappedFoods.map(food => ({
-    id: food.id.toString(),
-    type: 'scrapped',
-    image: { uri: food.image },
-    name: food.name
-  }))
+  // Convert scrapped foods to consistent format, filtering out empty images
+  const scrappedImages = scrappedFoods
+    .filter(food => food.image && food.image.trim()) // Only include items with valid images
+    .map(food => ({
+      id: food.id.toString(),
+      type: 'scrapped',
+      image: { uri: food.image },
+      name: food.name
+    }))
 
   // Combine user images and scrapped images
   const allPhotos = [...userImages, ...scrappedImages]
 
   const logout = async () => {
     await userAuthFacade.logoutUser()
+    // Clear all user-specific data from stores to prevent sharing between users
+    await rootStore.clearUserData()
     // Navigate to Welcome screen after logout
     navigation.reset({
       index: 0,
@@ -187,13 +315,161 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
     })
   }
 
+  const handleDeleteAccount = () => {
+    setDeletionWarningVisible(true)
+  }
+
+  const handleDeletionWarningConfirm = () => {
+    setDeletionWarningVisible(false)
+    setPasswordConfirmationVisible(true)
+  }
+
+  const handleDeletionWarningCancel = () => {
+    setDeletionWarningVisible(false)
+  }
+
+  const handlePasswordConfirm = async (password: string) => {
+    setPasswordConfirmationVisible(false)
+    
+    try {
+      // Step 1: Validate password with Django backend first
+      const response = await api.deleteAccount(password)
+      
+      if (response.ok) {
+        // Password is valid and Django account deleted, now delete from AWS Cognito
+        try {
+          // Step 2: Delete from AWS Cognito
+          const cognitoResult = await userAuthFacade.deleteUserAccount()
+          
+          if (cognitoResult.success) {
+            // Both Django and Cognito deletion successful
+            setDeletionSuccessVisible(true)
+          } else {
+            // Django deleted but Cognito failed
+            setDeletionErrorMessage("AWS 계정 삭제에 실패했습니다. 다시 시도해주세요.")
+            setDeletionErrorVisible(true)
+          }
+        } catch (cognitoError) {
+          console.error("Cognito deletion error:", cognitoError)
+          // Django deleted but Cognito failed
+          setDeletionErrorMessage("AWS 계정 삭제에 실패했습니다. 관리자에게 문의하세요.")
+          setDeletionErrorVisible(true)
+        }
+      } else {
+        // Password validation failed
+        const errorData = response.data as any
+        const errorMessage = errorData?.detail || "계정 삭제에 실패했습니다."
+        
+        if (errorMessage.toLowerCase().includes("invalid password")) {
+          setDeletionErrorMessage("비밀번호가 올바르지 않습니다.")
+        } else {
+          setDeletionErrorMessage("계정 삭제에 실패했습니다.")
+        }
+        setDeletionErrorVisible(true)
+        setPasswordConfirmationVisible(true)
+      }
+    } catch (error) {
+      console.error("Account deletion error:", error)
+      setDeletionErrorMessage("계정 삭제 중 오류가 발생했습니다.")
+      setDeletionErrorVisible(true)
+      setPasswordConfirmationVisible(true)
+    }
+  }
+
+  const handlePasswordCancel = () => {
+    setPasswordConfirmationVisible(false)
+  }
+
+  const handleDeletionSuccess = () => {
+    setDeletionSuccessVisible(false)
+    // Navigate back to initial screen (Welcome)
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Welcome" }],
+    })
+  }
+
+  // Check if gallery access is enabled based on onboarding choices
+  const checkGalleryAccess = async () => {
+    try {
+      const storedGalleryGranted = await storage.loadString("GALLERY_PERMISSION_GRANTED")
+      const useDummyStorage = await storage.loadString("USE_DUMMY_STORAGE")
+      
+      // Gallery is enabled if permission was granted AND not using dummy storage
+      return storedGalleryGranted === 'true' && useDummyStorage !== 'true'
+    } catch (error) {
+      console.log('Error checking gallery access:', error)
+      return false
+    }
+  }
+
+  // Update gallery access state for UI
+  const updateGalleryAccessState = async () => {
+    const isEnabled = await checkGalleryAccess()
+    setIsGalleryAccessEnabled(isEnabled)
+    
+    if (__DEV__) {
+      console.log('Gallery access state updated:', isEnabled)
+    }
+  }
+
+  const handleAlbumButtonPress = async () => {
+    const isGalleryEnabled = await checkGalleryAccess()
+    
+    if (isGalleryEnabled) {
+      // Gallery access enabled - proceed with normal album scanning
+      setIsLoading(true)
+      
+      try {
+        await scanAlbums(
+          // onFoodFound callback - called for each new food image found
+          (asset) => {
+            console.log(`Found new food image: ${asset.uri}`)
+          },
+          // onCompleted callback - called when scanning is complete
+          (foundCount) => {
+            setIsLoading(false)
+            setFoundImageCount(foundCount)
+            setAlbumScanCompleteModalVisible(true)
+            
+            // Refresh photos list to show new images
+            getUserPhotos()
+            
+            // Stay on Profile tab - don't navigate to Foodigram after scan completion
+          }
+        )
+      } catch (error) {
+        console.error("Album scanning error:", error)
+        setIsLoading(false)
+        // Could show an error modal here if needed
+      }
+    } else {
+      // Gallery access disabled - show permission required modal
+      setGalleryPermissionModalVisible(true)
+    }
+  }
+
   return (
     <View style={$container}>
       <ScrollView style={$scrollView} showsVerticalScrollIndicator={false}>
         {/* Profile Section */}
         <View style={$profileSectionHorizontal}>
-          <TouchableOpacity testID="profile-logout-button" onPress={() => logout()}>
-            <Text style={$userNameHorizontal}>{user.name}</Text>
+          <TouchableOpacity testID="profile-logout-button" onPress={() => setLogoutConfirmationVisible(true)}>
+            <View>
+              <Text style={$userNameHorizontal}>{user.name}</Text>
+              {showLocationCoordinates && (
+                <Text style={$coordinatesText}>
+                  {isLocationLoading 
+                    ? `현위치: 위치를 조회하는 중${locationLoadingDots}`
+                    : isLocationRestricted 
+                      ? "현위치: 위치 정보 사용 제한"
+                      : userCoordinates 
+                        ? `현위치: ${userCoordinates[1].toFixed(6)}, ${userCoordinates[0].toFixed(6)}`
+                        : "현위치: 위치를 조회하는 중"
+                  }
+                </Text>
+              )}
+            </View>
           </TouchableOpacity>
           <View style={{ flexDirection: "row", gap: spacing.sm }}>
             <TouchableOpacity
@@ -227,28 +503,44 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
               {allPhotos.map((item) => {
                 if (item.type === 'user') {
                   const isSelected = selectedImageIds.has(item.id)
+                  const isImageDisabled = !isGalleryAccessEnabled
+                  
                   return (
                     <TouchableOpacity
                       key={item.id}
                       style={[$photoCard, { width: imageSize, height: imageSize }]}
                       onPress={() => {
-                        if (isSelectMode) {
+                        if (!isImageDisabled && isSelectMode) {
                           toggleImageSelection(item.id)
                         }
                       }}
-                      activeOpacity={isSelectMode ? 0.7 : 1}
+                      activeOpacity={isImageDisabled ? 1 : (isSelectMode ? 0.7 : 1)}
+                      disabled={isImageDisabled && !isSelectMode}
                     >
                       {isSelectMode ? (
                         <>
-                          <Image
-                            source={item.image}
-                            style={{
+                          {item.image?.uri && item.image.uri.trim() ? (
+                            <Image
+                              source={item.image}
+                              style={{
+                                width: "100%",
+                                height: "100%",
+                                opacity: isImageDisabled ? 0.5 : (isSelected ? 0.5 : 1),
+                              }}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View style={{
                               width: "100%",
                               height: "100%",
-                              opacity: isSelected ? 0.5 : 1,
-                            }}
-                            resizeMode="cover"
-                          />
+                              backgroundColor: colors.palette.neutral300,
+                              justifyContent: "center",
+                              alignItems: "center",
+                              opacity: isImageDisabled ? 0.5 : (isSelected ? 0.5 : 1),
+                            }}>
+                              <Text style={{ color: colors.palette.neutral500, fontSize: 12 }}>이미지 없음</Text>
+                            </View>
+                          )}
                           {isSelected && (
                             <View
                               style={{
@@ -273,6 +565,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                           label={item.ai_label || "라벨 없음"}
                           alternatives={item.label_alternatives || []}
                           labelManuallyEdited={item.label_manually_edited || false}
+                          disabled={isImageDisabled}
                           onLabelChange={async (newLabel: string) => {
                             try {
                               await api.updateImageLabel(item.id, newLabel)
@@ -306,11 +599,21 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                         setIsModalVisible(true)
                       }}
                     >
-                      <Image
-                        source={item.image}
-                        style={$photoImage}
-                        resizeMode="cover"
-                      />
+                      {item.image?.uri && item.image.uri.trim() ? (
+                        <Image
+                          source={item.image}
+                          style={$photoImage}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View style={[$photoImage, {
+                          backgroundColor: colors.palette.neutral300,
+                          justifyContent: "center",
+                          alignItems: "center",
+                        }]}>
+                          <Text style={{ color: colors.palette.neutral500, fontSize: 12 }}>이미지 없음</Text>
+                        </View>
+                      )}
                     </TouchableOpacity>
                   )
                 }
@@ -407,16 +710,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         testID="refresh-button"
         style={$floatingButton}
         disabled={isLoading}
-        onPress={() => {
-          setIsLoading(true)
-          scanAlbums(() => {
-            // Refresh photos list after new image is uploaded
-            setTimeout(() => {
-              getUserPhotos()
-              setIsLoading(false)
-            }, 500)
-          })
-        }}
+        onPress={handleAlbumButtonPress}
       >
         <ImageIcon size={28} color={isLoading ? "#999" : "#FFFFFF"} />
       </TouchableOpacity>
@@ -538,35 +832,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
       </Modal>
 
       {/* Settings Modal */}
-      <Modal
+      <SettingsModal
         visible={isSettingsModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsSettingsModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={$settingsModalBackdrop}
-          onPress={() => setIsSettingsModalVisible(false)}
-          activeOpacity={1}
-        >
-          <TouchableOpacity
-            style={$settingsModalContent}
-            onPress={() => {}}
-            activeOpacity={1}
-          >
-            <TouchableOpacity
-              style={$logoutButtonContainer}
-              onPress={() => {
-                setIsSettingsModalVisible(false)
-                logout()
-              }}
-            >
-              <LogOut size={20} color={colors.error} strokeWidth={2} />
-              <Text style={$logoutButtonText}>로그아웃</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      </Modal>
+        onClose={() => {
+          setIsSettingsModalVisible(false)
+          // Refresh location and gallery access state when settings modal closes
+          checkLocationAndUpdateCoordinates()
+          updateGalleryAccessState()
+        }}
+        onLogout={() => {
+          setIsSettingsModalVisible(false)
+          setLogoutConfirmationVisible(true)
+        }}
+        onDeleteAccount={() => {
+          setIsSettingsModalVisible(false)
+          handleDeleteAccount()
+        }}
+      />
 
       {/* Loading Overlay */}
       {isLoading && (
@@ -613,6 +895,116 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
           </Text>
         </View>
       )}
+
+      {/* Account Deletion Modals */}
+      <AccountDeletionWarningModal
+        visible={deletionWarningVisible}
+        onCancel={handleDeletionWarningCancel}
+        onConfirm={handleDeletionWarningConfirm}
+      />
+
+      <PasswordConfirmationModal
+        visible={passwordConfirmationVisible}
+        onCancel={handlePasswordCancel}
+        onConfirm={handlePasswordConfirm}
+      />
+
+      <AccountDeletionSuccessModal
+        visible={deletionSuccessVisible}
+        onConfirm={handleDeletionSuccess}
+      />
+
+      <AccountDeletionErrorModal
+        visible={deletionErrorVisible}
+        onClose={() => setDeletionErrorVisible(false)}
+        errorMessage={deletionErrorMessage}
+      />
+
+      {/* Gallery Permission Required Modal */}
+      <Modal
+        visible={galleryPermissionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setGalleryPermissionModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={$galleryModalOverlay}
+          activeOpacity={1}
+          onPress={() => setGalleryPermissionModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={$galleryModalContainer}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            <View style={$galleryModalIconContainer}>
+              <ImageIcon size={48} color="#f66c51" />
+            </View>
+            
+            <Text style={$galleryModalTitle}>갤러리 접근 권한 필요</Text>
+            
+            <Text style={$galleryModalMessage}>
+              갤러리에서 음식 사진을 가져오려면{'\n'}
+              갤러리 접근 권한이 필요합니다.{'\n\n'}
+              설정에서 갤러리 접근을 활성화해주세요.
+            </Text>
+            
+            <TouchableOpacity 
+              style={$galleryModalButton}
+              onPress={() => setGalleryPermissionModalVisible(false)}
+            >
+              <Text style={$galleryModalButtonText}>확인</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Album Scan Completion Modal */}
+      <Modal
+        visible={albumScanCompleteModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setAlbumScanCompleteModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={$albumCompleteModalOverlay}
+          activeOpacity={1}
+          onPress={() => setAlbumScanCompleteModalVisible(false)}
+        >
+          <TouchableOpacity
+            style={$albumCompleteModalContainer}
+            activeOpacity={1}
+            onPress={() => {}}
+          >
+            <View style={$albumCompleteModalIconContainer}>
+              <ImageIcon size={48} color="#f66c51" />
+            </View>
+            
+            <Text style={$albumCompleteModalTitle}>갤러리 스캔 완료</Text>
+            
+            <Text style={$albumCompleteModalMessage}>
+              {foundImageCount}개의 이미지를 불러왔습니다.
+            </Text>
+            
+            <TouchableOpacity 
+              style={$albumCompleteModalButton}
+              onPress={() => setAlbumScanCompleteModalVisible(false)}
+            >
+              <Text style={$albumCompleteModalButtonText}>확인</Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Logout Confirmation Modal */}
+      <LogoutConfirmationModal
+        visible={logoutConfirmationVisible}
+        onClose={() => setLogoutConfirmationVisible(false)}
+        onConfirm={() => {
+          setLogoutConfirmationVisible(false)
+          logout()
+        }}
+      />
     </View>
   )
 })
@@ -643,6 +1035,13 @@ const $userNameHorizontal: TextStyle = {
   fontSize: 22,
   fontWeight: "bold",
   color: colors.text,
+}
+
+const $coordinatesText: TextStyle = {
+  fontSize: 12,
+  color: colors.palette.neutral600,
+  marginTop: 4,
+  fontFamily: "monospace", // Use monospace font for better coordinate readability
 }
 
 const $iconButtonSquare: ViewStyle = {
@@ -771,34 +1170,125 @@ const $floatingButton: ViewStyle = {
   elevation: 8,
 }
 
-const $settingsModalBackdrop: ViewStyle = {
+const $galleryModalOverlay: ViewStyle = {
   flex: 1,
-  backgroundColor: "rgba(0, 0, 0, 0.6)",
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
   justifyContent: "center",
   alignItems: "center",
-  padding: spacing.lg,
+  paddingHorizontal: 20,
 }
 
-const $settingsModalContent: ViewStyle = {
-  backgroundColor: colors.background,
-  borderRadius: 12,
-  padding: spacing.lg,
-  minWidth: 200,
-}
-
-const $logoutButtonContainer: ViewStyle = {
-  flexDirection: "row",
+const $galleryModalContainer: ViewStyle = {
+  width: "100%",
+  maxWidth: 340,
+  backgroundColor: "#f8f6f5",
+  borderRadius: 16,
+  padding: 24,
   alignItems: "center",
-  justifyContent: "center",
-  paddingVertical: spacing.md,
-  paddingHorizontal: spacing.lg,
-  borderRadius: 8,
-  backgroundColor: colors.palette.neutral100,
-  gap: spacing.sm,
+  elevation: 8,
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 8,
 }
 
-const $logoutButtonText: TextStyle = {
+const $galleryModalIconContainer: ViewStyle = {
+  marginBottom: 16,
+  marginTop: 8,
+}
+
+const $galleryModalTitle: TextStyle = {
+  fontSize: 20,
+  fontWeight: "700",
+  color: "#1c100d",
+  marginBottom: 12,
+  textAlign: "center",
+}
+
+const $galleryModalMessage: TextStyle = {
   fontSize: 16,
-  fontWeight: "600",
-  color: colors.error,
+  color: "#9c5749",
+  textAlign: "center",
+  lineHeight: 24,
+  marginBottom: 24,
 }
+
+const $galleryModalButton: ViewStyle = {
+  width: "100%",
+  height: 48,
+  backgroundColor: "#f66c51",
+  borderRadius: 12,
+  justifyContent: "center",
+  alignItems: "center",
+}
+
+const $galleryModalButtonText: TextStyle = {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#FFFFFF",
+}
+
+const $albumCompleteModalOverlay: ViewStyle = {
+  flex: 1,
+  backgroundColor: "rgba(0, 0, 0, 0.5)",
+  justifyContent: "center",
+  alignItems: "center",
+  paddingHorizontal: 20,
+}
+
+const $albumCompleteModalContainer: ViewStyle = {
+  width: "100%",
+  maxWidth: 340,
+  backgroundColor: "#f8f6f5",
+  borderRadius: 16,
+  padding: 24,
+  alignItems: "center",
+  elevation: 8,
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.25,
+  shadowRadius: 8,
+}
+
+const $albumCompleteModalIconContainer: ViewStyle = {
+  marginBottom: 16,
+  marginTop: 8,
+}
+
+const $albumCompleteModalTitle: TextStyle = {
+  fontSize: 20,
+  fontWeight: "700",
+  color: "#1c100d",
+  marginBottom: 12,
+  textAlign: "center",
+}
+
+const $albumCompleteModalMessage: TextStyle = {
+  fontSize: 16,
+  color: "#9c5749",
+  textAlign: "center",
+  lineHeight: 24,
+  marginBottom: 24,
+}
+
+const $albumCompleteModalButton: ViewStyle = {
+  width: "100%",
+  height: 48,
+  backgroundColor: "#f66c51",
+  borderRadius: 12,
+  justifyContent: "center",
+  alignItems: "center",
+}
+
+const $albumCompleteModalButtonText: TextStyle = {
+  fontSize: 16,
+  fontWeight: "700",
+  color: "#FFFFFF",
+}
+

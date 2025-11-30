@@ -19,6 +19,8 @@ import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
 import { colors } from "app/theme"
 import * as storage from "app/utils/storage"
 import { api } from "app/services/api"
+import { userAuthFacade } from "app/services/registration/UserAuthFacade"
+import { useStores } from "app/models"
 
 /**
  * This type allows TypeScript to know what routes are defined in this navigator
@@ -61,6 +63,7 @@ const Stack = createNativeStackNavigator<AppStackParamList>()
 
 const AppStack = observer(function AppStack() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const rootStore = useStores()
 
   const checkLoginStatus = useCallback(async () => {
     const loginStatus = await storage.loadString("IS_LOGGED_IN")
@@ -72,74 +75,63 @@ const AppStack = observer(function AppStack() {
         const response = await api.me() // Verify session with actual API call
 
         if (response.ok) {
-          // Session is valid
-          setIsLoggedIn((prevLoggedIn) => {
-            if (prevLoggedIn !== true) {
-              // Reset navigation to Foodigram when logging in
-              setTimeout(() => {
-                if (navigationRef.isReady()) {
-                  navigationRef.reset({
-                    index: 0,
-                    routes: [{ name: "Foodigram" }],
-                  })
+          // Django session is valid, now ensure AWS Cognito authentication
+          const cognitoAuth = await userAuthFacade.checkAuthenticationStatus()
+          console.log('AWS Cognito authentication status:', cognitoAuth)
+          
+          if (!cognitoAuth.isAuthenticated) {
+            // Django session exists but Cognito session is missing - try to restore it
+            console.log('Django authenticated but Cognito not - attempting to restore Cognito session')
+            try {
+              const storedUsername = await storage.loadString("STORED_USERNAME")
+              const storedPassword = await storage.loadString("STORED_PASSWORD")
+              
+              if (storedUsername && storedPassword) {
+                console.log(`Restoring Cognito session for user: ${storedUsername}`)
+                const loginResult = await userAuthFacade.loginUser({
+                  username: storedUsername,
+                  password: storedPassword
+                })
+                
+                if (!loginResult.success) {
+                  console.log('Failed to restore Cognito session:', loginResult.errorMessage)
+                  // Continue anyway - Django session is still valid
                 }
-              }, 0)
+              }
+            } catch (error) {
+              console.log('Error restoring Cognito session:', error)
+              // Continue anyway - Django session is still valid
             }
-            return true
-          })
+          }
+          
+          // Only load user data if not already logged in (initial login)
+          // This prevents clearing stores when app comes to foreground
+          if (isLoggedIn !== true) {
+            console.log("🔄 Session valid - loading user data from backend (initial login)")
+            await rootStore.loadUserDataFromBackend()
+            console.log("✅ User data loading completed - setting login state to true")
+          } else {
+            console.log("✅ Session valid - user already logged in, preserving existing data")
+          }
+          
+          setIsLoggedIn(true)
         } else {
           // Session is invalid - remove flag and logout
           await storage.remove("IS_LOGGED_IN")
-          setIsLoggedIn((prevLoggedIn) => {
-            if (prevLoggedIn !== false) {
-              // Reset navigation to Welcome when logging out
-              setTimeout(() => {
-                if (navigationRef.isReady()) {
-                  navigationRef.reset({
-                    index: 0,
-                    routes: [{ name: "Welcome" }],
-                  })
-                }
-              }, 0)
-            }
-            return false
-          })
+          await rootStore.clearUserData()
+          setIsLoggedIn(false)
         }
       } catch (error) {
         // Network error or other issues - safely logout
         await storage.remove("IS_LOGGED_IN")
-        setIsLoggedIn((prevLoggedIn) => {
-          if (prevLoggedIn !== false) {
-            // Reset navigation to Welcome when logging out
-            setTimeout(() => {
-              if (navigationRef.isReady()) {
-                navigationRef.reset({
-                  index: 0,
-                  routes: [{ name: "Welcome" }],
-                })
-              }
-            }, 0)
-          }
-          return false
-        })
+        await rootStore.clearUserData()
+        setIsLoggedIn(false)
       }
     } else {
-      setIsLoggedIn((prevLoggedIn) => {
-        if (prevLoggedIn !== false && prevLoggedIn !== null) {
-          // Reset navigation to Welcome when logging out
-          setTimeout(() => {
-            if (navigationRef.isReady()) {
-              navigationRef.reset({
-                index: 0,
-                routes: [{ name: "Welcome" }],
-              })
-            }
-          }, 0)
-        }
-        return false
-      })
+      await rootStore.clearUserData()
+      setIsLoggedIn(false)
     }
-  }, [])
+  }, [rootStore])
 
   useEffect(() => {
     // Check login status on mount
@@ -152,25 +144,17 @@ const AppStack = observer(function AppStack() {
       }
     })
 
-    // Periodically check login status to catch both login completions and logouts
+    // Only check periodically if not logged in to avoid infinite loops when logged in
     let intervalId: NodeJS.Timeout | null = null
-    if (!isLoggedIn) {
-      // Check frequently when not logged in (to catch login completions)
+    if (isLoggedIn !== true) {
       intervalId = setInterval(() => {
         checkLoginStatus()
-      }, 500) // Check every 500ms when not logged in
-    } else {
-      // Check periodically when logged in (to catch logouts)
-      intervalId = setInterval(() => {
-        checkLoginStatus()
-      }, 1000) // Check every 1s when logged in
+      }, 10000) // Check every 10 seconds only when not logged in
     }
 
     return () => {
       subscription.remove()
-      if (intervalId) {
-        clearInterval(intervalId)
-      }
+      if (intervalId) clearInterval(intervalId)
     }
   }, [checkLoginStatus, isLoggedIn])
 
@@ -179,9 +163,10 @@ const AppStack = observer(function AppStack() {
     return null
   }
 
-  // Single stack with all screens
+  // Single stack with all screens - key prop forces remount on login state change
   return (
     <Stack.Navigator
+      key={isLoggedIn ? "authenticated" : "unauthenticated"}
       screenOptions={{ headerShown: false, navigationBarColor: colors.background }}
       initialRouteName={isLoggedIn ? "Foodigram" : "Welcome"}
     >

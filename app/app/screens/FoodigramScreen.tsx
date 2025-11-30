@@ -1,7 +1,9 @@
 import { LinearGradient } from "expo-linear-gradient"
-import { Bookmark, Home, User, Search, X } from "lucide-react-native"
+import { Bookmark, Home, User, Search, X, UtensilsCrossed } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useState, useRef, useCallback } from "react"
+import React, { useEffect, useState, useRef, useCallback, startTransition } from "react"
+import * as Location from "expo-location"
+import * as storage from "app/utils/storage"
 import {
   ActivityIndicator,
   Animated,
@@ -15,7 +17,8 @@ import {
   ListRenderItem,
   TextInput,
   Modal,
-  Pressable
+  Pressable,
+  InteractionManager
 } from "react-native"
 import { ScrapToast, Text } from "../components"
 import { useStores } from "../models"
@@ -48,8 +51,18 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
   // Query context related states
   const [showQueryModal, setShowQueryModal] = useState(false)
+
+  // Location states
+  const [userLocation, setUserLocation] = useState<[number, number]>([126.952741, 37.481227]) // Default Seoul National University Station
   const [queryContext, setQueryContext] = useState("")
   const [isProcessingQuery, setIsProcessingQuery] = useState(false)
+
+  // Recommendation reason states
+  const [menuReasons, setMenuReasons] = useState<{ [menuId: string]: string }>({})
+  const [reasonLoadingDots, setReasonLoadingDots] = useState<{ [menuId: string]: string }>({})
+
+  // Progress message state
+  const [progressMessage, setProgressMessage] = useState<string>("당신의 취향을 분석 중입니다")
 
   // Request deduplication: track pending requests to prevent duplicate API calls
   const pendingRequestRef = useRef<{
@@ -123,10 +136,71 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     })
   }, [])
 
+  // Check location permission when component mounts and when navigation focuses
+  useEffect(() => {
+    checkAndGetUserLocation()
+  }, [])
+
+  // Also check location when returning from other screens (like settings)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      checkAndGetUserLocation()
+    })
+
+    return unsubscribe
+  }, [navigation])
+
+  // Check location permission and get user location
+  const checkAndGetUserLocation = async () => {
+    try {
+      // Check stored permission states from onboarding
+      const storedLocationGranted = await storage.loadString("LOCATION_PERMISSION_GRANTED")
+      const useDummyLocation = await storage.loadString("USE_DUMMY_LOCATION")
+      
+      // Only use actual location if permission was granted in onboarding AND not using dummy location
+      const shouldUseActualLocation = storedLocationGranted === 'true' && useDummyLocation !== 'true'
+      
+      if (shouldUseActualLocation) {
+        // Check current system permission status
+        const { status } = await Location.getForegroundPermissionsAsync()
+        
+        if (status === 'granted') {
+          try {
+            const location = await Location.getCurrentPositionAsync({
+              accuracy: Location.Accuracy.Balanced,
+            })
+            
+            const newLocation: [number, number] = [
+              location.coords.longitude,
+              location.coords.latitude
+            ]
+            
+            setUserLocation(newLocation)
+            
+            if (__DEV__) {
+              console.log('📍 Using actual user location:', newLocation)
+            }
+          } catch (error) {
+            if (__DEV__) {
+              console.log('⚠️ Failed to get current location, using default:', error)
+            }
+          }
+        }
+      } else {
+        if (__DEV__) {
+          console.log('📍 Using default location (permission not granted or dummy location chosen)')
+        }
+      }
+    } catch (error) {
+      if (__DEV__) {
+        console.log('⚠️ Error checking location permission:', error)
+      }
+    }
+  }
+
   // Fetch recommendations function
   const fetchRecommendations = async (append = false, queryText?: string) => {
-    // User location info (should be obtained from GPS or user settings)
-    const userLocation: [number, number] = [126.9619864, 37.477136] // Seoul Gangnam Station coordinates
+    // Use the current userLocation state (either actual location or default)
 
     const maxResults = append ? currentMaxResults + 10 : 10
     const options: any = { maxResults }
@@ -189,12 +263,39 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
                 if (!append) {
                   // Incremental: add each menu as it arrives
-                  setAllFetchedMenus(prev => [...prev, menu])
+                  console.log(`🔄 FRONTEND: Adding menu to state immediately: ${menu.menu_name}`)
+                  setAllFetchedMenus(prev => {
+                    const newState = [...prev, menu]
+                    console.log(`📱 FRONTEND: State updated - now showing ${newState.length} menus`)
+                    return newState
+                  })
                   setDisplayedMenuCount(prev => Math.min(prev + 1, uniquePlaceMenus.length))
                 }
 
                 if (__DEV__) {
                   console.log(`🍽️ Received menu ${uniquePlaceMenus.length}: ${menu.menu_name}`)
+                }
+              }
+            } else if (chunk.type === 'progress') {
+              // Update progress message
+              const { message } = chunk
+              if (message) {
+                setProgressMessage(message)
+                if (__DEV__) {
+                  console.log(`📋 Progress update: ${message}`)
+                }
+              }
+            } else if (chunk.type === 'reason_update') {
+              // Update reason for specific menu
+              const { menu_id, reason } = chunk
+              if (menu_id && reason) {
+                setMenuReasons(prev => ({
+                  ...prev,
+                  [menu_id]: reason
+                }))
+                
+                if (__DEV__) {
+                  console.log(`💡 Updated reason for menu ${menu_id}: ${reason}`)
                 }
               }
             }
@@ -259,6 +360,9 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     setIsLoadingRecommendations(true)
     setAllFetchedMenus([]) // Clear previous results
     setDisplayedMenuCount(0)
+    setMenuReasons({}) // Clear previous reasons
+    setReasonLoadingDots({}) // Clear previous loading dots
+    setProgressMessage("당신의 취향을 분석 중입니다") // Reset progress message
 
     debouncedFetchRecommendations().finally(() => {
       setIsLoadingRecommendations(false)
@@ -270,41 +374,72 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     }
   }, [debouncedFetchRecommendations]) // Include debouncedFetchRecommendations in deps
 
-  // Refresh recommendations only when user explicitly updates profile images, labels, or preferences
-  // Check route params for explicit update signals (not just tab changes)
+  // Location tracking (but don't auto-refresh on location change)
+  const previousLocationRef = useRef<string>("")
+  useEffect(() => {
+    const currentLocationStr = JSON.stringify(userLocation)
+    previousLocationRef.current = currentLocationStr
+  }, [userLocation])
+
+  // Refresh recommendations only for specific triggers
   useEffect(() => {
     const params = route?.params as any
 
-    // Only refresh if explicitly signaled by ProfileScreen or SettingsScreen
+    // Only refresh for allowed triggers
     if (params?.refreshRecommendations) {
       const now = Date.now()
       if (now - lastRefreshTimeRef.current > 500) {
-        lastRefreshTimeRef.current = now
         const trigger = params.refreshReason || 'unknown'
-        if (__DEV__) {
-          console.log(`🔄 Recommendation refresh triggered: ${trigger}`)
+        
+        // Allowed triggers: menu images updated, food appetite onboarding updated
+        const allowedTriggers = [
+          'menu_images_updated',
+          'food_appetite_updated', 
+          'profile_images_updated',
+          'user_preferences_updated',
+          'food_label_changed',     // When user updates image labels
+          'preferences_updated',    // When user updates food preferences
+          'album_scan_completed'    // When new images are scanned from gallery
+        ]
+        
+        if (allowedTriggers.includes(trigger)) {
+          lastRefreshTimeRef.current = now
+          if (__DEV__) {
+            console.log(`🔄 Recommendation refresh triggered: ${trigger}`)
+          }
+          setHasMoreData(true)
+          setIsLoadingRecommendations(true)
+          setAllFetchedMenus([]) // Clear previous results
+          setDisplayedMenuCount(0)
+          setMenuReasons({}) // Clear previous reasons
+          setReasonLoadingDots({}) // Clear previous loading dots
+          setProgressMessage("당신의 취향을 분석 중입니다") // Reset progress message
+          debouncedFetchRecommendations().finally(() => {
+            setIsLoadingRecommendations(false)
+          }).catch((error) => {
+            console.error("Failed to refresh recommendations:", error)
+            setIsLoadingRecommendations(false)
+          })
+        } else if (__DEV__) {
+          console.log(`❌ Recommendation refresh blocked for trigger: ${trigger}`)
         }
-        setHasMoreData(true)
-        setIsLoadingRecommendations(true)
-        setAllFetchedMenus([]) // Clear previous results
-        setDisplayedMenuCount(0)
-        debouncedFetchRecommendations().finally(() => {
-          setIsLoadingRecommendations(false)
-        }).catch((error) => {
-          console.error("Failed to refresh recommendations:", error)
-          setIsLoadingRecommendations(false)
-        })
       }
     }
   }, [route?.params, debouncedFetchRecommendations])
 
-  // Handle pull-to-refresh
+  // Handle pull-to-refresh (user-initiated bouncing - allowed)
   const onRefresh = () => {
+    if (__DEV__) {
+      console.log('🔄 Pull-to-refresh triggered (user bounce)')
+    }
     setRefreshing(true)
     setHasMoreData(true)
     setIsLoadingRecommendations(true)
     setAllFetchedMenus([]) // Clear previous results
     setDisplayedMenuCount(0)
+    setMenuReasons({}) // Clear previous reasons
+    setReasonLoadingDots({}) // Clear previous loading dots
+    setProgressMessage("당신의 취향을 분석 중입니다") // Reset progress message
     // Use debounced version to prevent accidental double-refresh
     debouncedFetchRecommendations(false).finally(() => {
       setRefreshing(false)
@@ -349,18 +484,51 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
   // Manage loading animation for recommendation processing
   useEffect(() => {
-    if (isLoadingRecommendations && recommendedMenus.length === 0) {
-      // Start rotation animation when loading with no results yet
+    if (isLoadingRecommendations) {
+      // Start rotation animation when loading
       rotationValue.setValue(0)
       Animated.loop(
         Animated.timing(rotationValue, {
           toValue: 1,
-          duration: 1000,
+          duration: 2000, // Match ProfileScreen duration
           useNativeDriver: true,
         })
       ).start()
+    } else {
+      // Stop animation when not loading
+      rotationValue.stopAnimation()
     }
-  }, [isLoadingRecommendations, recommendedMenus.length, rotationValue])
+  }, [isLoadingRecommendations, rotationValue])
+
+  // Animate loading dots for recommendation reasons
+  useEffect(() => {
+    const intervals: NodeJS.Timeout[] = []
+    
+    // Create interval for each menu that doesn't have a reason yet
+    recommendedMenus.forEach(menu => {
+      if (!menuReasons[menu.id] && !menu.reason) {
+        const interval = setInterval(() => {
+          setReasonLoadingDots(prev => {
+            const currentDots = prev[menu.id] || ""
+            let nextDots = ""
+            
+            if (currentDots === "") nextDots = "."
+            else if (currentDots === ".") nextDots = ".."
+            else if (currentDots === "..") nextDots = "..."
+            else nextDots = ""
+            
+            return { ...prev, [menu.id]: nextDots }
+          })
+        }, 500) // 0.5 second cycle like location loading
+        
+        intervals.push(interval)
+      }
+    })
+
+    return () => {
+      intervals.forEach(interval => clearInterval(interval))
+    }
+  }, [recommendedMenus, menuReasons])
 
   // Incremental display: show menus one by one as they are "processed"
   useEffect(() => {
@@ -386,26 +554,68 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     }
   }, [displayedMenuCount, allFetchedMenus])
 
-  const toggleBookmark = useCallback((menu: MenuRecommendationItem) => {
+  const toggleBookmark = useCallback(async (menu: MenuRecommendationItem) => {
     const imageUrl = menu.image_urls && menu.image_urls.length > 0 ? menu.image_urls[0] : undefined
     
-    const wasScrapped = menuScrapStore.isScrapped(menu.id)
-    const isNowScrapped = menuScrapStore.toggleScrappedMenu({
-      id: menu.id,
-      menu_name: menu.menu_name,
-      place_name: menu.place_name,
-      price: menu.price,
-      category: menu.category,
-      location: menu.location,
-      rating: menu.rating,
-      review_count: menu.review_count,
-      image_url: imageUrl,
-      coordinates: menu.coordinates,
-    })
-    
-    // Show toast only when item is newly scrapped (wasn't scrapped before, but is now)
-    if (!wasScrapped && isNowScrapped) {
-      setShowScrapToast(true)
+    // Check if we have a restaurant_id to call the backend API
+    if (menu.restaurant_id || menu.place_name) {
+      try {
+        let restaurantId: string | null = null
+        if (menu.restaurant_id) {
+          restaurantId = menu.restaurant_id.toString()
+        }
+        
+        // Call the API with both ID and name as fallback
+        const response = await api.toggleScrapWithName(restaurantId, menu.place_name)
+        
+        if (response.ok) {
+          // Update local store based on backend response
+          const wasScrapped = menuScrapStore.isScrapped(menu.id)
+          const isNowScrapped = menuScrapStore.toggleScrappedMenu({
+            id: menu.id,
+            menu_name: menu.menu_name,
+            place_name: menu.place_name,
+            price: menu.price,
+            category: menu.category,
+            location: menu.location,
+            rating: menu.rating,
+            review_count: menu.review_count,
+            image_url: imageUrl,
+            coordinates: menu.coordinates,
+          })
+          
+          console.log('✅ SCRAP DEBUG: Local store updated - was scrapped:', wasScrapped, 'now scrapped:', isNowScrapped)
+          
+          // Show toast only when item is newly scrapped (wasn't scrapped before, but is now)
+          if (!wasScrapped && isNowScrapped) {
+            setShowScrapToast(true)
+          }
+        } else {
+          console.error('Failed to toggle scrap on backend:', response.problem)
+        }
+      } catch (error) {
+        console.error('Error toggling scrap:', error)
+      }
+    } else {
+      console.warn('No restaurant_id available for menu:', menu.place_name)
+      // Fallback to local-only toggle if no restaurant_id
+      const wasScrapped = menuScrapStore.isScrapped(menu.id)
+      const isNowScrapped = menuScrapStore.toggleScrappedMenu({
+        id: menu.id,
+        menu_name: menu.menu_name,
+        place_name: menu.place_name,
+        price: menu.price,
+        category: menu.category,
+        location: menu.location,
+        rating: menu.rating,
+        review_count: menu.review_count,
+        image_url: imageUrl,
+        coordinates: menu.coordinates,
+      })
+      
+      if (!wasScrapped && isNowScrapped) {
+        setShowScrapToast(true)
+      }
     }
   }, [menuScrapStore])
 
@@ -417,6 +627,14 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     setIsProcessingQuery(true)
     setShowQueryModal(false)
 
+    // Clear previous results for food preference search
+    setIsLoadingRecommendations(true)
+    setAllFetchedMenus([])
+    setDisplayedMenuCount(0)
+    setMenuReasons({}) // Clear previous reasons
+    setReasonLoadingDots({}) // Clear previous loading dots
+    setProgressMessage("당신의 취향을 분석 중입니다") // Reset progress message
+
     try {
       // Fetch recommendations with context query - use debounced version
       await debouncedFetchRecommendations(false, queryContext.trim())
@@ -424,6 +642,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
       console.error("Failed to fetch context-aware recommendations:", error)
     } finally {
       setIsProcessingQuery(false)
+      setIsLoadingRecommendations(false)
       setQueryContext("")
     }
   }, [queryContext, debouncedFetchRecommendations])
@@ -502,16 +721,21 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             <Text style={$menuRatingLarge} numberOfLines={1}>
               ⭐ {menu.rating} (리뷰 {menu.review_count}개)
             </Text>
-            {menu.reason && (
+            {/* Show loading reason or actual reason */}
+            {menuReasons[menu.id] || menu.reason ? (
               <Text style={$menuReasonLarge} numberOfLines={3}>
-                💡 {menu.reason}
+                💡 {menuReasons[menu.id] || menu.reason}
+              </Text>
+            ) : (
+              <Text style={$menuReasonLarge} numberOfLines={3}>
+                💡 추천 이유를 생성하는 중{reasonLoadingDots[menu.id] || ""}
               </Text>
             )}
           </View>
         </View>
       </ImageBackground>
     )
-  }, [screenHeight, isImageLoading, toggleBookmark, menuScrapStore.scrappedMenus.length])
+  }, [screenHeight, isImageLoading, toggleBookmark, menuScrapStore.scrappedMenus.length, menuReasons, reasonLoadingDots])
 
   // Get item layout for performance optimization
   const getItemLayout = useCallback(
@@ -562,20 +786,6 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
 
   return (
     <View style={$container}>
-      {/* Search/Query Header */}
-      <View style={$queryHeader}>
-        <TouchableOpacity
-          style={$queryButton}
-          onPress={() => setShowQueryModal(true)}
-          disabled={isProcessingQuery}
-        >
-          <Search size={20} color={colors.palette.primary500} strokeWidth={2} />
-          <Text style={$queryButtonText}>
-            {queryContext ? queryContext.substring(0, 30) + "..." : "음식 취향 검색"}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
       {/* Main Full Screen Content */}
       <FlatList
         ref={flatListRef}
@@ -600,12 +810,17 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         style={$fullScreenContainer}
         contentContainerStyle={$scrollContentContainer}
         bounces={true}
-        pagingEnabled={false}
+        pagingEnabled={true}
+        snapToInterval={screenHeight}
+        snapToAlignment="start"
+        decelerationRate="fast"
         removeClippedSubviews={true}
         maxToRenderPerBatch={3}
         windowSize={5}
         initialNumToRender={2}
         updateCellsBatchingPeriod={50}
+        disableIntervalMomentum={true}
+        scrollEventThrottle={16}
       />
 
       {/* Scrap Toast */}
@@ -615,8 +830,8 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         onNavigate={() => navigation.navigate("Scrap")}
       />
 
-      {/* Loading Overlay - show when recommendations loading with no results yet */}
-      {isLoadingRecommendations && recommendedMenus.length === 0 && (
+      {/* Loading Overlay - show when recommendations loading */}
+      {isLoadingRecommendations && (
         <View
           style={{
             position: "absolute",
@@ -630,12 +845,8 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
             zIndex: 100,
           }}
         >
-          <Animated.Image
-            source={require("assets/images/logo.png")}
+          <Animated.View
             style={{
-              width: 80,
-              height: 80,
-              marginBottom: 24,
               transform: [
                 {
                   rotate: rotationValue.interpolate({
@@ -645,13 +856,20 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
                 },
               ],
             }}
-          />
+          >
+            <UtensilsCrossed
+              size={64}
+              color={colors.palette.primary500}
+              strokeWidth={2}
+            />
+          </Animated.View>
           <Text
             style={{
               fontSize: 18,
               fontWeight: "600",
               color: colors.text,
               marginBottom: 8,
+              marginTop: 24,
             }}
           >
             추천하는 중...
@@ -662,10 +880,19 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
               color: colors.palette.neutral500,
             }}
           >
-            당신의 취향을 분석 중입니다
+            {progressMessage}
           </Text>
         </View>
       )}
+
+      {/* Floating Search Button */}
+      <TouchableOpacity
+        style={$floatingSearchButton}
+        onPress={() => setShowQueryModal(true)}
+        disabled={isProcessingQuery}
+      >
+        <Search size={28} color="#FFFFFF" strokeWidth={2} />
+      </TouchableOpacity>
 
       {/* Bottom Tabs */}
       <View style={$bottomTabs}>
@@ -994,32 +1221,29 @@ const $tabButtonTextActive: TextStyle = {
   fontWeight: "600",
 }
 
-// Query context styles
-const $queryHeader: ViewStyle = {
-  paddingHorizontal: spacing.md,
-  paddingVertical: spacing.md,
-  backgroundColor: colors.background,
-  borderBottomWidth: 1,
-  borderBottomColor: colors.palette.neutral200,
-}
-
-const $queryButton: ViewStyle = {
-  flexDirection: "row",
+// Floating search button style
+const $floatingSearchButton: ViewStyle = {
+  position: "absolute",
+  bottom: spacing.xl + 80, // Above bottom tabs
+  right: spacing.xl,
+  width: 64,
+  height: 64,
+  borderRadius: 32,
+  backgroundColor: colors.palette.primary500,
   alignItems: "center",
-  gap: spacing.sm,
-  paddingHorizontal: spacing.md,
-  paddingVertical: spacing.sm,
-  borderRadius: 8,
-  backgroundColor: colors.palette.neutral100,
-  borderWidth: 1,
-  borderColor: colors.palette.neutral300,
+  justifyContent: "center",
+  shadowColor: "#000",
+  shadowOffset: {
+    width: 0,
+    height: 4,
+  },
+  shadowOpacity: 0.3,
+  shadowRadius: 5,
+  elevation: 8,
+  zIndex: 99,
 }
 
-const $queryButtonText: TextStyle = {
-  fontSize: 14,
-  color: colors.palette.neutral600,
-  flex: 1,
-}
+// Query context styles
 
 const $queryModalBackdrop: ViewStyle = {
   flex: 1,

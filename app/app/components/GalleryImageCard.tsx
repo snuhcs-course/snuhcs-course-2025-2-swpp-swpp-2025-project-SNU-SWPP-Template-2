@@ -28,6 +28,7 @@ interface GalleryImageCardProps {
   labelManuallyEdited?: boolean
   onLabelChange: (newLabel: string) => Promise<void>
   onImageDelete: () => Promise<void>
+  disabled?: boolean
 }
 
 export const GalleryImageCard: React.FC<GalleryImageCardProps> = ({
@@ -37,6 +38,7 @@ export const GalleryImageCard: React.FC<GalleryImageCardProps> = ({
   labelManuallyEdited = false,
   onLabelChange,
   onImageDelete,
+  disabled = false,
 }) => {
   // States: 'none' | 'overlay' | 'modal'
   const [displayState, setDisplayState] = useState<'none' | 'overlay' | 'modal'>('none')
@@ -211,20 +213,36 @@ export const GalleryImageCard: React.FC<GalleryImageCardProps> = ({
   return (
     <>
       <Pressable
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        onPress={handleImagePress}
+        onPressIn={disabled ? undefined : handlePressIn}
+        onPressOut={disabled ? undefined : handlePressOut}
+        onPress={disabled ? undefined : handleImagePress}
+        disabled={disabled}
         testID="gallery-image-card"
       >
-        <Image
-          source={{ uri: imageUri }}
-          style={{
+        {imageUri && imageUri.trim() ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={{
+              width: "100%",
+              height: "100%",
+              borderRadius: 8,
+              opacity: disabled ? 0.5 : 1,
+            }}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={{
             width: "100%",
             height: "100%",
             borderRadius: 8,
-          }}
-          testID="gallery-image"
-        />
+            backgroundColor: colors.palette.neutral300,
+            justifyContent: "center",
+            alignItems: "center",
+            opacity: disabled ? 0.5 : 1,
+          }}>
+            <Text style={{ color: colors.palette.neutral500, fontSize: 12 }}>이미지 없음</Text>
+          </View>
+        )}
 
         {/* Overlay with semi-transparent black layer - shows on short press or while modal is open */}
         {(displayState === 'overlay' || displayState === 'modal') && (
