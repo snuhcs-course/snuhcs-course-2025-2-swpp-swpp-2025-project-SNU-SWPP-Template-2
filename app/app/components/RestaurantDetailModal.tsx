@@ -155,7 +155,7 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
               decelerationRate="normal"
             >
               {/* Restaurant Image */}
-              {restaurant.image_url && (
+              {restaurant.image_url && restaurant.image_url.trim() && (
                 <Image
                   source={{ uri: restaurant.image_url }}
                   style={$restaurantImage}
@@ -195,7 +195,7 @@ export const RestaurantDetailModal: React.FC<RestaurantDetailModalProps> = ({
                   <Text style={$sectionTitle}>Menu</Text>
                   {restaurant.menus.map((menu, index) => (
                     <View key={index} style={$menuItem}>
-                      {menu.image_url && (
+                      {menu.image_url && menu.image_url.trim() && (
                         <Image
                           source={{ uri: menu.image_url }}
                           style={$menuImage}

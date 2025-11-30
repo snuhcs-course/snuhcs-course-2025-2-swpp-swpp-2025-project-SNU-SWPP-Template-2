@@ -1,15 +1,39 @@
 import React, { useState, useRef, useEffect } from "react"
 import { observer } from "mobx-react-lite"
 import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText, Animated } from "react-native"
-import { Text } from "app/components"
+import { Text, LocationWarningModal, StorageWarningModal, PreferencesCompleteModal } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
 import { api } from "app/services/api"
-import { Ionicons } from "@expo/vector-icons"
+import { 
+  Egg, 
+  Leaf, 
+  Flower2,
+  Fish, 
+  UtensilsCrossed,
+  Wheat,
+  Droplets,
+  Circle,
+  MapPin,
+  Image,
+  Camera,
+  RotateCcw,
+  Images,
+  Pizza,
+  Coffee,
+  ChefHat,
+  Flame,
+  Wine,
+  Sprout,
+  Shell,
+  Milk,
+  Nut
+} from "lucide-react-native"
 import * as Location from "expo-location"
 import * as MediaLibrary from "expo-media-library"
 import { useAlbumScanner } from "app/services/albums/useAlbumScanner"
 import { match } from "ts-pattern"
+import * as storage from "app/utils/storage"
 
 interface OnboardingScreenProps extends AppStackScreenProps<"Onboarding"> { }
 
@@ -24,42 +48,42 @@ interface UserPreferences {
 }
 
 const ALLERGIES = [
-  { id: "eggs", label: "달걀", icon: "egg-outline" as const },
-  { id: "soy", label: "대두", icon: "leaf-outline" as const },
-  { id: "sesame", label: "참깨", icon: "flower-outline" as const },
-  { id: "fish", label: "생선", icon: "fish-outline" as const },
-  { id: "shellfish", label: "조개류", icon: "fish-outline" as const },
-  { id: "wheat", label: "밀", icon: "nutrition-outline" as const },
-  { id: "milk", label: "우유", icon: "water-outline" as const },
-  { id: "peanuts", label: "땅콩", icon: "nutrition-outline" as const },
-  { id: "tree nuts", label: "견과류", icon: "nutrition-outline" as const },
+  { id: "eggs", label: "달걀", icon: "egg" as const },
+  { id: "soy", label: "대두", icon: "sprout" as const },
+  { id: "sesame", label: "참깨", icon: "flower2" as const },
+  { id: "fish", label: "생선", icon: "fish" as const },
+  { id: "shellfish", label: "조개", icon: "shell" as const },
+  { id: "wheat", label: "밀", icon: "wheat" as const },
+  { id: "milk", label: "우유", icon: "milk" as const },
+  { id: "peanuts", label: "땅콩", icon: "nut" as const },
+  { id: "tree nuts", label: "견과류", icon: "nut" as const },
 ]
 
 const INGREDIENTS = [
-  { id: "onion", label: "양파", icon: "nutrition-outline" as const },
-  { id: "garlic", label: "마늘", icon: "nutrition-outline" as const },
-  { id: "ginger", label: "생강", icon: "leaf-outline" as const },
-  { id: "cilantro", label: "고수", icon: "leaf-outline" as const },
-  { id: "mushroom", label: "버섯", icon: "nutrition-outline" as const },
-  { id: "tomato", label: "토마토", icon: "nutrition-outline" as const },
-  { id: "cheese", label: "치즈", icon: "pizza-outline" as const },
-  { id: "meat", label: "고기", icon: "restaurant-outline" as const },
-  { id: "seafood", label: "해산물", icon: "fish-outline" as const },
+  { id: "onion", label: "양파", icon: "circle" as const },
+  { id: "garlic", label: "마늘", icon: "circle" as const },
+  { id: "ginger", label: "생강", icon: "leaf" as const },
+  { id: "cilantro", label: "고수", icon: "leaf" as const },
+  { id: "mushroom", label: "버섯", icon: "circle" as const },
+  { id: "tomato", label: "토마토", icon: "circle" as const },
+  { id: "cheese", label: "치즈", icon: "pizza" as const },
+  { id: "meat", label: "고기", icon: "utensilsCrossed" as const },
+  { id: "seafood", label: "해산물", icon: "fish" as const },
 ]
 
 const CUISINES = [
-  { id: "italian", label: "이탈리안", icon: "pizza-outline" as const },
-  { id: "mexican", label: "멕시칸", icon: "fast-food-outline" as const },
-  { id: "chinese", label: "중식", icon: "restaurant-outline" as const },
-  { id: "japanese", label: "일식", icon: "fish-outline" as const },
-  { id: "indian", label: "인도", icon: "flame-outline" as const },
-  { id: "american", label: "아메리칸", icon: "fast-food-outline" as const },
-  { id: "thai", label: "태국", icon: "leaf-outline" as const },
-  { id: "mediterranean", label: "지중해", icon: "restaurant-outline" as const },
-  { id: "french", label: "프렌치", icon: "wine-outline" as const },
-  { id: "vietnamese", label: "베트남", icon: "restaurant-outline" as const },
-  { id: "spanish", label: "스페인", icon: "wine-outline" as const },
-  { id: "korean", label: "한식", icon: "restaurant-outline" as const },
+  { id: "italian", label: "이탈리안", icon: "pizza" as const },
+  { id: "mexican", label: "멕시칸", icon: "coffee" as const },
+  { id: "chinese", label: "중식", icon: "utensilsCrossed" as const },
+  { id: "japanese", label: "일식", icon: "fish" as const },
+  { id: "indian", label: "인도", icon: "flame" as const },
+  { id: "american", label: "아메리칸", icon: "coffee" as const },
+  { id: "thai", label: "태국", icon: "leaf" as const },
+  { id: "mediterranean", label: "지중해", icon: "utensilsCrossed" as const },
+  { id: "french", label: "프렌치", icon: "wine" as const },
+  { id: "vietnamese", label: "베트남", icon: "utensilsCrossed" as const },
+  { id: "spanish", label: "스페인", icon: "wine" as const },
+  { id: "korean", label: "한식", icon: "chefHat" as const },
 ]
 
 // 새로운 입맛 스텝 정의
@@ -86,6 +110,30 @@ const TASTE_STEPS: TasteStep[] = [
   "cuisine",
 ]
 
+// Icon rendering function
+const renderIcon = (iconName: string, size: number, color: string) => {
+  switch (iconName) {
+    case "egg": return <Egg size={size} color={color} />
+    case "sprout": return <Sprout size={size} color={color} />
+    case "leaf": return <Leaf size={size} color={color} />
+    case "flower2": return <Flower2 size={size} color={color} />
+    case "fish": return <Fish size={size} color={color} />
+    case "shell": return <Shell size={size} color={color} />
+    case "utensilsCrossed": return <UtensilsCrossed size={size} color={color} />
+    case "wheat": return <Wheat size={size} color={color} />
+    case "milk": return <Milk size={size} color={color} />
+    case "nut": return <Nut size={size} color={color} />
+    case "droplets": return <Droplets size={size} color={color} />
+    case "circle": return <Circle size={size} color={color} />
+    case "pizza": return <Pizza size={size} color={color} />
+    case "coffee": return <Coffee size={size} color={color} />
+    case "flame": return <Flame size={size} color={color} />
+    case "wine": return <Wine size={size} color={color} />
+    case "chefHat": return <ChefHat size={size} color={color} />
+    default: return <Circle size={size} color={color} />
+  }
+}
+
 export const OnboardingScreen = observer(function OnboardingScreen({ navigation }: OnboardingScreenProps) {
   const [currentStepIdx, setCurrentStepIdx] = useState(0)
   const [preferences, setPreferences] = useState<UserPreferences>({
@@ -100,6 +148,11 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   const [isLoading, setIsLoading] = useState(false)
   const [locationPermissionGranted, setLocationPermissionGranted] = useState(false)
   const [galleryPermissionGranted, setGalleryPermissionGranted] = useState(false)
+  const [locationWarningVisible, setLocationWarningVisible] = useState(false)
+  const [storageWarningVisible, setStorageWarningVisible] = useState(false)
+  const [useDummyLocation, setUseDummyLocation] = useState(false)
+  const [useDummyStorage, setUseDummyStorage] = useState(false)
+  const [preferencesCompleteVisible, setPreferencesCompleteVisible] = useState(false)
   const { scanAlbums } = useAlbumScanner()
   const [galleryPermissionResponse, requestGalleryPermission] = MediaLibrary.usePermissions(
     { granularPermissions: ['photo'] }
@@ -169,9 +222,14 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
           console.log("Gallery image synced")
         })
         moveToNextStep()
+      } else {
+        // Permission denied - show warning modal
+        setStorageWarningVisible(true)
       }
     } catch (error) {
       console.log("Gallery permission error:", error)
+      // Show warning on error
+      setStorageWarningVisible(true)
     }
   }
 
@@ -190,6 +248,66 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   }
 
   const handleSkip = () => {
+    if (currentStep === "location") {
+      setLocationWarningVisible(true)
+    } else if (currentStep === "gallery") {
+      setStorageWarningVisible(true)
+    } else {
+      // For other steps, just skip to next
+      handleNext()
+    }
+  }
+
+  const handleLocationWarningConfirm = () => {
+    setLocationWarningVisible(false)
+    setUseDummyLocation(true)
+    // Continue to next step with dummy location
+    if (currentStepIdx < totalSteps - 1) {
+      setCurrentStepIdx(currentStepIdx + 1)
+    }
+  }
+
+  const handleLocationWarningCancel = () => {
+    setLocationWarningVisible(false)
+    // Stay on location step to allow GPS usage
+  }
+
+  const handleStorageWarningConfirm = () => {
+    setStorageWarningVisible(false)
+    setUseDummyStorage(true)
+    // Continue to next step with dummy storage
+    if (currentStepIdx < totalSteps - 1) {
+      setCurrentStepIdx(currentStepIdx + 1)
+    }
+  }
+
+  const handleStorageWarningCancel = () => {
+    setStorageWarningVisible(false)
+    // Stay on storage step to allow gallery access
+  }
+
+  const handlePreferencesComplete = async () => {
+    setPreferencesCompleteVisible(false)
+    // Clear NEW_USER flag since onboarding is complete
+    await storage.remove("NEW_USER")
+    
+    // Save permission states for settings sync
+    const finalGalleryGranted = galleryPermissionGranted || galleryPermissionResponse?.status === 'granted'
+    
+    await storage.saveString("LOCATION_PERMISSION_GRANTED", locationPermissionGranted.toString())
+    await storage.saveString("GALLERY_PERMISSION_GRANTED", finalGalleryGranted.toString())
+    await storage.saveString("USE_DUMMY_LOCATION", useDummyLocation.toString())
+    await storage.saveString("USE_DUMMY_STORAGE", useDummyStorage.toString())
+    
+    if (__DEV__) {
+      console.log("Onboarding - Saving permission states:", {
+        locationPermissionGranted,
+        galleryPermissionGranted: finalGalleryGranted,
+        useDummyLocation,
+        useDummyStorage,
+      })
+    }
+    
     navigation.replace("Foodigram")
   }
 
@@ -213,9 +331,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       }
       const response = await api.savePreferences(apiPreferences)
       if (response.ok) {
-        Alert.alert("취향 설정 완료", "맛집 추천 준비가 완료되었어요!", [
-          { text: "OK", onPress: () => navigation.replace("Foodigram") }
-        ])
+        setPreferencesCompleteVisible(true)
       } else {
         Alert.alert("Error", "Failed to save preferences. Please try again.")
       }
@@ -321,11 +437,11 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
             activeOpacity={0.7}
           >
             <View style={$cardContent}>
-              <Ionicons 
-                name={allergy.icon} 
-                size={32} 
-                color={preferences.allergies.includes(allergy.id) ? colors.background : colors.text}
-              />
+              {renderIcon(
+                allergy.icon,
+                32,
+                preferences.allergies.includes(allergy.id) ? colors.background : colors.text
+              )}
               <Text style={[
                 $cardText,
                 preferences.allergies.includes(allergy.id) && $cardTextSelected
@@ -355,11 +471,11 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
             activeOpacity={0.7}
           >
             <View style={$cardContent}>
-              <Ionicons 
-                name={ingredient.icon} 
-                size={32} 
-                color={preferences.disliked_ingredients.includes(ingredient.id) ? colors.background : colors.text}
-              />
+              {renderIcon(
+                ingredient.icon,
+                32,
+                preferences.disliked_ingredients.includes(ingredient.id) ? colors.background : colors.text
+              )}
               <Text style={[
                 $cardText,
                 preferences.disliked_ingredients.includes(ingredient.id) && $cardTextSelected
@@ -389,11 +505,11 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
             activeOpacity={0.7}
           >
             <View style={$cardContent}>
-              <Ionicons 
-                name={cuisine.icon} 
-                size={32} 
-                color={preferences.favorite_cuisines.includes(cuisine.id) ? colors.background : colors.text}
-              />
+              {renderIcon(
+                cuisine.icon,
+                32,
+                preferences.favorite_cuisines.includes(cuisine.id) ? colors.background : colors.text
+              )}
               <Text style={[
                 $cardText,
                 preferences.favorite_cuisines.includes(cuisine.id) && $cardTextSelected
@@ -410,8 +526,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
   const renderLocationPermission = () => (
     <View style={$stepContainer}>
       <View style={$locationIconContainer}>
-        <Ionicons 
-          name="location" 
+        <MapPin
           size={80} 
           color={locationPermissionGranted ? colors.palette.primary500 : colors.palette.neutral400}
         />
@@ -422,15 +537,15 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       </Text>
       <View style={$locationBenefitsContainer}>
         <View style={$benefitItem}>
-          <Ionicons name="restaurant" size={24} color={colors.palette.primary500} />
+          <UtensilsCrossed size={24} color={colors.palette.primary500} />
           <Text style={$benefitText}>주변 레스토랑</Text>
         </View>
         <View style={$benefitItem}>
-          <Ionicons name="map" size={24} color={colors.palette.primary500} />
+          <MapPin size={24} color={colors.palette.primary500} />
           <Text style={$benefitText}>맞춤형 추천</Text>
         </View>
         <View style={$benefitItem}>
-          <Ionicons name="navigate" size={24} color={colors.palette.primary500} />
+          <MapPin size={24} color={colors.palette.primary500} />
           <Text style={$benefitText}>새로운 맛집 경험</Text>
         </View>
       </View>
@@ -442,8 +557,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
     return (
     <View style={$stepContainer}>
       <View style={$locationIconContainer}>
-        <Ionicons 
-          name="images" 
+        <Images
           size={80} 
           color={isGranted ? colors.palette.primary500 : colors.palette.neutral400}
         />
@@ -454,15 +568,15 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       </Text>
       <View style={$locationBenefitsContainer}>
         <View style={$benefitItem}>
-          <Ionicons name="camera" size={24} color={colors.palette.primary500} />
+          <Camera size={24} color={colors.palette.primary500} />
           <Text style={$benefitText}>음식 사진 자동 인식</Text>
         </View>
         <View style={$benefitItem}>
-          <Ionicons name="sync" size={24} color={colors.palette.primary500} />
+          <RotateCcw size={24} color={colors.palette.primary500} />
           <Text style={$benefitText}>맞춤형 추천 향상</Text>
         </View>
         <View style={$benefitItem}>
-          <Ionicons name="images-outline" size={24} color={colors.palette.primary500} />
+          <Image size={24} color={colors.palette.primary500} />
           <Text style={$benefitText}>개인 갤러리 관리</Text>
         </View>
       </View>
@@ -525,7 +639,7 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
           <TouchableOpacity style={$continueButton} onPress={handleGalleryPermission} disabled={isLoading}>
             <RNText style={$continueButtonText}>갤러리 접근 허용</RNText>
           </TouchableOpacity>
-          <TouchableOpacity onPress={handleNext} style={$skipButton}>
+          <TouchableOpacity onPress={handleSkip} style={$skipButton}>
           <RNText style={$skipText}>건너뛰기</RNText>
         </TouchableOpacity>
         </>
@@ -571,6 +685,9 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
                   다음
                 </RNText>
               </TouchableOpacity>
+              <TouchableOpacity style={$skipButton} onPress={handleBack} disabled={isLoading}>
+                <RNText style={$skipText}>뒤로</RNText>
+              </TouchableOpacity>
             </>
           )
         }).with("cuisine", () => (
@@ -581,6 +698,23 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
           <></>
         ))}
       </View>
+
+      <LocationWarningModal
+        visible={locationWarningVisible}
+        onCancel={handleLocationWarningCancel}
+        onConfirm={handleLocationWarningConfirm}
+      />
+
+      <StorageWarningModal
+        visible={storageWarningVisible}
+        onCancel={handleStorageWarningCancel}
+        onConfirm={handleStorageWarningConfirm}
+      />
+
+      <PreferencesCompleteModal
+        visible={preferencesCompleteVisible}
+        onConfirm={handlePreferencesComplete}
+      />
     </View>
   )
 })

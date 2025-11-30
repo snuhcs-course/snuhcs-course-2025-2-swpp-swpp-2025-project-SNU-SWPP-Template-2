@@ -166,6 +166,29 @@ export class Api {
     return this.apisauce.post("/scraps/toggle/", { restaurant_id: restaurantId })
   }
 
+  async toggleScrapWithName(restaurantId: string | null, restaurantName: string) {
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    
+    const payload: any = { restaurant_name: restaurantName }
+    if (restaurantId) {
+      payload.restaurant_id = restaurantId
+    }
+    
+    // Add CSRF token to payload body like the recommendation endpoint does
+    const csrfToken = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (csrfToken) {
+      payload.csrfmiddlewaretoken = csrfToken
+    }
+    
+    return this.apisauce.post("/scraps/toggle/", payload)
+  }
+
   async getScraps() {
     // ensure csrf header is present; get it if missing
     // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader

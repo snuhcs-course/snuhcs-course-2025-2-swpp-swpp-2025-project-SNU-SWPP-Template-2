@@ -115,11 +115,17 @@ export function FoodCard({ food, isLiked, isScrapped, onLike, onScrap, scale = 1
     <View style={dynamicContainerStyle}>
       {/* Food Image */}
       <View style={dynamicStyles.imageContainer}>
-        <Image 
-          source={{ uri: food.image }} 
-          style={$image}
-          resizeMode="cover"
-        />
+        {food.image && food.image.trim() ? (
+          <Image 
+            source={{ uri: food.image }} 
+            style={$image}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={[$image, $placeholderImage]}>
+            <Text style={$placeholderText}>이미지 없음</Text>
+          </View>
+        )}
         {/* Category Badge Overlay */}
         <View style={dynamicStyles.categoryBadge}>
           <Text style={dynamicStyles.categoryText}>{food.category}</Text>
@@ -343,4 +349,16 @@ const $allergenText: TextStyle = {
   fontSize: 14,
   color: colors.palette.neutral700,
   textTransform: "capitalize",
+}
+
+const $placeholderImage: ViewStyle = {
+  backgroundColor: colors.palette.neutral300,
+  justifyContent: "center",
+  alignItems: "center",
+}
+
+const $placeholderText: TextStyle = {
+  color: colors.palette.neutral500,
+  fontSize: 14,
+  fontWeight: "500",
 }

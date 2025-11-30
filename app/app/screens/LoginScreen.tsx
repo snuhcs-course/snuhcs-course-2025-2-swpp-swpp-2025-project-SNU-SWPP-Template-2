@@ -1,10 +1,10 @@
-import { Text } from "app/components"
+import { Text, LoginErrorModal, PasswordRetrievalModal, VerificationCodeModal, PasswordDisplayModal } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
 import { userAuthFacade } from "app/services/registration"
 import { Eye, EyeOff } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
 import React, { useState } from "react"
-import { Alert, TextInput, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native"
+import { TextInput, TextStyle, TouchableOpacity, View, ViewStyle } from "react-native"
 
 interface LoginScreenProps extends AppStackScreenProps<"Login"> { }
 
@@ -13,10 +13,18 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
+  const [errorModalVisible, setErrorModalVisible] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [passwordRetrievalVisible, setPasswordRetrievalVisible] = useState(false)
+  const [verificationCodeVisible, setVerificationCodeVisible] = useState(false)
+  const [passwordDisplayVisible, setPasswordDisplayVisible] = useState(false)
+  const [retrievalEmail, setRetrievalEmail] = useState("")
+  const [userPassword, setUserPassword] = useState("")
 
   async function tryLogin() {
     if (!username.trim() || !password.trim()) {
-      Alert.alert("아이디와 비밀번호를 입력해주세요.")
+      setErrorMessage("아이디와 비밀번호를 입력해주세요.")
+      setErrorModalVisible(true)
       return
     }
 
@@ -24,13 +32,18 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
     try {
       const result = await userAuthFacade.loginUser({ username, password })
       if (!result.success) {
-        Alert.alert("로그인 실패", result.errorMessage ?? "로그인에 실패했습니다.")
+        const errorMessage = result.errorMessage === "Invalid credentials" 
+          ? "아이디나 비밀번호를 확인하세요." 
+          : result.errorMessage ?? "로그인에 실패했습니다."
+        setErrorMessage(errorMessage)
+        setErrorModalVisible(true)
         return
       }
 
       navigation.replace(result.hasPreferences ? "Foodigram" : "Onboarding")
     } catch (e) {
-      Alert.alert("로그인 중 문제가 발생했습니다.")
+      setErrorMessage("로그인 중 문제가 발생했습니다.")
+      setErrorModalVisible(true)
       console.log(e)
     } finally {
       setIsLoading(false)
@@ -39,6 +52,30 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
 
   function navigateToSignUp() {
     navigation.navigate("SignUp")
+  }
+
+  function handleForgotPassword() {
+    setPasswordRetrievalVisible(true)
+  }
+
+  function handleEmailSubmit(email: string) {
+    setRetrievalEmail(email)
+    setPasswordRetrievalVisible(false)
+    setVerificationCodeVisible(true)
+  }
+
+  function handleCodeVerify(code: string) {
+    // In a real app, you would verify the code with backend
+    // For now, we simulate getting the password
+    setUserPassword("mypassword123")
+    setVerificationCodeVisible(false)
+    setPasswordDisplayVisible(true)
+  }
+
+  function handleClosePasswordDisplay() {
+    setPasswordDisplayVisible(false)
+    setRetrievalEmail("")
+    setUserPassword("")
   }
 
   return (
@@ -85,7 +122,7 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
             </View>
           </View>
 
-          <TouchableOpacity style={$forgotPassword}>
+          <TouchableOpacity style={$forgotPassword} onPress={handleForgotPassword}>
             <Text style={$forgotPasswordText}>비밀번호를 잊으셨나요?</Text>
           </TouchableOpacity>
 
@@ -108,6 +145,32 @@ export const LoginScreen = observer(function LoginScreen({ navigation }: LoginSc
           </View>
         </View>
       </View>
+      
+      <LoginErrorModal
+        visible={errorModalVisible}
+        onClose={() => setErrorModalVisible(false)}
+        errorMessage={errorMessage}
+      />
+
+      <PasswordRetrievalModal
+        visible={passwordRetrievalVisible}
+        onClose={() => setPasswordRetrievalVisible(false)}
+        onEmailSubmit={handleEmailSubmit}
+      />
+
+      <VerificationCodeModal
+        visible={verificationCodeVisible}
+        onClose={() => setVerificationCodeVisible(false)}
+        onCodeVerify={handleCodeVerify}
+        email={retrievalEmail}
+      />
+
+      <PasswordDisplayModal
+        visible={passwordDisplayVisible}
+        onClose={handleClosePasswordDisplay}
+        email={retrievalEmail}
+        password={userPassword}
+      />
     </View>
   )
 })

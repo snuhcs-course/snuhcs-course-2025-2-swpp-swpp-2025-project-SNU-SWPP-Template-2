@@ -224,7 +224,14 @@ class ScrapViewSet(viewsets.GenericViewSet):
 
     def get_queryset(self):
         """현재 유저의 스크랩만 조회"""
-        return UserScrap.objects.filter(user=self.request.user).select_related('restaurant')
+        if hasattr(self.request, 'user') and self.request.user.is_authenticated:
+            print(f"🔍 DEBUG: Scraps for user {self.request.user.username} (ID: {self.request.user.id})")
+            queryset = UserScrap.objects.filter(user=self.request.user).select_related('restaurant')
+            print(f"📊 DEBUG: Found {queryset.count()} scraps")
+            return queryset
+        else:
+            print("❌ DEBUG: User not authenticated")
+            return UserScrap.objects.none()
 
     def list(self, request):
         """내 스크랩 목록 조회"""
@@ -290,18 +297,46 @@ class ScrapViewSet(viewsets.GenericViewSet):
     @action(detail=False, methods=['post'], url_path='toggle')
     def toggle(self, request):
         """스크랩 토글 (있으면 삭제, 없으면 추가)"""
+        print(f"🔄 DEBUG TOGGLE: User {request.user.username} (ID: {request.user.id})")
         restaurant_id = request.data.get('restaurant_id')
+        restaurant_name = request.data.get('restaurant_name')
+        print(f"🍽️ DEBUG TOGGLE: Restaurant ID {restaurant_id}, Name: {restaurant_name}")
 
-        if not restaurant_id:
+        restaurant = None
+        
+        if restaurant_id:
+            try:
+                # First try to find by Django model ID (integer)
+                restaurant = Restaurant.objects.get(id=restaurant_id)
+            except (Restaurant.DoesNotExist, ValueError):
+                # If not found or not a valid integer, try to find by source UUID
+                try:
+                    restaurant = Restaurant.objects.get(source=f"external_{restaurant_id}")
+                    print(f"🎯 DEBUG TOGGLE: Found restaurant by source UUID - Django ID: {restaurant.id}")
+                except Restaurant.DoesNotExist:
+                    pass
+        
+        # If no restaurant found by ID, try to find by name
+        if not restaurant and restaurant_name:
+            try:
+                restaurant = Restaurant.objects.get(name=restaurant_name)
+                print(f"🎯 DEBUG TOGGLE: Found restaurant by name - ID: {restaurant.id}")
+            except Restaurant.DoesNotExist:
+                print(f"⚠️ DEBUG TOGGLE: Restaurant not found by name: '{restaurant_name}'")
+                # Try partial match
+                similar = Restaurant.objects.filter(name__icontains=restaurant_name.split()[0])[:3]
+                print(f"🔍 DEBUG TOGGLE: Similar restaurants: {[r.name for r in similar]}")
+                pass
+        
+        if not restaurant:
             return Response(
-                {"error": "restaurant_id is required"},
+                {"error": "restaurant_id or restaurant_name is required and must match an existing restaurant"},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
-
         # 이미 스크랩했는지 확인
         scrap = UserScrap.objects.filter(user=request.user, restaurant=restaurant).first()
+        print(f"📋 DEBUG TOGGLE: Existing scrap found: {scrap is not None}")
 
         if scrap:
             # 스크랩 해제
@@ -310,7 +345,7 @@ class ScrapViewSet(viewsets.GenericViewSet):
             # Log negative interaction
             UserInteraction.objects.create(
                 user=request.user,
-                restaurant_id=restaurant_id,
+                restaurant_id=restaurant.id,
                 interaction_type='hide',
                 reward_value=-1.0,
                 context_query='scrap_toggled_off'
@@ -329,7 +364,7 @@ class ScrapViewSet(viewsets.GenericViewSet):
             context_query = request.data.get('context_query', '')
             UserInteraction.objects.create(
                 user=request.user,
-                restaurant_id=restaurant_id,
+                restaurant_id=restaurant.id,
                 interaction_type='scrap',
                 reward_value=1.0,
                 context_query=context_query
@@ -366,17 +401,29 @@ class OnboardingViewSet(viewsets.GenericViewSet):
     
     def create(self, request):
         """취향 설정 생성/업데이트"""
-        preference, created = UserPreference.objects.get_or_create(
-            user=request.user,
-            defaults={
-                'spicy_level': request.data.get('spicy_level', 0),
-                'sweet_level': request.data.get('sweet_level', 0),
-                'salty_level': request.data.get('salty_level', 0),
-                'allergies': request.data.get('allergies', []),
-                'disliked_ingredients': request.data.get('disliked_ingredients', []),
-                'favorite_cuisines': request.data.get('favorite_cuisines', []),
-            }
-        )
+        from django.db import transaction, IntegrityError
+        
+        try:
+            with transaction.atomic():
+                preference, created = UserPreference.objects.get_or_create(
+                    user=request.user,
+                    defaults={
+                        'spicy_level': request.data.get('spicy_level', 0),
+                        'sweet_level': request.data.get('sweet_level', 0),
+                        'salty_level': request.data.get('salty_level', 0),
+                        'allergies': request.data.get('allergies', []),
+                        'disliked_ingredients': request.data.get('disliked_ingredients', []),
+                        'favorite_cuisines': request.data.get('favorite_cuisines', []),
+                    }
+                )
+        except IntegrityError:
+            # Handle race condition - preference was created by another request
+            try:
+                preference = UserPreference.objects.get(user=request.user)
+                created = False
+            except UserPreference.DoesNotExist:
+                # If still doesn't exist, re-raise the error
+                raise
         
         if not created:
             # 기존 설정 업데이트

@@ -21,4 +21,5 @@ urlpatterns += [
 	path("auth/login/", auth_views.login_view, name="login"),
 	path("auth/logout/", auth_views.logout_view, name="logout"),
 	path("auth/register/", auth_views.register_view, name="register"),
+	path("auth/delete-account/", auth_views.delete_account_view, name="delete-account"),
 ]

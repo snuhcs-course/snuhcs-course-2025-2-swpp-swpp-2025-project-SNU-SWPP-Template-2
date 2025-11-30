@@ -47,11 +47,15 @@ class RecommendationStreamResponse(StreamingHttpResponse):
     separators to help WSGI servers recognize chunk boundaries and stream properly.
     """
     def __iter__(self):
+        import sys
         for chunk in self.streaming_content:
             if isinstance(chunk, str):
                 chunk = chunk.encode(self.charset or 'utf-8')
             # Yield the chunk as-is; WSGI will handle transmission
             yield chunk
+            # Force immediate flushing to ensure real-time streaming
+            sys.stdout.flush()
+            sys.stderr.flush()
 
 
 # Request deduplication cache: tracks recent recommendation requests
@@ -226,6 +230,8 @@ def format_menu_item(
     # Convert UUID objects to strings for JSON serialization
     menu_id = menu.get('id')
     restaurant_id = menu.get('restaurant_id')
+    
+    # Restaurant ID is now properly handled as UUID string
 
     return {
         'id': str(menu_id) if menu_id else None,
@@ -460,6 +466,7 @@ def calculate_menu_similarity(menu: Dict, onboarding_data: Dict, embedding_servi
 # ===== 구버전 API 끝 =====
 
 @require_http_methods(["POST"])
+@csrf_exempt
 def recommend_menu(request):
     """메뉴 추천 API - Using StreamingHttpResponse with proper chunking for real-time delivery"""
     # Manually check authentication
@@ -616,6 +623,7 @@ def recommend_menu(request):
             
             # PostGIS 공간 쿼리로 근처 레스토랑 검색
             logger.info(f"근처 레스토랑 검색 중... (위치: {client_profile.location}, 반경: {search_context.max_distance}km)")
+            
             restaurants = recommender.find_nearby_restaurants(
                 client_profile,
                 max_distance_km=search_context.max_distance,
@@ -801,34 +809,111 @@ def recommend_menu(request):
 
         logger.info(f"음식점 다양성 보장: {round_idx}라운드 진행, 최종 {len(final_results)}개 메뉴 선택")
 
-        # 결과를 스트리밍으로 반환 (각 메뉴가 처리되자마자 전송)
+        # 결과를 스트리밍으로 반환 (두 단계: 1. 메뉴 정보 먼저, 2. 추천 이유는 나중에)
         def stream_recommendations():
+            import time
             explanation_generator = get_explanation_generator()
             reason_calculator = get_reason_calculator()
             result_count = 0
 
+            # Get user preferences summary for contextualized messages
+            user_prefs_summary = []
+            if enhanced_onboarding_data:
+                cuisines = enhanced_onboarding_data.get('preferred_categories', [])
+                if cuisines:
+                    user_prefs_summary.append(f"선호 요리: {', '.join(cuisines[:2])}")
+                
+                taste_prefs = enhanced_onboarding_data.get('taste_preferences', {})
+                if taste_prefs:
+                    taste_desc = []
+                    if taste_prefs.get('spicy', 3) > 3: taste_desc.append("매운맛")
+                    if taste_prefs.get('sweet', 3) > 3: taste_desc.append("단맛") 
+                    if taste_prefs.get('salty', 3) > 3: taste_desc.append("짠맛")
+                    if taste_desc:
+                        user_prefs_summary.append(f"선호 맛: {', '.join(taste_desc)}")
+            
+            prefs_text = " / ".join(user_prefs_summary[:2]) if user_prefs_summary else "당신의 취향"
+
+            # Send initial progress status: analyzing preferences
+            initial_progress_chunk = json.dumps({
+                'type': 'progress',
+                'message': f"{prefs_text}을 분석 중입니다"
+            }) + '\n'
+            yield initial_progress_chunk
+            import sys
+            sys.stdout.flush()
+            sys.stderr.flush()
+            time.sleep(0.3)
+
+            # Send second progress status: finding restaurants
+            restaurant_progress_chunk = json.dumps({
+                'type': 'progress',
+                'message': "식당을 탐색하는 중입니다"
+            }) + '\n'
+            yield restaurant_progress_chunk
+            sys.stdout.flush()
+            sys.stderr.flush()
+            time.sleep(0.3)
+
             # 첫 메타데이터 스트림
-            yield json.dumps({
+            metadata_chunk = json.dumps({
                 'type': 'metadata',
                 'success': True,
                 'query_type': 'menu',
                 'total_results': len(final_results)
             }) + '\n'
+            
+            # Force immediate delivery of metadata
+            yield metadata_chunk
+            sys.stdout.flush()
+            sys.stderr.flush()
+            
             logger.debug(f"Streaming metadata: {len(final_results)} results")
 
+            # Send progress status: menu selection phase
+            progress_chunk = json.dumps({
+                'type': 'progress',
+                'message': f"{prefs_text} 기준에 맞춰 메뉴를 선정하는 중입니다"
+            }) + '\n'
+            yield progress_chunk
+            sys.stdout.flush()
+            sys.stderr.flush()
+            time.sleep(0.2)  # Brief delay to show progress
+
+            # Phase 1: 즉시 메뉴 정보 스트리밍 (추천 이유 없이)
             for menu, score, components in final_results:
-                # Generate explanation using GPT
-                category = menu.get('category', '')
-                rating_raw = menu.get('rating')
-                rating = float(rating_raw) if rating_raw is not None else 0.0
+                # 기본 정보만으로 메뉴 아이템 포맷 (추천 이유 없음)
+                formatted_item = format_menu_item(menu, score, components, None, enhanced_onboarding_data)
+                chunk = json.dumps({
+                    'type': 'result',
+                    'item': formatted_item
+                }) + '\n'
+                
+                # Force immediate streaming for each menu item
+                yield chunk
+                
+                # Force system flush to ensure immediate delivery
+                import sys
+                sys.stdout.flush()
+                sys.stderr.flush()
+                
+                result_count += 1
 
-                review_count_raw = menu.get('review_count')
-                review_count = int(review_count_raw) if review_count_raw is not None else 0
+            logger.info(f"Phase 1 완료: {result_count}개 메뉴 정보 스트리밍")
 
-                explanation = f"'{category}' 카테고리, 평점 {rating:.1f} (리뷰 {review_count:,}건)" if review_count > 0 else f"'{category}' 카테고리"
-                reason_features = {}
-                reason_keys = []
+            # Send progress status: reason generation phase  
+            reason_progress_chunk = json.dumps({
+                'type': 'progress',
+                'message': "추천 이유를 추출하는 중입니다"
+            }) + '\n'
+            yield reason_progress_chunk
+            sys.stdout.flush()
+            sys.stderr.flush()
+            time.sleep(0.2)  # Brief delay to show progress
 
+            # Phase 2: 추천 이유 생성 및 스트리밍 (각 메뉴별로 개별 생성)
+            for idx, (menu, score, components) in enumerate(final_results):
+                menu_id = str(menu.get('id'))  # Convert UUID to string for JSON serialization
                 try:
                     # Calculate reason features
                     reason_features = reason_calculator.calculate_features(
@@ -839,6 +924,9 @@ def recommend_menu(request):
                     )
 
                     # Generate GPT explanation
+                    explanation = f"추천 이유를 생성하는 중..."  # 기본값
+                    reason_keys = []
+                    
                     if explanation_generator:
                         gpt_explanation, reason_keys = explanation_generator.generate_explanation(
                             menu_name=menu.get('name', ''),
@@ -853,6 +941,8 @@ def recommend_menu(request):
                             }
                         )
                         explanation = gpt_explanation
+                        logger.info(f"Generated explanation for {menu.get('name', '')}")
+                        logger.info(f"Explanation: {explanation}")
 
                     # Store reason features in database
                     try:
@@ -889,16 +979,33 @@ def recommend_menu(request):
                     except Exception as e:
                         logger.warning(f"Error storing reason features: {e}")
 
+                    # IMMEDIATELY stream the reason update for this specific menu
+                    logger.info(f"📤 Streaming reason {idx+1}/{len(final_results)} for menu {menu_id}: {explanation[:50]}...")
+                    chunk = json.dumps({
+                        'type': 'reason_update',
+                        'menu_id': menu_id,
+                        'reason': explanation
+                    }) + '\n'
+                    
+                    # Force immediate flushing to ensure real-time streaming
+                    yield chunk
+                    
+                    # Force system flush to ensure data is sent immediately
+                    import sys
+                    sys.stdout.flush()
+                    sys.stderr.flush()
+                    
+                    # Small delay to ensure chunk boundary recognition
+                    time.sleep(0.05)
+
                 except Exception as e:
                     logger.warning(f"Failed to generate explanation for {menu.get('name', '')}: {e}")
-
-                # Format and stream the menu item
-                formatted_item = format_menu_item(menu, score, components, explanation, enhanced_onboarding_data)
-                yield json.dumps({
-                    'type': 'result',
-                    'item': formatted_item
-                }) + '\n'
-                result_count += 1
+                    # Stream error indication for this menu
+                    yield json.dumps({
+                        'type': 'reason_update',
+                        'menu_id': menu_id,
+                        'reason': '추천 이유 생성 실패'
+                    }) + '\n'
 
             # Close recommender
             try:
@@ -906,18 +1013,18 @@ def recommend_menu(request):
             except:
                 pass
 
-            logger.info(f"=== 메뉴 추천 완료: {result_count}개 결과 스트리밍 ===")
+            logger.info(f"=== 메뉴 추천 완료: Phase 1({result_count}개 메뉴), Phase 2(추천 이유) 스트리밍 ===")
 
         # Return streaming response with proper headers for real-time delivery
         response = RecommendationStreamResponse(
             stream_recommendations(),
             content_type='application/x-ndjson; charset=utf-8'
         )
-        # Disable caching and buffering
+        # Disable caching and buffering for streaming
         response['Cache-Control'] = 'no-cache, no-store, must-revalidate, private'
         response['Pragma'] = 'no-cache'
         response['Expires'] = '0'
-        response['X-Accel-Buffering'] = 'no'
+        response['X-Accel-Buffering'] = 'no'  # Nginx: disable buffering
         # Remove Content-Length to enable streaming
         if 'Content-Length' in response:
             del response['Content-Length']

@@ -59,6 +59,9 @@ export const FoodHistoryStoreModel = types
         self.scrappedItems.push(item)
       }
     },
+    clearAllScraps() {
+      self.scrappedItems.clear()
+    },
   }))
   .views((self) => ({
     get scrappedItemsList() {

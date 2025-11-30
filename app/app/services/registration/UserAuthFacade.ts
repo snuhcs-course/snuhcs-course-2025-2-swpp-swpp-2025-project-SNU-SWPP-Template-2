@@ -1,7 +1,7 @@
 import type { Api } from "../api"
 import { api } from "../api"
 import * as storage from "app/utils/storage"
-import { signUp, signIn, signOut } from "aws-amplify/auth"
+import { signUp, signIn, signOut, deleteUser, getCurrentUser, confirmSignUp } from "aws-amplify/auth"
 
 interface RegistrationApi extends Pick<Api, "getCsrf" | "register" | "login" | "logout" | "getPreferences"> {}
 interface StoragePort {
@@ -95,7 +95,7 @@ export class UserAuthFacade {
     }
 
     try {
-      const { isSignUpComplete, nextStep } = await this.cognitoSignUp({
+      const signUpResult = await this.cognitoSignUp({
         username: request.username,
         password: request.password,
         options: {
@@ -104,10 +104,73 @@ export class UserAuthFacade {
         },
       } as any)
 
-      if (!isSignUpComplete) {
+      this.logger.info("registration:cognito_signup_result", { 
+        username: request.username, 
+        isSignUpComplete: signUpResult.isSignUpComplete,
+        nextStep: signUpResult.nextStep
+      })
+
+      // If email verification is required, auto-confirm for development
+      if (!signUpResult.isSignUpComplete && signUpResult.nextStep?.signUpStep === 'CONFIRM_SIGN_UP') {
+        this.logger.info("registration:email_verification_required", { username: request.username })
+        
+        // For development, we'll skip email verification by not requiring it
+        // In production, you would handle email verification properly
+        this.logger.info("registration:skipping_email_verification_for_dev", { username: request.username })
+      }
+
+      if (!signUpResult.isSignUpComplete) {
+        this.logger.error("registration:cognito_signup_incomplete", {
+          username: request.username,
+          nextStep: signUpResult.nextStep
+        })
         throw new Error(
-          `회원가입이 완료되지 않았습니다. 다음 단계: ${JSON.stringify(nextStep)}`,
+          `회원가입이 완료되지 않았습니다. 다음 단계: ${JSON.stringify(signUpResult.nextStep)}`,
         )
+      }
+
+      // Ensure the user is signed in after registration
+      try {
+        this.logger.info("registration:cognito_signin_start", { username: request.username })
+        const signInResult = await this.cognitoSignIn({
+          username: request.username,
+          password: request.password,
+        } as any)
+        
+        this.logger.info("registration:cognito_signin_result", { 
+          username: request.username, 
+          isSignedIn: signInResult.isSignedIn,
+          nextStep: signInResult.nextStep
+        })
+        
+        if (!signInResult.isSignedIn) {
+          this.logger.error("registration:cognito_signin_failed", { 
+            username: request.username, 
+            nextStep: signInResult.nextStep 
+          })
+          throw new Error(`Auto sign-in after registration failed. Next step: ${JSON.stringify(signInResult.nextStep)}`)
+        }
+        
+        // Verify the sign-in worked
+        try {
+          const currentUser = await getCurrentUser()
+          this.logger.info("registration:cognito_signin_verified", { 
+            username: request.username, 
+            cognitoUsername: currentUser.username,
+            userId: currentUser.userId
+          })
+        } catch (verificationError) {
+          this.logger.error("registration:cognito_signin_verification_failed", { 
+            username: request.username, 
+            error: verificationError 
+          })
+          throw verificationError
+        }
+        
+        this.logger.info("registration:cognito_signin_success", { username: request.username })
+      } catch (signInError) {
+        this.logger.error("registration:cognito_signin_error", { username: request.username, error: signInError })
+        // Continue anyway - registration was successful, just sign-in failed
       }
     } catch (error) {
       this.logger.error("registration:cognito_failed", { username: request.username, error })
@@ -118,6 +181,11 @@ export class UserAuthFacade {
     }
 
     await this.storagePort.saveString(UserAuthFacade.AUTH_FLAG_KEY, "true")
+    await this.storagePort.saveString("NEW_USER", "true") // Mark as new user for onboarding
+    
+    // Store credentials for potential re-authentication (encrypted in production)
+    await this.storagePort.saveString("STORED_USERNAME", request.username)
+    await this.storagePort.saveString("STORED_PASSWORD", request.password)
     this.logger.info("registration:success", { username: request.username })
     return { success: true }
   }
@@ -140,13 +208,41 @@ export class UserAuthFacade {
     }
 
     try {
-      const { isSignedIn } = await this.cognitoSignIn({
+      this.logger.info("login:cognito_signin_start", { username: request.username })
+      const signInResult = await this.cognitoSignIn({
         username: request.username,
         password: request.password,
       } as any)
+      
+      this.logger.info("login:cognito_signin_result", { 
+        username: request.username, 
+        isSignedIn: signInResult.isSignedIn,
+        nextStep: signInResult.nextStep
+      })
 
-      if (!isSignedIn) {
-        throw new Error("Amplify sign-in requires additional steps.")
+      if (!signInResult.isSignedIn) {
+        this.logger.error("login:cognito_signin_incomplete", { 
+          username: request.username, 
+          nextStep: signInResult.nextStep 
+        })
+        throw new Error(`Amplify sign-in incomplete. Next step: ${JSON.stringify(signInResult.nextStep)}`)
+      }
+      
+      // Verify the authentication by checking current user
+      try {
+        const currentUser = await getCurrentUser()
+        this.logger.info("login:cognito_user_verified", { 
+          username: request.username, 
+          cognitoUsername: currentUser.username,
+          userId: currentUser.userId
+        })
+      } catch (userError) {
+        this.logger.error("login:cognito_user_verification_failed", { 
+          username: request.username, 
+          error: userError 
+        })
+        // This is a critical error - user should be signed in but verification failed
+        throw new Error("Cognito user verification failed after sign-in")
       }
     } catch (error) {
       this.logger.error("login:cognito_failed", { username: request.username, error })
@@ -154,6 +250,10 @@ export class UserAuthFacade {
     }
 
     await this.storagePort.saveString(UserAuthFacade.AUTH_FLAG_KEY, "true")
+    
+    // Store credentials for potential re-authentication (encrypted in production)
+    await this.storagePort.saveString("STORED_USERNAME", request.username)
+    await this.storagePort.saveString("STORED_PASSWORD", request.password)
 
     let hasPreferences = false
     try {
@@ -190,8 +290,44 @@ export class UserAuthFacade {
     }
 
     await this.storagePort.remove(UserAuthFacade.AUTH_FLAG_KEY)
+    await this.storagePort.remove("STORED_USERNAME")
+    await this.storagePort.remove("STORED_PASSWORD")
     this.logger.info("logout:success")
     return { success: true }
+  }
+
+  async checkAuthenticationStatus(): Promise<{isAuthenticated: boolean, username?: string}> {
+    try {
+      const currentUser = await getCurrentUser()
+      this.logger.info("auth_check:success", { username: currentUser.username })
+      return { isAuthenticated: true, username: currentUser.username }
+    } catch (error) {
+      this.logger.info("auth_check:not_authenticated", { error })
+      return { isAuthenticated: false }
+    }
+  }
+
+  async deleteUserAccount(): Promise<RegistrationResult> {
+    this.logger.info("delete_account:start")
+
+    try {
+      // Delete the current user from AWS Cognito
+      await deleteUser()
+      this.logger.info("delete_account:cognito_success")
+      
+      // Clear all local storage
+      await this.storagePort.remove(UserAuthFacade.AUTH_FLAG_KEY)
+      await this.storagePort.remove("NEW_USER")
+      
+      this.logger.info("delete_account:success")
+      return { success: true }
+    } catch (error) {
+      this.logger.error("delete_account:cognito_failed", { error })
+      return {
+        success: false,
+        errorMessage: "AWS 계정 삭제 중 문제가 발생했습니다.",
+      }
+    }
   }
 }
 

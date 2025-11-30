@@ -1,7 +1,7 @@
 import React, { useState } from "react"
 import { observer } from "mobx-react-lite"
 import { View, ViewStyle, TextStyle, TouchableOpacity, Alert, TextInput, ScrollView } from "react-native"
-import { Text } from "app/components"
+import { Text, SignUpSuccessModal, SignUpErrorModal } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
 import { userAuthFacade } from "app/services/registration"
 import { Eye, EyeOff } from "lucide-react-native"
@@ -16,28 +16,99 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  
+  // Validation states
+  const [fullNameError, setFullNameError] = useState("")
+  const [emailError, setEmailError] = useState("")
+  const [passwordError, setPasswordError] = useState("")
+  const [confirmPasswordError, setConfirmPasswordError] = useState("")
+  const [successModalVisible, setSuccessModalVisible] = useState(false)
+  const [errorModalVisible, setErrorModalVisible] = useState(false)
+  const [signUpErrorMessage, setSignUpErrorMessage] = useState("")
+
+  // Validation functions
+  const validateFullName = (value: string) => {
+    if (value.length > 0 && value.length < 6) {
+      setFullNameError("아이디는 6자 이상이어야 합니다.")
+    } else {
+      setFullNameError("")
+    }
+  }
+
+  const validateEmail = (value: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (value.length > 0 && !emailRegex.test(value)) {
+      setEmailError("이메일을 확인하세요.")
+    } else {
+      setEmailError("")
+    }
+  }
+
+  const validatePassword = (value: string) => {
+    if (value.length > 0 && value.length < 8) {
+      setPasswordError("비밀번호는 8자 이상이어야 합니다.")
+    } else {
+      setPasswordError("")
+      // Re-validate confirm password when password changes
+      if (confirmPassword && value !== confirmPassword) {
+        setConfirmPasswordError("비밀번호가 일치하지 않습니다.")
+      } else if (confirmPassword && value === confirmPassword) {
+        setConfirmPasswordError("")
+      }
+    }
+  }
+
+  const validateConfirmPassword = (value: string) => {
+    if (value.length > 0 && value !== password) {
+      setConfirmPasswordError("비밀번호가 일치하지 않습니다.")
+    } else {
+      setConfirmPasswordError("")
+    }
+  }
+
+  // Check if form is valid
+  const isFormValid = () => {
+    return fullName.length >= 6 && 
+           fullNameError === "" &&
+           email.length > 0 && 
+           emailError === "" &&
+           password.length >= 8 && 
+           passwordError === "" &&
+           confirmPassword === password && 
+           confirmPasswordError === ""
+  }
+
+  const handleSuccessModalClose = () => {
+    setSuccessModalVisible(false)
+    // New users always go to onboarding (which starts with location screen)
+    navigation.replace("Onboarding")
+  }
 
   async function tryRegister() {
     // Form validation
     if (!fullName.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert("모든 항목을 입력해 주세요.")
+      setSignUpErrorMessage("모든 항목을 입력해 주세요.")
+      setErrorModalVisible(true)
       return
     }
 
     if (password.length < 8) {
-      Alert.alert("비밀번호는 8자 이상이어야 합니다.")
+      setSignUpErrorMessage("비밀번호는 8자 이상이어야 합니다.")
+      setErrorModalVisible(true)
       return
     }
 
     if (password !== confirmPassword) {
-      Alert.alert("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+      setSignUpErrorMessage("비밀번호와 비밀번호 확인이 일치하지 않습니다.")
+      setErrorModalVisible(true)
       return
     }
 
     // Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(email)) {
-      Alert.alert("올바른 이메일 주소를 입력해 주세요.")
+      setSignUpErrorMessage("올바른 이메일 주소를 입력해 주세요.")
+      setErrorModalVisible(true)
       return
     }
 
@@ -50,21 +121,15 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
       })
 
       if (!result.success) {
-        Alert.alert("회원가입 실패", result.errorMessage ?? "회원가입에 실패하였습니다.")
+        setSignUpErrorMessage(result.errorMessage ?? "회원가입에 실패하였습니다.")
+        setErrorModalVisible(true)
         return
       }
 
-      Alert.alert("회원가입 완료", "맛집 여정을 시작해보세요!", [
-        { 
-          text: "확인", 
-          onPress: () => {
-            // New users always go to onboarding
-            navigation.replace("Onboarding")
-          }
-        }
-      ])
+      setSuccessModalVisible(true)
     } catch (e) {
-      Alert.alert("회원가입 중 오류가 발생하였습니다.")
+      setSignUpErrorMessage("회원가입 중 오류가 발생하였습니다.")
+      setErrorModalVisible(true)
       console.log(e)
     } finally {
       setIsLoading(false)
@@ -89,13 +154,20 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
         <View style={$form}>
           {/* Full Name */}
           <View style={$inputWrapper}>
-            <Text style={$label}>아이디</Text>
+            <View style={$labelContainer}>
+              <Text style={$label}>아이디</Text>
+              {fullNameError ? <Text style={$errorText}>{fullNameError}</Text> : null}
+            </View>
             <TextInput
-              style={$input}
+              style={[
+                $input, 
+                fullNameError ? $inputError : null
+              ]}
               placeholder="아이디을 입력해 주세요"
               placeholderTextColor="#9c5749"
               value={fullName}
               onChangeText={setFullName}
+              onBlur={() => validateFullName(fullName)}
               autoCapitalize="words"
               autoCorrect={false}
             />
@@ -103,13 +175,20 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
 
           {/* Email Address */}
           <View style={$inputWrapper}>
-            <Text style={$label}>이메일 주소</Text>
+            <View style={$labelContainer}>
+              <Text style={$label}>이메일 주소</Text>
+              {emailError ? <Text style={$errorText}>{emailError}</Text> : null}
+            </View>
             <TextInput
-              style={$input}
+              style={[
+                $input,
+                emailError ? $inputError : null
+              ]}
               placeholder="이메일을 입력해 주세요"
               placeholderTextColor="#9c5749"
               value={email}
               onChangeText={setEmail}
+              onBlur={() => validateEmail(email)}
               keyboardType="email-address"
               autoCapitalize="none"
               autoCorrect={false}
@@ -118,8 +197,14 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
 
           {/* Password */}
           <View style={$inputWrapper}>
-            <Text style={$label}>비밀번호</Text>
-            <View style={$passwordContainer}>
+            <View style={$labelContainer}>
+              <Text style={$label}>비밀번호</Text>
+              {passwordError ? <Text style={$errorText}>{passwordError}</Text> : null}
+            </View>
+            <View style={[
+              $passwordContainer,
+              passwordError ? $passwordContainerError : null
+            ]}>
               <TextInput
                 style={$passwordInput}
                 placeholder="비밀번호를 입력해 주세요"
@@ -127,6 +212,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
+                onBlur={() => validatePassword(password)}
                 autoCorrect={false}
               />
               <TouchableOpacity 
@@ -144,8 +230,14 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
 
           {/* Confirm Password */}
           <View style={$inputWrapper}>
-            <Text style={$label}>비밀번호 확인</Text>
-            <View style={$passwordContainer}>
+            <View style={$labelContainer}>
+              <Text style={$label}>비밀번호 확인</Text>
+              {confirmPasswordError ? <Text style={$errorText}>{confirmPasswordError}</Text> : null}
+            </View>
+            <View style={[
+              $passwordContainer,
+              confirmPasswordError ? $passwordContainerError : null
+            ]}>
               <TextInput
                 style={$passwordInput}
                 placeholder="비밀번호를 한 번 더 입력해 주세요"
@@ -153,6 +245,7 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                onBlur={() => validateConfirmPassword(confirmPassword)}
                 autoCorrect={false}
               />
               <TouchableOpacity 
@@ -171,9 +264,9 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
           {/* Sign Up Button */}
           <View style={$buttonWrapper}>
             <TouchableOpacity 
-              style={[$signUpButton, isLoading && $signUpButtonDisabled]}
+              style={[$signUpButton, (isLoading || !isFormValid()) && $signUpButtonDisabled]}
               onPress={tryRegister}
-              disabled={isLoading}
+              disabled={isLoading || !isFormValid()}
             >
               <Text style={$signUpButtonText}>가입하기</Text>
             </TouchableOpacity>
@@ -190,6 +283,17 @@ export const SignUpScreen = observer(function SignUpScreen({ navigation }: SignU
           </View>
         </View>
       </View>
+      
+      <SignUpSuccessModal
+        visible={successModalVisible}
+        onClose={handleSuccessModalClose}
+      />
+
+      <SignUpErrorModal
+        visible={errorModalVisible}
+        onClose={() => setErrorModalVisible(false)}
+        errorMessage={signUpErrorMessage}
+      />
     </ScrollView>
   )
 })
@@ -313,5 +417,28 @@ const $loginLink: TextStyle = {
   color: "#f66c51",
   fontWeight: "600",
   textDecorationLine: "underline",
+}
+
+const $labelContainer: ViewStyle = {
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  marginBottom: 8,
+}
+
+const $errorText: TextStyle = {
+  fontSize: 12,
+  color: "#f66c51",
+  fontWeight: "500",
+}
+
+const $inputError: ViewStyle = {
+  borderWidth: 1,
+  borderColor: "#f66c51",
+}
+
+const $passwordContainerError: ViewStyle = {
+  borderWidth: 1,
+  borderColor: "#f66c51",
 }
 
