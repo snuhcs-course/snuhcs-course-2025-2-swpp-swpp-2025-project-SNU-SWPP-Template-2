@@ -529,7 +529,7 @@ class UserTasteSerializer(serializers.ModelSerializer):
         child=serializers.IntegerField(), required=False
     )
     favorite_books = serializers.ListField(
-        child=serializers.CharField(), required=False
+        child=serializers.UUIDField(), required=False
     )
     # Trade style fields (optional, can be set later from profile)
     trade_place_name = serializers.CharField(

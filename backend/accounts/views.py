@@ -67,15 +67,18 @@ class UserTasteView(APIView):
         except UserTaste.DoesNotExist:
             # Create new taste profile if it doesn't exist
             taste = UserTaste.objects.create(user=request.user)
-            return Response(
-                {
-                    "ok": True,
-                    "taste": UserTasteSerializer(taste).data,
-                    "step": 1,
-                    "is_complete": False,
-                }
-            )
+            serializer = UserTasteSerializer(taste)
 
+        is_complete = taste.favorite_genres and taste.favorite_authors and taste.favorite_books
+
+        return Response(
+            {
+                "ok": True,
+                "taste": serializer.data,
+                "step": taste.current_step,
+                "is_complete": is_complete,
+            }
+        )
     def post(self, request):
         """Handle each step of the taste categorization process."""
         try:
@@ -83,36 +86,19 @@ class UserTasteView(APIView):
         except UserTaste.DoesNotExist:
             taste = UserTaste.objects.create(user=request.user)
 
-        # Get current step from the taste profile
-        current_step = taste.current_step
-
         # Validate and update based on current step
         serializer = UserTasteSerializer(
             taste, data=request.data, partial=True
         )
         if serializer.is_valid():
-            # Validate minimum selections based on current step
-            try:
-                self._validate_step_data(
-                    current_step, serializer.validated_data
-                )
-            except serializers.ValidationError as e:
-                return Response(
-                    {"ok": False, "message": str(e)},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
             # Update the taste profile
             taste = serializer.save()
 
-            # Move to next step or complete the process (now 7 steps)
-            if current_step < 7:
-                taste.current_step += 1
-                taste.save()
-            else:
-                # Mark categorization as complete
-                request.user.has_initial_taste = True
-                request.user.save()
+            # Mark categorization as complete if all fields are populated
+            if taste.favorite_genres and taste.favorite_authors and taste.favorite_books:
+                if not request.user.has_initial_taste:
+                    request.user.has_initial_taste = True
+                    request.user.save(update_fields=["has_initial_taste"])
 
             return Response(
                 {
@@ -127,42 +113,6 @@ class UserTasteView(APIView):
             {"ok": False, "errors": serializer.errors},
             status=status.HTTP_400_BAD_REQUEST,
         )
-
-    def _validate_step_data(self, step, data):
-        """Validate data for each categorization step."""
-        if step == 1 and "favorite_genres" in data:
-            if len(data["favorite_genres"]) < 3:
-                raise serializers.ValidationError(
-                    "최소 3개 이상의 장르를 선택해주세요"
-                )
-        elif step == 2 and "favorite_authors" in data:
-            if len(data["favorite_authors"]) < 3:
-                raise serializers.ValidationError(
-                    "최소 3명 이상의 작가를 선택해주세요"
-                )
-        elif step == 3 and "favorite_books" in data:
-            if len(data["favorite_books"]) < 3:
-                raise serializers.ValidationError(
-                    "최소 3권 이상의 책을 선택해주세요"
-                )
-        elif step == 4 and "preferred_length" in data:
-            if not data["preferred_length"]:
-                raise serializers.ValidationError("책 분량을 선택해주세요")
-        elif step == 5 and "preferred_moods" in data:
-            if len(data["preferred_moods"]) < 3:
-                raise serializers.ValidationError(
-                    "최소 3개 이상의 분위기를 선택해주세요"
-                )
-        elif step == 6 and "reading_purposes" in data:
-            if len(data["reading_purposes"]) < 3:
-                raise serializers.ValidationError(
-                    "최소 3개 이상의 목적을 선택해주세요"
-                )
-        elif step == 7:
-            # Trade style step is optional; if provided, accept without strict min checks
-            # Fields: trade_place_name, trade_address
-            # No additional validation required here.
-            return
 
 
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -698,15 +648,21 @@ class UserProfileMeView(APIView):
         if trade_spot1 is not None:
             taste.trade_address = trade_spot1
         if favorite_genres is not None and isinstance(favorite_genres, list):
-            taste.favorite_genres = favorite_genres
+            # Convert genre names to IDs
+            genre_ids = list(BookGenre.objects.filter(name__in=favorite_genres).values_list('id', flat=True))
+            taste.favorite_genres = genre_ids
         if fav_books is not None:
             if isinstance(fav_books, list):
-                taste.favorite_books = fav_books
+                # Convert book titles to UUIDs
+                book_ids = list(BookPublication.objects.filter(title__in=fav_books).values_list('id', flat=True))
+                taste.favorite_books = [str(bid) for bid in book_ids]
             elif isinstance(fav_books, str):
                 taste.favorite_books = [fav_books] if fav_books else []
         if fav_authors is not None:
             if isinstance(fav_authors, list):
-                taste.favorite_authors = fav_authors
+                # Convert author names to IDs
+                author_ids = list(BookAuthor.objects.filter(name__in=fav_authors).values_list('id', flat=True))
+                taste.favorite_authors = author_ids
             elif isinstance(fav_authors, str):
                 taste.favorite_authors = [fav_authors] if fav_authors else []
         taste.save()
