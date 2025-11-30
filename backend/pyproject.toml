@@ -1,0 +1,72 @@
+[tool.poetry]
+name = "MindLog"
+version = "0.1.0"
+description = "FastAPI backend with MySQL,"
+authors = ["Your Name <you@example.com>"]
+packages = [{ include = "app" }]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.6"
+uvicorn = { version = "^0.34.0", extras = ["standard"] }
+python-multipart = "^0.0.9"
+sqlalchemy = "^2.0.36"
+pydantic-settings = "^2.7.0"
+pymysql = "^1.1.1"
+alembic = "^1.14.0"
+passlib = "^1.7.4"
+pyjwt = "^2.10.1"
+bcrypt = "4.0.1"
+cryptography = "^44.0.0"
+httpx = "^0.28.1"
+dotenv = "^0.9.9"
+pytest-mock = "^3.15.1"
+boto3 = "^1.40.51"
+langchain = "^0.3.27"
+openai = "^2.4.0"
+langchain-openai = "^0.3.35"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3"
+ruff = "^0.14.0"
+pre-commit = "^4.3.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+# Set the line length for both linter and formatter
+line-length = 88 
+
+# Exclude files/directories
+exclude = [
+    ".venv",
+    ".git",
+    "__pycache__",
+    "docs",
+    "alembic",
+    ".vscode",
+]
+
+# Set the target Python version for code analysis
+target-version = "py311"
+
+[tool.ruff.lint]
+# Enable popular rulesets: 
+# E/W: Error/Warning (pep8), F: Pyflakes, I: Isort, B: Bugbear, N: Naming, UP: Pyupgrade, PT: Pytest, S: Security
+select = ["E", "W", "F", "I", "B", "N", "UP"] 
+
+# Ignore specific rules 
+ignore = ["B008", "E501"] 
+# B008 is for function calls as defaults (common in FastAPI/Pydantic), E501 is line length (handled by formatter)
+
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore Naming rule N802 in conftest.py (for non-lowercase fixture names)
+"tests/conftest.py" = ["N802"] 
+
+[tool.ruff.lint.isort]
+# Ensure consistent ordering of imports
+force-single-line = false
+known-first-party = ["mindlog"] # Replace with your project's main module name

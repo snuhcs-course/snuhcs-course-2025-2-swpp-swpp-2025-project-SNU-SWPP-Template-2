@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 다른 도메인에 대해서는 HTTPS만 허용 (기본값) -->
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
+
+    <!-- 로컬 서버에 대한 예외 설정 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+
+    <!-- 개발 서버에 대한 예외 설정 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">ec2-15-164-239-56.ap-northeast-2.compute.amazonaws.com</domain>
+    </domain-config>
+</network-security-config>

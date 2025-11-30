@@ -1,0 +1,5 @@
+Read the user's diary entry and summarize its core emotion or key event into a detailed visual prompt.
+The output image must be the one-panel cartoons which looks like classic american comics.
+The image must be simple and clear, No need for complex and various colors.
+Do not contain any text.
+You MUST respond in JSON format: {"scene_prompt": "a detailed english prompt"}

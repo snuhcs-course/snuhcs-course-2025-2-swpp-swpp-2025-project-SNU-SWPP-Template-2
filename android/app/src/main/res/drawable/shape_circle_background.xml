@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- 기본 색상은 여기서 중요하지 않습니다. Tint로 덮어씌울 것이기 때문입니다. -->
+    <solid android:color="@android:color/white" />
+</shape>

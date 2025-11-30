@@ -1,0 +1,37 @@
+name: Build Android App
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: android
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'temurin'
+        java-version: '17'
+
+    - name: Grant execute permission to gradlew
+      run: chmod +x gradlew
+
+    - name: Build APK
+      run: ./gradlew assembleRelease
+
+    - name: Show release folder contents
+      run: ls -R app/build/outputs/apk || echo "No APK directory found"
+
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-release.apk
+        path: android/app/build/outputs/apk/release/app-release-unsigned.apk

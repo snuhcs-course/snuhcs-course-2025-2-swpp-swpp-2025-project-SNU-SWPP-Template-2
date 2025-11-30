@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_card"
+    android:padding="24dp">
+
+    <!-- 1. 다이얼로그 제목 (변경 없음) -->
+    <TextView
+        android:id="@+id/tv_dialog_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="AI 이미지 스타일"
+        android:textAppearance="@style/TextAppearance.Mindlog.Title"
+        android:textSize="20sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <!-- ✨ [핵심 수정] RadioGroup 내의 RadioButton들의 스타일을 제거합니다. -->
+    <RadioGroup
+        android:id="@+id/rg_style_options"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/tv_dialog_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- 스타일 선택지 1: Natural -->
+        <RadioButton
+            android:id="@+id/rb_style_natural"
+            style="@style/AiStyleSelectableCell"
+            android:text="내추럴 (Natural)"
+            android:tag="natural"/>
+
+        <!-- 스타일 선택지 2: American Comics -->
+        <RadioButton
+            android:id="@+id/rb_style_comics"
+            style="@style/AiStyleSelectableCell"
+            android:text="아메리칸 코믹스 (Comics)"
+            android:tag="american-comics"/>
+
+        <!-- 스타일 선택지 3: Watercolor -->
+        <RadioButton
+            android:id="@+id/rb_style_watercolor"
+            style="@style/AiStyleSelectableCell"
+            android:text="수채화 (Watercolor)"
+            android:tag="watercolor"/>
+
+        <!-- 스타일 선택지 4: 3D Animation -->
+        <RadioButton
+            android:id="@+id/rb_style_3d"
+            style="@style/AiStyleSelectableCell"
+            android:text="3D 애니메이션 (3D)"
+            android:tag="3d-animation"/>
+
+        <!-- 스타일 선택지 5: Pixel Art -->
+        <RadioButton
+            android:id="@+id/rb_style_pixel"
+            style="@style/AiStyleSelectableCell"
+            android:text="픽셀 아트 (Pixel Art)"
+            android:tag="pixel-art"/>
+
+    </RadioGroup>
+
+    <!-- 3. 하단 버튼 영역 (변경 없음) -->
+    <LinearLayout
+        android:id="@+id/button_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
+        app:layout_constraintTop_toBottomOf="@id/rg_style_options"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+        <!-- ... (Button 코드 생략) ... -->
+        <!-- 취소 버튼 -->
+        <Button
+            android:id="@+id/btn_dialog_cancel"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="취소"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            app:cornerRadius="12dp" />
+
+        <Space
+            android:layout_width="12dp"
+            android:layout_height="match_parent"/>
+
+        <!-- 생성 버튼 -->
+        <Button
+            android:id="@+id/btn_dialog_generate"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_weight="1"
+            android:text="생성"
+            android:textColor="@color/bg"
+            android:backgroundTint="@color/text_secondary"
+            android:textSize="16sp"
+            app:cornerRadius="12dp" />
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+
+
+

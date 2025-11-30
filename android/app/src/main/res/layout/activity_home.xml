@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- 콘텐츠 영역 (탭 전환용) -->
+
+    <!-- 둥근 하단바 -->
+
+    <androidx.fragment.app.FragmentContainerView
+        android:id="@+id/homeNavHost"
+        android:name="androidx.navigation.fragment.NavHostFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="@dimen/screen_padding_top"
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph_home"/>
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottomBarContainer"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:layout_gravity="bottom"
+        app:cardCornerRadius="0dp"
+        app:cardBackgroundColor="#E3DCD2">
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            style="@style/Widget.Material3.BottomNavigationView"
+            android:id="@+id/bottomNav"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/transparent"
+            app:itemIconSize="24dp"
+            app:itemIconTint="#2D3142"
+            app:itemTextColor="#2D3142"
+            app:menu="@menu/menu_bottom_nav"/>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- 중앙 FAB (일기 작성) -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabWrite"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        app:layout_anchor="@id/bottomBarContainer"
+        app:layout_anchorGravity="center"
+        app:useCompatPadding="true"
+        app:fabCustomSize="64dp"
+        app:maxImageSize="28dp"
+        android:layout_marginBottom="15dp"
+        app:ensureMinTouchTargetSize="false"
+        app:backgroundTint="#2D3142"
+        app:tint="@android:color/white"
+        app:srcCompat="@drawable/ic_writing" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

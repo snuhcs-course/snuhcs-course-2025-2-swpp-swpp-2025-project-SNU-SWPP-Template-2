@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/scroll"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F8F6F0"
+    android:clipToPadding="false"
+    android:padding="24dp">
+
+    <!-- 제목 -->
+    <com.google.android.material.textview.MaterialTextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:text="나 알아보기"
+        android:textColor="#2D3142"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 제목 하단 구분선 -->
+    <com.google.android.material.divider.MaterialDivider
+        android:id="@+id/dividerTop"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_marginTop="5dp"
+        app:dividerColor="#636779"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintTop_toBottomOf="@id/dividerTop"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/contentContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="96dp">
+
+            <!-- 카드 1 : 오늘의 질문 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardQuestion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                app:cardBackgroundColor="#F3F1EB"
+                app:cardUseCompatPadding="false"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvQuestionSectionTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="오늘의 질문"
+                        android:textColor="#636779"
+                        android:textSize="14sp" />
+
+                    <!-- 질문/답변 입력 (기본 표시) -->
+                    <LinearLayout
+                        android:id="@+id/groupQuestion"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:orientation="vertical">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/tvQuestion"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="오늘 하루 당신이 가장 자랑스러웠던 순간은 무엇이었나요?"
+                            android:textColor="#2D3142"
+                            android:textSize="14sp"
+                            android:lineSpacingExtra="2dp" />
+
+                        <com.google.android.material.textfield.TextInputLayout
+                            android:id="@+id/tilAnswer"
+                            style="@style/Widget.Material3.TextInputLayout.FilledBox.Dense"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="12dp"
+                            app:boxBackgroundMode="filled"
+                            app:boxBackgroundColor="#EFE9DE"
+                            app:boxCornerRadiusTopStart="12dp"
+                            app:boxCornerRadiusTopEnd="12dp"
+                            app:boxCornerRadiusBottomStart="12dp"
+                            app:boxCornerRadiusBottomEnd="12dp"
+                            app:boxStrokeWidth="0dp"
+                            app:boxStrokeWidthFocused="0dp"
+                            app:boxStrokeColor="@android:color/transparent"
+                            app:hintTextColor="@android:color/transparent">
+
+                            <com.google.android.material.textfield.TextInputEditText
+                                android:id="@+id/etAnswer"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="top|start"
+                                android:hint="답변을 입력하세요..."
+                                android:inputType="textMultiLine"
+                                android:maxLength="500"
+                                android:padding="12dp"
+                                android:textColor="#222222"
+                                android:textColorHint="#636779"
+                                android:textSize="14sp" />
+                        </com.google.android.material.textfield.TextInputLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnSubmit"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:layout_marginTop="10dp"
+                            android:text="답변 제출!"
+                            android:textColor="#2D3142"
+                            android:textSize="14sp"
+                            app:cornerRadius="12dp"
+                            android:backgroundTint="#EFE9DE"/>
+                    </LinearLayout>
+
+                    <!-- 완료 오버레이 뷰 (처음엔 GONE) -->
+                    <FrameLayout
+                        android:id="@+id/completionOverlay"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:visibility="gone">
+
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:gravity="center"
+                            android:layout_gravity="center"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content">
+
+                            <!-- ✅ 벡터 아이콘으로 교체 -->
+                            <ImageView
+                                android:id="@+id/ivCheck"
+                                android:layout_width="60dp"
+                                android:layout_height="60dp"
+                                android:contentDescription="답변 완료 표시 아이콘"
+                                app:srcCompat="@drawable/ic_success_check" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="오늘 답변 완료!"
+                                android:textSize="16sp"
+                                android:textColor="#2D3142"
+                                android:layout_marginTop="12dp"/>
+                        </LinearLayout>
+                    </FrameLayout>
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 카드 2 : 나의 가치 지도 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardValueMap"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                app:cardBackgroundColor="#F3F1EB"
+                app:cardUseCompatPadding="false"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvValueMapTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="나의 가치 지도"
+                        android:textColor="#636779"
+                        android:textSize="14sp" />
+
+                    <!-- cardValueMap 안의 groupValueMapLoading에 추가 -->
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/progressValueMap"
+                        style="@style/Widget.Material3.CircularProgressIndicator"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:layout_gravity="center"
+                        app:indicatorSize="48dp"
+                        app:trackThickness="4dp"
+                        app:indicatorColor="#64B5F6"
+                        android:visibility="gone"/>
+
+                    <com.github.mikephil.charting.charts.RadarChart
+                        android:id="@+id/radar"
+                        android:layout_width="match_parent"
+                        android:layout_height="240dp"
+                        android:background="#F3F1EB"/>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvValueSummary"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:text="당신의 가치관이 어떻게 형성되어 있는지 표시됩니다."
+                        android:textColor="#2D3142"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 카드 4 : 핵심 가치 키워드 -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardTopValueScores"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="15dp"
+                app:cardBackgroundColor="#F3F1EB"
+                app:cardUseCompatPadding="false"
+                app:strokeWidth="0dp"
+                app:strokeColor="@android:color/transparent">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvTopValueScores"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="핵심 가치 키워드"
+                        android:textColor="#636779"
+                        android:textSize="14sp" />
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/chipGroupValues"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        app:singleLine="true"
+                        app:chipSpacingHorizontal="10dp">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipValueFirst"
+                            style="@style/Widget.Material3.Chip.Assist"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="성장"
+                            android:textAllCaps="false"
+                            android:textColor="#2D3142"
+                            app:chipMinHeight="36dp"
+                            app:chipCornerRadius="18dp"
+                            app:chipBackgroundColor="@color/chip_bg_neutral"
+                            app:ensureMinTouchTargetSize="false"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipValueSecond"
+                            style="@style/Widget.Material3.Chip.Assist"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="자유"
+                            android:textAllCaps="false"
+                            android:textColor="#2D3142"
+                            app:chipMinHeight="36dp"
+                            app:chipCornerRadius="18dp"
+                            app:chipBackgroundColor="@color/chip_bg_neutral"
+                            app:ensureMinTouchTargetSize="false"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipValueThird"
+                            style="@style/Widget.Material3.Chip.Assist"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="관계"
+                            android:textAllCaps="false"
+                            android:textColor="#2D3142"
+                            app:chipMinHeight="36dp"
+                            app:chipCornerRadius="18dp"
+                            app:chipBackgroundColor="@color/chip_bg_neutral"
+                            app:ensureMinTouchTargetSize="false"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipValueFourth"
+                            style="@style/Widget.Material3.Chip.Assist"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="도전"
+                            android:textAllCaps="false"
+                            android:textColor="#2D3142"
+                            app:chipMinHeight="36dp"
+                            app:chipCornerRadius="18dp"
+                            app:chipBackgroundColor="@color/chip_bg_neutral"
+                            app:ensureMinTouchTargetSize="false"/>
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipValueFifth"
+                            style="@style/Widget.Material3.Chip.Assist"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="가족"
+                            android:textAllCaps="false"
+                            android:textColor="#2D3142"
+                            app:chipMinHeight="36dp"
+                            app:chipCornerRadius="18dp"
+                            app:chipBackgroundColor="@color/chip_bg_neutral"
+                            app:ensureMinTouchTargetSize="false"/>
+                    </com.google.android.material.chip.ChipGroup>
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:text="사용자님이 중시하는 가치들은 위와 같아요."
+                        android:textColor="#636779"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- 하단: 답변 기록 보기 버튼 (카드 느낌 버튼) -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnOpenHistory"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginTop="15dp"
+                android:text="나의 답변 기록 보기 →"
+                android:textStyle="bold"
+                android:textColor="#2D3142"
+                app:backgroundTint="#F3F1EB"
+                app:cornerRadius="16dp" />
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

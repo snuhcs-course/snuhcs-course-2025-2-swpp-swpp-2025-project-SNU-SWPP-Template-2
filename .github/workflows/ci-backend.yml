@@ -1,0 +1,76 @@
+name: CI Pipeline for Backend
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: ./backend
+      JWT_SECRET: ${{ secrets.CI_JWT_SECRET }}
+      DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+      DB_HOST: ${{ secrets.CI_DB_HOST }}
+      DB_PORT: ${{ secrets.CI_DB_PORT }}
+      DB_USER: ${{ secrets.CI_DB_USER }}
+      DB_PASSWORD: ${{ secrets.CI_DB_PASSWORD }}
+      DB_NAME: ${{ secrets.CI_DB_NAME }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.CI_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.CI_SECRET_ACCESS_KEY }}
+      WEBHOOK_SECRET: ${{ secrets.CI_WEBHOOK_SECRET }}
+      OPENAI_API_KEY: ${{ secrets.CI_OPENAI_API_KEY }}
+
+    strategy:
+      matrix:
+        python-version: ["3.11"]
+
+    steps:
+      - name: ⬇️ Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: 📦 Install Poetry
+        run: pip install poetry
+
+      - name: ⚙️ Install Dependencies
+        # 런타임 의존성과 dev 그룹 의존성 모두 설치
+        run: poetry install --with dev
+        working-directory: ${{ env.working-directory }}
+        
+      # ----------------------------------------
+      # 1. 린트 체크 (Linting Check)
+      # ----------------------------------------
+      - name: ✅ Run Ruff (Linting Check)
+        run: poetry run ruff check .
+        working-directory: ${{ env.working-directory }}
+      
+      - name: ✅ Run Ruff (Format Check)
+        run: poetry run ruff format --check
+        working-directory: ${{ env.working-directory }}
+
+      # ----------------------------------------
+      # 2. 테스트 (Pytest)
+      # ----------------------------------------
+      - name: 🧪 Run Pytest
+        run: poetry run pytest
+        working-directory: ${{ env.working-directory }}
+
+      # ----------------------------------------
+      # 3. 도커 빌드 체크 (Docker Build Check)
+      # ----------------------------------------
+      - name: 🐳 Docker Build Check (Without Running)
+        uses: docker/build-push-action@v5
+        with:
+          context: ${{ env.working-directory }}
+          push: false # 레지스트리에 푸시하지 않고 빌드만 체크
+          tags: mindlog:ci-check
+          load: false # 이미지를 로컬에 로드하지 않아도 빌드 성공 여부는 확인 가능

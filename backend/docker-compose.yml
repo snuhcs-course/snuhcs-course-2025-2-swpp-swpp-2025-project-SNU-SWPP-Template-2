@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8.4
+    container_name: mindlog-db
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: mindlog_db
+      MYSQL_USER: user
+      MYSQL_PASSWORD: 12345678
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-ppassword"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build: .
+    container_name: mindlog-backend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app:/src/app
+    depends_on:
+      db:
+        condition: service_healthy
+    command: >
+      bash -lc "
+      alembic upgrade head &&
+      uvicorn app.main:app --host=0.0.0.0 --port=3000 --reload
+      "
+    env_file:
+      - .env.local
+volumes:
+  dbdata:

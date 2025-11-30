@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="EmotionLabelStyle">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <style name="EmotionRadioButtonStyle">
+        <item name="android:layout_width">32dp</item><item name="android:layout_height">32dp</item>
+        <item name="android:layout_marginStart">8dp</item>
+        <item name="android:layout_marginEnd">8dp</item>
+        <!-- 모든 버튼은 이 하나의 shape를 배경으로 사용 -->
+        <item name="android:background">@drawable/shape_circle_background</item>
+        <item name="android:button">@null</item> <!-- 기본 체크박스 모양 제거 -->
+    </style>
+
+    <style name="AiStyleSelectableCell" parent="Widget.AppCompat.CompoundButton.RadioButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:background">@drawable/bg_ai_style_selector</item>
+        <item name="android:button">@null</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="Widget.Mindlog.KeywordChip" parent="Widget.MaterialComponents.Chip.Action">
+        <!-- 배경 색상 -->
+        <item name="chipBackgroundColor">@color/surface</item>
+        <!-- 텍스트 색상 -->
+        <item name="android:textColor">@color/text_secondary</item>
+        <!-- 텍스트 크기 -->
+        <item name="android:textSize">14sp</item>
+        <!-- 클릭 시 물결 효과 색상 -->
+        <item name="rippleColor">@color/text_primary</item>
+        <!-- X 아이콘 비활성화 -->
+        <item name="closeIconVisible">false</item>
+        <!-- 체크 아이콘 비활성화 -->
+        <item name="checkedIconVisible">false</item>
+        <item name="chipMinHeight">24dp</item> <!-- 칩의 최소 높이를 줄임 -->
+        <item name="android:paddingTop">0dp</item> <!-- 내부 상단 패딩 제거 -->
+        <item name="android:paddingBottom">0dp</item> <!-- 내부 하단 패딩 제거 -->
+        <item name="chipSpacingVertical">0dp</item> <!-- 텍스트와 아이콘 사이의 수직 간격 제거 -->
+    </style>
+
+    <style name="ThemeOverlay.MindLog.AlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog.Centered">
+        <!-- 둥근 모서리와 배경색을 bg_card와 유사하게 설정 -->
+        <item name="shapeAppearance">@style/ShapeAppearance.MindLog.Dialog</item>
+        <item name="android:background">@color/surface</item>
+
+        <!-- 제목과 본문 텍스트 스타일 지정 -->
+        <item name="materialAlertDialogTitleTextStyle">@style/MindLog.AlertDialog.Title</item>
+        <item name="materialAlertDialogBodyTextStyle">@style/MindLog.AlertDialog.Body</item>
+
+        <!-- 버튼 스타일 지정 -->
+        <!-- '확인', '로그아웃' 등 긍정 버튼 -->
+        <item name="buttonBarPositiveButtonStyle">@style/MindLog.AlertDialog.PositiveButton</item>
+        <!-- '취소' 등 부정 버튼 -->
+        <item name="buttonBarNegativeButtonStyle">@style/MindLog.AlertDialog.NegativeButton</item>
+    </style>
+
+    <style name="ShapeAppearance.MindLog.Dialog" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <style name="MindLog.AlertDialog.PositiveButton" parent="Widget.Material3.Button">
+        <!-- layout_width와 layout_weight 제거 -->
+        <item name="android:layout_height">56dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="backgroundTint">@color/text_secondary</item>
+        <item name="android:textColor">@color/bg</item>
+        <item name="cornerRadius">12dp</item>
+        <!-- 버튼의 최소 가로 크기 제한을 없애서 텍스트 길이에 맞게 조절되도록 함 -->
+        <item name="android:minWidth">0dp</item>
+    </style>
+
+    <style name="MindLog.AlertDialog.NegativeButton" parent="Widget.Material3.Button.OutlinedButton">
+        <!-- layout_width와 layout_weight 제거 -->
+        <item name="android:layout_height">56dp</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <!-- 외곽선 색상을 text_secondary로 설정하여 잘 보이도록 함 -->
+        <item name="strokeColor">@color/text_secondary</item>
+        <item name="backgroundTint">@color/surface</item>
+        <item name="cornerRadius">12dp</item>
+        <!-- 버튼의 최소 가로 크기 제한을 없앰 -->
+        <item name="android:minWidth">0dp</item>
+        <!-- ✨ 오른쪽 버튼과의 간격을 위해 오른쪽 마진을 추가합니다. -->
+        <item name="android:layout_marginEnd">12dp</item>
+    </style>
+
+    <!-- 다이얼로그 제목 텍스트 스타일 -->
+    <style name="MindLog.AlertDialog.Title" parent="MaterialAlertDialog.Material3.Title.Text">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!-- 다이얼로그 본문 텍스트 스타일 -->
+    <style name="MindLog.AlertDialog.Body" parent="MaterialAlertDialog.Material3.Body.Text">
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="Widget.Mindlog.SettingsButton" parent="Widget.Material3.Button.TextButton.Icon">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_marginEnd">16dp</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:gravity">start|center_vertical</item>
+        <item name="backgroundTint">@color/surface</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="iconTint">@color/text_primary</item>
+        <item name="iconPadding">16dp</item>
+        <!-- 클릭 시 물결 효과 색상 -->
+        <item name="rippleColor">@color/text_secondary</item>
+    </style>
+</resources>
