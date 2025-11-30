@@ -22,7 +22,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from books.models import BookCopy, Author as BookAuthor, Genre as BookGenre
+from books.models import BookCopy, Author as BookAuthor, BookPublication, Genre as BookGenre
 from .models import Follow, UserPreferences, UserTaste
 from .serializers import (
     CustomTokenObtainPairSerializer,
@@ -37,6 +37,7 @@ from .serializers import (
     UserRegistrationSerializer,
     UserSerializer,
     UserTasteSerializer,
+    OnboardingSerializer,
 )
 
 User = get_user_model()
@@ -793,32 +794,42 @@ class UserProfileMeView(APIView):
         trade_spot1 = None
         try:
             taste = user.taste
-            favorite_genres = taste.favorite_genres or []
-            favorite_books = taste.favorite_books or []
-            favorite_authors = taste.favorite_authors or []
+            genre_ids = taste.favorite_genres or []
+            book_ids = taste.favorite_books or []
+            author_ids = taste.favorite_authors or []
+
+            # ID 목록을 이름 목록으로 변환
+            favorite_genres = list(BookGenre.objects.filter(pk__in=genre_ids).values_list("name", flat=True))
+            favorite_books = list(BookPublication.objects.filter(pk__in=book_ids).values_list("title", flat=True))
+            favorite_authors = list(BookAuthor.objects.filter(pk__in=author_ids).values_list("name", flat=True))
+
             trade_location1 = taste.trade_place_name or None
             trade_spot1 = taste.trade_address or None
-        except Exception:
-            pass
+        except UserTaste.DoesNotExist:
+            favorite_genres = []
+            favorite_books = []
+            favorite_authors = []
 
         # Additional preferences & metadata (only notes & meeting locations; favorites from taste)
         trade_location2 = None
         trade_spot2 = None
-        fav_books = favorite_books
         fav_book_notes = []
-        fav_authors = favorite_authors
         fav_author_notes = []
         reading_habit = None
+
         try:
             import json
             user_prefs = user.preferences
             if user_prefs.preferred_meeting_locations:
-                metadata = json.loads(user_prefs.preferred_meeting_locations)
-                trade_location2 = metadata.get("tradeLocation2")
-                trade_spot2 = metadata.get("tradeSpot2")
-                fav_book_notes = metadata.get("favBookNotes", [])
-                fav_author_notes = metadata.get("favAuthorNotes", [])
-                reading_habit = metadata.get("readingHabit")
+                try:
+                    metadata = json.loads(user_prefs.preferred_meeting_locations)
+                    trade_location2 = metadata.get("tradeLocation2")
+                    trade_spot2 = metadata.get("tradeSpot2")
+                    fav_book_notes = metadata.get("favBookNotes", [])
+                    fav_author_notes = metadata.get("favAuthorNotes", [])
+                    reading_habit = metadata.get("readingHabit")
+                except (json.JSONDecodeError, TypeError):
+                    pass # JSON 파싱 오류가 나도 무시하고 진행
         except Exception:
             pass
 
@@ -826,12 +837,8 @@ class UserProfileMeView(APIView):
         from books.models import BookReview
 
         review_count = BookReview.objects.filter(reviewer=user).count()
-        follower_count = getattr(user, "follower_count", None)
-        following_count = getattr(user, "following_count", None)
-        if follower_count is None:
-            follower_count = user.follower_relationships.count()
-        if following_count is None:
-            following_count = user.following_relationships.count()
+        follower_count = user.follower_relationships.count()
+        following_count = user.following_relationships.count()
 
         return {
             "username": user.username,
@@ -840,17 +847,17 @@ class UserProfileMeView(APIView):
             "reviewCount": review_count,
             "followerCount": follower_count,
             "followingCount": following_count,
-            "favoriteGenres": favorite_genres or [],
             "preferences": {
                 "tradeLocation1": trade_location1,
                 "tradeLocation2": trade_location2,
                 "tradeSpot1": trade_spot1,
                 "tradeSpot2": trade_spot2,
-                "favBooks": fav_books or [],
+                "favBooks": favorite_books or [],
                 "favBookNotes": fav_book_notes or [],
-                "favAuthors": fav_authors or [],
+                "favAuthors": favorite_authors or [],
                 "favAuthorNotes": fav_author_notes or [],
                 "readingHabit": reading_habit,
+                "favoriteGenres": favorite_genres,
             },
         }
 
@@ -1200,23 +1207,18 @@ def onboarding_submit(request):
     Handle onboarding survey submission from frontend.
     Expects: {"book_ids": [1,2,3], "author_ids": [1,2], "genre_ids": [1,2]}
     """
-    try:
-        book_ids = request.data.get("book_ids", [])
-        author_ids = request.data.get("author_ids", [])
-        genre_ids = request.data.get("genre_ids", [])
-
-        # Validate that we have data
-        if not book_ids and not author_ids and not genre_ids:
-            return Response(
-                {"ok": False, "message": "At least one preference is required"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
+    serializer = OnboardingSerializer(data=request.data)
+    if serializer.is_valid():
+        validated_data = serializer.validated_data
+        book_ids = validated_data.get("book_ids", [])
+        author_ids = validated_data.get("author_ids", [])
+        genre_ids = validated_data.get("genre_ids", [])
+        
         # Get or create UserTaste
         taste, created = UserTaste.objects.get_or_create(user=request.user)
 
-        # Store IDs directly (frontend sends hardcoded IDs)
-        # In future, these could be mapped to actual database objects
+        # Store IDs directly. The UserTaste model uses JSONField,
+        # which can store mixed types (strings for books, ints for others).
         if book_ids:
             taste.favorite_books = book_ids
 
@@ -1241,11 +1243,10 @@ def onboarding_submit(request):
             status=status.HTTP_200_OK,
         )
 
-    except Exception as e:
-        return Response(
-            {"ok": False, "message": str(e)},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
+    return Response(
+        {"ok": False, "message": "Invalid data provided", "errors": serializer.errors},
+        status=status.HTTP_400_BAD_REQUEST,
+    )
 
 
 @api_view(["POST", "DELETE"])
