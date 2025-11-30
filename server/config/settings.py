@@ -140,6 +140,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'users.User'
 
 # CORS - allow requests from the dev client (adjust origins as needed)
+# For development with physical devices, allow all origins
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8081',
     'http://127.0.0.1:8081',
@@ -150,10 +152,11 @@ CORS_ALLOWED_ORIGINS = [
 # Allow cookies (session) to be sent across origins
 CORS_ALLOW_CREDENTIALS = True
 
-# If running with different hostnames/ports update this list
+# If running with different hostnames/ports update this list  
+# For development with physical devices, trust all localhost and LAN IPs
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8081',
-    'http://127.0.0.1:8081',
+    'http://127.0.0.1:8081', 
     'http://localhost:8000',
     'http://127.0.0.1:8000',
     'http://10.0.2.2:8000',
@@ -161,6 +164,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8001',
     'http://10.0.2.2:8001',
     'http://147.46.78.29:8001',
+    'http://192.168.*',  # Allow all LAN IPs for dev
 ]
 
 # Logging configuration
