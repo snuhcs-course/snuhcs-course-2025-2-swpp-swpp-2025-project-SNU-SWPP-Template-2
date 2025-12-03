@@ -3,6 +3,7 @@ from rest_framework.decorators import action, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from .models import User, Follow, UserScrap, UserPreference, UserGalleryImage, UserInteraction, RLWeightHistory
 from .serializers import UserSerializer, ProfileSerializer, FollowSerializer, UserScrapSerializer, UserPreferenceSerializer, UserGalleryImageSerializer, UserInteractionSerializer, RLWeightHistorySerializer
 from restaurant.models import Restaurant
@@ -143,6 +144,67 @@ class PhotoViewSet(viewsets.ViewSet):
                 {'error': f'CLIP processing failed: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+    @action(detail=False, methods=['post'], url_path='restore-from-aws')
+    def restore_from_aws(self, request):
+        """Restore gallery images from AWS metadata to database"""
+        from django.utils import timezone
+        from datetime import datetime
+        
+        gallery_data = request.data
+        if not isinstance(gallery_data, list):
+            return Response(
+                {'error': 'Expected list of gallery items'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        restored_count = 0
+        skipped_count = 0
+        
+        for item in gallery_data:
+            try:
+                # Parse datetime fields
+                created_at = datetime.fromisoformat(item['created_at'].replace('Z', '+00:00'))
+                label_edited_at = None
+                if item.get('label_edited_at'):
+                    label_edited_at = datetime.fromisoformat(item['label_edited_at'].replace('Z', '+00:00'))
+                
+                # Check if image already exists (avoid duplicates)
+                existing = UserGalleryImage.objects.filter(
+                    user=request.user,
+                    image_url=item['image_url']
+                ).first()
+                
+                if existing:
+                    skipped_count += 1
+                    continue
+                
+                # Create gallery image record
+                UserGalleryImage.objects.create(
+                    user=request.user,
+                    image_url=item['image_url'],
+                    ai_label=item.get('ai_label', ''),
+                    category_tag=item.get('category_tag', ''),
+                    label_alternatives=item.get('label_alternatives', []),
+                    label_confidence=item.get('label_confidence', 0.0),
+                    label_manually_edited=item.get('label_manually_edited', False),
+                    label_edited_at=label_edited_at,
+                    original_ai_label=item.get('original_ai_label', ''),
+                    embedding=item.get('embedding', []),
+                    local_uri=item.get('local_uri', ''),
+                    created_at=created_at,
+                )
+                restored_count += 1
+                
+            except Exception as e:
+                logger.error(f"Error restoring gallery item: {e}")
+                continue
+        
+        return Response({
+            'message': f'Successfully restored {restored_count} gallery items, skipped {skipped_count} duplicates',
+            'restored': restored_count,
+            'skipped': skipped_count
+        }, status=status.HTTP_200_OK)
 
 
 class MeViewSet(viewsets.ViewSet):
@@ -328,6 +390,58 @@ class ScrapViewSet(viewsets.GenericViewSet):
                 print(f"🔍 DEBUG TOGGLE: Similar restaurants: {[r.name for r in similar]}")
                 pass
         
+        # If restaurant still not found, try to create it from recommendation system data
+        if not restaurant and restaurant_id and restaurant_name:
+            try:
+                # Query the recommendation database to get restaurant details
+                from psql.preprocess.preprocess import get_db_connection
+                import uuid
+                
+                # Validate UUID format
+                try:
+                    uuid.UUID(restaurant_id)
+                    is_valid_uuid = True
+                except ValueError:
+                    is_valid_uuid = False
+                
+                if is_valid_uuid:
+                    conn = get_db_connection()
+                    cursor = conn.cursor()
+                    
+                    try:
+                        # Query restaurant from recommendation database
+                        cursor.execute("""
+                            SELECT name, address, ST_Y(geom::geometry) as latitude, ST_X(geom::geometry) as longitude
+                            FROM db_restaurants 
+                            WHERE id = %s
+                        """, [restaurant_id])
+                        
+                        restaurant_data = cursor.fetchone()
+                        
+                        if restaurant_data:
+                            name, address, lat, lng = restaurant_data
+                            print(f"🏗️ DEBUG TOGGLE: Creating new restaurant from recommendation data: {name}")
+                            
+                            # Create new restaurant in Django ORM
+                            restaurant = Restaurant.objects.create(
+                                name=name,
+                                address=address or "",
+                                latitude=lat,
+                                longitude=lng,
+                                source=f"external_{restaurant_id}"
+                            )
+                            print(f"✅ DEBUG TOGGLE: Created restaurant with Django ID: {restaurant.id}")
+                        else:
+                            print(f"❌ DEBUG TOGGLE: Restaurant {restaurant_id} not found in recommendation database")
+                    except Exception as db_error:
+                        print(f"❌ DEBUG TOGGLE: Database query error: {db_error}")
+                    finally:
+                        cursor.close()
+                        conn.close()
+                        
+            except Exception as create_error:
+                print(f"❌ DEBUG TOGGLE: Error creating restaurant: {create_error}")
+        
         if not restaurant:
             return Response(
                 {"error": "restaurant_id or restaurant_name is required and must match an existing restaurant"},
@@ -376,6 +490,444 @@ class ScrapViewSet(viewsets.GenericViewSet):
                 {"scrapped": True, "data": serializer.data},
                 status=status.HTTP_201_CREATED
             )
+
+    def _is_aws_configured(self):
+        """Check if AWS credentials are properly configured"""
+        from django.conf import settings
+        
+        aws_key = getattr(settings, 'AWS_ACCESS_KEY_ID', None)
+        aws_secret = getattr(settings, 'AWS_SECRET_ACCESS_KEY', None)
+        
+        # Check if credentials exist and are not placeholder values
+        return bool(aws_key and aws_secret and 
+                   aws_key != 'placeholder_key' and 
+                   aws_secret != 'placeholder_secret' and
+                   aws_key.strip() and aws_secret.strip())
+    
+    def _upload_to_local_storage(self, user_id, username, scraps_data):
+        """Fallback: Store scraps in local file storage"""
+        import json
+        import os
+        from django.conf import settings
+        
+        # Create user scraps directory
+        base_dir = getattr(settings, 'BASE_DIR', '/tmp')
+        scraps_dir = os.path.join(base_dir, 'user_scraps', str(user_id))
+        os.makedirs(scraps_dir, exist_ok=True)
+        
+        # Write scraps to JSON file
+        scraps_file = os.path.join(scraps_dir, 'scraps.json')
+        scraps_json = json.dumps(scraps_data, indent=2, ensure_ascii=False)
+        
+        with open(scraps_file, 'w', encoding='utf-8') as f:
+            f.write(scraps_json)
+        
+        print(f"✅ Successfully stored {len(scraps_data)} scraps locally: {scraps_file}")
+        return scraps_file
+    
+    def _download_from_local_storage(self, user_id):
+        """Fallback: Load scraps from local file storage"""
+        import json
+        import os
+        from django.conf import settings
+        
+        base_dir = getattr(settings, 'BASE_DIR', '/tmp')
+        scraps_file = os.path.join(base_dir, 'user_scraps', str(user_id), 'scraps.json')
+        
+        if os.path.exists(scraps_file):
+            with open(scraps_file, 'r', encoding='utf-8') as f:
+                scraps_data = json.load(f)
+            print(f"✅ Successfully loaded {len(scraps_data)} scraps locally: {scraps_file}")
+            return scraps_data
+        else:
+            print(f"ℹ️ No local scraps file found for user {user_id}")
+            return []
+
+    @action(detail=False, methods=['post'], url_path='upload-to-aws')
+    def upload_to_aws(self, request):
+        """원격 저장소에 스크랩 데이터 업로드 (AWS S3 또는 로컬 저장소 폴백)"""
+        import json
+        from django.conf import settings
+        
+        scraps_data = request.data.get('scraps', [])
+        
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        print(f"📤 Remote Upload: Processing {len(scraps_data)} scraps for user {request.user.username} (ID: {request.user.id})")
+        
+        # Check if AWS is properly configured
+        if self._is_aws_configured():
+            # Use real AWS S3
+            try:
+                import boto3
+                from botocore.exceptions import ClientError, NoCredentialsError
+                
+                # Initialize S3 client
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID'),
+                    aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY'),
+                    region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'us-east-1')
+                )
+                
+                # S3 bucket and file path
+                bucket_name = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'swpp-foodigram-storage')
+                file_key = f"user-scraps/{request.user.id}/scraps.json"
+                
+                # Convert scraps data to JSON
+                scraps_json = json.dumps(scraps_data, indent=2, ensure_ascii=False)
+                
+                # Upload to S3
+                s3_client.put_object(
+                    Bucket=bucket_name,
+                    Key=file_key,
+                    Body=scraps_json.encode('utf-8'),
+                    ContentType='application/json',
+                    Metadata={
+                        'user_id': str(request.user.id),
+                        'username': request.user.username,
+                        'upload_timestamp': str(timezone.now().isoformat())
+                    }
+                )
+                
+                print(f"✅ Successfully uploaded {len(scraps_data)} scraps to S3: s3://{bucket_name}/{file_key}")
+                
+                return Response(
+                    {"message": f"Successfully uploaded {len(scraps_data)} scraps to AWS S3"},
+                    status=status.HTTP_200_OK
+                )
+                
+            except Exception as e:
+                print(f"❌ AWS S3 upload failed: {e}")
+                print("🔄 Falling back to local storage...")
+                
+                # Fallback to local storage
+                try:
+                    self._upload_to_local_storage(request.user.id, request.user.username, scraps_data)
+                    return Response(
+                        {"message": f"Successfully uploaded {len(scraps_data)} scraps to local storage (AWS fallback)"},
+                        status=status.HTTP_200_OK
+                    )
+                except Exception as local_error:
+                    print(f"❌ Local storage fallback failed: {local_error}")
+                    return Response(
+                        {"error": f"Upload failed: {str(local_error)}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+        else:
+            # AWS not configured, use local storage
+            print("ℹ️ AWS not configured, using local storage")
+            try:
+                self._upload_to_local_storage(request.user.id, request.user.username, scraps_data)
+                return Response(
+                    {"message": f"Successfully uploaded {len(scraps_data)} scraps to local storage"},
+                    status=status.HTTP_200_OK
+                )
+            except Exception as e:
+                print(f"❌ Local storage upload failed: {e}")
+                return Response(
+                    {"error": f"Upload failed: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+    @action(detail=False, methods=['post'], url_path='upload-gallery-to-aws')
+    def upload_gallery_to_aws(self, request):
+        """갤러리 이미지 메타데이터를 원격 저장소에 업로드 (AWS S3 또는 로컬 저장소 폴백)"""
+        import json
+        from django.conf import settings
+        
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        # Get current gallery images from database
+        gallery_images = UserGalleryImage.objects.filter(user=request.user)
+        gallery_data = []
+        
+        for image in gallery_images:
+            gallery_data.append({
+                "image_url": image.image_url,
+                "ai_label": image.ai_label,
+                "category_tag": image.category_tag,
+                "label_alternatives": image.label_alternatives,
+                "label_confidence": image.label_confidence,
+                "label_manually_edited": image.label_manually_edited,
+                "label_edited_at": image.label_edited_at.isoformat() if image.label_edited_at else None,
+                "original_ai_label": image.original_ai_label,
+                "embedding": image.embedding,
+                "local_uri": image.local_uri,
+                "created_at": image.created_at.isoformat(),
+            })
+        
+        print(f"📤 Remote Gallery Upload: Processing {len(gallery_data)} gallery images for user {request.user.username} (ID: {request.user.id})")
+        
+        # Check if AWS is properly configured
+        if self._is_aws_configured():
+            # Use real AWS S3
+            try:
+                import boto3
+                from botocore.exceptions import ClientError, NoCredentialsError
+                
+                # Initialize S3 client
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID'),
+                    aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY'),
+                    region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'us-east-1')
+                )
+                
+                # S3 bucket and file path
+                bucket_name = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'swpp-foodigram-storage')
+                file_key = f"user-gallery/{request.user.id}/gallery.json"
+                
+                # Upload to S3
+                gallery_json = json.dumps(gallery_data, ensure_ascii=False, indent=2)
+                s3_client.put_object(
+                    Bucket=bucket_name,
+                    Key=file_key,
+                    Body=gallery_json.encode('utf-8'),
+                    ContentType='application/json'
+                )
+                
+                print(f"✅ Successfully uploaded {len(gallery_data)} gallery images to S3: s3://{bucket_name}/{file_key}")
+                
+                return Response(
+                    {"message": f"Successfully uploaded {len(gallery_data)} gallery images to S3"},
+                    status=status.HTTP_200_OK
+                )
+                
+            except Exception as e:
+                print(f"❌ AWS S3 gallery upload failed: {e}")
+                print("🔄 Falling back to local storage...")
+                
+                # Fallback to local storage
+                try:
+                    self._upload_gallery_to_local_storage(request.user.id, request.user.username, gallery_data)
+                    return Response(
+                        {"message": f"Successfully uploaded {len(gallery_data)} gallery images to local storage (AWS fallback)"},
+                        status=status.HTTP_200_OK
+                    )
+                except Exception as local_error:
+                    print(f"❌ Local storage fallback failed: {local_error}")
+                    return Response(
+                        {"error": f"Gallery upload failed: {str(local_error)}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+        else:
+            # AWS not configured, use local storage
+            print("ℹ️ AWS not configured, using local storage for gallery")
+            try:
+                self._upload_gallery_to_local_storage(request.user.id, request.user.username, gallery_data)
+                return Response(
+                    {"message": f"Successfully uploaded {len(gallery_data)} gallery images to local storage"},
+                    status=status.HTTP_200_OK
+                )
+            except Exception as e:
+                print(f"❌ Local storage gallery upload failed: {e}")
+                return Response(
+                    {"error": f"Gallery upload failed: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+    @action(detail=False, methods=['get'], url_path='download-gallery-from-aws')
+    def download_gallery_from_aws(self, request):
+        """원격 저장소에서 갤러리 이미지 메타데이터 다운로드 (AWS S3 또는 로컬 저장소 폴백)"""
+        import json
+        from django.conf import settings
+        
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        print(f"📥 Remote Gallery Download: Fetching gallery images for user {request.user.username} (ID: {request.user.id})")
+        
+        # Check if AWS is properly configured
+        if self._is_aws_configured():
+            # Use real AWS S3
+            try:
+                import boto3
+                from botocore.exceptions import ClientError, NoCredentialsError
+                
+                # Initialize S3 client
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID'),
+                    aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY'),
+                    region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'us-east-1')
+                )
+                
+                # S3 bucket and file path
+                bucket_name = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'swpp-foodigram-storage')
+                file_key = f"user-gallery/{request.user.id}/gallery.json"
+                
+                # Download from S3
+                try:
+                    response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+                    gallery_json = response['Body'].read().decode('utf-8')
+                    gallery_data = json.loads(gallery_json)
+                    
+                    print(f"✅ Successfully downloaded {len(gallery_data)} gallery images from S3: s3://{bucket_name}/{file_key}")
+                    
+                    return Response(gallery_data, status=status.HTTP_200_OK)
+                    
+                except ClientError as e:
+                    error_code = e.response['Error']['Code']
+                    if error_code == 'NoSuchKey':
+                        print(f"ℹ️ No gallery file found in S3 for user {request.user.username} - returning empty array")
+                        return Response([], status=status.HTTP_200_OK)
+                    else:
+                        raise e
+                
+            except Exception as e:
+                print(f"❌ AWS S3 gallery download failed: {e}")
+                print("🔄 Falling back to local storage...")
+                
+                # Fallback to local storage
+                try:
+                    gallery_data = self._download_gallery_from_local_storage(request.user.id)
+                    return Response(gallery_data, status=status.HTTP_200_OK)
+                except Exception as local_error:
+                    print(f"❌ Local storage fallback failed: {local_error}")
+                    return Response(
+                        {"error": f"Gallery download failed: {str(local_error)}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+        else:
+            # AWS not configured, use local storage
+            print("ℹ️ AWS not configured, using local storage for gallery")
+            try:
+                gallery_data = self._download_gallery_from_local_storage(request.user.id)
+                return Response(gallery_data, status=status.HTTP_200_OK)
+            except Exception as e:
+                print(f"❌ Local storage gallery download failed: {e}")
+                return Response(
+                    {"error": f"Gallery download failed: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+    @action(detail=False, methods=['get'], url_path='download-from-aws')  
+    def download_from_aws(self, request):
+        """원격 저장소에서 스크랩 데이터 다운로드 (AWS S3 또는 로컬 저장소 폴백)"""
+        import json
+        from django.conf import settings
+        
+        if not request.user.is_authenticated:
+            return Response(
+                {"error": "Authentication required"},
+                status=status.HTTP_401_UNAUTHORIZED
+            )
+        
+        print(f"📥 Remote Download: Fetching scraps for user {request.user.username} (ID: {request.user.id})")
+        
+        # Check if AWS is properly configured
+        if self._is_aws_configured():
+            # Use real AWS S3
+            try:
+                import boto3
+                from botocore.exceptions import ClientError, NoCredentialsError
+                
+                # Initialize S3 client
+                s3_client = boto3.client(
+                    's3',
+                    aws_access_key_id=getattr(settings, 'AWS_ACCESS_KEY_ID'),
+                    aws_secret_access_key=getattr(settings, 'AWS_SECRET_ACCESS_KEY'),
+                    region_name=getattr(settings, 'AWS_S3_REGION_NAME', 'us-east-1')
+                )
+                
+                # S3 bucket and file path
+                bucket_name = getattr(settings, 'AWS_STORAGE_BUCKET_NAME', 'swpp-foodigram-storage')
+                file_key = f"user-scraps/{request.user.id}/scraps.json"
+                
+                # Download from S3
+                try:
+                    response = s3_client.get_object(Bucket=bucket_name, Key=file_key)
+                    scraps_json = response['Body'].read().decode('utf-8')
+                    scraps_data = json.loads(scraps_json)
+                    
+                    print(f"✅ Successfully downloaded {len(scraps_data)} scraps from S3: s3://{bucket_name}/{file_key}")
+                    
+                    return Response(scraps_data, status=status.HTTP_200_OK)
+                    
+                except ClientError as e:
+                    error_code = e.response['Error']['Code']
+                    if error_code == 'NoSuchKey':
+                        print(f"ℹ️ No scraps file found in S3 for user {request.user.username} - returning empty array")
+                        return Response([], status=status.HTTP_200_OK)
+                    else:
+                        raise e
+                
+            except Exception as e:
+                print(f"❌ AWS S3 download failed: {e}")
+                print("🔄 Falling back to local storage...")
+                
+                # Fallback to local storage
+                try:
+                    scraps_data = self._download_from_local_storage(request.user.id)
+                    return Response(scraps_data, status=status.HTTP_200_OK)
+                except Exception as local_error:
+                    print(f"❌ Local storage fallback failed: {local_error}")
+                    return Response(
+                        {"error": f"Download failed: {str(local_error)}"},
+                        status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                    )
+        else:
+            # AWS not configured, use local storage
+            print("ℹ️ AWS not configured, using local storage")
+            try:
+                scraps_data = self._download_from_local_storage(request.user.id)
+                return Response(scraps_data, status=status.HTTP_200_OK)
+            except Exception as e:
+                print(f"❌ Local storage download failed: {e}")
+                return Response(
+                    {"error": f"Download failed: {str(e)}"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+
+    def _upload_gallery_to_local_storage(self, user_id, username, gallery_data):
+        """Fallback: Store gallery metadata in local file storage"""
+        import json
+        import os
+        from django.conf import settings
+        
+        # Create user gallery directory
+        base_dir = getattr(settings, 'BASE_DIR', '/tmp')
+        gallery_dir = os.path.join(base_dir, 'user_gallery', str(user_id))
+        os.makedirs(gallery_dir, exist_ok=True)
+        
+        # Write gallery data to JSON file
+        gallery_file = os.path.join(gallery_dir, 'gallery.json')
+        gallery_json = json.dumps(gallery_data, indent=2, ensure_ascii=False)
+        
+        with open(gallery_file, 'w', encoding='utf-8') as f:
+            f.write(gallery_json)
+        
+        print(f"✅ Successfully stored {len(gallery_data)} gallery images locally: {gallery_file}")
+
+    def _download_gallery_from_local_storage(self, user_id):
+        """Fallback: Load gallery metadata from local file storage"""
+        import json
+        import os
+        from django.conf import settings
+        
+        base_dir = getattr(settings, 'BASE_DIR', '/tmp')
+        gallery_file = os.path.join(base_dir, 'user_gallery', str(user_id), 'gallery.json')
+        
+        if os.path.exists(gallery_file):
+            with open(gallery_file, 'r', encoding='utf-8') as f:
+                gallery_data = json.load(f)
+            print(f"✅ Successfully loaded {len(gallery_data)} gallery images locally: {gallery_file}")
+            return gallery_data
+        else:
+            print(f"ℹ️ No local gallery file found for user {user_id}")
+            return []
 
 
 class OnboardingViewSet(viewsets.GenericViewSet):

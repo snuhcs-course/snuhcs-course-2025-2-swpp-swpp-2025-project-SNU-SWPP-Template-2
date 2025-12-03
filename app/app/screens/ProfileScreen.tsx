@@ -201,6 +201,42 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
   async function getUserPhotos() {
     const photoList = await api.getUserPhotos();
 
+    // If no photos in database, try to restore from AWS backup
+    if (photoList.length === 0) {
+      console.log("📱 No gallery images in database - checking AWS backup...")
+      try {
+        const galleryData = await rootStore.loadUserGalleryFromBackend()
+        if (galleryData && galleryData.length > 0) {
+          console.log(`🔄 Restoring ${galleryData.length} gallery images from AWS backup to database...`)
+          const restoreResponse = await api.restoreGalleryFromAWS(galleryData)
+          if (restoreResponse.ok) {
+            console.log("✅ Successfully restored gallery images from AWS backup")
+            // Reload photos after restoration
+            const restoredPhotoList = await api.getUserPhotos()
+            const restoredImages = restoredPhotoList
+              .filter(photo => photo.local_uri)
+              .map(photo => ({
+                id: photo.id,
+                type: 'user',
+                image: { uri: photo.local_uri },
+                name: "User food photo",
+                ai_label: photo.ai_label || "",
+                label_alternatives: photo.label_alternatives || [],
+                category_tag: photo.category_tag || "",
+                label_confidence: photo.label_confidence || 0.0,
+                label_manually_edited: photo.label_manually_edited || false
+              }))
+            setUserImages(restoredImages)
+            return
+          } else {
+            console.error("❌ Failed to restore gallery images from AWS backup:", restoreResponse.problem)
+          }
+        }
+      } catch (error) {
+        console.error("❌ Error during gallery restoration from AWS:", error)
+      }
+    }
+
     const currentImages = photoList
       .filter(photo => photo.local_uri)
       .map(photo => ({
@@ -218,7 +254,24 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
     // Replace the entire list to ensure deleted images are removed
     setUserImages(currentImages)
   }
-  useEffect(() => { getUserPhotos(); }, []);
+  // Load user photos and clear stale data on mount
+  useEffect(() => { 
+    // Clear any stale images first (from previous user)
+    setUserImages([])
+    // Then load current user's photos
+    getUserPhotos(); 
+  }, []);
+
+  // Clear album images when navigating to this screen (ensures fresh data)
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      // Clear stale data when screen becomes focused
+      setUserImages([])
+      getUserPhotos()
+    })
+
+    return unsubscribe
+  }, [navigation])
 
   const toggleImageSelection = (imageId: number) => {
     const newSelected = new Set(selectedImageIds)
@@ -288,27 +341,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
     name: userName,
   }
 
-  // Get scrapped items from store
-  const scrappedFoods = foodHistoryStore.scrappedItemsList
-
-  // Convert scrapped foods to consistent format, filtering out empty images
-  const scrappedImages = scrappedFoods
-    .filter(food => food.image && food.image.trim()) // Only include items with valid images
-    .map(food => ({
-      id: food.id.toString(),
-      type: 'scrapped',
-      image: { uri: food.image },
-      name: food.name
-    }))
-
-  // Combine user images and scrapped images
-  const allPhotos = [...userImages, ...scrappedImages]
+  // 마이페이지 tab should ONLY show gallery images, NOT scrap data
+  // (scrap data belongs to 스크랩 tab only)
+  const allPhotos = userImages
 
   const logout = async () => {
-    await userAuthFacade.logoutUser()
-    // Clear all user-specific data from stores to prevent sharing between users
+    // STEP 1: Save user data to AWS while still authenticated
     await rootStore.clearUserData()
-    // Navigate to Welcome screen after logout
+    
+    // STEP 2: Perform actual logout (invalidates session)
+    await userAuthFacade.logoutUser()
+    
+    // STEP 3: Navigate to Welcome screen after logout
     navigation.reset({
       index: 0,
       routes: [{ name: "Welcome" }],

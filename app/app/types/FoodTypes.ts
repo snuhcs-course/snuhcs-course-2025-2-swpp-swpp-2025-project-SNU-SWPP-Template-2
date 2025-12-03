@@ -1,5 +1,5 @@
 export interface FoodItem {
-  id: number
+  id: string
   name: string
   distance: string
   image: string

@@ -108,9 +108,17 @@ const AppStack = observer(function AppStack() {
           // Only load user data if not already logged in (initial login)
           // This prevents clearing stores when app comes to foreground
           if (isLoggedIn !== true) {
-            console.log("🔄 Session valid - loading user data from backend (initial login)")
+            console.log("🔄 Session valid - implementing clean login flow")
+            
+            // CLEAN LOGIN FLOW: Clear all cached data first
+            console.log("🧹 Step 1: Clearing all cached data")
+            await rootStore.clearAllCachedData()
+            
+            // Load fresh user data from remote storage
+            console.log("☁️ Step 2: Loading fresh user data from remote storage")
             await rootStore.loadUserDataFromBackend()
-            console.log("✅ User data loading completed - setting login state to true")
+            
+            console.log("✅ Clean login flow completed - setting login state to true")
           } else {
             console.log("✅ Session valid - user already logged in, preserving existing data")
           }

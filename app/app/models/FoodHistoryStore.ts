@@ -4,7 +4,7 @@ import { Instance, SnapshotOut, types } from "mobx-state-tree"
  * Model for a scrapped food item
  */
 export const FoodItemModel = types.model("FoodItem").props({
-  id: types.identifierNumber,
+  id: types.identifier,
   name: types.string,
   distance: types.string,
   image: types.string,
@@ -23,7 +23,7 @@ export const FoodHistoryStoreModel = types
   })
   .actions((self) => ({
     addScrappedItem(item: {
-      id: number
+      id: string
       name: string
       distance: string
       image: string
@@ -37,14 +37,14 @@ export const FoodHistoryStoreModel = types
         self.scrappedItems.push(item)
       }
     },
-    removeScrappedItem(id: number) {
+    removeScrappedItem(id: string) {
       const item = self.scrappedItems.find((i) => i.id === id)
       if (item) {
         self.scrappedItems.remove(item)
       }
     },
     toggleScrappedItem(item: {
-      id: number
+      id: string
       name: string
       distance: string
       image: string
@@ -67,7 +67,7 @@ export const FoodHistoryStoreModel = types
     get scrappedItemsList() {
       return self.scrappedItems.slice().reverse() // Most recent first
     },
-    isScrapped(id: number) {
+    isScrapped(id: string) {
       return self.scrappedItems.some((i) => i.id === id)
     },
   }))
