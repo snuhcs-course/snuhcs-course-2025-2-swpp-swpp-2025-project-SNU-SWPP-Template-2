@@ -52,6 +52,19 @@ export const RootStoreModel = types.model("RootStore").props({
       } else {
         console.log("ℹ️ No scraps to upload to AWS storage")
       }
+
+      // Step 1B: Upload gallery metadata to AWS storage (parallel to scraps)
+      try {
+        console.log("📤 Uploading gallery metadata to AWS storage...")
+        const galleryUploadResponse = await api.uploadUserGalleryToAWS()
+        if (galleryUploadResponse.ok) {
+          console.log("✅ Successfully uploaded gallery metadata to AWS storage")
+        } else {
+          console.error("❌ Failed to upload gallery to AWS:", galleryUploadResponse.problem)
+        }
+      } catch (galleryUploadError) {
+        console.error("❌ Error uploading gallery to AWS:", galleryUploadError)
+      }
       
       // Step 2: Clear all local user data (including scraps)
       console.log("🧹 Clearing all local user data including scraped menus")
@@ -68,6 +81,35 @@ export const RootStoreModel = types.model("RootStore").props({
       // Still try to clear local data even if AWS upload fails
       self.foodHistoryStore.clearAllScraps()
       self.menuScrapStore.clearAllScraps()
+    }
+  },
+  
+  async clearAllCachedData() {
+    // CLEAN LOGIN FLOW: Clear all cached data (scraps, images, preferences) before loading new user data
+    console.log("🧹 clearAllCachedData() called - clearing all local cached data")
+    
+    // Reset loading flag to ensure clean state
+    self._isLoading = false
+    console.log("🔄 Reset _isLoading flag to false for clean state")
+    
+    try {
+      const storage = require("../utils/storage")
+      
+      // Step 1: Clear all store data (scraps, history)
+      console.log("🧹 Clearing store data (scraps, history)")
+      self.foodHistoryStore.clearAllScraps()
+      self.menuScrapStore.clearAllScraps()
+      
+      // Step 2: Clear persisted state from AsyncStorage (but preserve auth tokens)
+      console.log("🧹 Clearing cached state from AsyncStorage")
+      await storage.remove("root-v1") // This key must match ROOT_STATE_STORAGE_KEY in setupRootStore.ts
+      
+      // Step 3: Clear any user-specific cache flags
+      await storage.remove("user-logged-out")
+      
+      console.log("✅ All cached data cleared successfully")
+    } catch (error) {
+      console.error("❌ Error clearing cached data:", error)
     }
   },
   
@@ -94,7 +136,9 @@ export const RootStoreModel = types.model("RootStore").props({
       // Step 2: Download user-specific scraps from AWS storage
       console.log("☁️ Downloading user scraps from AWS storage")
       try {
+        console.log("🔗 Making API call to downloadUserScrapsFromAWS...")
         const scrapsResponse = await api.downloadUserScrapsFromAWS()
+        console.log("✅ API call completed successfully")
         console.log("🔍 DEBUG: downloadUserScrapsFromAWS API response:", scrapsResponse)
         
         if (scrapsResponse.ok && scrapsResponse.data) {
@@ -138,6 +182,9 @@ export const RootStoreModel = types.model("RootStore").props({
         }
       } catch (awsError) {
         console.error("❌ Error downloading scraps from AWS:", awsError)
+        console.error("❌ Error type:", typeof awsError)
+        console.error("❌ Error message:", (awsError as any)?.message || "No error message")
+        console.error("❌ Error stack:", (awsError as any)?.stack || "No stack trace")
         // Continue without scraps if AWS download fails
       }
       
@@ -153,6 +200,40 @@ export const RootStoreModel = types.model("RootStore").props({
     } finally {
       self._isLoading = false
       console.log("🏁 loadUserDataFromBackend() completed")
+    }
+  },
+  
+  async loadUserGalleryFromBackend() {
+    // Load user's gallery metadata from AWS storage (separate from scraps)
+    console.log("🔄 loadUserGalleryFromBackend() called - downloading gallery metadata from AWS storage")
+    
+    try {
+      const { api } = require("../services/api")
+      
+      console.log("🔗 Making API call to downloadUserGalleryFromAWS...")
+      const galleryResponse = await api.downloadUserGalleryFromAWS()
+      console.log("✅ Gallery API call completed successfully")
+      console.log("🔍 DEBUG: downloadUserGalleryFromAWS API response:", galleryResponse)
+      
+      if (galleryResponse.ok && galleryResponse.data) {
+        const galleryData = galleryResponse.data
+        console.log("🔍 DEBUG: User gallery data from AWS:", galleryData)
+        console.log(`📊 Retrieved ${galleryData.length} gallery items from AWS`)
+        
+        // Return the gallery data for the ProfileScreen to handle
+        // (ProfileScreen will call the backend to recreate UserGalleryImage records)
+        return galleryData
+      } else {
+        console.log("ℹ️ No user gallery found in AWS storage (first time login or no gallery images)")
+        return []
+      }
+    } catch (awsError) {
+      console.error("❌ Error downloading gallery from AWS:", awsError)
+      console.error("❌ Error type:", typeof awsError)
+      console.error("❌ Error message:", (awsError as any)?.message || "No error message")
+      console.error("❌ Error stack:", (awsError as any)?.stack || "No stack trace")
+      // Return empty array if AWS download fails
+      return []
     }
   },
 }))

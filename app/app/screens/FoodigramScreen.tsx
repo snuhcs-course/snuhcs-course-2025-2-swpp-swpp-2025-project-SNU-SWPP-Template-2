@@ -1,7 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient"
-import { Bookmark, Home, User, Search, X } from "lucide-react-native"
+import { Bookmark, Home, User, Search, X, UtensilsCrossed } from "lucide-react-native"
 import { observer } from "mobx-react-lite"
-import React, { useEffect, useState, useRef, useCallback } from "react"
+import React, { useEffect, useState, useRef, useCallback, useMemo } from "react"
 import * as Location from "expo-location"
 import * as storage from "app/utils/storage"
 import {
@@ -231,6 +231,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
       if (!response.ok) {
         console.error("Failed to fetch phase 1 recommendations:", response.problem)
         setHasMoreData(false)
+        setIsLoadingRecommendations(false) // Set false on error
         return
       }
 
@@ -241,7 +242,10 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         console.log(`✅ Phase 1 완료: ${newMenus.length}개 메뉴 받음`)
       }
 
-      // Hide loading screen and show food images immediately
+      // Allow the progress message to be visible for a moment before hiding loading
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      
+      // Hide loading screen and show food images
       setIsLoadingRecommendations(false)
 
       if (append) {
@@ -588,23 +592,39 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     preloadImages()
   }, [recommendedMenus])
 
+  // Animation reference to prevent interruption
+  const animationRef = useRef<any>(null)
+
   // Manage loading animation for recommendation processing
   useEffect(() => {
     if (isLoadingRecommendations) {
+      // Stop any existing animation first
+      if (animationRef.current) {
+        animationRef.current.stop()
+      }
+      
       // Start rotation animation when loading
       rotationValue.setValue(0)
-      Animated.loop(
+      const loopAnimation = Animated.loop(
         Animated.timing(rotationValue, {
           toValue: 1,
           duration: 2000, // Match ProfileScreen duration
           useNativeDriver: true,
         })
-      ).start()
+      )
+      
+      // Store reference and start animation
+      animationRef.current = loopAnimation
+      loopAnimation.start()
     } else {
       // Stop animation when not loading
+      if (animationRef.current) {
+        animationRef.current.stop()
+        animationRef.current = null
+      }
       rotationValue.stopAnimation()
     }
-  }, [isLoadingRecommendations, rotationValue])
+  }, [isLoadingRecommendations])
 
   // Animate loading dots for recommendation reasons (only for currently visible menu)
   useEffect(() => {
@@ -801,7 +821,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         <View style={$bottomInfo}>
           <View style={$restaurantNameContainer}>
           <Text style={$restaurantName} numberOfLines={1} ellipsizeMode="tail">
-            {menu.place_name}
+            {menu.menu_name}
           </Text>
           <TouchableOpacity
             style={$headerButton}
@@ -821,7 +841,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
           </Text>
           <View style={$menuDetails}>
             <Text style={$menuNameLarge} numberOfLines={1}>
-              {menu.menu_name}
+              {menu.place_name}
             </Text>
             <Text style={$menuPriceLarge} numberOfLines={1}>
               {menu.price ? `₩${menu.price.toLocaleString()}` : "가격 정보 없음"}
@@ -874,12 +894,23 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
     )
   }, [isLoadingMore])
 
+  // Create rotation animation with useMemo to prevent recreation
+  const rotate = useMemo(() => 
+    rotationValue.interpolate({
+      inputRange: [0, 1],
+      outputRange: ['0deg', '360deg'],
+    }), 
+    [] // No dependencies since rotationValue is a ref
+  )
+
   // List empty component
   const renderEmpty = useCallback(() => {
     if (isLoadingRecommendations) {
       return (
         <View style={[$loadingContainer, { height: screenHeight }]}>
-          <Text style={$loadingText}>근처 맛집을 찾고 있어요...</Text>
+          <Animated.View style={{ transform: [{ rotate }] }}>
+            <UtensilsCrossed size={60} color={colors.palette.primary500} />
+          </Animated.View>
           <Text style={$loadingSubtext}>{progressMessage}</Text>
         </View>
       )
@@ -891,7 +922,7 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
         <Text style={$emptySubtext}>잠시 후 다시 시도해 주세요</Text>
       </View>
     )
-  }, [isLoadingRecommendations, progressMessage, screenHeight])
+  }, [isLoadingRecommendations, progressMessage, screenHeight, rotate])
 
   return (
     <View style={$container}>
@@ -944,13 +975,13 @@ export const FoodigramScreen: React.FC<FoodigramScreenProps> = observer(function
       {/* Removed blocking overlay - users can now interact during loading */}
 
       {/* Floating Search Button */}
-      <TouchableOpacity
+      {/* <TouchableOpacity
         style={$floatingSearchButton}
         onPress={() => setShowQueryModal(true)}
         disabled={isProcessingQuery}
       >
         <Search size={28} color="#FFFFFF" strokeWidth={2} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* Bottom Tabs */}
       <View style={$bottomTabs}>

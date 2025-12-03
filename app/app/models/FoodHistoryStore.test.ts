@@ -3,7 +3,7 @@ import { FoodHistoryStoreModel, FoodItemModel } from "./FoodHistoryStore"
 describe("FoodItemModel", () => {
   it("should create a food item with required properties", () => {
     const foodItem = FoodItemModel.create({
-      id: 1,
+      id: "1",
       name: "Test Food",
       distance: "0.5 km",
       image: "test-image.jpg",
@@ -12,7 +12,7 @@ describe("FoodItemModel", () => {
       allergens: ["gluten"]
     })
 
-    expect(foodItem.id).toBe(1)
+    expect(foodItem.id).toBe("1")
     expect(foodItem.name).toBe("Test Food")
     expect(foodItem.distance).toBe("0.5 km")
     expect(foodItem.image).toBe("test-image.jpg")
@@ -34,7 +34,7 @@ describe("FoodHistoryStoreModel", () => {
   describe("addScrappedItem", () => {
     it("should add a new item to scrapped items", () => {
       const item = {
-        id: 1,
+        id: "1",
         name: "Pizza",
         distance: "1.2 km",
         image: "pizza.jpg",
@@ -45,14 +45,14 @@ describe("FoodHistoryStoreModel", () => {
 
       store.addScrappedItem(item)
 
-      expect(store.scrappedItems.length).toBe(1)
-      expect(store.scrappedItems[0].id).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
+      expect(store.scrappedItems[0].id).toBe("1")
       expect(store.scrappedItems[0].name).toBe("Pizza")
     })
 
     it("should not add duplicate items", () => {
       const item = {
-        id: 1,
+        id: "1",
         name: "Pizza",
         distance: "1.2 km",
         image: "pizza.jpg",
@@ -64,12 +64,12 @@ describe("FoodHistoryStoreModel", () => {
       store.addScrappedItem(item)
       store.addScrappedItem(item) // Try to add same item again
 
-      expect(store.scrappedItems.length).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
     })
 
     it("should allow items with different IDs", () => {
       const item1 = {
-        id: 1,
+        id: "1",
         name: "Pizza",
         distance: "1.2 km",
         image: "pizza.jpg",
@@ -79,7 +79,7 @@ describe("FoodHistoryStoreModel", () => {
       }
 
       const item2 = {
-        id: 2,
+        id: "2",
         name: "Burger",
         distance: "0.8 km",
         image: "burger.jpg",
@@ -91,14 +91,14 @@ describe("FoodHistoryStoreModel", () => {
       store.addScrappedItem(item1)
       store.addScrappedItem(item2)
 
-      expect(store.scrappedItems.length).toBe(2)
+      expect(store.scrappedItems.length).toBe("2")
     })
   })
 
   describe("removeScrappedItem", () => {
     beforeEach(() => {
       const item = {
-        id: 1,
+        id: "1",
         name: "Pizza",
         distance: "1.2 km",
         image: "pizza.jpg",
@@ -110,25 +110,25 @@ describe("FoodHistoryStoreModel", () => {
     })
 
     it("should remove an existing item", () => {
-      expect(store.scrappedItems.length).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
       
-      store.removeScrappedItem(1)
+      store.removeScrappedItem("1")
       
       expect(store.scrappedItems.length).toBe(0)
     })
 
     it("should not affect store when removing non-existent item", () => {
-      expect(store.scrappedItems.length).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
       
-      store.removeScrappedItem(999) // Non-existent ID
+      store.removeScrappedItem("999") // Non-existent ID
       
-      expect(store.scrappedItems.length).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
     })
   })
 
   describe("toggleScrappedItem", () => {
     const testItem = {
-      id: 1,
+      id: "1",
       name: "Pizza",
       distance: "1.2 km",
       image: "pizza.jpg",
@@ -142,13 +142,13 @@ describe("FoodHistoryStoreModel", () => {
       
       store.toggleScrappedItem(testItem)
       
-      expect(store.scrappedItems.length).toBe(1)
-      expect(store.scrappedItems[0].id).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
+      expect(store.scrappedItems[0].id).toBe("1")
     })
 
     it("should remove item when present", () => {
       store.addScrappedItem(testItem)
-      expect(store.scrappedItems.length).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
       
       store.toggleScrappedItem(testItem)
       
@@ -158,7 +158,7 @@ describe("FoodHistoryStoreModel", () => {
     it("should add item back after removing", () => {
       // Add item
       store.toggleScrappedItem(testItem)
-      expect(store.scrappedItems.length).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
       
       // Remove item
       store.toggleScrappedItem(testItem)
@@ -166,8 +166,8 @@ describe("FoodHistoryStoreModel", () => {
       
       // Add item again
       store.toggleScrappedItem(testItem)
-      expect(store.scrappedItems.length).toBe(1)
-      expect(store.scrappedItems[0].id).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
+      expect(store.scrappedItems[0].id).toBe("1")
     })
   })
 
@@ -178,7 +178,7 @@ describe("FoodHistoryStoreModel", () => {
 
     it("should return items in reverse order (most recent first)", () => {
       const item1 = {
-        id: 1,
+        id: "1",
         name: "Pizza",
         distance: "1.2 km",
         image: "pizza.jpg",
@@ -188,7 +188,7 @@ describe("FoodHistoryStoreModel", () => {
       }
 
       const item2 = {
-        id: 2,
+        id: "2",
         name: "Burger",
         distance: "0.8 km",
         image: "burger.jpg",
@@ -198,7 +198,7 @@ describe("FoodHistoryStoreModel", () => {
       }
 
       const item3 = {
-        id: 3,
+        id: "3",
         name: "Salad",
         distance: "0.3 km",
         image: "salad.jpg",
@@ -212,15 +212,15 @@ describe("FoodHistoryStoreModel", () => {
       store.addScrappedItem(item3)
 
       const list = store.scrappedItemsList
-      expect(list.length).toBe(3)
-      expect(list[0].id).toBe(3) // Most recent first
-      expect(list[1].id).toBe(2)
-      expect(list[2].id).toBe(1)
+      expect(list.length).toBe("3")
+      expect(list[0].id).toBe("3") // Most recent first
+      expect(list[1].id).toBe("2")
+      expect(list[2].id).toBe("1")
     })
 
     it("should not mutate original array", () => {
       const item = {
-        id: 1,
+        id: "1",
         name: "Pizza",
         distance: "1.2 km",
         image: "pizza.jpg",
@@ -236,15 +236,15 @@ describe("FoodHistoryStoreModel", () => {
       list.push({} as any)
       
       // Original store should be unchanged
-      expect(store.scrappedItems.length).toBe(1)
-      expect(store.scrappedItemsList.length).toBe(1)
+      expect(store.scrappedItems.length).toBe("1")
+      expect(store.scrappedItemsList.length).toBe("1")
     })
   })
 
   describe("isScrapped view", () => {
     beforeEach(() => {
       const item = {
-        id: 1,
+        id: "1",
         name: "Pizza",
         distance: "1.2 km",
         image: "pizza.jpg",
@@ -256,19 +256,19 @@ describe("FoodHistoryStoreModel", () => {
     })
 
     it("should return true for scrapped item", () => {
-      expect(store.isScrapped(1)).toBe(true)
+      expect(store.isScrapped("1")).toBe(true)
     })
 
     it("should return false for non-scrapped item", () => {
-      expect(store.isScrapped(999)).toBe(false)
+      expect(store.isScrapped("999")).toBe(false)
     })
 
     it("should return false after item is removed", () => {
-      expect(store.isScrapped(1)).toBe(true)
+      expect(store.isScrapped("1")).toBe(true)
       
-      store.removeScrappedItem(1)
+      store.removeScrappedItem("1")
       
-      expect(store.isScrapped(1)).toBe(false)
+      expect(store.isScrapped("1")).toBe(false)
     })
   })
 
@@ -282,7 +282,7 @@ describe("FoodHistoryStoreModel", () => {
     it("should initialize with provided scrapped items", () => {
       const initialItems = [
         {
-          id: 1,
+          id: "1",
           name: "Pizza",
           distance: "1.2 km",
           image: "pizza.jpg",
@@ -296,7 +296,7 @@ describe("FoodHistoryStoreModel", () => {
         scrappedItems: initialItems
       })
 
-      expect(newStore.scrappedItems.length).toBe(1)
+      expect(newStore.scrappedItems.length).toBe("1")
       expect(newStore.scrappedItems[0].name).toBe("Pizza")
     })
   })

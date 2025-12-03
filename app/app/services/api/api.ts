@@ -713,6 +713,42 @@ export class Api {
     return response
   }
 
+  async uploadUserGalleryToAWS() {
+    // Upload user's gallery image metadata to AWS storage on logout
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.post("/scraps/upload-gallery-to-aws/")
+  }
+
+  async downloadUserGalleryFromAWS() {
+    // Download user's gallery image metadata from AWS storage on login
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.get("/scraps/download-gallery-from-aws/")
+  }
+
+  async restoreGalleryFromAWS(galleryData: any[]) {
+    // Restore gallery metadata to database from AWS backup
+    // ensure csrf header is present; get it if missing
+    // @ts-ignore - apisauce has no typed way to read headers set, so we check via getHeader
+    const header = (this.apisauce as any).defaults?.headers?.common?.["X-CSRFToken"]
+    if (!header) {
+      await this.getCsrf()
+    }
+    await this.attachCookiesHeader()
+    return this.apisauce.post("/photos/restore-from-aws/", galleryData)
+  }
+
 }
 
 // Singleton instance of the API for convenience

@@ -54,3 +54,7 @@ build-app.sh
 # Docs
 Design_Document.md
 Requirements_Specifications.md
+
+# local data file
+server/user_gallery/*
+server/user_scraps/*

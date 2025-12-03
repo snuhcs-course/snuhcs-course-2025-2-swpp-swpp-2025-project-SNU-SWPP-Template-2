@@ -17,7 +17,7 @@ jest.mock("lucide-react-native", () => ({
 }))
 
 const mockFoodItem: FoodItem = {
-  id: 1,
+  id: "1",
   name: "Test Food",
   distance: "0.5km",
   image: "https://example.com/food.jpg",

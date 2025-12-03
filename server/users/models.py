@@ -109,6 +109,39 @@ class UserScrap(models.Model):
         return f"{self.user.username} → {self.restaurant.name}"
 
 
+class UserRemoteScrap(models.Model):
+    """Store complete scrap data for remote sync (cross-device restoration)"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="remote_scraps")
+    
+    # Complete menu data for restoration
+    menu_id = models.CharField(max_length=100)  # External menu ID
+    menu_name = models.CharField(max_length=200)
+    place_name = models.CharField(max_length=200) 
+    price = models.IntegerField(null=True, blank=True)
+    category = models.CharField(max_length=100, blank=True)
+    location = models.CharField(max_length=300, blank=True)
+    rating = models.FloatField(null=True, blank=True)
+    review_count = models.IntegerField(null=True, blank=True)
+    image_url = models.URLField(blank=True)
+    coordinates = models.JSONField(default=list, blank=True)  # [lat, lng]
+    
+    # Sync metadata
+    scrapped_at = models.DateTimeField()  # Original scrap time from client
+    synced_at = models.DateTimeField(auto_now=True)  # When synced to remote
+    
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["user", "menu_id"], name="uniq_user_remote_scrap"),
+        ]
+        indexes = [
+            models.Index(fields=["user", "synced_at"]),
+            models.Index(fields=["user", "menu_id"]),
+        ]
+
+    def __str__(self):
+        return f"{self.user.username} → {self.menu_name} @ {self.place_name}"
+
+
 class UserInteraction(models.Model):
     """Track user interactions with menus and restaurants for RL reward learning."""
     INTERACTION_TYPES = [

@@ -14,8 +14,9 @@ import { observer } from "mobx-react-lite"
 import React, { useState, useEffect, useCallback } from "react"
 import { useColorScheme, AppState, AppStateStatus } from "react-native"
 import * as Screens from "app/screens"
+import { ExitConfirmationModal } from "app/components"
 import Config from "../config"
-import { navigationRef, useBackButtonHandler } from "./navigationUtilities"
+import { navigationRef, useBackButtonHandler, useExitConfirmation } from "./navigationUtilities"
 import { colors } from "app/theme"
 import * as storage from "app/utils/storage"
 import { api } from "app/services/api"
@@ -107,9 +108,17 @@ const AppStack = observer(function AppStack() {
           // Only load user data if not already logged in (initial login)
           // This prevents clearing stores when app comes to foreground
           if (isLoggedIn !== true) {
-            console.log("🔄 Session valid - loading user data from backend (initial login)")
+            console.log("🔄 Session valid - implementing clean login flow")
+            
+            // CLEAN LOGIN FLOW: Clear all cached data first
+            console.log("🧹 Step 1: Clearing all cached data")
+            await rootStore.clearAllCachedData()
+            
+            // Load fresh user data from remote storage
+            console.log("☁️ Step 2: Loading fresh user data from remote storage")
             await rootStore.loadUserDataFromBackend()
-            console.log("✅ User data loading completed - setting login state to true")
+            
+            console.log("✅ Clean login flow completed - setting login state to true")
           } else {
             console.log("✅ Session valid - user already logged in, preserving existing data")
           }
@@ -187,7 +196,14 @@ const AppStack = observer(function AppStack() {
       <Stack.Screen name="Welcome" component={Screens.WelcomeScreen} />
       <Stack.Screen name="Login" component={Screens.LoginScreen} />
       <Stack.Screen name="SignUp" component={Screens.SignUpScreen} />
-      <Stack.Screen name="Onboarding" component={Screens.OnboardingScreen} />
+      <Stack.Screen 
+        name="Onboarding" 
+        component={Screens.OnboardingScreen}
+        options={{
+          gestureEnabled: false, // Disable swipe back gesture
+          headerLeft: () => null, // Remove back button from header if header is shown
+        }}
+      />
       
       {/* App screens */}
       <Stack.Screen
@@ -216,16 +232,25 @@ export interface NavigationProps
 
 export const AppNavigator = observer(function AppNavigator(props: NavigationProps) {
   const colorScheme = useColorScheme()
+  const { exitModalVisible, showExitModal, hideExitModal, confirmExit } = useExitConfirmation()
 
-  useBackButtonHandler((routeName) => exitRoutes.includes(routeName))
+  useBackButtonHandler((routeName) => exitRoutes.includes(routeName), showExitModal, exitModalVisible)
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-      {...props}
-    >
-      <AppStack />
-    </NavigationContainer>
+    <>
+      <NavigationContainer
+        ref={navigationRef}
+        theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        {...props}
+      >
+        <AppStack />
+      </NavigationContainer>
+      
+      <ExitConfirmationModal
+        visible={exitModalVisible}
+        onCancel={hideExitModal}
+        onConfirm={confirmExit}
+      />
+    </>
   )
 })

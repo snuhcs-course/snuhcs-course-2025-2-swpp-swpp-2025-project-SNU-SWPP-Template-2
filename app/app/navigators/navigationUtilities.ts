@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { BackHandler, Linking, Platform } from "react-native"
 import {
   NavigationState,
@@ -46,15 +46,18 @@ export function getActiveRouteName(state: NavigationState | PartialState<Navigat
  * the navigation or allows exiting the app.
  * @see [BackHandler]{@link https://reactnative.dev/docs/backhandler}
  * @param {(routeName: string) => boolean} canExit - Function that returns whether we can exit the app.
+ * @param {() => void} showExitModal - Function to show the exit confirmation modal.
+ * @param {boolean} isModalVisible - Whether the exit modal is currently visible.
  * @returns {void}
  */
-export function useBackButtonHandler(canExit: (routeName: string) => boolean) {
+export function useBackButtonHandler(canExit: (routeName: string) => boolean, showExitModal?: () => void, isModalVisible?: boolean) {
   // ignore unless android... no back button!
   if (Platform.OS !== "android") return
 
   // The reason we're using a ref here is because we need to be able
   // to update the canExit function without re-setting up all the listeners
   const canExitRef = useRef(canExit)
+  const lastBackPressedRef = useRef<number>(0)
 
   useEffect(() => {
     canExitRef.current = canExit
@@ -70,10 +73,29 @@ export function useBackButtonHandler(canExit: (routeName: string) => boolean) {
       // grab the current route
       const routeName = getActiveRouteName(navigationRef.getRootState())
 
-      // are we allowed to exit?
-      if (canExitRef.current(routeName)) {
-        // exit and let the system know we've handled the event
-        BackHandler.exitApp()
+      // Check if we're on a screen that should use double-tap exit (main tabs + Welcome)
+      const doubleTapExitScreens = ["Welcome", "Foodigram", "Scrap", "Profile"]
+      if (doubleTapExitScreens.includes(routeName)) {
+        const now = Date.now()
+        
+        // If confirmation dialog is already showing, don't show another
+        if (isModalVisible) {
+          return true
+        }
+        
+        // Check for double-tap (within 2 seconds)
+        if (now - lastBackPressedRef.current < 2000) {
+          // Show exit confirmation modal
+          if (showExitModal) {
+            showExitModal()
+          } else {
+            // Fallback to direct exit if no modal callback provided
+            BackHandler.exitApp()
+          }
+        } else {
+          // First tap - just record the time
+          lastBackPressedRef.current = now
+        }
         return true
       }
 
@@ -92,6 +114,29 @@ export function useBackButtonHandler(canExit: (routeName: string) => boolean) {
     // Unsubscribe when we're done
     return () => BackHandler.removeEventListener("hardwareBackPress", onBackPress)
   }, [])
+}
+
+/**
+ * Hook for managing exit confirmation modal state
+ * @returns {object} Modal state and handlers
+ */
+export function useExitConfirmation() {
+  const [exitModalVisible, setExitModalVisible] = useState(false)
+
+  const showExitModal = () => setExitModalVisible(true)
+  const hideExitModal = () => setExitModalVisible(false)
+  
+  const confirmExit = () => {
+    hideExitModal()
+    BackHandler.exitApp()
+  }
+
+  return {
+    exitModalVisible,
+    showExitModal,
+    hideExitModal,
+    confirmExit,
+  }
 }
 
 /**

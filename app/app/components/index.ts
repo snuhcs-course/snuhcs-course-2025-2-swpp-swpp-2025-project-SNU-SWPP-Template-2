@@ -1,6 +1,7 @@
 export * from "./AutoImage"
 export * from "./Button"
 export * from "./Card"
+export * from "./ExitConfirmationModal"
 export * from "./FoodCard"
 export * from "./GalleryImageCard"
 export * from "./Header"
