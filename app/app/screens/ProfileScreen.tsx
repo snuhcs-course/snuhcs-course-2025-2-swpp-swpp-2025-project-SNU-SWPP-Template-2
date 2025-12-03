@@ -571,11 +571,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
                               await api.updateImageLabel(item.id, newLabel)
                               // Refresh photos list after updating label
                               await getUserPhotos()
-                              // Signal FoodigramScreen to refresh recommendations (user updated image label)
-                              navigation.navigate("Foodigram", {
-                                refreshRecommendations: true,
-                                refreshReason: "food_label_changed"
-                              } as any)
+                              // Stay on ProfileScreen - don't navigate away
+                              // The recommendations will be refreshed when user navigates to Foodigram tab
                             } catch (e) {
                               Alert.alert("오류", "라벨 업데이트 실패")
                             }
@@ -730,11 +727,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = observer(function Pro
         visible={isPreferencesModalVisible}
         onClose={() => setIsPreferencesModalVisible(false)}
         onPreferencesSaved={() => {
-          // Signal FoodigramScreen to refresh recommendations (user updated preferences)
-          navigation.navigate("Foodigram", {
-            refreshRecommendations: true,
-            refreshReason: "preferences_updated"
-          } as any)
+          // Stay on ProfileScreen after preferences update
+          // The recommendations will be refreshed when user navigates to Foodigram tab
+          setIsPreferencesModalVisible(false)
         }}
       />
 

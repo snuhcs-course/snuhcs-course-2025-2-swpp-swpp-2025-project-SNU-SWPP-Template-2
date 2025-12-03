@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react"
 import { observer } from "mobx-react-lite"
-import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText, Animated } from "react-native"
+import { View, ViewStyle, TextStyle, TouchableOpacity, ScrollView, Alert, Text as RNText, Animated, BackHandler } from "react-native"
 import { Text, LocationWarningModal, StorageWarningModal, PreferencesCompleteModal } from "app/components"
 import { AppStackScreenProps } from "app/navigators"
 import { colors, spacing } from "app/theme"
@@ -246,6 +246,22 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
       setCurrentStepIdx(currentStepIdx - 1)
     }
   }
+
+  // Prevent hardware back button from going back to initial screen
+  useEffect(() => {
+    const onBackPress = () => {
+      // If on first step (location), don't allow going back to Welcome/Login/SignUp
+      if (currentStepIdx === 0) {
+        return true // Handled - prevent default back behavior
+      }
+      // For other steps, use the built-in handleBack function
+      handleBack()
+      return true // Handled
+    }
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress)
+    return () => subscription.remove()
+  }, [currentStepIdx])
 
   const handleSkip = () => {
     if (currentStep === "location") {
@@ -691,9 +707,14 @@ export const OnboardingScreen = observer(function OnboardingScreen({ navigation 
             </>
           )
         }).with("cuisine", () => (
-          <TouchableOpacity style={$continueButton} onPress={handleComplete} disabled={isLoading}>
-            <RNText style={$continueButtonText}>완료</RNText>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity style={$continueButton} onPress={handleComplete} disabled={isLoading}>
+              <RNText style={$continueButtonText}>완료</RNText>
+            </TouchableOpacity>
+            <TouchableOpacity style={$skipButton} onPress={handleBack} disabled={isLoading}>
+              <RNText style={$skipText}>뒤로</RNText>
+            </TouchableOpacity>
+          </>
         )).otherwise(() => (
           <></>
         ))}
