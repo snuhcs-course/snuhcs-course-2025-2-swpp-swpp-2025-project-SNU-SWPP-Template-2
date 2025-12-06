@@ -1,22 +1,7 @@
-import traceback
-import abc
-from typing import Iterable, Optional
-
 import boto3
 
-from S3 import _get_env, debug_print
-
-
-def _get_first_env(*keys: str) -> Optional[str]:
-    """
-    내부 헬퍼: _get_env 를 그대로 래핑 (가독성용).
-    """
-    return _get_env(*keys)
-
-class Factory(abc.ABC):
-    @abc.abstractmethod
-    def create(self, key_type: str):
-        pass
+from S3 import _get_env
+from utils.factory import Factory
 
 class S3ClientFactory(Factory):
     """
