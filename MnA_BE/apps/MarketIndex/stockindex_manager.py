@@ -26,6 +26,7 @@ except ImportError:
     def get_uat_date():
         return None
 
+
 # Get the directory where this script is located
 BASE_DIR = Path(__file__).resolve().parent
 
