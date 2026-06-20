@@ -1,0 +1,44 @@
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:clipChildren="false"
+    android:clipToPadding="false">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/bubble_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/memo_bubble_default">
+
+        <TextView
+            android:id="@+id/memo_text"
+            android:layout_width="256dp"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:includeFontPadding="false"
+            android:text="내용"
+            android:textColor="@android:color/black"
+            android:textSize="@dimen/text_size_S"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <TextView
+        android:id="@+id/memo_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="21:05"
+        android:textSize="@dimen/text_size_XS"
+        android:textColor="@android:color/white"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="20dp" />
+
+</FrameLayout>

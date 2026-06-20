@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+
+    <application
+        android:name=".MyApplication"
+        android:allowBackup="true"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.First"
+        android:usesCleartextTraffic="true"
+        android:launchMode="singleTask">
+
+        <activity
+            android:name="com.yalantis.ucrop.UCropActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
+        <activity
+            android:name=".RegisterationActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            />
+        <activity
+            android:name=".LoginActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name="com.example.sumdays.TutorialActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.Sumdays.TutorialDialog" />
+        <activity
+            android:name=".DailyWriteActivity"
+            android:screenOrientation="portrait"
+            android:exported="true"
+            android:windowSoftInputMode="adjustNothing"
+            android:theme="@style/Theme.First" />
+        <activity
+            android:name=".DailyReadActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:windowSoftInputMode="adjustPan"
+            android:theme="@style/Theme.First" />
+        <activity
+            android:name=".DailySumActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".SettingActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".ShopActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".CalendarActivity"
+            android:screenOrientation="portrait"
+            android:exported="false"
+            android:theme="@style/Theme.First" />
+        <activity
+            android:name=".SearchActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".StatisticsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".StatisticsWidgetActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".statistics.WeekStatsDetailActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <!--  settings  -->
+        <activity android:name=".ProfileActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity android:name=".settings.AccountSettingsActivity"
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan"
+            android:exported="false" />
+        <activity android:name=".settings.DiaryStyleSettingsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity android:name=".settings.NotificationSettingsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity android:name=".settings.LabsSettingsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity android:name=".settings.ThemeSettingsActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".settings.EditProfileActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity android:name=".social.SocialActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".settings.StyleExtractionActivity"
+            android:exported="false"
+            android:label="스타일 추출"
+            android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait" />
+
+        <!-- -->
+
+        <activity android:name=".social.SocialDetailActivity" />
+        <activity
+            android:name=".MainActivity"
+            android:screenOrientation="portrait"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.First">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <receiver
+            android:name=".reminder.ReminderReceiver"
+            android:enabled="true"
+            android:exported="true" />
+        <receiver
+            android:name=".reminder.ReminderReplyReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.example.sumdays.ACTION_REPLY" />
+            </intent-filter>
+        </receiver>
+        <receiver
+            android:name=".reminder.ReminderUndoReceiver"
+            android:enabled="true"
+            android:exported="false" />
+
+
+    </application>
+
+
+</manifest>

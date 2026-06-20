@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Sumdays</string>
+    <string name="month_year_format">yyyy년 M월</string>
+    <string name="month_year_format_english">MMMM, yyyy</string>
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="0dp"
+    android:layout_height="50dp"
+    android:layout_weight="1"
+    android:layout_marginHorizontal="4dp"
+    android:padding="4dp">
+
+    <!-- 요일 이름 텍스트뷰 -->
+    <TextView
+        android:id="@+id/day_name_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="월"
+        android:fontFamily="@font/siu"
+        android:layout_marginTop="22dp"
+        android:layout_marginStart="22dp"
+        android:textSize="@dimen/text_size_XL"
+        android:textStyle="bold" />
+
+</FrameLayout>

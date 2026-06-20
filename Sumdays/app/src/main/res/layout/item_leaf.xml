@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="160dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:gravity="center">
+
+    <ImageButton
+        android:id="@+id/btnWeeklyStats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@android:color/transparent"
+        android:src="@drawable/statistics_leaf_right"
+        android:paddingBottom="40dp" />
+
+        <TextView
+        android:id="@+id/text_leaf_index"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginStart="75dp"
+        android:fontFamily="@font/odaesan"
+        android:textSize="@dimen/text_size_XXL"
+        android:textColor="@android:color/holo_orange_dark"
+        tools:text="60" />
+
+    <ImageView
+        android:id="@+id/fox_on_branch"
+        android:layout_width="120dp"
+        android:layout_height="100dp"
+        android:src="@drawable/statistics_fox_on_branch"
+        android:translationY="-70dp"/>
+
+    <TextView
+        android:id="@+id/text_leaf_startdate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="65dp"
+        android:layout_marginStart="40dp"
+        android:textSize="@dimen/text_size_S"
+        android:textStyle="bold"
+        android:textColor="@android:color/white"
+        android:background="#80800000"
+        android:padding="4dp"
+        android:fontFamily="@font/siu"
+        tools:text="2025-10-01" />
+
+</FrameLayout>

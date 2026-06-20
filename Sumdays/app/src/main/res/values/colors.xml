@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Tutorial Activity -->
+    <color name="dot_dark_screen">#272A35</color> <!-- 선택되지 않은 점 -->
+    <color name="dot_light_screen">#9B9C9E</color> <!-- 선택된 점 -->
+    <array name="array_dot_active">
+        <item>@color/dot_light_screen</item>
+        <item>@color/dot_light_screen</item>
+        <item>@color/dot_light_screen</item>
+        <item>@color/dot_light_screen</item>
+        <item>@color/dot_light_screen</item>
+    </array>
+    <array name="array_dot_inactive">
+        <item>@color/dot_dark_screen</item>
+        <item>@color/dot_dark_screen</item>
+        <item>@color/dot_dark_screen</item>
+        <item>@color/dot_dark_screen</item>
+        <item>@color/dot_dark_screen</item>
+    </array>
+
+    <color name="green_light">#81C784</color> <!-- daily write recording -->
+
+    <color name="black">#000000</color>
+    <color name="gray">#9E9E9E</color>
+    <color name="gray_dark">#424242</color>
+    <color name="white">#FFFFFF</color>
+
+    <color name="dark_item_card_background">#333740</color>
+    <color name="overlay_background">#80000000</color>
+    <color name="dark_item_photo_background">#555555</color>
+
+    <color name="foxrange">#d03b2f</color>
+    <color name="dark_foxrange">#7c0200</color>
+
+    <color name="icon_color">#988280</color>
+    <color name="dark_divider">#E0E0E0</color>
+
+    <color name="text_color_hint">#888888</color>
+    <color name="text_highlight_red">#CC0000</color>
+
+    <!--네비 바 색상, 이후 테마별로 활용하게 되면 분화 -->
+    <color name="nav_bg_color">#DBC4B4</color>
+
+    <!-- res/values/colors.xml (라이트용) -->
+    <color name="background">#FFFFFF</color>
+    <color name="textColor">#000000</color>
+
+
+    <!-- default 테마 주요 색 -->
+    <color name="theme_default">#FFFFFF</color> //안쓰이는중. 참고
+    <color name="theme_default_primary">#d03b2f</color>
+    <color name="theme_default_background">#f7f5ef</color>
+    <color name="theme_default_block">#ffffff</color>
+    <color name="theme_default_textcolor_basic">#000000</color>
+    <color name="theme_default_textcolor_special">#7c0200</color>
+
+    <!-- forest 테마 주요 색 -->
+    <color name="theme_forest_green">#2E7D32</color>
+    <color name="theme_forest_bg">#F1F8F4</color>
+    <color name="theme_forest_block">#C8E6C9</color>
+    <color name="theme_forest_textcolor_basic">#000000</color>
+    <color name="theme_forest_textcolor_special">#2E7D32</color>
+
+
+
+</resources>

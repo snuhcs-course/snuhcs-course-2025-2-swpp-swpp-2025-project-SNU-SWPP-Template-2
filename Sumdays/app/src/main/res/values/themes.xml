@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App theme -->
+    <style name="Theme.First" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- 커스텀 색상 -->
+        <item name="colorPrimary">@android:color/holo_blue_light</item>
+        <item name="colorPrimaryDark">@android:color/holo_blue_dark</item>
+        <item name="colorAccent">@android:color/holo_orange_light</item>
+<!--        <item name="android:fontFamily">@font/notosans</item>-->
+<!--        <item name="fontFamily">@font/notosans</item>-->
+    </style>
+</resources>
